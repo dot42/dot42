@@ -1,0 +1,9 @@
+[submodule "Mono.Cecil"]
+	path = Mono.Cecil
+	url = https://github.com/dot42/cecil.git
+[submodule "SharpDevelop"]
+	path = SharpDevelop
+	url = https://github.com/dot42/SharpDevelop.git
+[submodule "Sources/Framework"]
+	path = Sources/Framework
+	url = https://github.com/dot42/api.git
