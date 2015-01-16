@@ -1,0 +1,157 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{E939B91C-F654-4674-FF11-76A1C8039617}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Dot42.ImportJarLib</RootNamespace>
+    <AssemblyName>dot42.ImportJarLib</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+    <SignAssembly>false</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\Dot42.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Version.cs" />
+    <Compile Include="AndroidTypeSystem.cs" />
+    <Compile Include="BuilderExtensions.cs" />
+    <Compile Include="CodeGenerator.cs" />
+    <Compile Include="TypeNameMap.CreateNetDefs.cs" />
+    <Compile Include="FinalizeStates.cs" />
+    <Compile Include="IInterfaceConstantsTypeBuilder.cs" />
+    <Compile Include="MethodGroup.cs" />
+    <Compile Include="Custom\CustomTypeBuilder.cs" />
+    <Compile Include="Custom\ICustomTypeBuilder.cs" />
+    <Compile Include="Doxygen\CommentBuilder.cs" />
+    <Compile Include="Doxygen\CommentSection.cs" />
+    <Compile Include="Doxygen\DocPrimitiveType.cs" />
+    <Compile Include="Doxygen\DocArrayType.cs" />
+    <Compile Include="Doxygen\IDocResolvedTypeRef.cs" />
+    <Compile Include="Doxygen\DocClass.cs" />
+    <Compile Include="Doxygen\DocDescription.cs" />
+    <Compile Include="Doxygen\DocField.cs" />
+    <Compile Include="Doxygen\DocMember.cs" />
+    <Compile Include="Doxygen\DocMemberList.cs" />
+    <Compile Include="Doxygen\DocMethod.cs" />
+    <Compile Include="Doxygen\DocModel.cs" />
+    <Compile Include="Doxygen\DocParameter.cs" />
+    <Compile Include="Doxygen\DocTypeRef.cs" />
+    <Compile Include="Doxygen\IDocTypeNameResolver.cs" />
+    <Compile Include="Doxygen\IDocTypeRef.cs" />
+    <Compile Include="Extensions\Cecil.cs" />
+    <Compile Include="Extensions\Clone.cs" />
+    <Compile Include="FieldBuilder.cs" />
+    <Compile Include="FrameworkAssemblyResolver.cs" />
+    <Compile Include="FrameworkListBuilder.cs" />
+    <Compile Include="GenericParameters.cs" />
+    <Compile Include="IBuilderGenericContext.cs" />
+    <Compile Include="ICodeGeneratorContext.cs" />
+    <Compile Include="ImportException.cs" />
+    <Compile Include="ITypeMapResolver.cs" />
+    <Compile Include="JarImporter.cs" />
+    <Compile Include="Keywords.cs" />
+    <Compile Include="Mapped\IMappedTypeBuilder.cs" />
+    <Compile Include="Mapped\MappedTypeBuilder.cs" />
+    <Compile Include="MethodBuilder.cs" />
+    <Compile Include="MethodMap.cs" />
+    <Compile Include="MethodNameInfo.cs" />
+    <Compile Include="MethodRenamer.cs" />
+    <Compile Include="Model\IFlushable.cs" />
+    <Compile Include="Model\NetMethodDefinition.OverrideCollection.cs" />
+    <Compile Include="Model\ICustomCollection.cs" />
+    <Compile Include="Model\INetMemberVisibility.cs" />
+    <Compile Include="Model\NetNullableType.cs" />
+    <Compile Include="Model\CustomCollection.cs" />
+    <Compile Include="Model\Extensions.cs" />
+    <Compile Include="Model\INetGenericParameterProvider.cs" />
+    <Compile Include="Model\INetMemberDefinition.cs" />
+    <Compile Include="Model\INetTypeVisitor.cs" />
+    <Compile Include="Model\NetArrayType.cs" />
+    <Compile Include="Model\NetCustomAttribute.cs" />
+    <Compile Include="Model\NetFieldDefinition.cs" />
+    <Compile Include="Model\NetGenericInstanceType.cs" />
+    <Compile Include="Model\NetGenericParameter.cs" />
+    <Compile Include="Model\NetMemberDefinitionCollection.cs" />
+    <Compile Include="Model\NetMethodDefinition.cs" />
+    <Compile Include="Model\NetModule.cs" />
+    <Compile Include="Model\NetParameterDefinition.cs" />
+    <Compile Include="Model\NetPropertyDefinition.cs" />
+    <Compile Include="Model\NetTypeDefinition.cs" />
+    <Compile Include="Model\NetTypeReference.cs" />
+    <Compile Include="NestedInterfaceConstantsTypeBuilder.cs" />
+    <Compile Include="NestedTypeBuilder.cs" />
+    <Compile Include="PropertyBuilder.cs" />
+    <Compile Include="SdkConstants.cs" />
+    <Compile Include="SdkProperties.cs" />
+    <Compile Include="SourceProperties.cs" />
+    <Compile Include="StandardInterfaceConstantsTypeBuilder.cs" />
+    <Compile Include="StandardTypeBuilder.cs" />
+    <Compile Include="TargetFramework.cs" />
+    <Compile Include="TypeBuilder.cs" />
+    <Compile Include="TypeNameMap.cs" />
+    <Compile Include="Visibility.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Mono.Cecil\Mono.Cecil.DeepSea.csproj">
+      <Project>{13F162A6-BB55-40B6-BB77-22D5C0B4A386}</Project>
+      <Name>Mono.Cecil.DeepSea</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FrameworkDefinitions\FrameworkDefinitions.csproj">
+      <Project>{13F162A6-AA66-BB55-CC77-7AD5C0B4BB22}</Project>
+      <Name>FrameworkDefinitions</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\JvmClassLib\JvmClassLib.csproj">
+      <Project>{13F162A6-F530-40B6-A258-7AD5C0B4A386}</Project>
+      <Name>JvmClassLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\LoaderLib\LoaderLib.csproj">
+      <Project>{13F162A6-DD45-F343-1234-7ADBD4323486}</Project>
+      <Name>LoaderLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Utility\Utility.csproj">
+      <Project>{13F162A6-F530-40B3-1234-7AD5C0B4A386}</Project>
+      <Name>Utility</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy /Y $(TargetDir)*.* $(SolutionDir)\Build\Application\</PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

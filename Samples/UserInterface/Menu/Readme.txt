@@ -1,0 +1,1 @@
+This sample shows the basic use of the MenuBar.

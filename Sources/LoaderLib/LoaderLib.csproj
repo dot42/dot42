@@ -1,0 +1,85 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{13F162A6-DD45-F343-1234-7ADBD4323486}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Dot42.LoaderLib</RootNamespace>
+    <AssemblyName>dot42.LoaderLib</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SignAssembly>false</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\Dot42.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Version.cs" />
+    <Compile Include="DotNet\SnToolResolver.cs" />
+    <Compile Include="Extensions\DexImport.cs" />
+    <Compile Include="Extensions\JavaClassImport.cs" />
+    <Compile Include="Java\AssemblyClassLoader.AssemblyClasses.cs" />
+    <Compile Include="Java\AssemblyClassLoader.cs" />
+    <Compile Include="Java\AssemblyClassLoader.DexImport.cs" />
+    <Compile Include="Java\AssemblyClassLoader.JavaClass.cs" />
+    <Compile Include="DotNet\AssemblyResolver.cs" />
+    <Compile Include="Java\ClassNotFoundException.cs" />
+    <Compile Include="Java\AssemblyClassLoader.DexImportMethod.cs" />
+    <Compile Include="Java\AssemblyClassLoader.DexImportField.cs" />
+    <Compile Include="Java\AssemblyClassLoader.JavaCode.cs" />
+    <Compile Include="LoaderException.cs" />
+    <Compile Include="DotNet\SafeSymbolReaderProvider.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Mono.Cecil\Mono.Cecil.DeepSea.csproj">
+      <Project>{13F162A6-BB55-40B6-BB77-22D5C0B4A386}</Project>
+      <Name>Mono.Cecil.DeepSea</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FrameworkDefinitions\FrameworkDefinitions.csproj">
+      <Project>{13F162A6-AA66-BB55-CC77-7AD5C0B4BB22}</Project>
+      <Name>FrameworkDefinitions</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\JvmClassLib\JvmClassLib.csproj">
+      <Project>{13F162A6-F530-40B6-A258-7AD5C0B4A386}</Project>
+      <Name>JvmClassLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Utility\Utility.csproj">
+      <Project>{13F162A6-F530-40B3-1234-7AD5C0B4A386}</Project>
+      <Name>Utility</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

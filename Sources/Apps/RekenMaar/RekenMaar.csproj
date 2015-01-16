@@ -1,0 +1,109 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{05A77AB7-EAFA-49C4-B1B4-9942C6652A14}</ProjectGuid>
+    <ProjectTypeGuids>{337B7DB7-2D1E-448D-BEBF-17E887A46E37};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>RekenMaar</RootNamespace>
+    <AssemblyName>RekenMaar</AssemblyName>
+    <TargetFrameworkIdentifier>Android</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v4.0.3</TargetFrameworkVersion>
+    <AndroidVersion>$(TargetFrameworkVersion)</AndroidVersion>
+    <SupportedCultures>
+    </SupportedCultures>
+    <ApkOutputs>true</ApkOutputs>
+    <GenerateAndroidManifest>true</GenerateAndroidManifest>
+    <ApkFilename>dot42RekenMaar.apk</ApkFilename>
+    <PackageName>com.dot42.RekenMaar</PackageName>
+    <Dot42ExtensionsPath Condition=" '$(Dot42ExtensionsPath)' == '' ">$(Registry:HKEY_CURRENT_USER\SOFTWARE\TallApplications\Dot42@ExtensionsPath)</Dot42ExtensionsPath>
+    <Dot42ExtensionsPath Condition=" '$(Dot42ExtensionsPath)' == '' ">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\TallApplications\Dot42@ExtensionsPath)</Dot42ExtensionsPath>
+    <ApkCertificatePath>..\dot42.pfx</ApkCertificatePath>
+    <ApkCertificateThumbprint>F3047BEB0C234E7B5B37BE6579844C10532AFE1E</ApkCertificateThumbprint>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>Bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;TRACE;DOT42</DefineConstants>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>Bin\Release</OutputPath>
+    <DefineConstants>TRACE;DOT42</DefineConstants>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Dot42" />
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Activities\Preferences.cs" />
+    <Compile Include="Activities\SettingsActivity.cs" />
+    <Compile Include="Games\AdditionGame.cs" />
+    <Compile Include="Games\RandomValueGenerator.cs" />
+    <Compile Include="Games\SubtractionGame.cs" />
+    <Compile Include="Games\DivisionTableGame.cs" />
+    <Compile Include="Games\GameFactory.cs" />
+    <Compile Include="Games\GameParameters.cs" />
+    <Compile Include="Games\MultiplicationTableGame.cs" />
+    <Compile Include="Interfaces\IGame.cs" />
+    <Compile Include="Activities\MainActivity.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <LayoutResource Include="Layouts\MainLayout.xml">
+      <SubType>Designer</SubType>
+    </LayoutResource>
+  </ItemGroup>
+  <Import Project="$(Dot42ExtensionsPath)\Dot42.CSharp.targets" />
+  <ItemGroup>
+    <Compile Include="$(ResourcesGeneratedCodePath)R.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <MenuResource Include="Resources\Menu.xml" />
+    <ValuesResource Include="Resources\Strings1.xml">
+      <SubType>Designer</SubType>
+    </ValuesResource>
+    <ValuesResource Include="Resources\Styles.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <LayoutResource Include="Layouts\SettingActivityLayout.xml">
+      <SubType>Designer</SubType>
+    </LayoutResource>
+  </ItemGroup>
+  <ItemGroup>
+    <LayoutResource Include="Layouts\TextView.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <DrawableResource Include="Resources\Icon-hdpi.png" />
+    <DrawableResource Include="Resources\Icon-ldpi.png" />
+    <DrawableResource Include="Resources\Icon-mdpi.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ValuesResource Include="Resources\Strings1-en.xml">
+      <SubType>Designer</SubType>
+    </ValuesResource>
+  </ItemGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <ProjectExtensions />
+</Project>

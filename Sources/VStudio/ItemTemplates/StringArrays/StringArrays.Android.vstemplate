@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Item" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
+  <TemplateData>
+    <Name>String array table resource</Name>
+    <Description>String arrays resource</Description>
+    <Icon></Icon>
+    <TemplateID>Dot42.Android.CSharp.StringArrays</TemplateID>
+    <ProjectType>CSharp</ProjectType>
+    <DefaultName>StringArrays.xml</DefaultName>
+    <TemplateGroupID>dot42</TemplateGroupID>
+    <NumberOfParentCategoriesToRollUp>0</NumberOfParentCategoriesToRollUp>
+  </TemplateData>
+  <TemplateContent>
+    <ProjectItem ReplaceParameters="true" ItemType="ValuesResource">StringArrays.xml</ProjectItem>
+  </TemplateContent>
+</VSTemplate>

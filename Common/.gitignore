@@ -1,0 +1,9 @@
+bin/
+obj/
+Out/
+*.suo
+*.sln.cache
+*.user
+
+/RegressionTests/Test.log
+*.DotSettings

@@ -1,0 +1,1 @@
+This sample shows how to apply a custom style on your app.

@@ -1,0 +1,57 @@
+﻿<?xml version="1.0"?>
+<Template 
+	author="Ewout Prangsma"
+	created="02/05/2013"
+	lastModified="02/05/2013"
+	version="1.0">
+	
+	<Config
+		name="Activity"
+		icon="C#.File.NewClass"
+		category="C#"
+		subcategory="dot42"
+		defaultname="Activity${Number}.cs"
+		language="C#"/>
+	 
+	<Description>Activity</Description>
+	
+	<Files>
+		<File name="${FullName}" language="C#">
+<![CDATA[${StandardHeader.C#}
+using System;
+using Android.App;
+using Android.Os;
+using Android.Widget;
+using Dot42;
+using Dot42.Manifest;
+
+namespace ${StandardNamespace}
+{
+    [Activity(Label = "${ClassName}", VisibleInLauncher = false)]
+    public class ${ClassName} : Activity
+    {
+        protected override void OnCreate(Bundle savedInstance) 
+        {
+            base.OnCreate(savedInstance);
+            SetContentView(R.Layouts.${ClassName}_Layout);
+        }
+   }
+}
+]]>
+		</File>
+		<File name="${Path}/${FileNameWithoutExtension}.Layout.xml" language="XML" DependentUpon="${FullName}" buildAction="LayoutResource"><![CDATA[<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Hello world" />
+
+</LinearLayout>
+]]>
+		</File>
+	</Files>
+</Template>

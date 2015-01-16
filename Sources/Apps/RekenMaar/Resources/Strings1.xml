@@ -1,0 +1,22 @@
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+  <string name="menu_options">Instellingen</string>
+  <string name="button_erase">Gum</string>
+  <string name="button_ok">OK</string>
+  <string name="settings_div_mul_title">Instellingen vermenigvuldigen en delen</string>
+  <string name="settings_choosen_txt">Gekozen (deel)tafel: </string>
+  <string name="on_txt">Aan</string>
+  <string name="off_txt">Uit</string>
+  <string name="tables_until">(Deel)Tafels tot </string>
+  <string name="settings_add_sub_title">Instellingen optellen en aftrekken</string>
+  <string name="count_until">Tellen tot </string>
+  <string name="count_with">Tellen met </string>
+  <string name="button_cancel">Cancel</string>
+  <string name="answer_correct">Goed</string>
+  <string name="answer_incorrect">Fout</string>
+  <string-array name="gameType_array">
+    <item>Vermenigvuldigen</item>
+    <item>Delen</item>
+    <item>Optellen</item>
+    <item>Aftrekken</item>
+  </string-array>
+</resources>

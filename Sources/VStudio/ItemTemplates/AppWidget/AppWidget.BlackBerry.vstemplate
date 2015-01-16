@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Item" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
+  <TemplateData>
+    <Name>AppWidget</Name>
+    <Description>App Widget template</Description>
+    <Icon></Icon>
+    <TemplateID>Dot42.BlackBerry.CSharp.AppWidget</TemplateID>
+    <ProjectType>CSharp</ProjectType>
+    <DefaultName>AppWidget.cs</DefaultName>
+    <TemplateGroupID>dot42</TemplateGroupID>
+    <NumberOfParentCategoriesToRollUp>0</NumberOfParentCategoriesToRollUp>
+  </TemplateData>
+  <TemplateContent>
+    <References>
+      <Reference>
+        <Assembly>dot42</Assembly>
+      </Reference>
+    </References>
+    <ProjectItem ReplaceParameters="true" SubType="AppWidgetProvider">AppWidget.cs</ProjectItem>
+    <ProjectItem ReplaceParameters="true" TargetFileName="$fileinputname$.Layout.xml" ItemType="LayoutResource">AppWidget.Layout.xml</ProjectItem>
+  </TemplateContent>
+</VSTemplate>

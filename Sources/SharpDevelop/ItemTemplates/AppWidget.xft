@@ -1,0 +1,53 @@
+﻿<?xml version="1.0"?>
+<Template 
+	author="Ewout Prangsma"
+	created="02/05/2013"
+	lastModified="02/05/2013"
+	version="1.0">
+	
+	<Config
+		name="AppWidget"
+		icon="C#.File.NewClass"
+		category="C#"
+		subcategory="dot42"
+		defaultname="AppWidget${Number}.cs"
+		language="C#"/>
+	 
+	<Description>App Widget Template</Description>
+	
+	<Files>
+		<File name="${FullName}" language="C#" SubType="AppWidgetProvider">
+<![CDATA[${StandardHeader.C#}
+using System;
+using Android.App;
+using Android.Appwidget;
+using Android.Os;
+using Android.Widget;
+using Dot42;
+using Dot42.Manifest;
+
+namespace ${StandardNamespace}
+{
+    [AppWidgetProvider(Label = "${ClassName}", MinWidth = "60dp", MinHeight = "60dp", InitialLayout = "${ClassName}_Layout")]
+    public class ${ClassName} : AppWidgetProvider
+    {
+	}
+}
+]]>
+		</File>
+		<File name="${Path}/${FileNameWithoutExtension}.Layout.xml" language="XML" DependentUpon="${FullName}" buildAction="LayoutResource"><![CDATA[<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="${ClassName}" />
+
+</LinearLayout>
+]]>
+		</File>
+	</Files>
+</Template>

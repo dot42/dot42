@@ -1,0 +1,65 @@
+<project name='ObfuscatorContextMenu' default='rebuild'>
+
+	<property name="sdkversion" value="v7.0A"/>
+	<property name="basedir" value="${project::get-base-directory()}"/>
+	<include buildfile="${basedir}\..\..\Common\Build\Common-VC.build"/>
+
+	<property name='srcdir' value='src'/>
+	<property name='resdir' value='res'/>
+	<property name='objdir' value='obj'/>
+	<property name='bindir' value='bin'/>
+	<property name='output' value='${bindir}\dot42.Setup.dll'/>
+	<property name='dlldef' value='${srcdir}\psvince.def'/>
+	<property name='dllrcs' value='${srcdir}\verinfo.rc'/>
+	<property name='dllres' value='${objdir}\verinfo.res'/>
+
+	<target name='build' depends='link' description='Builds the shell extension'/>
+	<target name='rebuild' depends='clean build' description='Rebuilds the shell extension'/>
+
+	<target name='prepare' depends='clean'>
+		<mkdir dir='${objdir}'/>
+		<mkdir dir='${bindir}'/>
+	</target>
+ 
+	<target name='clean' description='Removes all the generated files'>
+		<delete dir="${objdir}"/>
+		<delete dir="${bindir}"/>
+	</target>
+ 
+	<target name='compile' depends='prepare'>
+		<setenv name="PATH" value="${sdktoolsdir};${vcdir}\bin;${vcdir}\..\Common7\IDE;%PATH%"/>
+		<exec program='${rcdir}\rc' commandline='/I"${sdkinc}" /I"${sdk7inc}" /I"${vcinc}" /I"${w32inc}" /FO"${dllres}" "${dllrcs}"'/>
+	
+		<cl outputdir='${objdir}' options='/Od /LD /I"${sdkinc}" /I"${sdk7inc}" /I"${mfcinc}" /I"${w32inc}" /I"${vcinc}"'>
+			<sources>
+				<include name='${srcdir}\*.cpp'/>
+			</sources>
+		</cl>
+	</target>
+    
+	<target name='link' depends='compile'>   
+		<link output='${output}' options='/DLL /MACHINE:X86 /DEF:${dlldef}'>
+			<sources>
+				<include name='${sdk32lib}\mscoree.lib'/>
+				<include name='${objdir}\*.obj'/>
+				<include name='${objdir}\*.res'/>
+			</sources>
+			<libdirs>
+				<include name='${sdk32lib}'/>
+				<include name='${sdk732lib}'/>
+				<include name='${vc32lib}'/>
+				<include name='${mfc32lib}'/> 
+				<include name='${w32lib}'/>
+			</libdirs>
+		</link>
+
+		<property name="appdir" value="${basedir}\..\..\Build\application"/>
+		<mkdir dir="${appdir}"/>
+		<copy todir="${appdir}">
+			<fileset basedir="${bindir}">
+				<include name="*.dll"/>
+				<include name="*.manifest"/>
+			</fileset>
+		</copy>
+	</target>
+</project>

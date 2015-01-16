@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Item" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
+  <TemplateData>
+    <Name>Layout resource</Name>
+    <Description>Layout resource</Description>
+    <Icon>Layout.ico</Icon>
+    <TemplateID>Dot42.Android.CSharp.Layout</TemplateID>
+    <ProjectType>CSharp</ProjectType>
+    <DefaultName>Layout.xml</DefaultName>
+    <TemplateGroupID>dot42</TemplateGroupID>
+    <NumberOfParentCategoriesToRollUp>0</NumberOfParentCategoriesToRollUp>
+  </TemplateData>
+  <TemplateContent>
+    <ProjectItem ReplaceParameters="true" ItemType="LayoutResource">Layout.xml</ProjectItem>
+  </TemplateContent>
+</VSTemplate>

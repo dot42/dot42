@@ -1,0 +1,33 @@
+﻿<!--
+***********************************************************************************************
+BuildTools.MSBuildTasks.targets
+
+WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and have
+          created a backup copy.  Incorrect changes to this file will make it
+          impossible to load or build your projects from the command-line or the IDE.
+
+This file defines the common steps in the build process of a Dot42 application.
+
+Copyright (C) TallComponents BV. All rights reserved.
+***********************************************************************************************
+-->
+
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+	<PropertyGroup>
+		<VsSDKIncludes>$(VsSDKInstall)\Inc</VsSDKIncludes>
+		<VsSDKToolsPath>$(VsSDKInstall)\..\Tools\Bin</VsSDKToolsPath>
+		<CompileDependsOn>SetSdkEnvironment;$(CompileDependsOn)</CompileDependsOn>
+		<VSCTCompileDependsOn>SetSdkEnvironment;$(VSCTCompileDependsOn)</VSCTCompileDependsOn>
+	</PropertyGroup>
+
+	<Target Name="SetSdkEnvironment">
+		<SetEnv Variable="VsSDKInstall" Value="$(VsSDKInstall)"/>
+		<SetEnv Variable="VsSDKIncludes" Value="$(VsSDKIncludes)"/>
+		<SetEnv Variable="VsSDKToolsPath" Value="$(VsSDKToolsPath)"/>
+	</Target>
+	
+  <Import Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v11.0\VSSDK\Microsoft.VsSDK.Common.props" />
+  <Import Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v11.0\VSSDK\Microsoft.VsSDK.targets" />
+
+</Project>

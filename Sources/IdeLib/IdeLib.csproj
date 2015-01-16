@@ -1,0 +1,339 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{14523AD1-45BD-BB59-44DE-7AD5C0B4BB22}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Dot42.Ide</RootNamespace>
+    <AssemblyName>dot42.IdeLib</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+    <SignAssembly>false</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\Dot42.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Version.cs" />
+    <Compile Include="Controls\Extensions.cs" />
+    <Compile Include="Debugger\ApkRunner.cs" />
+    <Compile Include="Debugger\BarRunner.cs" />
+    <Compile Include="Debugger\DeviceLogControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Debugger\LauncherDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Debugger\LauncherDialog.Designer.cs">
+      <DependentUpon>LauncherDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Debugger\DeviceSelectionDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Debugger\DeviceSelectionDialog.Designer.cs">
+      <DependentUpon>DeviceSelectionDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Debugger\Launcher.cs" />
+    <Compile Include="Debugger\LauncherStates.cs" />
+    <Compile Include="Debugger\OutputPaneLog.cs" />
+    <Compile Include="Descriptors\AttributeDescriptor.cs" />
+    <Compile Include="Descriptors\AttributeFormat.cs" />
+    <Compile Include="Descriptors\AttributeValueDescriptor.cs" />
+    <Compile Include="Descriptors\AttrsXmlParser.cs" />
+    <Compile Include="Descriptors\DescriptorProvider.cs" />
+    <Compile Include="Descriptors\DescriptorProviderSet.cs" />
+    <Compile Include="Descriptors\Descriptors.cs" />
+    <Compile Include="Descriptors\ElementDescriptor.cs" />
+    <Compile Include="Descriptors\IElementDescriptorProvider.cs" />
+    <Compile Include="Descriptors\LayoutDescriptors.cs" />
+    <Compile Include="Descriptors\LayoutElement.cs" />
+    <Compile Include="Descriptors\LayoutType.cs" />
+    <Compile Include="Descriptors\LayoutXmlParser.cs" />
+    <Compile Include="Descriptors\MenuDescriptors.cs" />
+    <Compile Include="Editors\IDesignerControl.cs" />
+    <Compile Include="Editors\IViewModel.cs" />
+    <Compile Include="Editors\Layout\ControlBuilder.cs" />
+    <Compile Include="Editors\Layout\Controls\LinearLayoutControl.cs" />
+    <Compile Include="Editors\Layout\Controls\TextViewNodeControl.cs" />
+    <Compile Include="Editors\Layout\Controls\ViewGroupChildConnector.cs" />
+    <Compile Include="Editors\Layout\IViewGroupNodeControl.cs" />
+    <Compile Include="Editors\Layout\ILayoutViewModel.cs" />
+    <Compile Include="Editors\Layout\IViewNodeControl.cs" />
+    <Compile Include="Editors\Layout\IXmlLayoutDesigner.cs" />
+    <Compile Include="Editors\Layout\XmlLayoutDesignerControl.xaml.cs">
+      <DependentUpon>XmlLayoutDesignerControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Editors\Menu\IMenuViewModel.cs" />
+    <Compile Include="Editors\Menu\XmlMenuDesignerControl.xaml.cs">
+      <DependentUpon>XmlMenuDesignerControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Editors\PropertyChangedExEventArgs.cs" />
+    <Compile Include="Editors\XmlResource\IResourceViewModel.cs" />
+    <Compile Include="Editors\XmlResource\XmlResourceDesignerControl.xaml.cs">
+      <DependentUpon>XmlResourceDesignerControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Extenders\IResourceExtender.cs" />
+    <Compile Include="Extenders\ResourceExtenderBase.cs" />
+    <Compile Include="Extenders\StringListUITypeEditor.cs" />
+    <Compile Include="Extenders\UITypeEditors.cs" />
+    <Compile Include="IIde.cs" />
+    <Compile Include="IIdeOutputPane.cs" />
+    <Compile Include="IIdeSelectionContainer.cs" />
+    <Compile Include="Project\AddJarReferenceDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Project\AddJarReferenceDialog.Designer.cs">
+      <DependentUpon>AddJarReferenceDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Project\AndroidPropertyNameControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Project\AndroidPropertyNameControl.Designer.cs">
+      <DependentUpon>AndroidPropertyNameControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Project\Dot42Constants.cs" />
+    <Compile Include="Project\IAndroidProjectProperties.cs" />
+    <Compile Include="Project\ItemTypeDetector.cs" />
+    <Compile Include="Project\ResFolderImporter.cs" />
+    <Compile Include="Serialization\AttributeNameAttribute.cs" />
+    <Compile Include="Serialization\AddNamespaceAttribute.cs" />
+    <Compile Include="Serialization\ISerializationNodeList.cs" />
+    <Compile Include="Serialization\DefaultSerializationNodeVisitor.cs" />
+    <Compile Include="Serialization\ElementNameAttribute.cs" />
+    <Compile Include="Serialization\INodeCollection.cs" />
+    <Compile Include="Serialization\ISerializationNodeContainer.cs" />
+    <Compile Include="Serialization\NodeSerializer.cs" />
+    <Compile Include="Serialization\Nodes\Layout\IViewNodeContainer.cs" />
+    <Compile Include="Serialization\Nodes\Layout\LinearLayoutNode.cs" />
+    <Compile Include="Serialization\Nodes\Layout\ViewNodeCollection.cs" />
+    <Compile Include="Serialization\Nodes\Layout\TextViewNode.cs" />
+    <Compile Include="Serialization\Nodes\Layout\ViewGroupNode.cs" />
+    <Compile Include="Serialization\Nodes\Layout\ViewNode.cs" />
+    <Compile Include="Serialization\Nodes\Menu\Categories.cs" />
+    <Compile Include="Serialization\Nodes\Menu\Extensions.cs" />
+    <Compile Include="Serialization\Nodes\Menu\IMenuChildNodeContainer.cs" />
+    <Compile Include="Serialization\Nodes\Menu\MenuItemNodeCollection.cs" />
+    <Compile Include="Serialization\Nodes\Menu\MenuGroupNode.cs" />
+    <Compile Include="Serialization\Nodes\Menu\MenuChildNodeCollection.cs" />
+    <Compile Include="Serialization\Nodes\Menu\MenuNodeCollection.cs" />
+    <Compile Include="Serialization\Nodes\Menu\MenuItemNode.cs" />
+    <Compile Include="Serialization\Nodes\Menu\MenuChildNode.cs" />
+    <Compile Include="Serialization\Nodes\Menu\MenuNode.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Serialization\Nodes\XmlResource\BoolNode.cs" />
+    <Compile Include="Serialization\Nodes\XmlResource\BoolNodeCollection.cs" />
+    <Compile Include="Serialization\Nodes\XmlResource\ColorNode.cs" />
+    <Compile Include="Serialization\Nodes\XmlResource\ColorNodeCollection.cs" />
+    <Compile Include="Serialization\Nodes\XmlResource\TypedArrayNodeCollection.cs" />
+    <Compile Include="Serialization\Nodes\XmlResource\TypedArrayNode.cs" />
+    <Compile Include="Serialization\Nodes\XmlResource\TypedArrayItemNodeCollection.cs" />
+    <Compile Include="Serialization\Nodes\XmlResource\TypedArrayItemNode.cs" />
+    <Compile Include="Serialization\Nodes\XmlResource\IntegerArrayNodeCollection.cs" />
+    <Compile Include="Serialization\Nodes\XmlResource\IntegerArrayItemNodeCollection.cs" />
+    <Compile Include="Serialization\Nodes\XmlResource\IntegerArrayItemNode.cs" />
+    <Compile Include="Serialization\Nodes\XmlResource\IntegerArrayNode.cs" />
+    <Compile Include="Serialization\Nodes\XmlResource\IntegerNodeCollection.cs" />
+    <Compile Include="Serialization\Nodes\XmlResource\IntegerNode.cs" />
+    <Compile Include="Serialization\Nodes\XmlResource\DimensionCollection.cs" />
+    <Compile Include="Serialization\Nodes\XmlResource\DimensionNode.cs" />
+    <Compile Include="Serialization\Nodes\XmlResource\PluralsNodeCollection.cs" />
+    <Compile Include="Serialization\Nodes\XmlResource\PluralsItemNodeCollection.cs" />
+    <Compile Include="Serialization\Nodes\XmlResource\PluralsItemNode.cs" />
+    <Compile Include="Serialization\Nodes\XmlResource\PluralsNode.cs" />
+    <Compile Include="Serialization\Nodes\XmlResource\StringArrayNodeCollection.cs" />
+    <Compile Include="Serialization\Nodes\XmlResource\StringArrayItemNodeCollection.cs" />
+    <Compile Include="Serialization\Nodes\XmlResource\StringArrayNode.cs" />
+    <Compile Include="Serialization\Nodes\NameNode.cs" />
+    <Compile Include="Serialization\Nodes\ValueNode.cs" />
+    <Compile Include="Serialization\Nodes\XmlResource\StringArrayItemNode.cs" />
+    <Compile Include="Serialization\Nodes\XmlResource\IdNodeCollection.cs" />
+    <Compile Include="Serialization\Nodes\XmlResource\IdNode.cs" />
+    <Compile Include="Serialization\Nodes\NameValueNode.cs" />
+    <Compile Include="Serialization\Nodes\XmlResource\StyleNodeCollection.cs" />
+    <Compile Include="Serialization\Nodes\XmlResource\StyleItemNodeCollection.cs" />
+    <Compile Include="Serialization\Nodes\XmlResource\StyleNode.cs" />
+    <Compile Include="Serialization\Nodes\XmlResource\StyleItemNode.cs" />
+    <Compile Include="Serialization\Nodes\NodeCollection.cs" />
+    <Compile Include="Serialization\Nodes\XmlResource\ResourcesNode.cs" />
+    <Compile Include="Serialization\Nodes\XmlResource\StringNode.cs" />
+    <Compile Include="Serialization\Nodes\XmlResource\StringNodeCollection.cs" />
+    <Compile Include="Serialization\AppResourceSerializer.cs" />
+    <Compile Include="Serialization\SerializationNode.cs" />
+    <Compile Include="Serialization\SerializationNodeVisitor.cs" />
+    <Compile Include="Serialization\StandardNodeSerializer.cs" />
+    <Compile Include="Serialization\ValueAttribute.cs" />
+    <Compile Include="TypeConverters\ValuesTypeConverter.cs" />
+    <Compile Include="TypeConverters\MenuTypeConverter.cs" />
+    <Compile Include="TypeConverters\StringTypeConverter.cs" />
+    <Compile Include="WizardForms\AdditionalLibrariesControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="WizardForms\AdditionalLibrariesControl.Designer.cs">
+      <DependentUpon>AdditionalLibrariesControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="WizardForms\ApplicationProjectWizardDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="WizardForms\ApplicationProjectWizardDialog.Designer.cs">
+      <DependentUpon>ApplicationProjectWizardDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="WizardForms\ClassLibraryProjectWizardDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="WizardForms\ClassLibraryProjectWizardDialog.Designer.cs">
+      <DependentUpon>ClassLibraryProjectWizardDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="WizardForms\Extensions.cs" />
+    <Compile Include="WizardForms\LibraryNode.cs" />
+    <Compile Include="WizardForms\LicenseAgreementAcceptanceForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="WizardForms\LicenseAgreementAcceptanceForm.Designer.cs">
+      <DependentUpon>LicenseAgreementAcceptanceForm.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AdbLib\AdbLib.csproj">
+      <Project>{13F1BB11-B71A-AA59-44DE-7AD5C0B4BB22}</Project>
+      <Name>AdbLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\BarDeployLib\BarDeployLib.csproj">
+      <Project>{13F1BB11-B27A-54DF-44DE-7AD263BFBB22}</Project>
+      <Name>BarDeployLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DeviceLib\DeviceLib.csproj">
+      <Project>{13F1BB11-B71A-A349-4BEE-7AD5C023BB22}</Project>
+      <Name>DeviceLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DeviceUILib\DeviceUILib.csproj">
+      <Project>{13F1BB11-B759-BB59-44DE-7AD5C0B4BB22}</Project>
+      <Name>DeviceUILib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ApkLib\ApkLib.csproj">
+      <Project>{13F1BB11-ABB6-B755-CC77-7AD5C0B4BB22}</Project>
+      <Name>ApkLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CryptoUI\CryptoUI.csproj">
+      <Project>{EE083D57-34DD-4C67-71CF-3D42A96C86F9}</Project>
+      <Name>CryptoUI</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DebuggerLib\DebuggerLib.csproj">
+      <Project>{13F1BB11-B71A-AA59-32AE-7AD34AB4BB22}</Project>
+      <Name>DebuggerLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FrameworkDefinitions\FrameworkDefinitions.csproj">
+      <Project>{13F162A6-AA66-BB55-CC77-7AD5C0B4BB22}</Project>
+      <Name>FrameworkDefinitions</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Graphics\Graphics.csproj">
+      <Project>{13F134AD-A566-E5B2-2FE7-7AD5C0B4A386}</Project>
+      <Name>Graphics</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\JvmClassLib\JvmClassLib.csproj">
+      <Project>{13F162A6-F530-40B6-A258-7AD5C0B4A386}</Project>
+      <Name>JvmClassLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Mapping\MappingLib.csproj">
+      <Project>{13F162A6-F530-40F2-1234-7AD5123AA386}</Project>
+      <Name>MappingLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ResourcesLib\ResourcesLib.csproj">
+      <Project>{13F162A6-F530-45DE-BB18-7AD5C0B4A386}</Project>
+      <Name>ResourcesLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SharedUI\SharedUI.csproj">
+      <Project>{1456BD11-4559-BB59-44DE-7AD5C0B4BB22}</Project>
+      <Name>SharedUI</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Utility\Utility.csproj">
+      <Project>{13F162A6-F530-40B3-1234-7AD5C0B4A386}</Project>
+      <Name>Utility</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Debugger\LauncherDialog.resx">
+      <DependentUpon>LauncherDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Debugger\DeviceSelectionDialog.resx">
+      <DependentUpon>DeviceSelectionDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Project\AddJarReferenceDialog.resx">
+      <DependentUpon>AddJarReferenceDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Project\AndroidPropertyNameControl.resx">
+      <DependentUpon>AndroidPropertyNameControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="WizardForms\AdditionalLibrariesControl.resx">
+      <DependentUpon>AdditionalLibrariesControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="WizardForms\ApplicationProjectWizardDialog.resx">
+      <DependentUpon>ApplicationProjectWizardDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="WizardForms\ClassLibraryProjectWizardDialog.resx">
+      <DependentUpon>ClassLibraryProjectWizardDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="WizardForms\LicenseAgreementAcceptanceForm.resx">
+      <DependentUpon>LicenseAgreementAcceptanceForm.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="Editors\Layout\XmlLayoutDesignerControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Editors\Menu\XmlMenuDesignerControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Editors\XmlResource\XmlResourceDesignerControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy /Y $(TargetDir)*.* $(SolutionDir)\Build\Application\</PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

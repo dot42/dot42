@@ -1,0 +1,21 @@
+<VersionConfig>
+	<AvailableVersion>@LABEL@</AvailableVersion>
+	<ApplicationUrl>http://download.dot42.com/dot42/update/1/@LABEL@/</ApplicationUrl>
+	<CompressedApplicationUrl>http://download.dot42.com/dot42/update/1/Update-@LABEL@.zip</CompressedApplicationUrl>
+	<ChangelogUrl>http://download.dot42.com/dot42/download/application/1/@LABEL@/Changelog.xml</ChangelogUrl>
+
+	<RequiredInstallVersion>@LABEL@</RequiredInstallVersion>
+	<InstallerUrl>http://download.dot42.com/dot42/download/application/1/@LABEL@/Dot42Setup.exe</InstallerUrl>
+	<InstallerArguments>/SP- /SILENT</InstallerArguments>
+
+	<Channel>
+		<Name>Stable</Name>
+		<Description>Stable releases</Description>
+		<ChannelUrl>http://www.dot42.com/latest/dot42-version.xml</ChannelUrl>
+	</Channel>
+	<Channel>
+		<Name>Beta</Name>
+		<Description>Beta and Stable releases</Description>
+		<ChannelUrl>http://www.dot42.com/latest/dot42-version-beta.xml</ChannelUrl>
+	</Channel>
+</VersionConfig>

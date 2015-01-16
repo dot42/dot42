@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<project name="Case13" default="test" basedir=".">
+
+  <property name="nant.settings.currentframework" value="net-4.0" />
+
+  <property name="basedir" value="${project::get-base-directory()}" />
+  <property name="rootdir" value="${basedir}\..\..\.." />
+  <include buildfile="${basedir}\..\..\Common.include"/>
+
+  <target name="test" description="Test" verbosity="Detailed">
+    <msbuild project="${basedir}\Case13.csproj" target="Rebuild">
+      <property name="Dot42ExtensionsPath" value="${Dot42ExtensionsPath}" />
+      <property name="Dot42Folder" value="${Dot42Folder}" />
+      <property name="Dot42ReferenceAssembliesFolder" value="${Dot42ReferenceAssembliesFolder}" />
+    </msbuild>
+  </target>
+
+</project>

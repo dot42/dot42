@@ -1,0 +1,133 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{670248FD-0985-49B1-B358-8BC8007F5BD9}</ProjectGuid>
+    <ProjectTypeGuids>{337B7DB7-2D1E-448D-BEBF-17E887A46E37};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Dot42.Tests</RootNamespace>
+    <AssemblyName>FrameworkTests</AssemblyName>
+    <TargetFrameworkIdentifier>Android</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v4.0.3</TargetFrameworkVersion>
+    <AndroidVersion>$(TargetFrameworkVersion)</AndroidVersion>
+    <SupportedCultures>
+    </SupportedCultures>
+    <ApkOutputs>true</ApkOutputs>
+    <GenerateAndroidManifest>true</GenerateAndroidManifest>
+    <ApkFilename>FrameworkTests.apk</ApkFilename>
+    <PackageName>dot42.tests.framework</PackageName>
+    <Dot42ExtensionsPath Condition=" '$(Dot42ExtensionsPath)' == '' ">$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\TallApplications\Dot42@ExtensionsPath)</Dot42ExtensionsPath>
+    <ApkCertificatePath>..\Certificate.pfx</ApkCertificatePath>
+    <ApkCertificateThumbprint>E459CAAA643505C4FCE6932D22C8F6681A9E1F48</ApkCertificateThumbprint>
+    <AfterBuildDependsOn Condition=" '$(BuildingInsideVisualStudio)' != 'true'">Test</AfterBuildDependsOn>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>Bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;TRACE;DOT42</DefineConstants>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>Bin\Release</OutputPath>
+    <DefineConstants>TRACE;DOT42</DefineConstants>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Dot42" />
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="Cases\Case651.cs" />
+    <Compile Include="Cases\Case656.cs" />
+    <Compile Include="Cases\Case657.cs" />
+    <Compile Include="Dot42\TestInclude.cs" />
+    <Compile Include="Java.Util\TestArrayList.cs" />
+    <Compile Include="Java.Util\TestIList.cs" />
+    <Compile Include="System.Collections.Generic\TestList_T.cs" />
+    <Compile Include="System.Collections.ObjectModel\ReadOnlyCollectionTest.cs" />
+    <Compile Include="System.Collections\ArrayListTest.cs" />
+    <Compile Include="System.Collections\HashtableTest2.cs" />
+    <Compile Include="System.ComponentModel\TestBackgroundWorker.cs" />
+    <Compile Include="System.Diagnostics\TestStopwatch.cs" />
+    <Compile Include="System.IO\BinaryReaderTest.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="System.IO\BinaryWriterTest.cs" />
+    <Compile Include="System.IO\StreamReaderTest.cs" />
+    <Compile Include="System.IO\TestFile.cs" />
+    <Compile Include="System.IO\TestMemoryStream.cs" />
+    <Compile Include="System.IO\TestPath.cs" />
+    <Compile Include="System.Linq\TestSelect.cs" />
+    <Compile Include="System.Net\TestHttpWebRequest.cs" />
+    <Compile Include="System.Net\TestWebClient.cs" />
+    <!-- Compile Include="System.Text.RegularExpressions\PerlTest.cs" / -->
+    <Compile Include="System.Reflection\PropertyInfoTest.cs" />
+    <Compile Include="System.Text.RegularExpressions\PerlTrials.cs" />
+    <Compile Include="System.Text.RegularExpressions\RegexTrial.cs" />
+    <Compile Include="System.Text.RegularExpressions\TestMatch.cs" />
+    <Compile Include="System.Text\ASCIIEncodingTest.cs" />
+    <Compile Include="System.Text\StringBuilderTest2.cs" />
+    <!-- Compile Include="System.Text\StringBuilderTest.cs" / -->
+    <Compile Include="System.Text\UnicodeEncodingTest.cs" />
+    <!-- Compile Include="System.Text\UTF8EncodingTest.cs" / -->
+    <Compile Include="System.Threading.Tasks\TestCancellationToken.cs" />
+    <Compile Include="System.Threading.Tasks\TestTaskAsync.cs" />
+    <Compile Include="System.Threading.Tasks\TestTask.cs" />
+    <Compile Include="System.Threading\TestThread.cs" />
+    <Compile Include="System.Xml.Linq\TestXElement.cs" />
+    <Compile Include="System.Xml.Linq\TestXLoad.cs" />
+    <Compile Include="System.Xml.Linq\TestXParse.cs" />
+    <Compile Include="System.Xml.Linq\TestXName.cs" />
+    <Compile Include="System.Xml.Linq\TestXDocument.cs" />
+    <Compile Include="System\BufferTest_Mono.cs" />
+    <Compile Include="System\TestException.cs" />
+    <Compile Include="System\RandomTest.cs" />
+    <Compile Include="System\TestBoolean_Mono.cs" />
+    <Compile Include="System\TestConvert.cs" />
+    <Compile Include="System\TestEnum.cs" />
+    <Compile Include="System\TestDateTime.cs" />
+    <Compile Include="System\TestAction.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="System\TestArrayEnumerable.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="System\TestDateTime_Mono.cs" />
+    <Compile Include="System\TestDouble.cs" />
+    <Compile Include="System\TestFunc.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="System\TestGuid.cs" />
+    <Compile Include="System\TestIDisposable.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="System\TestInt32_Mono.cs" />
+    <Compile Include="System\TestString.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="System\TestInt32.cs" />
+    <Compile Include="System\TestTimeSpan.cs" />
+    <Compile Include="System.Diagnostics\TestDebug.cs" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(Dot42ExtensionsPath)\Dot42.CSharp.targets" />
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild" DependsOnTargets="$(AfterBuildDependsOn)">
+  </Target>
+  <ProjectExtensions />
+</Project>

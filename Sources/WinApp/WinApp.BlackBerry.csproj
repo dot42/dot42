@@ -1,0 +1,248 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{13F134AD-66FF-235E-7722-7AD5C0B4A386}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Dot42.Gui</RootNamespace>
+    <AssemblyName>dot42DevCenter</AssemblyName>
+    <ApplicationIcon>..\Graphics\Icons\App.ico</ApplicationIcon>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\Dot42.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\BlackBerry\</OutputPath>
+    <DefineConstants>DOT42;LICENSED;DEBUG;TRACE;BB</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\BlackBerry\</OutputPath>
+    <DefineConstants>DOT42;LICENSED;TRACE;BB</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="DevComponents.DotNetBar2, Version=10.1.0.7, Culture=neutral, PublicKeyToken=7eb7c3a35b91de04, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Binaries\DotNetBar\DevComponents.DotNetBar2.dll</HintPath>
+    </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Windows.Presentation" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="UIAutomationProvider" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="WindowsFormsIntegration" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Version.cs" />
+    <Compile Include="..\..\Common\Update\UpdateApp.cs" />
+    <Compile Include="..\..\Common\Util\AssemblyUtil.cs" />
+    <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="CommandLineOptions.cs" />
+    <Compile Include="Controls\CommonActions.cs" />
+    <Compile Include="Controls\Home\Legal.cs" />
+    <Compile Include="Controls\Home\LegalNotices.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Controls\Home\URLConstants.cs" />
+    <Compile Include="Controls\Devices\ConnectionWizardForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Controls\Devices\ConnectionWizardForm.Designer.cs">
+      <DependentUpon>ConnectionWizardForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\Devices\DevicesControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controls\Devices\DevicesControl.Designer.cs">
+      <DependentUpon>DevicesControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\Devices\InstallApkControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Forms\BlackBerry\MainForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\BlackBerry\MainForm.Designer.cs">
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\ProgressForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\ProgressForm.Designer.cs">
+      <DependentUpon>ProgressForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="IProgressControl.cs" />
+    <Compile Include="SamplesTool\SampleCertificateBuilder.cs" />
+    <Compile Include="SamplesTool\SampleProjectUpdater.cs" />
+    <Compile Include="IModalPanelForm.cs" />
+    <Compile Include="Licensing\AppActivationDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Licensing\Helper.cs" />
+    <Compile Include="SamplesTool\SamplesToolForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SamplesTool\SamplesToolForm.Designer.cs">
+      <DependentUpon>SamplesToolForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SamplesTool\SampleUnpacker.cs" />
+    <Compile Include="SdkElement.cs" />
+    <Compile Include="SdkArchives.cs" />
+    <Compile Include="SdkArchive.cs" />
+    <Compile Include="SdkConstants.cs" />
+    <Compile Include="SdkRepository.cs" />
+    <Compile Include="SdkSystemImage.cs" />
+    <Compile Include="SystemImages.cs" />
+    <Compile Include="SystemImage.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Controls\Home\LegalNotices.resx">
+      <DependentUpon>LegalNotices.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controls\Devices\ConnectionWizardForm.resx">
+      <DependentUpon>ConnectionWizardForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controls\Devices\DevicesControl.resx">
+      <DependentUpon>DevicesControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\BlackBerry\MainForm.resx">
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\ProgressForm.resx">
+      <DependentUpon>ProgressForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SamplesTool\SamplesToolForm.resx">
+      <DependentUpon>SamplesToolForm.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common\BouncyCastle\v1.7\BouncyCastle-v1.7.csproj">
+      <Project>{BB4562A6-BB44-BBB6-1111-22D5C0B4A386}</Project>
+      <Name>BouncyCastle-v1.7</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Forms\Forms.Dot42.csproj">
+      <Project>{13F162A6-FF56-4044-68AF-7AD5C0B4A386}</Project>
+      <Name>Forms.Dot42</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Licensing\Licensing.Dot42.csproj">
+      <Project>{13F162A6-FF56-40B3-65DF-7AD5C0B4A386}</Project>
+      <Name>Licensing.Dot42</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Options\Mono.Options.csproj">
+      <Project>{13F162A6-BB55-40B6-1111-22D5C0B4A386}</Project>
+      <Name>Mono.Options</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\SharpZipLib\SharpZipLib.csproj">
+      <Project>{13F162A6-BB55-40B6-A258-7AD5C0B4A386}</Project>
+      <Name>SharpZipLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\AdbLib\AdbLib.csproj">
+      <Project>{13F1BB11-B71A-AA59-44DE-7AD5C0B4BB22}</Project>
+      <Name>AdbLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\BarDeployLib\BarDeployLib.csproj">
+      <Project>{13F1BB11-B27A-54DF-44DE-7AD263BFBB22}</Project>
+      <Name>BarDeployLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\BarLib\BarLib.csproj">
+      <Project>{13F1BB11-45DE-B755-CC77-7AD5C0B4BB22}</Project>
+      <Name>BarLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DeviceLib\DeviceLib.csproj">
+      <Project>{13F1BB11-B71A-A349-4BEE-7AD5C023BB22}</Project>
+      <Name>DeviceLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DeviceUILib\DeviceUILib.csproj">
+      <Project>{13F1BB11-B759-BB59-44DE-7AD5C0B4BB22}</Project>
+      <Name>DeviceUILib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ApkLib\ApkLib.csproj">
+      <Project>{13F1BB11-ABB6-B755-CC77-7AD5C0B4BB22}</Project>
+      <Name>ApkLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CryptoUI\CryptoUI.csproj">
+      <Project>{EE083D57-34DD-4C67-71CF-3D42A96C86F9}</Project>
+      <Name>CryptoUI</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FrameworkDefinitions\FrameworkDefinitions.csproj">
+      <Project>{13F162A6-AA66-BB55-CC77-7AD5C0B4BB22}</Project>
+      <Name>FrameworkDefinitions</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Graphics\Graphics.csproj">
+      <Project>{13F134AD-A566-E5B2-2FE7-7AD5C0B4A386}</Project>
+      <Name>Graphics</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Licensing\Licensing.csproj">
+      <Project>{13F1BB11-B71A-66DE-D817-7AD5C0B4BB22}</Project>
+      <Name>Licensing</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SharedUI\SharedUI.csproj">
+      <Project>{1456BD11-4559-BB59-44DE-7AD5C0B4BB22}</Project>
+      <Name>SharedUI</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Utility\Utility.csproj">
+      <Project>{13F162A6-F530-40B3-1234-7AD5C0B4A386}</Project>
+      <Name>Utility</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Controls\Home\Legal.rtf" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Controls\Devices\UsbDriverInfo.xml" />
+    <None Include="Resources\information.png" />
+    <None Include="Resources\blog.png" />
+    <None Include="Resources\icon-32x32-rgba.png" />
+    <None Include="Resources\key.png" />
+    <None Include="Resources\download.png" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy /Y /C $(TargetDir)*.* $(SolutionDir)\Build\Application\BlackBerry\</PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

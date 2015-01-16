@@ -1,0 +1,29 @@
+﻿<?xml version="1.0"?>
+<Template 
+	author="Ewout Prangsma"
+	created="02/05/2013"
+	lastModified="02/05/2013"
+	version="1.0">
+	
+	<Config
+		name="String array table resource"
+		icon="C#.File.NewClass"
+		category="C#"
+		subcategory="dot42"
+		defaultname="StringArrays${Number}.xml"
+		language="XML"/>
+	 
+	<Description>Generic Android string array resource</Description>
+	
+	<Files>
+		<File name="${FullName}" language="XML" buildAction="ValuesResource"><![CDATA[<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="some_string">
+		<item>Item1</item>
+		<item>Item2</item>
+	</string-array>
+</resources>
+]]>
+		</File>
+	</Files>
+</Template>

@@ -1,0 +1,30 @@
+﻿<?xml version="1.0"?>
+<Template 
+	author="Ewout Prangsma"
+	created="02/05/2013"
+	lastModified="02/05/2013"
+	version="1.0">
+	
+	<Config
+		name="Plurals table resource"
+		icon="C#.File.NewClass"
+		category="C#"
+		subcategory="dot42"
+		defaultname="Plurals${Number}.xml"
+		language="XML"/>
+	 
+	<Description>Generic Android plurals resource</Description>
+	
+	<Files>
+		<File name="${FullName}" language="XML" buildAction="ValuesResource"><![CDATA[<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="numerOfBirdsInTheSky">
+		<item quantity="zero">No birds in the sky.</item>
+		<item quantity="one">One bird in the sky.</item>
+		<item quantity="other">%d birds in the sky.</item>
+	</plurals>
+</resources>
+]]>
+		</File>
+	</Files>
+</Template>

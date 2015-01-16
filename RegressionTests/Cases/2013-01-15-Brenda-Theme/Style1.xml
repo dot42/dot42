@@ -1,0 +1,15 @@
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+  
+  <style parent="@android:style/Widget.Holo.Light.TextView" name="MyTextView1">
+    <item name="android:textColor">#990000</item>
+  </style>
+
+  <!-- error in spelling textcolor -->
+  <!--<style parent="@android:style/Widget.Holo.Light.TextView" name="MyTextViewError">
+    <item name="android:textcolor">#33b5e5</item>
+  </style>-->
+
+  <style parent="@android:style/Theme.Holo.Light" name="MyTheme">
+    <item name="android:textViewStyle">@style/MyTextView1</item>
+  </style>
+</resources>

@@ -1,0 +1,33 @@
+﻿<?xml version="1.0"?>
+<Template 
+	author="Ewout Prangsma"
+	created="02/05/2013"
+	lastModified="02/05/2013"
+	version="1.0">
+	
+	<Config
+		name="View animation resource"
+		icon="C#.File.NewClass"
+		category="C#"
+		subcategory="dot42"
+		defaultname="Animation${Number}.xml"
+		language="XML"/>
+	 
+	<Description>Generic Android view animation resource</Description>
+	
+	<Files>
+		<File name="${FullName}" language="XML" buildAction="AnimationResource"><![CDATA[<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android" android:interpolator="@android:anim/accelerate_interpolator">
+  <scale
+      android:fromXScale="0.2"
+      android:toXScale="1.0"
+      android:fromYScale="0.2"
+      android:toYScale="1.0"
+      android:pivotX="50%"
+      android:pivotY="50%"
+      android:duration="500" />
+</set>
+]]>
+		</File>
+	</Files>
+</Template>

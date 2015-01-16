@@ -1,0 +1,402 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{13F162A6-DD45-FDB3-1234-7AD5C0B23486}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Dot42.CompilerLib</RootNamespace>
+    <AssemblyName>dot42.CompilerLib</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SignAssembly>false</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\Dot42.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Core" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Version.cs" />
+    <Compile Include="AssemblyCompiler.cs" />
+    <Compile Include="Ast2RLCompiler\AstCompilerVisitor.cs" />
+    <Compile Include="Ast2RLCompiler\AstCompilerVisitor.Expression.cs" />
+    <Compile Include="Ast2RLCompiler\AstInvocationFrame.cs" />
+    <Compile Include="Ast2RLCompiler\Extensions\BoxInfo.cs" />
+    <Compile Include="Ast2RLCompiler\Extensions\DexTyping.cs" />
+    <Compile Include="Ast2RLCompiler\Extensions\DexJavaTyping.cs" />
+    <Compile Include="Ast2RLCompiler\Extensions\DexDotNetTyping.cs" />
+    <Compile Include="Ast2RLCompiler\Extensions\RCode.cs" />
+    <Compile Include="Ast2RLCompiler\LabelManager.cs" />
+    <Compile Include="Ast\AstBasicBlock.cs" />
+    <Compile Include="Ast\AstBlock.cs" />
+    <Compile Include="Ast\AstCode.cs" />
+    <Compile Include="Ast\AstCodeUtil.cs" />
+    <Compile Include="Ast\AstExpression.cs" />
+    <Compile Include="Ast\AstExpressionPair.cs" />
+    <Compile Include="Ast\AstExpressionPrefix.cs" />
+    <Compile Include="Ast\AstGeneratedVariable.cs" />
+    <Compile Include="Ast\AstLabel.cs" />
+    <Compile Include="Ast\AstNode.cs" />
+    <Compile Include="Ast\AstNodeVisitor.cs" />
+    <Compile Include="Ast\AstSwitch.cs" />
+    <Compile Include="Ast\AstTryCatchBlock.cs" />
+    <Compile Include="Ast\AstVariable.cs" />
+    <Compile Include="Ast\AstLabelKeyPair.cs" />
+    <Compile Include="Ast\Converters\InitializeStructVariablesConverter.cs" />
+    <Compile Include="Ast\Converters\GenericsConverter.cs" />
+    <Compile Include="Ast\Converters\EnumOptimizer.cs" />
+    <Compile Include="Ast\Converters\TargetConverters.cs" />
+    <Compile Include="Ast\Converters\ConvertAfterLoadConversionConverter.cs" />
+    <Compile Include="Ast\Converters\ConvertBeforeStoreConversionConverter.cs" />
+    <Compile Include="Ast\Converters\CleanupConverter.cs" />
+    <Compile Include="Ast\Converters\CastConverter.cs" />
+    <Compile Include="Ast\Converters\GenericInstanceConverter.cs" />
+    <Compile Include="Ast\Converters\IntPtrConverter.cs" />
+    <Compile Include="Ast\Converters\LdLocWithConversionConverter.cs" />
+    <Compile Include="Ast\Converters\LdcWideConverter.cs" />
+    <Compile Include="Ast\Converters\EnumConverter.cs" />
+    <Compile Include="Ast\Converters\StructCallConverter.cs" />
+    <Compile Include="Ast\Extensions\CecilExt.cs" />
+    <Compile Include="Ast\Converters\BranchOptimizer.cs" />
+    <Compile Include="Ast\Converters\ByReferenceParamConverter.cs" />
+    <Compile Include="Ast\Converters\CompareUnorderedConverter.cs" />
+    <Compile Include="Ast\Converters\CompoundAssignmentConverter.cs" />
+    <Compile Include="Ast\Converters\DelegateConverter.cs" />
+    <Compile Include="Ast\Converters\NullableConverter.cs" />
+    <Compile Include="Ast\Converters\PrimitiveAddressOfConverter.cs" />
+    <Compile Include="Ast\Converters\TypeOfConverter.cs" />
+    <Compile Include="Ast\DecompilerContext.cs" />
+    <Compile Include="Ast\DisassemblerHelpers.cs" />
+    <Compile Include="Ast\Extensions\AstCode.cs" />
+    <Compile Include="Ast\Extensions\AstExpression.cs" />
+    <Compile Include="Ast\Extensions\Cecil.cs" />
+    <Compile Include="Ast\Extensions\JavaExt.cs" />
+    <Compile Include="Ast\Extensions\ExceptionHandling.cs" />
+    <Compile Include="Ast\InitArrayData.cs" />
+    <Compile Include="Ast\InstructionRange.cs" />
+    <Compile Include="Ast\Optimizer\AstInlining.cs" />
+    <Compile Include="Ast\Optimizer\AstOptimizationStep.cs" />
+    <Compile Include="Ast\Optimizer\AstOptimizer.cs" />
+    <Compile Include="Ast\Optimizer\TypeAnalysis.ExpressionToInfer.cs" />
+    <Compile Include="Ast\Optimizer\GotoRemoval.cs" />
+    <Compile Include="Ast\Optimizer\InitializerPeepholeTransforms.cs" />
+    <Compile Include="Ast\Optimizer\PeepholeTransform.cs" />
+    <Compile Include="Ast\Optimizer\SimpleControlFlow.cs" />
+    <Compile Include="Ast\Optimizer\TypeAnalysis.cs" />
+    <Compile Include="Ast\ParameterWrapper.cs" />
+    <Compile Include="Ast\PatternMatching.cs" />
+    <Compile Include="Ast\SequencePointWrapper.cs" />
+    <Compile Include="CompilationMode.cs" />
+    <Compile Include="CompilationTarget.cs" />
+    <Compile Include="CompiledMethod.cs" />
+    <Compile Include="CompilerException.cs" />
+    <Compile Include="CompositionRoot.cs" />
+    <Compile Include="DexOptimizer\BranchOptimizer.cs" />
+    <Compile Include="DexOptimizer\DexOptimizer.cs" />
+    <Compile Include="DexOptimizer\IDexTransformation.cs" />
+    <Compile Include="DexOptimizer\InstructionOptimizer.cs" />
+    <Compile Include="DexOptimizer\NopRemoveOptimizer.cs" />
+    <Compile Include="DexVerifier\Verifier.cs" />
+    <Compile Include="Extensions\Attributes.cs" />
+    <Compile Include="Extensions\XModel.cs" />
+    <Compile Include="Extensions\Dex.cs" />
+    <Compile Include="Extensions\DexAnnotations.cs" />
+    <Compile Include="Extensions\DexImport.cs" />
+    <Compile Include="Extensions\DotNet.cs" />
+    <Compile Include="Extensions\Extensions.cs" />
+    <Compile Include="Extensions\FieldDefinition.cs" />
+    <Compile Include="Extensions\Java.cs" />
+    <Compile Include="Extensions\JavaImport.cs" />
+    <Compile Include="Extensions\MethodDefinition.cs" />
+    <Compile Include="Extensions\Reachable.DotNet.cs" />
+    <Compile Include="Extensions\Reachable.Java.cs" />
+    <Compile Include="Extensions\ReachableResolver.cs" />
+    <Compile Include="Extensions\SourceLocationComparer.cs" />
+    <Compile Include="Extensions\TypeCloner.cs" />
+    <Compile Include="FlowAnalisys\ControlFlowEdge.cs" />
+    <Compile Include="FlowAnalisys\ControlFlowGraph.cs" />
+    <Compile Include="FlowAnalisys\ControlFlowNode.cs" />
+    <Compile Include="FrameworkReferences.cs" />
+    <Compile Include="IL2Ast\AstBuilder.ByteCode.cs" />
+    <Compile Include="IL2Ast\AstBuilder.cs" />
+    <Compile Include="IL2Ast\AstBuilder.StackSlot.cs" />
+    <Compile Include="IL2Ast\AstBuilder.VariableSlot.cs" />
+    <Compile Include="IL2Ast\AstCodeUtil.cs" />
+    <Compile Include="IL2Ast\AstILVariable.cs" />
+    <Compile Include="ILConversion\AsyncStateMachineConverter.cs" />
+    <Compile Include="ILConversion\GenericClassMethodOverrideConverter.cs" />
+    <Compile Include="ILConversion\StructSemanticsMethods.cs" />
+    <Compile Include="ILConversion\EnsureClassCtors.cs" />
+    <Compile Include="ILConversion\InitializeInstanceStructFields.cs" />
+    <Compile Include="ILConversion\InterfaceHelper.cs" />
+    <Compile Include="ILConversion\NewSlotMethodConverter.cs" />
+    <Compile Include="ILConversion\DllImportLoadLibraryConverter.cs" />
+    <Compile Include="ILConversion\InitializeStaticStructFields.cs" />
+    <Compile Include="ILConversion\InlineMethods.cs" />
+    <Compile Include="ILConversion\StructDefaultCtors.cs" />
+    <Compile Include="ILConversion\ExplicitInterfaceMethodConverter.cs" />
+    <Compile Include="ILConversion\ILConverter.cs" />
+    <Compile Include="ILConversion\ILConverterFactory.cs" />
+    <Compile Include="ILConversion\ILToJava.cs" />
+    <Compile Include="ILConversion\InlineAndroidExtensionCtors.cs" />
+    <Compile Include="ILConversion\NUnitTextFixtureBaseClass.cs" />
+    <Compile Include="ILConversion\StructFields.cs" />
+    <Compile Include="ILConversion\SynchronizedMethods.cs" />
+    <Compile Include="ITypeResolver.cs" />
+    <Compile Include="IParameter.cs" />
+    <Compile Include="ISourceLocation.cs" />
+    <Compile Include="IVariable.cs" />
+    <Compile Include="Java2Ast\AstBuilder.ByteCode.cs" />
+    <Compile Include="Java2Ast\AstBuilder.cs" />
+    <Compile Include="Java2Ast\AstBuilder.Instruction2ByteCode.cs" />
+    <Compile Include="Java2Ast\AstBuilder.StackSlot.cs" />
+    <Compile Include="Java2Ast\AstBuilder.VariableSlot.cs" />
+    <Compile Include="Java2Ast\AstJavaVariable.cs" />
+    <Compile Include="Java2Ast\AstBuilder.References.cs" />
+    <Compile Include="Java2Ast\AstBuilder.ByteCodeBlock.cs" />
+    <Compile Include="Java2Ast\AstBuilder.Category.cs" />
+    <Compile Include="Java2Ast\SourceLocation.cs" />
+    <Compile Include="Target\Dex\DexMethodBodyCompiler.cs" />
+    <Compile Include="Target\MethodBodyCompiler.cs" />
+    <Compile Include="MethodSource.cs" />
+    <Compile Include="NameConstants.cs" />
+    <Compile Include="NameConverter.cs" />
+    <Compile Include="Naming\NameSet.cs" />
+    <Compile Include="Reachable\InstanceOfConditionInclude.cs" />
+    <Compile Include="Reachable\Testers\DelegateMethodTester.cs" />
+    <Compile Include="Reachable\TypeConditionInclude.cs" />
+    <Compile Include="Reachable\DotNet\IIncludeFieldTester.cs" />
+    <Compile Include="Reachable\DotNet\IIncludeMethodTester.cs" />
+    <Compile Include="Reachable\DotNet\ReachableWalker.cs" />
+    <Compile Include="Reachable\Java\ReachableWalker.cs" />
+    <Compile Include="Reachable\ReachableContext.cs" />
+    <Compile Include="Reachable\Testers\NUnitTearDownMethodTester.cs" />
+    <Compile Include="Reachable\Testers\NUnitSetUpMethodTester.cs" />
+    <Compile Include="Reachable\Testers\NUnitTestMethodTester.cs" />
+    <Compile Include="Reachable\Testers\OverrideFrameworkMethodTester.cs" />
+    <Compile Include="Reachable\Testers\TestCaseMethodTester.cs" />
+    <Compile Include="RL2DexCompiler\BasicBlock.cs" />
+    <Compile Include="RL2DexCompiler\ControlFlowGraph.cs" />
+    <Compile Include="RL2DexCompiler\DebugInfoBuilder.VariableEndEntry.cs" />
+    <Compile Include="RL2DexCompiler\DebugInfoBuilder.cs" />
+    <Compile Include="RL2DexCompiler\DebugInfoBuilder.Entry.cs" />
+    <Compile Include="RL2DexCompiler\DebugInfoBuilder.PositionEntry.cs" />
+    <Compile Include="RL2DexCompiler\DebugInfoBuilder.VariableStartEntry.cs" />
+    <Compile Include="RL2DexCompiler\DexCompiler.cs" />
+    <Compile Include="RL2DexCompiler\Extensions\DexInstructions.cs" />
+    <Compile Include="RL2DexCompiler\Extensions\ILCompilerExtensions.cs" />
+    <Compile Include="RL2DexCompiler\IInstructionRange.cs" />
+    <Compile Include="RL2DexCompiler\RegisterSpillingMap.cs" />
+    <Compile Include="RL2DexCompiler\RegisterSpillingMapping.cs" />
+    <Compile Include="RL2DexCompiler\RegisterSpillingOptimizer.cs" />
+    <Compile Include="RL2DexCompiler\RegisterMapper.cs" />
+    <Compile Include="RL2DexCompiler\RegisterSpilling.cs" />
+    <Compile Include="RL2DexCompiler\RL2Dex.cs" />
+    <Compile Include="RL2DexCompiler\VariableMapping.cs" />
+    <Compile Include="RL\ArgumentRegisterSpec.cs" />
+    <Compile Include="RL\BasicBlock.cs" />
+    <Compile Include="RL\Catch.cs" />
+    <Compile Include="RL\ControlFlowGraph.cs" />
+    <Compile Include="RL\ExceptionHandler.cs" />
+    <Compile Include="RL\Extensions\Instruction.cs" />
+    <Compile Include="RL\Extensions\InstructionRange.cs" />
+    <Compile Include="RL\Extensions\RCode.cs" />
+    <Compile Include="RL\Extensions\Registers.cs" />
+    <Compile Include="RL\Extensions\RLExtensions.cs" />
+    <Compile Include="RL\IInstructionRange.cs" />
+    <Compile Include="RL\Instruction.cs" />
+    <Compile Include="RL\InstructionList.cs" />
+    <Compile Include="RL\InstructionRange.cs" />
+    <Compile Include="RL\InvocationFrame.cs" />
+    <Compile Include="RL\IRegisterAllocator.cs" />
+    <Compile Include="RL\IRLBuilder.cs" />
+    <Compile Include="RL\IRLTransformation.cs" />
+    <Compile Include="RL\MethodBody.cs" />
+    <Compile Include="RL\RCategory.cs" />
+    <Compile Include="RL\RCode.cs" />
+    <Compile Include="RL\Register.cs" />
+    <Compile Include="RL\RegisterList.cs" />
+    <Compile Include="RL\RegisterSpec.cs" />
+    <Compile Include="RL\RFlags.cs" />
+    <Compile Include="RL\RLBuilder.cs" />
+    <Compile Include="RL\RLRange.cs" />
+    <Compile Include="RL\RType.cs" />
+    <Compile Include="RL\Transformations\BranchRerouter.cs" />
+    <Compile Include="RL\Transformations\ConstPropagationTransformation.cs" />
+    <Compile Include="RL\Transformations\ShareRegistersTransformation.TempToVariable.cs" />
+    <Compile Include="RL\Transformations\InitializeRegistersTransformation.cs" />
+    <Compile Include="RL\Transformations\RegisterUsageMap.cs" />
+    <Compile Include="RL\Transformations\ShareRegistersTransformation.cs" />
+    <Compile Include="RL\Transformations\FlattenExceptionsTransformation.cs" />
+    <Compile Include="RL\Transformations\InvokeTypeTransformation.cs" />
+    <Compile Include="RL\Transformations\NopRemoveTransformation.cs" />
+    <Compile Include="RL\Transformations\RegisterRange.cs" />
+    <Compile Include="RL\Transformations\RLTransformations.cs" />
+    <Compile Include="RL\Transformations\ShareConstTransformation.cs" />
+    <Compile Include="RL\Transformations\ShareRegistersTransformation.CrossBlocks.cs" />
+    <Compile Include="RL\Transformations\ShareRegistersTransformation.InBlock.cs" />
+    <Compile Include="RL\VariableRegisterSpec.cs" />
+    <Compile Include="Structure\DotNet\AnnotationBuilder.cs" />
+    <Compile Include="Structure\DotNet\AnnotationClassBuilder.cs" />
+    <Compile Include="Structure\DotNet\AttributeAnnotationInterface.cs" />
+    <Compile Include="Structure\DotNet\AttributeAnnotationInterfaceBuilder.cs" />
+    <Compile Include="Structure\DotNet\AttributeClassBuilder.cs" />
+    <Compile Include="Structure\DotNet\AttributeCtorArgumentMapping.cs" />
+    <Compile Include="Structure\DotNet\ClassBuilder.cs" />
+    <Compile Include="Structure\DotNet\DllImportMethodBuilder.cs" />
+    <Compile Include="Structure\DotNet\NullableEnumBaseClassBuilder.cs" />
+    <Compile Include="Structure\DotNet\NullableBaseClassBuilder.cs" />
+    <Compile Include="Structure\DotNet\EnumInfoClassBuilder.cs" />
+    <Compile Include="Structure\DotNet\DelegateClassBuilder.cs" />
+    <Compile Include="Structure\DotNet\DelegateInstanceType.cs" />
+    <Compile Include="Structure\DotNet\DelegateInstanceTypeBuilder.cs" />
+    <Compile Include="Structure\DotNet\DelegateType.cs" />
+    <Compile Include="Structure\DotNet\DexImportClassBuilder.cs" />
+    <Compile Include="Structure\DotNet\DexImportFieldBuilder.cs" />
+    <Compile Include="Structure\DotNet\DexImportMethodBuilder.cs" />
+    <Compile Include="Structure\DotNet\EnumClassBuilder.cs" />
+    <Compile Include="Structure\DotNet\EnumFieldBuilder.cs" />
+    <Compile Include="Structure\DotNet\FieldBuilder.cs" />
+    <Compile Include="Structure\DotNet\MethodBuilder.cs" />
+    <Compile Include="Structure\DotNet\PrototypeBuilder.cs" />
+    <Compile Include="Structure\Java\AnnotationBuilder.cs" />
+    <Compile Include="Structure\SkipClassBuilder.cs" />
+    <Compile Include="Structure\DotNet\StandardClassBuilder.cs" />
+    <Compile Include="Structure\IClassBuilder.cs" />
+    <Compile Include="Structure\Java\ClassBuilder.cs" />
+    <Compile Include="Structure\Java\FieldBuilder.cs" />
+    <Compile Include="Structure\Java\MethodBuilder.cs" />
+    <Compile Include="Structure\Java\PrototypeBuilder.cs" />
+    <Compile Include="Structure\Java\StandardClassBuilder.cs" />
+    <Compile Include="Target\Dex\DexTargetPackage.cs" />
+    <Compile Include="Target\ITargetPackage.cs" />
+    <Compile Include="XModel\IXMemberReference.cs" />
+    <Compile Include="XModel\Synthetic\XSyntheticTypeFlags.cs" />
+    <Compile Include="XModel\Synthetic\XSyntheticTypeDefinition.cs" />
+    <Compile Include="XModel\Synthetic\XSyntheticFieldFlags.cs" />
+    <Compile Include="XModel\Synthetic\XSyntheticFieldDefinition.cs" />
+    <Compile Include="XModel\Synthetic\XSyntheticMethodDefinition.cs" />
+    <Compile Include="XModel\Synthetic\XSyntheticMethodFlags.cs" />
+    <Compile Include="XModel\XConvert.cs" />
+    <Compile Include="XModel\XReference.cs" />
+    <Compile Include="XModel\DotNet\XBuilder.MethodReference.cs" />
+    <Compile Include="XModel\DotNet\XBuilder.GenericParameter.cs" />
+    <Compile Include="XModel\DotNet\XBuilder.cs" />
+    <Compile Include="XModel\DotNet\XBuilder.FieldDefinition.cs" />
+    <Compile Include="XModel\DotNet\XBuilder.MethodDefinition.cs" />
+    <Compile Include="XModel\DotNet\XBuilder.Parameter.cs" />
+    <Compile Include="XModel\DotNet\XBuilder.TypeDefinition.cs" />
+    <Compile Include="XModel\Extensions.cs" />
+    <Compile Include="XModel\IXDefinition.cs" />
+    <Compile Include="XModel\IXGenericInstance.cs" />
+    <Compile Include="XModel\IXGenericParameterProvider.cs" />
+    <Compile Include="XModel\Java\XBuilder.FieldReference.cs" />
+    <Compile Include="XModel\Java\XBuilder.MethodReference.cs" />
+    <Compile Include="XModel\Java\XBuilder.TypeReference.cs" />
+    <Compile Include="XModel\Java\XBuilder.cs" />
+    <Compile Include="XModel\Java\XBuilder.FieldDefinition.cs" />
+    <Compile Include="XModel\Java\XBuilder.MethodDefinition.cs" />
+    <Compile Include="XModel\Java\XBuilder.Parameter.cs" />
+    <Compile Include="XModel\Java\XBuilder.TypeDefinition.cs" />
+    <Compile Include="XModel\XTypeUsageFlags.cs" />
+    <Compile Include="XModel\XArrayDimension.cs" />
+    <Compile Include="XModel\XArrayType.cs" />
+    <Compile Include="XModel\XByReferenceType.cs" />
+    <Compile Include="XModel\XFieldDefinition.cs" />
+    <Compile Include="XModel\XFieldReference.cs" />
+    <Compile Include="XModel\XGenericInstanceMethod.cs" />
+    <Compile Include="XModel\XGenericInstanceType.cs" />
+    <Compile Include="XModel\XGenericParameter.cs" />
+    <Compile Include="XModel\XMemberReference.cs" />
+    <Compile Include="XModel\XMethodDefinition.cs" />
+    <Compile Include="XModel\XMethodReference.cs" />
+    <Compile Include="XModel\XModule.cs" />
+    <Compile Include="XModel\XOptionalModifierType.cs" />
+    <Compile Include="XModel\XParameter.cs" />
+    <Compile Include="XModel\XParameterKind.cs" />
+    <Compile Include="XModel\XPointerType.cs" />
+    <Compile Include="XModel\XPrimitiveType.cs" />
+    <Compile Include="XModel\XRequiredModifierType.cs" />
+    <Compile Include="XModel\XResolutionException.cs" />
+    <Compile Include="XModel\XTypeDefinition.cs" />
+    <Compile Include="XModel\XTypeReference.cs" />
+    <Compile Include="XModel\XTypeReferenceKind.cs" />
+    <Compile Include="XModel\XTypeSpecification.cs" />
+    <Compile Include="XModel\XTypeSystem.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Mono.Cecil\Mono.Cecil.DeepSea.csproj">
+      <Project>{13F162A6-BB55-40B6-BB77-22D5C0B4A386}</Project>
+      <Name>Mono.Cecil.DeepSea</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ApkLib\ApkLib.csproj">
+      <Project>{13F1BB11-ABB6-B755-CC77-7AD5C0B4BB22}</Project>
+      <Name>ApkLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CecilExtensions\CecilExtensions.csproj">
+      <Project>{1456BD11-BD12-DD34-44DE-7AD5C0B4BB22}</Project>
+      <Name>CecilExtensions</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DexLib\DexLib.csproj">
+      <Project>{CAF03EFC-1CF0-49DA-8C2E-684949E08833}</Project>
+      <Name>DexLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FrameworkDefinitions\FrameworkDefinitions.csproj">
+      <Project>{13F162A6-AA66-BB55-CC77-7AD5C0B4BB22}</Project>
+      <Name>FrameworkDefinitions</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ImportJarLib\ImportJarLib.csproj">
+      <Project>{E939B91C-F654-4674-FF11-76A1C8039617}</Project>
+      <Name>ImportJarLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\JvmClassLib\JvmClassLib.csproj">
+      <Project>{13F162A6-F530-40B6-A258-7AD5C0B4A386}</Project>
+      <Name>JvmClassLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\LoaderLib\LoaderLib.csproj">
+      <Project>{13F162A6-DD45-F343-1234-7ADBD4323486}</Project>
+      <Name>LoaderLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Mapping\MappingLib.csproj">
+      <Project>{13F162A6-F530-40F2-1234-7AD5123AA386}</Project>
+      <Name>MappingLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Utility\Utility.csproj">
+      <Project>{13F162A6-F530-40B3-1234-7AD5C0B4A386}</Project>
+      <Name>Utility</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

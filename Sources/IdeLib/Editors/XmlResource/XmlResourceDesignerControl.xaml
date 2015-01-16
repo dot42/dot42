@@ -1,0 +1,284 @@
+﻿<UserControl xmlns:my="clr-namespace:Dot42.Ide.Editors.XmlResource"  
+             x:Class="Dot42.Ide.Editors.XmlResource.XmlResourceDesignerControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:collections="clr-namespace:System.Collections;assembly=mscorlib"
+             mc:Ignorable="d" 
+             d:DataContext="{d:DesignInstance Type=my:IResourceViewModel}"
+             d:DesignHeight="300" d:DesignWidth="300">
+    <UserControl.Resources>
+        <Style TargetType="{x:Type Expander}">
+            <Setter Property="Margin" Value="3,3,3,0" />
+            <Setter Property="IsExpanded" Value="{Binding RelativeSource={RelativeSource Self}, Path=Content.ItemsSource.IsNotEmpty, Mode=OneTime}"></Setter>
+            <Setter Property="Header" Value="{Binding RelativeSource={RelativeSource Self}, Path=Content.ItemsSource.Header}"></Setter>
+        </Style>
+        <Style TargetType="{x:Type DataGrid}">
+            <Setter Property="Margin" Value="3" />
+        </Style>
+        <Style x:Key="NestedGridStyle" TargetType="{x:Type DataGrid}">
+            <Setter Property="Margin" Value="20,3,3,3" />
+        </Style>
+        <Style x:Key="CellEditStyle" TargetType="{x:Type TextBox}">
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Background" Value="LightPink"></Setter>
+            <Style.Triggers>
+                <Trigger Property="Validation.HasError" Value="true">
+                    <Setter Property="ToolTip"
+                            Value="{Binding RelativeSource={RelativeSource Self},
+                                    Path=(Validation.Errors)[0].ErrorContent}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+    <DockPanel>
+        <ScrollViewer>
+
+            <StackPanel>
+                <!-- Bools -->
+                <Expander>
+                    <DataGrid AutoGenerateColumns="False" ItemsSource="{Binding Path=Resources.Bools}" Name="boolsGrid">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn 
+                            Header="Name" 
+                            EditingElementStyle="{StaticResource CellEditStyle}"
+                            Binding="{Binding Path=Name, ValidatesOnExceptions=True}" 
+                            Width="*" />
+                            <DataGridComboBoxColumn
+                            Header="Value"
+                            SelectedItemBinding="{Binding Path=Value, ValidatesOnExceptions=True}"
+                            ItemsSource="{Binding Source={x:Static my:XmlResourceDesignerControl.BoolValues}}"
+                            Width="2*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Expander>
+                <!-- Colors -->
+                <Expander>
+                    <DataGrid AutoGenerateColumns="False" ItemsSource="{Binding Path=Resources.Colors}" Name="colorsGrid">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn 
+                            Header="Name" 
+                            EditingElementStyle="{StaticResource CellEditStyle}"
+                            Binding="{Binding Path=Name, ValidatesOnExceptions=True}" 
+                            Width="*" />
+                            <DataGridTextColumn 
+                            Header="Value" 
+                            EditingElementStyle="{StaticResource CellEditStyle}"
+                            Binding="{Binding Path=Value, ValidatesOnExceptions=True}" 
+                            Width="2*" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Expander>
+                <!-- Dimensions -->
+                <Expander>
+                    <DataGrid AutoGenerateColumns="False" ItemsSource="{Binding Path=Resources.Dimensions}" Name="dimensionsGrid">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn 
+                            Header="Name" 
+                            EditingElementStyle="{StaticResource CellEditStyle}"
+                            Binding="{Binding Path=Name, ValidatesOnExceptions=True}" 
+                            Width="*" />
+                            <DataGridTextColumn 
+                            Header="Value" 
+                            EditingElementStyle="{StaticResource CellEditStyle}"
+                            Binding="{Binding Path=Value, ValidatesOnExceptions=True}" 
+                            Width="2*" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Expander>
+                <!-- Ids -->
+                <Expander>
+                    <DataGrid AutoGenerateColumns="False" ItemsSource="{Binding Path=Resources.Ids}" Name="idsGrid">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn 
+                            Header="Name" 
+                            EditingElementStyle="{StaticResource CellEditStyle}"
+                            Binding="{Binding Path=Name, ValidatesOnExceptions=True}" 
+                            Width="*" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Expander>
+                <!-- Integers -->
+                <Expander>
+                    <DataGrid AutoGenerateColumns="False" ItemsSource="{Binding Path=Resources.Integers}" Name="integersGrid">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn 
+                            Header="Name" 
+                            EditingElementStyle="{StaticResource CellEditStyle}"
+                            Binding="{Binding Path=Name, ValidatesOnExceptions=True}" 
+                            Width="*" />
+                            <DataGridTextColumn 
+                            Header="Value" 
+                            EditingElementStyle="{StaticResource CellEditStyle}"
+                            Binding="{Binding Path=Value, ValidatesOnExceptions=True}" 
+                            Width="2*" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Expander>
+                <!-- Integer arrays -->
+                <Expander>
+                    <DataGrid AutoGenerateColumns="False" ItemsSource="{Binding Resources.IntegerArrays}" RowDetailsVisibilityMode="Visible" Name="integerArraysGrid">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn 
+                            Header="Name" 
+                            EditingElementStyle="{StaticResource CellEditStyle}"
+                            Binding="{Binding Path=Name, ValidatesOnExceptions=True}" 
+                            Width="*" />
+                        </DataGrid.Columns>
+                        <DataGrid.RowDetailsTemplate>
+                            <DataTemplate>
+                                <!-- Integer array items -->
+                                <DataGrid AutoGenerateColumns="False" ItemsSource="{Binding Items}" Style="{StaticResource NestedGridStyle}">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn 
+                                        Header="Item" 
+                                        EditingElementStyle="{StaticResource CellEditStyle}"
+                                        Binding="{Binding Path=Value, ValidatesOnExceptions=True}" 
+                                        />
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </DataTemplate>
+                        </DataGrid.RowDetailsTemplate>
+                    </DataGrid>
+                </Expander>
+                <!-- Strings -->
+                <Expander>
+                    <DataGrid AutoGenerateColumns="False" ItemsSource="{Binding Path=Resources.Strings}" Name="stringsGrid">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn 
+                            Header="Name" 
+                            EditingElementStyle="{StaticResource CellEditStyle}"
+                            Binding="{Binding Path=Name, ValidatesOnExceptions=True}" 
+                            Width="*" />
+                            <DataGridTextColumn 
+                            Header="Value" 
+                            EditingElementStyle="{StaticResource CellEditStyle}"
+                            Binding="{Binding Path=Value, ValidatesOnExceptions=True}" 
+                            Width="2*" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Expander>
+                <!-- String arrays -->
+                <Expander>
+                    <DataGrid AutoGenerateColumns="False" ItemsSource="{Binding Resources.StringArrays}" RowDetailsVisibilityMode="Visible" Name="stringArraysGrid">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn 
+                            Header="Name" 
+                            EditingElementStyle="{StaticResource CellEditStyle}"
+                            Binding="{Binding Path=Name, ValidatesOnExceptions=True}" 
+                            Width="*" />
+                        </DataGrid.Columns>
+                        <DataGrid.RowDetailsTemplate>
+                            <DataTemplate>
+                                <!-- String array items -->
+                                <DataGrid AutoGenerateColumns="False" ItemsSource="{Binding Items}" Style="{StaticResource NestedGridStyle}">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn 
+                                        Header="Item" 
+                                        EditingElementStyle="{StaticResource CellEditStyle}"
+                                        Binding="{Binding Path=Value, ValidatesOnExceptions=True}" 
+                                        />
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </DataTemplate>
+                        </DataGrid.RowDetailsTemplate>
+                    </DataGrid>
+                </Expander>
+                <!-- Plurals -->
+                <Expander>
+                    <DataGrid AutoGenerateColumns="False" ItemsSource="{Binding Resources.Plurals}" RowDetailsVisibilityMode="Visible" Name="pluralsGrid">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn 
+                            Header="Name" 
+                            EditingElementStyle="{StaticResource CellEditStyle}"
+                            Binding="{Binding Path=Name, ValidatesOnExceptions=True}" 
+                            Width="*" />
+                        </DataGrid.Columns>
+                        <DataGrid.RowDetailsTemplate>
+                            <DataTemplate>
+                                <!-- Plurals items -->
+                                <DataGrid AutoGenerateColumns="False" ItemsSource="{Binding Items}" Style="{StaticResource NestedGridStyle}">
+                                    <DataGrid.Columns>
+                                        <DataGridComboBoxColumn
+                                        Header="Quantity"
+                                        SelectedItemBinding="{Binding Path=Quantity, ValidatesOnExceptions=True}"
+                                        ItemsSource="{Binding Source={x:Static my:XmlResourceDesignerControl.PluralsQuantityValues}}" />
+                                        <DataGridTextColumn 
+                                        Header="Item" 
+                                        EditingElementStyle="{StaticResource CellEditStyle}"
+                                        Binding="{Binding Path=Value, ValidatesOnExceptions=True}" 
+                                        />
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </DataTemplate>
+                        </DataGrid.RowDetailsTemplate>
+                    </DataGrid>
+                </Expander>
+                <!-- Styles -->
+                <Expander>
+                    <DataGrid AutoGenerateColumns="False" ItemsSource="{Binding Resources.Styles}" RowDetailsVisibilityMode="Visible" Name="stylesGrid">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn 
+                            Header="Name" 
+                            EditingElementStyle="{StaticResource CellEditStyle}"
+                            Binding="{Binding Path=Name, ValidatesOnExceptions=True}" 
+                            Width="*" />
+                            <DataGridTextColumn 
+                            Header="Parent" 
+                            EditingElementStyle="{StaticResource CellEditStyle}"
+                            Binding="{Binding Path=Parent, ValidatesOnExceptions=True}" 
+                            Width="2*" />
+                        </DataGrid.Columns>
+                        <DataGrid.RowDetailsTemplate>
+                            <DataTemplate>
+                                <!-- Style items -->
+                                <DataGrid AutoGenerateColumns="False" ItemsSource="{Binding Items}" Style="{StaticResource NestedGridStyle}">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn 
+                                        Header="Name" 
+                                        EditingElementStyle="{StaticResource CellEditStyle}"
+                                        Binding="{Binding Path=Name, ValidatesOnExceptions=True}" 
+                                        />
+                                        <DataGridTextColumn 
+                                        Header="Value" 
+                                        EditingElementStyle="{StaticResource CellEditStyle}"
+                                        Binding="{Binding Path=Value, ValidatesOnExceptions=True}" 
+                                         />
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </DataTemplate>
+                        </DataGrid.RowDetailsTemplate>
+                    </DataGrid>
+                </Expander>
+                <!-- Typed arrays -->
+                <Expander>
+                    <DataGrid AutoGenerateColumns="False" ItemsSource="{Binding Resources.TypedArrays}" RowDetailsVisibilityMode="Visible" Name="typedArraysGrid">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn 
+                            Header="Name" 
+                            EditingElementStyle="{StaticResource CellEditStyle}"
+                            Binding="{Binding Path=Name, ValidatesOnExceptions=True}" 
+                            Width="*" />
+                        </DataGrid.Columns>
+                        <DataGrid.RowDetailsTemplate>
+                            <DataTemplate>
+                                <!-- Typed array items -->
+                                <DataGrid AutoGenerateColumns="False" ItemsSource="{Binding Items}" Style="{StaticResource NestedGridStyle}">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn 
+                                        Header="Item" 
+                                        EditingElementStyle="{StaticResource CellEditStyle}"
+                                        Binding="{Binding Path=Value, ValidatesOnExceptions=True}" 
+                                        />
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </DataTemplate>
+                        </DataGrid.RowDetailsTemplate>
+                    </DataGrid>
+                </Expander>
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</UserControl>

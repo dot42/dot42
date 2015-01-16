@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{13F1BB11-B27A-54DF-44DE-7AD263BFBB22}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Dot42.BarDeployLib</RootNamespace>
+    <AssemblyName>dot42.BarDeployLib</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+    <SignAssembly>false</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\Dot42.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Version.cs" />
+    <Compile Include="BarDeployer.cs" />
+    <Compile Include="BarDeployException.cs" />
+    <Compile Include="BlackBerryDevice.cs" />
+    <Compile Include="BlackBerryDevices.cs" />
+    <Compile Include="Entity\HttpEntity.cs" />
+    <Compile Include="Entity\Mime\Body.cs" />
+    <Compile Include="Entity\Mime\FileBody.cs" />
+    <Compile Include="Entity\Mime\InputStreamBody.cs" />
+    <Compile Include="Entity\Mime\StringBody.cs" />
+    <Compile Include="Entity\MultipartEntity.cs" />
+    <Compile Include="HttpClient.cs" />
+    <Compile Include="LoginAuthException.cs" />
+    <Compile Include="LoginSystemException.cs" />
+    <Compile Include="PwCrypto.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common\BouncyCastle\v1.7\BouncyCastle-v1.7.csproj">
+      <Project>{BB4562A6-BB44-BBB6-1111-22D5C0B4A386}</Project>
+      <Name>BouncyCastle-v1.7</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\BarLib\BarLib.csproj">
+      <Project>{13F1BB11-45DE-B755-CC77-7AD5C0B4BB22}</Project>
+      <Name>BarLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DeviceLib\DeviceLib.csproj">
+      <Project>{13F1BB11-B71A-A349-4BEE-7AD5C023BB22}</Project>
+      <Name>DeviceLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Utility\Utility.csproj">
+      <Project>{13F162A6-F530-40B3-1234-7AD5C0B4A386}</Project>
+      <Name>Utility</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

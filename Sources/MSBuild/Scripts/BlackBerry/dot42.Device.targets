@@ -1,0 +1,67 @@
+﻿<!--
+***********************************************************************************************
+dot42.Device.targets
+
+WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and have
+          created a backup copy.  Incorrect changes to this file will make it
+          impossible to load or build your projects from the command-line or the IDE.
+
+This file defines the common steps in the build process of a Dot42 application.
+
+Copyright (C) TallApplications BV. All rights reserved.
+***********************************************************************************************
+-->
+
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    
+    <!--   
+    ================================================================
+                           WaitForDevice
+    This target ensures that the Android Debug Bridge is running
+	and waits for a device to connect.
+	================================================================
+    -->
+	<Target Name="WaitForDevice">
+	</Target>
+	
+    <!--   
+    ================================================================
+                           Install
+    This target installs the package on the currently connected device.
+	================================================================
+    -->
+	<Target Name="Install" DependsOnTargets="WaitForDevice">
+		<InstallBar Package="$(OutDir)$(PackageFilename)"/>			
+	</Target>
+	
+    <!--   
+    ================================================================
+                           Uninstall
+    This target uninstalls the package from the currently connected 
+	device.
+	================================================================
+    -->
+	<Target Name="Uninstall" DependsOnTargets="WaitForDevice">
+		<UninstallBar PackageId="$(PackageName)"/>			
+	</Target>
+	
+    <!--   
+    ================================================================
+                           Test
+    This target runs the standard InstrumentationTestRunner for
+	the package on the currently connected device.
+	================================================================
+    -->
+    <PropertyGroup>
+        <TestDependsOn>
+            Install;
+        </TestDependsOn>
+    </PropertyGroup>
+
+	<Target Name="Test" DependsOnTargets="$(TestDependsOn)">
+    <InstrumentApk 
+			PackageName="$(PackageName)"
+		/>			
+	</Target>
+
+</Project>

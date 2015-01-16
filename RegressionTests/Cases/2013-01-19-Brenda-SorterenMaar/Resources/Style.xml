@@ -1,0 +1,15 @@
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+  <color name="accent_blue">#33b5e5</color>
+  <color name="light_blue">#2f33b5e5</color>
+  <style parent="@android:style/Widget.Holo.Light.ActionBar" name="MyActionBar">
+    <item name="android:background">#33b5e5</item>
+  </style>
+  <style parent="@android:style/Theme.Holo.Light" name="MyTheme" />
+  <style parent="@android:style/Widget.Holo.Light.TextView" name="MyTextView">
+    <item name="android:textSize">22sp</item>
+  </style>
+  <style parent="@android:style/Widget.Holo.Light.TextView" name="MyTextViewColored">
+    <item name="android:textColor">#33b5e5</item>
+    <item name="android:textSize">25sp</item>
+  </style>
+</resources>

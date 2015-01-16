@@ -1,0 +1,776 @@
+﻿<!--
+***********************************************************************************************
+dot42.Common.targets
+
+WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and have
+          created a backup copy.  Incorrect changes to this file will make it
+          impossible to load or build your projects from the command-line or the IDE.
+
+This file defines the common steps in the build process of a Dot42 application.
+
+Copyright (C) TallComponents BV. All rights reserved.
+***********************************************************************************************
+-->
+
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <TargetFrameworkMonikerDisplayName>Dot42</TargetFrameworkMonikerDisplayName>
+  </PropertyGroup>
+
+  <UsingTask TaskName="Dot42.MSBuild.Tasks.AssignJarLogicalName" AssemblyFile="$(Dot42TasksFile)" />
+  <UsingTask TaskName="Dot42.MSBuild.Tasks.AssignLibraryName" AssemblyFile="$(Dot42TasksFile)" />
+  <UsingTask TaskName="Dot42.MSBuild.Tasks.BuildPackage" AssemblyFile="$(Dot42TasksFile)" />
+  <UsingTask TaskName="Dot42.MSBuild.Tasks.BuildTempResourceItems" AssemblyFile="$(Dot42TasksFile)" />
+  <UsingTask TaskName="Dot42.MSBuild.Tasks.CompileAssembly" AssemblyFile="$(Dot42TasksFile)" />
+  <UsingTask TaskName="Dot42.MSBuild.Tasks.CheckAndroidVersionInManifest" AssemblyFile="$(Dot42TasksFile)" />
+  <UsingTask TaskName="Dot42.MSBuild.Tasks.CompileResources" AssemblyFile="$(Dot42TasksFile)" />
+  <UsingTask TaskName="Dot42.MSBuild.Tasks.CreateAndroidManifest" AssemblyFile="$(Dot42TasksFile)" />
+  <UsingTask TaskName="Dot42.MSBuild.Tasks.GenerateWcfProxy" AssemblyFile="$(Dot42TasksFile)" />
+  <UsingTask TaskName="Dot42.MSBuild.Tasks.ImportJars" AssemblyFile="$(Dot42TasksFile)" />
+  <UsingTask TaskName="Dot42.MSBuild.Tasks.ImportLibraryProjects" AssemblyFile="$(Dot42TasksFile)" />
+
+  <ItemGroup>
+    <AvailableItemName Include="ManifestResource"/>
+    <AvailableItemName Include="AnimationResource"/>
+    <AvailableItemName Include="DrawableResource"/>
+    <AvailableItemName Include="LayoutResource"/>
+    <AvailableItemName Include="MenuResource"/>
+    <AvailableItemName Include="ValuesResource"/>
+    <AvailableItemName Include="XmlResource"/>
+    <AvailableItemName Include="RawResource"/>
+    <AvailableItemName Include="NativeCodeLibrary"/>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <IntermediateDexCodePath>$(IntermediateOutputPath)TempCode\</IntermediateDexCodePath>
+    <ResourcesGeneratedCodePath Condition=" '$(ResourcesGeneratedCodePath)' == '' ">Properties\</ResourcesGeneratedCodePath>
+    <IntermediateResourcesPath>$(IntermediateOutputPath)TempRes\</IntermediateResourcesPath>
+    <TempResourcesPath>$(IntermediateOutputPath)TempResX\</TempResourcesPath>
+    <TempLibraryProjectPath>$(IntermediateOutputPath)\TempLibraryProject</TempLibraryProjectPath>
+    <PlainAndroidManifest>$(IntermediateDexCodePath)AndroidManifest.xml</PlainAndroidManifest>
+    <CoreCompileDependsOn>ImportJarReferences;$(CoreCompileDependsOn);CompileResources</CoreCompileDependsOn>
+    <AssemblyCompilationMode Condition=" '$(AssemblyCompilationMode)' == '' ">app</AssemblyCompilationMode>
+    <TargetSdkAndroidVersion Condition="'$(TargetSdkAndroidVersion)' == ''">$(AndroidVersion)</TargetSdkAndroidVersion>
+    <GenerateWcfProxy Condition=" '$(GenerateWcfProxy)' == '' ">false</GenerateWcfProxy>
+    <_GeneratedWcfProxySource Condition=" '$(GenerateWcfProxy)' == 'true' ">$(IntermediateOutputPath)GeneratedWcfProxy.cs</_GeneratedWcfProxySource>
+    <_GeneratedWcfProxyAssembly Condition=" '$(GenerateWcfProxy)' == 'true' ">$(IntermediateOutputPath)GeneratedWcfProxy.dll</_GeneratedWcfProxyAssembly>
+    <_GeneratedWcfProxyPdb Condition=" '$(GenerateWcfProxy)' == 'true' ">$(IntermediateOutputPath)GeneratedWcfProxy.pdb</_GeneratedWcfProxyPdb>
+    <_ResourceTypeUsageInformation>$(IntermediateOutputPath)ResourceTypeUsage.txt</_ResourceTypeUsageInformation>
+  </PropertyGroup>
+
+  <!-- 
+    ================================================================
+                        _CreateDot42Properties
+                        
+    Creates some Dot42 dependent properties
+    ================================================================
+     -->
+  <Target Name="_CreateDot42Properties" DependsOnTargets="$(_CreateDot42PropertiesDependsOn)">
+    <CreateProperty Value="@(_OutputPathItem->'%(FullPath)$(PackageFilename)')" Condition="'$(ApkOutputs)'=='true'">
+      <Output TaskParameter="Value" PropertyName="PackageOutputFile"/>
+    </CreateProperty>
+
+    <PropertyGroup>
+      <IntermediatePackage>$(IntermediateOutputPath)$(PackageFilename)</IntermediatePackage>
+    </PropertyGroup>
+    
+    <CreateItem Include="$(IntermediatePackage)">
+      <Output TaskParameter="Include" ItemName="_IntermediatePackage"/>
+    </CreateItem>
+    <CreateProperty Value="@(_IntermediatePackage->'%(RelativeDir)%(Filename).d42map')">
+      <Output TaskParameter="Value" PropertyName="IntermediateMap"/>
+    </CreateProperty>
+    <CreateProperty Value="@(_IntermediatePackage->'%(RelativeDir)%(Filename).md5')">
+      <Output TaskParameter="Value" PropertyName="IntermediateMD5FingerPrint"/>
+    </CreateProperty>
+    <CreateProperty Value="@(_IntermediatePackage->'%(RelativeDir)%(Filename).sha1')">
+      <Output TaskParameter="Value" PropertyName="IntermediateSHA1FingerPrint"/>
+    </CreateProperty>
+    <CreateProperty Value="@(_IntermediatePackage->'%(RelativeDir)%(Filename).fak')">
+      <Output TaskParameter="Value" PropertyName="IntermediateFreeAppsKey"/>
+    </CreateProperty>
+    <CreateItem Include="$(_GeneratedWcfProxyAssembly)">
+      <Output TaskParameter="Include" ItemName="_GeneratedWcfProxyAssembly"/>
+    </CreateItem>
+  </Target>
+
+  <!-- 
+    ================================================================
+                        GetFrameworkPaths
+                        
+    Override GetFrameworkPaths in Microsoft.Common.targets so that 
+    references resolve to the Dot42 assemblies rather than the 
+    desktop CLR assemblies
+    ================================================================
+     -->
+  <Target
+      Name="GetFrameworkPaths"
+      DependsOnTargets="$(GetFrameworkPathsDependsOn)"
+     >
+
+    <PropertyGroup>
+      <_ReferenceAssembliesFolder Condition="'$(_ReferenceAssembliesFolder)' == ''">$(Dot42ReferenceAssembliesFolder)</_ReferenceAssembliesFolder>
+      <TargetFrameworkDirectory Condition="'$(TargetFrameworkDirectory)' == ''">$(Dot42ReferenceAssembliesFolder)\$(AndroidVersion)</TargetFrameworkDirectory>
+      <_TargetSdkFrameworkDirectory Condition="'$(_TargetSdkFrameworkDirectory)' == ''">$(Dot42ReferenceAssembliesFolder)\$(TargetSdkAndroidVersion)</_TargetSdkFrameworkDirectory>
+      <FrameworkPathOverride>$(TargetFrameworkDirectory)</FrameworkPathOverride>
+      <TargetFrameworkSDKDirectory Condition="'$(TargetFrameworkSDKDirectory)' == ''">@(_TargetFrameworkSDKDirectoryItem)</TargetFrameworkSDKDirectory>
+      <SdkPath>$(TargetFrameworkSDKDirectory)</SdkPath>
+    </PropertyGroup>
+
+  </Target>
+
+
+  <!--
+    ================================================================
+                        GetReferenceAssemblyPaths
+
+    We override to do nothing. This prevents the default implementation
+    from setting the V3.0 and v3.5 framework paths
+    ================================================================
+    -->
+  <Target
+      Name="GetReferenceAssemblyPaths"
+      DependsOnTargets="$(GetReferenceAssemblyPathsDependsOn)">
+
+    <Message Text="$(Dot42Folder)" />
+
+  </Target>
+
+  <!-- 
+    We want build the APK after the project has built everything.
+    -->
+  <PropertyGroup>
+    <PrepareForRunDependsOn>
+      $(PrepareForRunDependsOn);
+      CompileResources;
+      GenerateWcfProxy;
+      CompileToDex;
+      ApkPackager;
+      CopyPackageToOutputDirectory;
+    </PrepareForRunDependsOn>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <BuiltProjectOutputGroupDependsOn>
+      $(BuiltProjectOutputGroupDependsOn);
+    </BuiltProjectOutputGroupDependsOn>
+  </PropertyGroup>
+
+  <!-- 
+    -->
+  <PropertyGroup>
+    <PrepareResourcesDependsOn>
+      $(PrepareResourcesDependsOn)
+    </PrepareResourcesDependsOn>
+  </PropertyGroup>
+
+  <!--
+    ============================================================
+                    ImportLibraryProjects
+
+    Convert Android Library project structures into MSBuild items.
+    ============================================================
+    -->
+  <PropertyGroup>
+    <ImportLibraryProjectsDependsOn></ImportLibraryProjectsDependsOn>
+  </PropertyGroup>
+  <Target
+      Name="ImportLibraryProjects"
+      DependsOnTargets="$(ImportLibraryProjectsDependsOn)">
+
+    <ImportLibraryProjects
+  	    TempFolder="$(TempLibraryProjectPath)"
+        LibraryProjects="@(LibraryProject)">
+      <Output ItemName="_LibEmbeddedResources" TaskParameter="OutputResources" />
+      <Output ItemName="_LibJarReferences" TaskParameter="JarReferences" />
+      <Output ItemName="_LibCompileItems" TaskParameter="CompileItems" />
+    </ImportLibraryProjects>
+
+    <ItemGroup>
+      <EmbeddedResource Include="@(_LibEmbeddedResources)" />
+      <JarReference Include="@(_LibJarReferences)">
+        <ImportCode>true</ImportCode>
+      </JarReference>
+      <Compile Include="@(_LibCompileItems)" />
+    </ItemGroup>
+
+  </Target>
+
+  <!--
+    ============================================================
+                              AssignTargetPaths
+    ============================================================
+    -->
+  <Target
+      Name="AssignTargetPaths"
+      DependsOnTargets="$(AssignTargetPathsDependsOn);_CreateDot42Properties;ImportLibraryProjects">
+
+    <ItemGroup>
+      <_Temporary Remove="@(_Temporary)" />
+    </ItemGroup>
+
+    <!-- AssignTargetPath generates TargetPath metadata that is consumed by CreateManifestResourceNames target for manifest name generation -->
+    <AssignTargetPath Files="@(EmbeddedResource)" RootFolder="$(MSBuildProjectDirectory)">
+      <Output TaskParameter="AssignedFiles" ItemName="_Temporary" />
+    </AssignTargetPath>
+
+    <ItemGroup>
+      <!-- Replace items in EmbeddedResource with the items emitted by the AssignTargetPath task that have the TargetPath metadata -->
+      <EmbeddedResource Remove="@(_Temporary)" />
+      <EmbeddedResource Include="@(_Temporary)" />
+      <_Temporary Remove="@(_Temporary)" />
+    </ItemGroup>
+
+    <AssignTargetPath Files="@(Content)" RootFolder="$(MSBuildProjectDirectory)">
+      <Output TaskParameter="AssignedFiles" ItemName="ContentWithTargetPath" />
+    </AssignTargetPath>
+
+    <AssignTargetPath Files="@(None)" RootFolder="$(MSBuildProjectDirectory)">
+      <Output TaskParameter="AssignedFiles" ItemName="_NoneWithTargetPath" />
+    </AssignTargetPath>
+
+    <AssignTargetPath Files="@(BaseApplicationManifest)" RootFolder="$(MSBuildProjectDirectory)">
+      <Output TaskParameter="AssignedFiles" ItemName="_DeploymentBaseManifestWithTargetPath"/>
+    </AssignTargetPath>
+
+    <AssignTargetPath Files="@(None)" RootFolder="$(MSBuildProjectDirectory)" Condition="'@(_DeploymentBaseManifestWithTargetPath)'=='' and '%(None.Extension)'=='.manifest'">
+      <Output TaskParameter="AssignedFiles" ItemName="_DeploymentBaseManifestWithTargetPath" />
+    </AssignTargetPath>
+
+    <AssignTargetPath Files="@(Compile)" RootFolder="$(MSBuildProjectDirectory)" Condition="'%(Compile.SubType)'=='AppWidgetProvider'">
+      <Output TaskParameter="AssignedFiles" ItemName="_AssignedAppWidgetProvider" />
+    </AssignTargetPath>
+
+    <AssignTargetPath Files="@(ManifestResource)" RootFolder="$(MSBuildProjectDirectory)">
+      <Output TaskParameter="AssignedFiles" ItemName="_AssignedManifestResource"/>
+    </AssignTargetPath>
+
+    <AssignTargetPath Files="@(AnimationResource)" RootFolder="$(MSBuildProjectDirectory)">
+      <Output TaskParameter="AssignedFiles" ItemName="_AssignedAnimationResource"/>
+    </AssignTargetPath>
+
+    <AssignTargetPath Files="@(DrawableResource)" RootFolder="$(MSBuildProjectDirectory)">
+      <Output TaskParameter="AssignedFiles" ItemName="_AssignedDrawableResource"/>
+    </AssignTargetPath>
+
+    <AssignTargetPath Files="@(LayoutResource)" RootFolder="$(MSBuildProjectDirectory)">
+      <Output TaskParameter="AssignedFiles" ItemName="_AssignedLayoutResource"/>
+    </AssignTargetPath>
+
+    <AssignTargetPath Files="@(MenuResource)" RootFolder="$(MSBuildProjectDirectory)">
+      <Output TaskParameter="AssignedFiles" ItemName="_AssignedMenuResource"/>
+    </AssignTargetPath>
+
+    <AssignTargetPath Files="@(ValuesResource)" RootFolder="$(MSBuildProjectDirectory)">
+      <Output TaskParameter="AssignedFiles" ItemName="_AssignedValuesResource"/>
+    </AssignTargetPath>
+
+    <AssignTargetPath Files="@(XmlResource)" RootFolder="$(MSBuildProjectDirectory)">
+      <Output TaskParameter="AssignedFiles" ItemName="_AssignedXmlResource"/>
+    </AssignTargetPath>
+
+    <AssignTargetPath Files="@(RawResource)" RootFolder="$(MSBuildProjectDirectory)">
+      <Output TaskParameter="AssignedFiles" ItemName="_AssignedRawResource"/>
+    </AssignTargetPath>
+
+    <AssignLibraryName Items="@(JarReference)">
+      <Output TaskParameter="OutputItems" ItemName="_AssignedJarReference"/>
+    </AssignLibraryName>
+
+    <CreateItem Include="@(_AssignedJarReference)" Condition="'%(_AssignedJarReference.ImportCode)'!='yes'">
+      <Output TaskParameter="Include" ItemName="_StubOnlyJarReference" />
+    </CreateItem>
+    <CreateItem Include="@(_AssignedJarReference)" Condition="'%(_AssignedJarReference.ImportCode)'=='yes'">
+      <Output TaskParameter="Include" ItemName="_ImportCodeJarReference" />
+    </CreateItem>
+
+    <CreateItem Include="@(_AssignedJarReference->'$(IntermediateOutputPath)%(LibraryName).cs')">
+      <Output TaskParameter="Include" ItemName="_JarReferenceSource" />
+    </CreateItem>
+    <CreateItem Include="@(_JarReferenceSource)">
+      <Output TaskParameter="Include" ItemName="Compile" />
+    </CreateItem>
+    <AssignJarLogicalName Items="@(_ImportCodeJarReference)">
+      <Output TaskParameter="OutputItems" ItemName="EmbeddedResource"/>
+    </AssignJarLogicalName>
+
+    <CreateItem Include="@(ReferencePath)" Condition="'%(ReferencePath.IncludeAllCode)'=='yes'">
+      <Output TaskParameter="Include" ItemName="_IncludeAllCodeReference" />
+    </CreateItem>
+
+    <BuildTempResourceItems
+        AnimationResources="@(_AssignedAnimationResource)"
+        DrawableResources="@(_AssignedDrawableResource)"
+        LayoutResources="@(_AssignedLayoutResource)"
+        MenuResources="@(_AssignedMenuResource)"
+        RawResources="@(_AssignedRawResource)"
+        TempFolder="$(TempResourcesPath)"
+        ValuesResources="@(_AssignedValuesResource)"
+        XmlResources="@(_AssignedXmlResource)">
+      <Output ItemName="_TempManifestItem" TaskParameter="OutputManifestItem" />
+      <Output ItemName="_TempResourceItem" TaskParameter="OutputItems" />
+    </BuildTempResourceItems>
+
+    <Message Text="TempItems:  @(_TempManifestItem);@(_TempResourceItem)" />
+
+  </Target>
+
+  <!--
+    ============================================================
+                                        ResolveApkKeySource
+
+    Resolve the the certificate used to sign the APK.
+
+        [IN]
+        $(ApkCertificatePath)            - The certificate file used to sign the assembly (.pfx)
+        $(ApkCertificateThumbprint)      - The thumbprint used to locate the certificate in the
+                                           user's certificate store.
+
+        [OUT]
+        $(_ResolvedApkCertificateThumbprint) - Certificate used to sign the manifests
+    ============================================================
+    -->
+
+  <Target
+      Name="ResolveApkKeySource"
+      Condition="'$(ApkOutputs)'=='true'">
+
+    <Error Condition="'$(ApkCertificatePath)' == ''" Text="No package certificate specified" />
+    <!-- Error Condition="'$(ApkCertificateThumbprint)' == ''" Text="No package certificate thumbprint specified" / -->
+
+    <Message Text="Package certificate: $(ApkCertificatePath)" />
+
+    <ResolveKeySource
+        CertificateFile="$(ApkCertificatePath)"
+		CertificateThumbprint="$(ApkCertificateThumbprint)"
+        SuppressAutoClosePasswordPrompt="$(BuildingInsideVisualStudio)"
+        ShowImportDialogDespitePreviousFailures="True"
+        ContinueOnError="!$(BuildingProject)"
+          >
+
+      <Output TaskParameter="ResolvedThumbprint" PropertyName="_ResolvedApkCertificateThumbprint" />
+    </ResolveKeySource>
+    <Message Text="CertificateThumbprint: $(_ResolvedApkCertificateThumbprint)" />
+  </Target>
+
+  <!--
+    ============================================================
+                    CompileResources 
+
+    This target compiles all resources and generates the R.x file.
+	This target is called before compilation.
+    ============================================================
+    -->
+  <PropertyGroup>
+    <CompileResourcesDependsOn>AssignTargetPaths</CompileResourcesDependsOn>
+  </PropertyGroup>
+  <Target
+      Name="CompileResources"
+      DependsOnTargets="$(CompileResourcesDependsOn)"
+      Condition="'$(ApkOutputs)'=='true'"
+      Inputs="$(MSBuildAllProjects);
+				    @(ReferencePath);
+				    @(_AssignedAnimationResource);
+				    @(_AssignedDrawableResource);
+				    @(_AssignedMenuResource);
+				    @(_AssignedLayoutResource);
+				    @(_AssignedValuesResource);
+				    @(_AssignedXmlResource);
+				    @(_AssignedRawResource);
+            @(_AssignedAppWidgetProvider)"
+      Outputs="$(ResourcesGeneratedCodePath)R$(DefaultLanguageSourceExtension);@(_TempResourceItem);$(IntermediateResourcesPath)resources.arsc">
+
+    <CompileResources
+        AnimationResources="@(_AssignedAnimationResource)"
+        AppWidgetProviders="@(_AssignedAppWidgetProvider)"
+        DrawableResources="@(_AssignedDrawableResource)"
+        DstDir="$(IntermediateResourcesPath)"
+        GeneratedCodeFolder="$(ResourcesGeneratedCodePath)"
+        GeneratedCodeNamespace="$(RootNamespace)"
+        GeneratedCodeLanguage="$(Language)"
+        LayoutResources="@(_AssignedLayoutResource)"
+        MenuResources="@(_AssignedMenuResource)"
+        PackageName="$(PackageName)"
+        RawResources="@(_AssignedRawResource)"
+        References="@(ReferencePath)"
+        ReferenceFolders="$(_TargetSdkFrameworkDirectory);@(ReferencePath)"
+        RootNamespace="$(RootNamespace)"
+        TempFolder="$(TempResourcesPath)"
+        ResourceTypeUsageInformation="$(_ResourceTypeUsageInformation)"
+        ValuesResources="@(_AssignedValuesResource)"
+        XmlResources="@(_AssignedXmlResource)">
+    </CompileResources>
+    <Delete Files="@(_TempManifestItem)"/>
+  </Target>
+
+  <!--
+    ============================================================
+                    ImportJarReferences
+
+    Generate source code for all imported JAR file.
+    ============================================================
+    -->
+  <PropertyGroup>
+    <ImportJarReferencesDependsOn>AssignTargetPaths</ImportJarReferencesDependsOn>
+  </PropertyGroup>
+  <Target
+      Name="ImportJarReferences"
+      DependsOnTargets="$(ImportJarReferencesDependsOn)"
+  Inputs="$(MSBuildAllProjects);
+				@(ReferencePath);
+				@(JarReference);"
+  Outputs="@(_JarReferenceSource)">
+
+    <ImportJars
+        JarFiles="@(_StubOnlyJarReference)"
+  			ReferenceFolders="$(TargetFrameworkDirectory);@(ReferencePath)"
+  			References="@(ReferencePath)"
+        OutputFolder="$(IntermediateOutputPath)"
+        ImportAsStubs="true"/>
+    <ImportJars
+        JarFiles="@(_ImportCodeJarReference)"
+  			ReferenceFolders="$(TargetFrameworkDirectory);@(ReferencePath)"
+  			References="@(ReferencePath)"
+        OutputFolder="$(IntermediateOutputPath)"
+        ImportAsStubs="false"/>
+
+    <ItemGroup>
+      <FileWrites Include="@(_JarReferenceSource)" />
+    </ItemGroup>
+  </Target>
+
+  <!--
+    ============================================================
+                    GenerateWcfProxy
+
+    This target generates a Wcf Proxy.
+    ============================================================
+    -->
+  <PropertyGroup>
+    <GenerateWcfProxyDependsOn>AssignTargetPaths</GenerateWcfProxyDependsOn>
+  </PropertyGroup>
+  <Target
+      Name="GenerateWcfProxy"
+      DependsOnTargets="$(GenerateWcfProxyDependsOn)"
+      Condition="'$(GenerateWcfProxy)' == 'true' "
+      Inputs="$(MSBuildAllProjects);
+				    @(IntermediateAssembly);
+				    @(ReferencePath)"
+	    Outputs="$(_GeneratedWcfProxySource);@(_GeneratedWcfProxyAssembly)">
+
+    <GenerateWcfProxy
+      Assemblies="@(IntermediateAssembly);@(ReferencePath)"
+      GeneratedSourcePath="$(_GeneratedWcfProxySource)"
+      ReferenceFolders="$(_TargetSdkFrameworkDirectory);@(ReferencePath)" >
+    </GenerateWcfProxy>
+
+    <Csc
+      AdditionalLibPaths="$(AdditionalLibPaths)"
+      ApplicationConfiguration="$(AppConfigForCompiler)"
+      DebugType="$(DebugType)"
+      DefineConstants="$(DefineConstants)"
+      DelaySign="$(DelaySign)"
+      DisabledWarnings="$(NoWarn)"
+      EmitDebugInformation="$(DebugSymbols)"
+      EnvironmentVariables="$(CscEnvironment)"
+      FileAlignment="$(FileAlignment)"
+      KeyContainer="$(KeyContainerName)"
+      KeyFile="$(KeyOriginatorFile)"
+      LangVersion="$(LangVersion)"
+      NoConfig="true"
+      NoLogo="$(NoLogo)"
+      NoStandardLib="$(NoCompilerStandardLib)"
+      NoWin32Manifest="$(NoWin32Manifest)"
+      Optimize="$(Optimize)"
+      OutputAssembly="@(_GeneratedWcfProxyAssembly)"
+      PdbFile="$(_GeneratedWcfProxyPdb)"
+      Platform="$(PlatformTarget)"
+      Prefer32Bit="$(Prefer32Bit)"
+      PreferredUILang="$(PreferredUILang)"
+      References="@(IntermediateAssembly);@(ReferencePath)"
+      Sources="$(_GeneratedWcfProxySource)"
+      SubsystemVersion="$(SubsystemVersion)"
+      TargetType="library"
+      ToolExe="$(CscToolExe)"
+      ToolPath="$(CscToolPath)"
+      TreatWarningsAsErrors="$(TreatWarningsAsErrors)"
+      UseHostCompilerIfAvailable="$(UseHostCompilerIfAvailable)"
+      Utf8Output="$(Utf8Output)"
+      WarningLevel="$(WarningLevel)"
+      WarningsAsErrors="$(WarningsAsErrors)"
+      WarningsNotAsErrors="$(WarningsNotAsErrors)" />
+
+  </Target>
+
+  <!--
+    ============================================================
+                    CreateAndroidManifest
+
+    This target creates an AndroidManifest.xml file in the output
+    folder.
+    ============================================================
+    -->
+  <PropertyGroup>
+    <CreateAndroidManifestDependsOn>AssignTargetPaths</CreateAndroidManifestDependsOn>
+  </PropertyGroup>
+  <Target
+      Name="CreateAndroidManifest"
+      DependsOnTargets="$(CreateAndroidManifestDependsOn)"
+      Inputs="$(MSBuildAllProjects);
+            @(IntermediateAssembly);
+            @(_AssignedAppWidgetProvider);
+            @(_AssignedManifestResource);
+            @(ReferencePath)"
+      Outputs="$(PlainAndroidManifest)">
+
+    <CreateAndroidManifest
+        Condition="'$(GenerateAndroidManifest)'=='true'"
+        ManifestResources="@(_AssignedManifestResource)"
+        AppWidgetProviders="@(_AssignedAppWidgetProvider)"
+        Assembly="@(IntermediateAssembly)"
+        Debuggable="$(DebugSymbols)"
+        DstDir="$(IntermediateDexCodePath)"
+        PackageName="$(PackageName)"
+        ReferenceFolders="$(_TargetSdkFrameworkDirectory);@(ReferencePath)"
+        TargetSdkVersion="$(TargetSdkAndroidVersion)"
+        RootNamespace="$(RootNamespace)"/>
+
+    <CheckAndroidVersionInManifest
+        MinSdkVersion="$(TargetFrameworkVersion)"
+        TargetSdkVersion="$(TargetSdkAndroidVersion)"
+        AndroidManifest="$(PlainAndroidManifest)"
+        OriginalAndroidManifest="@(_AssignedManifestResource)" />
+    
+  </Target>
+
+  <!--
+    ============================================================
+                    CompileAndroidManifest
+
+    This target compiles AndroidManifest.xml.
+    ============================================================
+    -->
+  <PropertyGroup>
+    <CompileAndroidManifestDependsOn></CompileAndroidManifestDependsOn>
+  </PropertyGroup>
+  <Target
+      Name="CompileAndroidManifest"
+      DependsOnTargets="$(CompileAndroidManifestDependsOn)"
+      Condition="'$(ApkOutputs)'=='true'"
+      Inputs="$(MSBuildAllProjects);
+				    @(ReferencePath);
+				    $(PlainAndroidManifest);
+				    @(_AssignedAnimationResource);
+				    @(_AssignedDrawableResource);
+				    @(_AssignedMenuResource);
+				    @(_AssignedLayoutResource);
+				    @(_AssignedValuesResource);
+				    @(_AssignedXmlResource);
+				    @(_AssignedRawResource);
+            @(_AssignedAppWidgetProvider)"
+      Outputs="$(IntermediateResourcesPath)AndroidManifest.xml;@(_TempResourceItems)">
+
+    <CompileResources
+      AndroidManifest="$(PlainAndroidManifest)"
+      AnimationResources="@(_AssignedAnimationResource)"
+      AppWidgetProviders="@(_AssignedAppWidgetProvider)"
+      DrawableResources="@(_AssignedDrawableResource)"
+      DstDir="$(IntermediateResourcesPath)"
+      LayoutResources="@(_AssignedLayoutResource)"
+      MenuResources="@(_AssignedMenuResource)"
+      PackageName="$(PackageName)"
+      RawResources="@(_AssignedRawResource)"
+      References="@(ReferencePath)"
+      ReferenceFolders="$(_TargetSdkFrameworkDirectory);@(ReferencePath)"
+      RootNamespace="$(RootNamespace)"
+      TempFolder="$(TempResourcesPath)"
+      ResourceTypeUsageInformation="$(_ResourceTypeUsageInformation)"
+      ValuesResources="@(_AssignedValuesResource)"
+      XmlResources="@(_AssignedXmlResource)">
+    </CompileResources>
+  </Target>
+  <!--
+    ============================================================
+                    CompileToDex
+
+    This target creates an AndroidManifest.xml file in the output
+    folder.
+    ============================================================
+    -->
+  <PropertyGroup>
+    <CompileToDexDependsOn>AssignTargetPaths</CompileToDexDependsOn>
+  </PropertyGroup>
+  <Target
+      Name="CompileToDex"
+      DependsOnTargets="$(CompileToDexDependsOn)"
+      Condition="'$(ApkOutputs)'=='true'"
+  Inputs="$(MSBuildAllProjects);
+				@(IntermediateAssembly);
+        @(_GeneratedWcfProxyAssembly);
+				@(ReferencePath);
+        @(_AssignedLayoutResource)"
+  Outputs="$(IntermediateDexCodePath)classes.dex;$(IntermediateDexCodePath)classes.d42map">
+
+    <CompileAssembly
+        CompilationMode="$(AssemblyCompilationMode)"
+        Assemblies="@(IntermediateAssembly);@(_GeneratedWcfProxyAssembly);@(_IncludeAllCodeReference)"
+        Resources="$(IntermediateResourcesPath)resources.arsc"
+        ResourceTypeUsageInformation="$(_ResourceTypeUsageInformation)"
+        DstDir="$(IntermediateDexCodePath)"
+        References="@(ReferencePath)"
+        ReferenceFolders="$(TargetFrameworkDirectory);@(ReferencePath)"
+        PackageName="$(PackageName)"
+        RootNamespace="$(RootNamespace)"
+        GenerateDebugInfo="$(DebugSymbols)"
+        FreeAppsKeyPath="$(IntermediateFreeAppsKey)"
+			    >
+    </CompileAssembly>
+
+  </Target>
+
+  <!--   
+    ================================================================
+                           ApkPackager
+    This task packages the outputs of the project into a single APK
+    file. It relies on the fact that the InputFiles item collection has
+    the FullPath and TargetPath metadata associated with them.
+    ================================================================
+    -->
+  <PropertyGroup>
+    <ApkPackagerDependsOn>
+      _CreateDot42Properties;
+      AssignTargetPaths;
+      CreateAndroidManifest;
+      CompileAndroidManifest;
+      CompileToDex;
+      ResolveApkKeySource;
+    </ApkPackagerDependsOn>
+  </PropertyGroup>
+
+  <Target Name="ApkPackager"
+        DependsOnTargets="$(ApkPackagerDependsOn)"
+        Condition="'$(ApkOutputs)'=='true'"
+        Inputs="$(MSBuildAllProjects);
+				@(IntermediateAssembly);
+				@(ReferencePath);
+				$(IntermediateResourcesPath)AndroidManifest.xml;
+				$(IntermediateDexCodePath)classes.dex;
+				$(IntermediateDexCodePath)classes.d42map"
+      Outputs="$(PackageOutputFile)">
+
+    <BuildPackage
+        Assemblies="@(IntermediateAssembly);@(_GeneratedWcfProxyAssembly)"
+        Manifest="$(IntermediateResourcesPath)AndroidManifest.xml"
+        DexFiles="$(IntermediateDexCodePath)classes.dex"
+        MapFiles="$(IntermediateDexCodePath)classes.d42map"
+        ResourcesFolder="$(IntermediateResourcesPath)"
+        Package="$(IntermediatePackage)"
+        CertificateThumbprint="$(_ResolvedApkCertificateThumbprint)"
+        FreeAppsKeyPath="$(IntermediateFreeAppsKey)"
+        PackageName="$(PackageName)"
+        NativeCodeLibraries="@(NativeCodeLibrary)"
+        DebugToken="$(Dot42DebugToken)"
+            >
+
+      <!--Add to Clean-->
+      <!-- Output ItemName="FileWrites" TaskParameter="PackageOutputFile" / -->
+      <!-- Output ItemName="FileWrites" TaskParameter="ApkFileCache" / -->
+
+    </BuildPackage>
+
+    <!-- Show MD5/SHA1 fingerprint -->
+    <ReadLinesFromFile File="$(IntermediateMD5FingerPrint)">
+      <Output TaskParameter="Lines" PropertyName="_IntermediateMD5FingerPrint"/>
+    </ReadLinesFromFile>
+    <ReadLinesFromFile File="$(IntermediateSHA1FingerPrint)">
+      <Output TaskParameter="Lines" PropertyName="_IntermediateSHA1FingerPrint"/>
+    </ReadLinesFromFile>
+    <Message Text="APK Package name: $(PackageName)" Importance="High"/>
+    <Message Text="MD5 fingerprint : $(_IntermediateMD5FingerPrint)" Importance="High"/>
+    <Message Text="SHA1 fingerprint: $(_IntermediateSHA1FingerPrint)" Importance="High"/>
+  </Target>
+
+  <!--
+    ============================================================
+                                        CopyPackageToOutputDirectory
+    Copy package to to the final directory.
+    ============================================================
+    -->
+  <Target Name="CopyPackageToOutputDirectory"
+          Condition="'$(ApkOutputs)'=='true'">
+    <!-- Copy the package -->
+    <Message Text="Copy package:  $(IntermediatePackage)" />
+    <Copy
+        SourceFiles="$(IntermediatePackage);$(IntermediateMap)"
+        DestinationFolder="$(OutDir)"
+        SkipUnchangedFiles="$(SkipCopyUnchangedFiles)"
+        OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
+        Retries="$(CopyRetryCount)"
+        RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
+            >
+
+      <Output TaskParameter="DestinationFiles" ItemName="FileWrites"/>
+    </Copy>
+  </Target>
+
+  <!--
+		============================================================
+		Override common targets.
+		============================================================
+		-->
+  <Import Condition="'$(ApkOutputs)'=='true'" Project="Dot42.Common.ApkOutput.targets"/>
+
+  <!--   
+    ================================================================
+                           WaitForDevice
+    This target ensures that the Android Debug Bridge is running
+	and waits for a device to connect.
+	================================================================
+    -->
+  <Target Name="WaitForDevice">
+    <StartServer/>
+    <WaitForDevice/>
+  </Target>
+
+  <!--   
+    ================================================================
+                           Install
+    This target installs the package on the currently connected device.
+	================================================================
+    -->
+  <Target Name="Install" DependsOnTargets="WaitForDevice">
+    <InstallApk Package="$(OutDir)$(PackageFilename)"/>
+  </Target>
+
+  <!--   
+    ================================================================
+                           Uninstall
+    This target uninstalls the package from the currently connected 
+	device.
+	================================================================
+    -->
+  <Target Name="Uninstall" DependsOnTargets="WaitForDevice">
+    <UninstallApk PackageName="$(PackageName)"/>
+  </Target>
+
+  <!--   
+    ================================================================
+                           Test
+    This target runs the standard InstrumentationTestRunner for
+	the package on the currently connected device.
+	================================================================
+    -->
+  <PropertyGroup>
+    <TestDependsOn>
+      Install;
+    </TestDependsOn>
+  </PropertyGroup>
+
+  <Target Name="Test" DependsOnTargets="$(TestDependsOn)">
+    <InstrumentApk
+			PackageName="$(PackageName)"
+		/>
+  </Target>
+
+</Project>

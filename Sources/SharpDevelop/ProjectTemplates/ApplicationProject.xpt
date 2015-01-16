@@ -1,0 +1,94 @@
+﻿<?xml version="1.0"?>
+<Template 
+	author="Ewout Prangsma"
+	created="02/05/2013"
+	lastModified="02/05/2013"
+	version="1.0">
+	
+	<TemplateConfiguration>
+		<Name>dot42 Application Project</Name>
+		<Category>C#</Category>
+		<Subcategory>dot42</Subcategory>
+		<Icon>C#.Project.Library</Icon>
+		<Description>Standard Android Application</Description>	
+	</TemplateConfiguration>
+	
+	<!-- Actions -->
+	<Actions>
+		<Open filename = "MainActivity.cs"/>
+	</Actions>
+	
+	<!-- Template Content -->
+	<Project language="C#">
+		<PreCreateActions>
+			<RunCommand path = "/SharpDevelop/BackendBindings/TemplateCommands/PrepareApplicationProjectCommand"/>
+		</PreCreateActions>
+		<CreateActions>
+			<RunCommand path = "/SharpDevelop/BackendBindings/TemplateCommands/SetupDot42ProjectCommand"/>
+		</CreateActions>
+	
+		<PropertyGroup>
+			<OutputType>Library</OutputType>
+			<AppDesignerFolder>Properties</AppDesignerFolder>
+		    <TargetFrameworkIdentifier>Android</TargetFrameworkIdentifier>
+		    <TargetFrameworkVersion>v4.0.3</TargetFrameworkVersion>
+		    <AndroidVersion>-</AndroidVersion>
+		    <SupportedCultures></SupportedCultures>
+		    <ApkOutputs>true</ApkOutputs>
+		    <GenerateAndroidManifest>true</GenerateAndroidManifest>
+		    <ApkFilename>-</ApkFilename>
+		    <PackageName>-</PackageName>
+		    <ApkCertificatePath></ApkCertificatePath>
+		    <ApkCertificateThumbprint></ApkCertificateThumbprint>
+		</PropertyGroup>
+		
+		<ProjectItems>
+			<Reference Include="Dot42" />
+			<Reference Include="mscorlib" />
+			<Reference Include="System" />
+		</ProjectItems>
+
+		<Imports clear="True">
+		</Imports>		
+	
+		<Files>
+			<File name="MainActivity.cs"><![CDATA[${StandardHeader.C#}
+using System;
+using Android.App;
+using Android.Os;
+using Android.Widget;
+using Dot42;
+using Dot42.Manifest;
+
+[assembly: Application("${ProjectName}")]
+
+namespace ${StandardNamespace}
+{
+    [Activity]
+    public class MainActivity : Activity
+    {
+        protected override void OnCreate(Bundle savedInstance) 
+        {
+            base.OnCreate(savedInstance);
+            SetContentView(R.Layouts.MainLayout);
+        }
+   }
+}
+]]></File>
+		<File name="MainLayout.xml" language="XML" DependentUpon="MainLayout.cs" buildAction="LayoutResource"><![CDATA[<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Hello world" />
+
+</LinearLayout>
+]]>
+		</File>
+		</Files>
+	</Project>
+</Template>

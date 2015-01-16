@@ -1,0 +1,1 @@
+This sample demonstrates the use of animation on standard TextView's.

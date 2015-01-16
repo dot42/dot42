@@ -1,0 +1,15 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/item1"
+          android:title="Click me"/>
+    <group android:id="@+id/firstGroup">
+        <item android:id="@+id/groupItem1"
+              android:title="First group item" />
+    </group>
+    <item android:id="@+id/submenu"
+          android:title="Submenu title">
+        <menu>
+            <item android:id="@+id/submenu_item1"
+                  android:title="First submenu item" />
+        </menu>
+    </item>
+</menu>

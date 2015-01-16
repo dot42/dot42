@@ -1,0 +1,1 @@
+This samples shows how to use a ListView with a standard resource (Android.R.Layout.Simple_list_item_1) to display the list items.

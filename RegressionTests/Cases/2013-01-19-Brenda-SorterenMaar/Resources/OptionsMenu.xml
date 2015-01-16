@@ -1,0 +1,3 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+  <item android:title="Speek" android:icon="@drawable/ear" android:showAsAction="always" android:id="@+id/submenu" />
+</menu>

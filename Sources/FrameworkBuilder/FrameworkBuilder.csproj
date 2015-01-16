@@ -1,0 +1,170 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{13F162A6-AA66-BB55-CC58-7AD5C0B4A386}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Dot42.FrameworkBuilder</RootNamespace>
+    <AssemblyName>FrameworkBuilder</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\Dot42.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common\Options\Mono.Options.csproj">
+      <Project>{13F162A6-BB55-40B6-1111-22D5C0B4A386}</Project>
+      <Name>Mono.Options</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\SharpZipLib\SharpZipLib.csproj">
+      <Project>{13F162A6-BB55-40B6-A258-7AD5C0B4A386}</Project>
+      <Name>SharpZipLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FrameworkDefinitions\FrameworkDefinitions.csproj">
+      <Project>{13F162A6-AA66-BB55-CC77-7AD5C0B4BB22}</Project>
+      <Name>FrameworkDefinitions</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ImportJarLib\ImportJarLib.csproj">
+      <Project>{E939B91C-F654-4674-A7B0-76A1C8039617}</Project>
+      <Name>ImportJarLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\JvmClassLib\JvmClassLib.csproj">
+      <Project>{13F162A6-F530-40B6-A258-7AD5C0B4A386}</Project>
+      <Name>JvmClassLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\LoaderLib\LoaderLib.csproj">
+      <Project>{13F162A6-DD45-F343-1234-7ADBD4323486}</Project>
+      <Name>LoaderLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Utility\Utility.csproj">
+      <Project>{13F162A6-F530-40B3-1234-7AD5C0B4A386}</Project>
+      <Name>Utility</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Version.cs" />
+    <Compile Include="Android\AndroidBuilder.cs" />
+    <Compile Include="Android\JavaLangConcurrentAtomicAtomicLongBuilder.cs" />
+    <Compile Include="Android\JavaLangConcurrentAtomicAtomicIntegerBuilder.cs" />
+    <Compile Include="CommandLineOptions.cs" />
+    <Compile Include="Custom\SystemEnumBuilder.cs" />
+    <Compile Include="Mapped\JavaLangArrayStoreExceptionBuilder.cs" />
+    <Compile Include="Mapped\JavaLangIllegalArgumentExceptionBuilder.cs" />
+    <Compile Include="Mapped\JavaLangRuntimeExceptionBuilder.cs" />
+    <Compile Include="Mapped\JavaLangIndexOutOfBoundsExceptionBuilder.cs" />
+    <Compile Include="Mapped\JavaLangComparableBuilder.cs" />
+    <Compile Include="Mapped\JavaUtilRandomBuilder.cs" />
+    <Compile Include="Mapped\JavaLangReflectAccessibleObjectBuilder.cs" />
+    <Compile Include="Mapped\JavaLangReflectConstructorBuilder.cs" />
+    <Compile Include="Mapped\JavaLangReflectFieldBuilder.cs" />
+    <Compile Include="Mapped\JavaLangReflectMethodBuilder.cs" />
+    <Compile Include="Mapped\JavaNetUriBuilder.cs" />
+    <Compile Include="Mapped\JavaIoEOFExceptionBuilder.cs" />
+    <Compile Include="Mapped\JavaIoFileNotFoundExceptionBuilder.cs" />
+    <Compile Include="Mapped\JavaIoIOExceptionBuilder.cs" />
+    <Compile Include="Mapped\JavaLangOutOfMemoryErrorBuilder.cs" />
+    <Compile Include="Mapped\JavaLangNoSuchMethodExceptionBuilder.cs" />
+    <Compile Include="Mapped\JavaLangNoSuchFieldExceptionBuilder.cs" />
+    <Compile Include="Mapped\JavaLangStackOverflowErrorBuilder.cs" />
+    <Compile Include="Mapped\JavaLangMathBuilder.cs" />
+    <Compile Include="Mapped\JavaLangThreadBuilder.cs" />
+    <Compile Include="Mapped\JavaLangStringBuilderBuilder.cs" />
+    <Compile Include="Mapped\JavaLangNullPointerExceptionBuilder.cs" />
+    <Compile Include="Mapped\JavaLangArithmeticExceptionBuilder.cs" />
+    <Compile Include="Mapped\JavaLangClassCastExceptionBuilder.cs" />
+    <Compile Include="Custom\BoxedBuilder.cs" />
+    <Compile Include="Custom\SystemRuntimeArgumentHandleBuilder.cs" />
+    <Compile Include="Custom\SystemRuntimeMethodHandleBuilder.cs" />
+    <Compile Include="Custom\SystemRuntimeFieldHandleBuilder.cs" />
+    <Compile Include="Custom\SystemRuntimeTypeHandleBuilder.cs" />
+    <Compile Include="Custom\SystemMulticastDelegateBuilder.cs" />
+    <Compile Include="Custom\SystemDelegateBuilder.cs" />
+    <Compile Include="Custom\SystemUIntPtrBuilder.cs" />
+    <Compile Include="Custom\SystemIntPtrBuilder.cs" />
+    <Compile Include="Custom\SystemUInt64Builder.cs" />
+    <Compile Include="Custom\SystemUInt32Builder.cs" />
+    <Compile Include="Custom\SystemUInt16Builder.cs" />
+    <Compile Include="Custom\SystemByteBuilder.cs" />
+    <Compile Include="Mapped\JavaLangThrowableBuilder.cs" />
+    <Compile Include="Mapped\JavaBoxedBuilder.cs" />
+    <Compile Include="Mapped\JavaBaseTypeBuilder.cs" />
+    <Compile Include="Custom\SystemValueTypeBuilder.cs" />
+    <Compile Include="Mapped\JavaLangClassBuilder.cs" />
+    <Compile Include="Mapped\JavaLangLongBuilder.cs" />
+    <Compile Include="Mapped\JavaLangDoubleBuilder.cs" />
+    <Compile Include="Mapped\JavaLangFloatBuilder.cs" />
+    <Compile Include="Mapped\JavaLangCharBuilder.cs" />
+    <Compile Include="Mapped\JavaLangByteBuilder.cs" />
+    <Compile Include="Mapped\JavaLangShortBuilder.cs" />
+    <Compile Include="Mapped\JavaLangIntBuilder.cs" />
+    <Compile Include="Mapped\JavaLangBooleanBuilder.cs" />
+    <Compile Include="Mapped\JavaLangVoidBuilder.cs" />
+    <Compile Include="Mapped\JavaLangStringBuilder.cs" />
+    <Compile Include="Mapped\JavaLangObjectBuilder.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Program.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy /Y $(TargetDir)*.* $(SolutionDir)\Build\Application\</PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

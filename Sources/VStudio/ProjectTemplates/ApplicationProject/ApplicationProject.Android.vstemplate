@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Project" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
+  <TemplateData>
+    <Name>dot42 Android Application project</Name>
+    <Description>Standard Android application</Description>
+    <Icon>ApplicationProject.ico</Icon>
+    <TemplateID>Dot42.Android.Application</TemplateID>
+    <TemplateGroupID>dot42</TemplateGroupID>
+    <ProjectType>CSharp</ProjectType>
+    <CreateNewFolder>true</CreateNewFolder>
+    <DefaultName>dot42Application</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+    <NumberOfParentCategoriesToRollUp>2</NumberOfParentCategoriesToRollUp>
+  </TemplateData>
+  <TemplateContent>
+    <Project File="ApplicationProject.csproj" ReplaceParameters="true">
+      <ProjectItem OpenInEditor="true" ReplaceParameters="true">MainActivity.cs</ProjectItem>
+      <ProjectItem OpenInEditor="false" ReplaceParameters="false">MainLayout.xml</ProjectItem>
+      <ProjectItem OpenInEditor="false" ReplaceParameters="true">Properties\R.cs</ProjectItem>
+    </Project>
+  </TemplateContent>
+  <WizardExtension>
+    <Assembly>dot42.VStudio.Project.Android, Version=1.0.1.81, Culture=neutral, PublicKeyToken=0a72796057571e65</Assembly>
+    <FullClassName>Dot42.VStudio.Wizards.ApplicationProjectWizard</FullClassName>
+  </WizardExtension>
+</VSTemplate>

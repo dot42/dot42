@@ -1,0 +1,103 @@
+﻿<?xml version="1.0"?>
+<project name="Common-Release">
+
+	<!-- Contains common release process targets -->
+	<!-- 
+	The following properties should be available:
+	
+	productdir : The folder containing the product version file
+	
+	The following targets should be available:
+
+	build-setup : Build the release deliverables from source.
+	prepare-release : Increment product version, update changelog. Do not commit.
+	
+	The following properties can be set (before including this file).
+	
+	develop-branch : Name of the development branch. Changes from the release branch will be merged into this branch.
+	stable-branch : Name of the stable (typically master) branch. Changes from the release branch will be merged into this branch.
+	
+	-->
+
+	<property name="develop-branch" value="develop" overwrite="false"/>
+	<property name="stable-branch" value="master" overwrite="false"/>
+	
+	<!-- Test for modified/unversioned files. Fails if found. -->
+	<target name="test-git-status" description="Test GIT status"> 
+		<!-- Test for modified / unversioned files -->
+		<git-status path="${basedir}" />
+	</target>
+
+	<!-- Make sure we're on a build server -->
+	<target name="test-buildserver">
+		<if test="${buildtools::is-buildserver() == false}">
+			<fail message="Label/build releases on buildserver!" />
+		</if>
+	</target>
+	
+	<!-- Make sure we're on the correct release branch -->
+	<target name="test-relbranch">
+		<!-- Get label -->
+		<property name="label" value="${productversion::get-latest-version(productdir)}"/>
+		<property name="relbranch" value="RB-${label}"/>
+
+		<if test="${git::current-branch() != relbranch}">
+			<fail message="Must be on release branch: ${relbranch}" />			
+		</if>
+	</target>
+
+	<!-- Create the release branch -->
+	<target name="common-label-release" description="Label the current version for a release" depends="test-buildserver, clean, test-git-status"> 
+		<!-- Update version number etc -->
+		<call target="prepare-release"/>
+
+		<!-- Get label -->
+		<property name="label" value="${productversion::get-latest-version(productdir)}"/>
+		<property name="relbranch" value="RB-${label}"/>
+
+		<!-- Stash release changes for now -->
+		<git-stash-save quiet="true"/>
+
+		<!-- Create release branch -->
+		<git-branch name="${relbranch}"/>
+		<!-- Switch to release branch -->
+		<git-checkout name="${relbranch}"/>
+		
+		<!-- Restore stashed release changes -->
+		<git-stash-pop quiet="true"/>
+		
+		<!-- Commit changes made in prepare-release -->
+		<git-commit add="true" path="${basedir}" message="Label release ${label}"/>
+	</target>
+
+	<!-- Build the release deliverables -->
+	<target name="common-build-release" depends="test-buildserver, test-relbranch, clean, test-git-status, build-setup" description="Build and copy release"> 
+	</target>
+
+	<!-- Tag the release in the local repository. Should be done after a succesfull test of the deliverables. -->
+	<target name="common-tag-release" depends="test-buildserver, test-relbranch, test-git-status" description="Tag a release"> 
+		<!-- Get label -->
+		<property name="label" value="${productversion::get-latest-version(productdir)}"/>
+		<property name="relbranch" value="RB-${label}"/>
+
+		<!-- Merge changes into master -->
+		<git-checkout name="${stable-branch}"/>
+		<git-merge commit="${relbranch}"/>		
+
+		<!-- Merge changes into develop -->
+		<git-checkout name="${develop-branch}"/>
+		<git-merge commit="${relbranch}"/>		
+		
+		<!-- Tag release -->
+		<git-tag name="v${label}" message="Tag release ${label}"/>
+		
+		<echo message="DO NOT FORGET TO PUSH NOW!"/>
+	</target>
+	
+	<target name="common-push-to-server" description="Push develop, master and tags to server">
+		<!-- Push matching branches -->
+		<git-push repository="origin"/>
+		<!-- Push tags -->
+		<git-push repository="origin" tags="true"/>
+	</target>
+</project>

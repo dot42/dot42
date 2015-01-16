@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Game>
+  <Scoreboard type="SimpleScoreBoard"/>
+  <Task type="Sort">
+    <DragObjects>
+      <Shape shapeType="Rectangle" width="100" height="100" color="Blue" helpText="Vierkant">
+        <TextCheck text="1"/>
+      </Shape>
+      <Shape shapeType="Rectangle" width="100" height="100" color="Green" helpText="Vierkant">
+      </Shape>
+      <Shape shapeType="Rectangle" width="100" height="100" color="Red" helpText="Vierkant">
+        <TextCheck text="1"/>
+      </Shape>
+      <Shape shapeType="Circle" width="100" height="100" color="Green" helpText="Circel">
+        <TextCheck text="2"/>
+      </Shape>
+      <Shape shapeType="Circle" width="100" height="100" color="Red" helpText="Circel">
+        <TextCheck text="2"/>
+      </Shape>
+      <Shape shapeType="Circle" width="100" height="100" color="Orange" helpText="Circel">
+        <TextCheck text="2"/>
+      </Shape>
+      <Shape shapeType="Triangle" width="100" height="100" color="Red" helpText="Driehoek">
+        <TextCheck text="3"/>
+      </Shape>
+    </DragObjects>
+    <DropObjects>
+      <Container background="Yellow" orientation="Horizontal"/>
+      <Container background="Yellow" orientation="Horizontal"/>
+      <Container background="Yellow" orientation="Horizontal"/>
+    </DropObjects>
+    <Checker type="SimpleText"/>
+  </Task>
+  <Task type="Sort">
+    <DragObjects>
+      <Shape shapeType="Rectangle" width="100" height="100" color="Blue" helpText="Vierkant">
+        <TextCheck text="1"/>
+      </Shape>
+      <Shape shapeType="Oval" width="120" height="100" color="Green" helpText="Circel">
+        <TextCheck text="2"/>
+      </Shape>
+      <Shape shapeType="Oval" width="120" height="100" color="Red" helpText="Circel">
+        <TextCheck text="2"/>
+      </Shape>
+      <Shape shapeType="Oval" width="120" height="100" color="Orange" helpText="Circel">
+        <TextCheck text="2"/>
+      </Shape>
+      <Shape shapeType="Triangle" width="100" height="100" color="Red" helpText="Driehoek">
+        <TextCheck text="3"/>
+      </Shape>
+      <Shape shapeType="Triangle" width="100" height="100" color="Green" helpText="Driehoek">
+        <TextCheck text="3"/>
+      </Shape>
+    </DragObjects>
+    <DropObjects>
+      <Container background="Yellow" orientation="Horizontal"/>
+      <Container background="Yellow" orientation="Horizontal"/>
+      <Container background="Yellow" orientation="Horizontal"/>
+    </DropObjects>
+    <Checker type="SimpleText"/>
+  </Task>
+</Game>

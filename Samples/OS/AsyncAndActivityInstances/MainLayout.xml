@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+
+  <TextView
+       android:layout_width="fill_parent"
+       android:layout_height="wrap_content"
+       android:textSize="20sp"
+       android:text="This sample shows how to use the SynchonizationContext in asyn/await code, to make sure the new Activity created by a configuration change like an orientation switch will be used in the result.\n"/>
+
+  <TextView
+       android:layout_width="fill_parent"
+       android:layout_height="wrap_content"
+       android:textSize="16sp"
+       android:text="Please do the following:\n 1) Press one of the buttons below 'Synchonized' or 'Not synchronized'\n 2) See the text 'waiting...'\n 3) Rotate your device 90 degrees\n 4) See the text 'uninitialized'\n 5 Sync button) after a while 'I'm back\n 5 Not sync button) 'uninitialized' will stay (the result is written in the previous Activity)\n"/>
+
+  <TextView
+      android:layout_width="fill_parent"
+      android:layout_height="20sp"
+      android:textSize="14sp"
+      android:text="Notice that if you do not rotate your device both buttons are working correctly."/>
+
+  <Button
+       android:id="@+id/mySynchronizedButton"
+       android:layout_width="fill_parent"
+       android:layout_height="wrap_content"
+       android:textSize="20sp"
+       android:text="Synchronized" />
+
+  <Button
+       android:id="@+id/myNotSynchronizedButton"
+       android:layout_width="fill_parent"
+       android:layout_height="wrap_content"
+       android:textSize="20sp"
+       android:text="Not synchronized" />
+  
+    <TextView
+        android:id="@+id/txtStatus"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:textSize="24sp"
+        android:text="uninitialized" />
+
+
+</LinearLayout>

@@ -1,0 +1,50 @@
+﻿<?xml version="1.0"?>
+<project name="Build-All-Samples" default="build" basedir=".">
+
+	<property name="devname" value="Dot42"/>
+
+	<property name="nant.settings.currentframework" value="net-4.0"/>
+
+	<property name="basedir" value="${project::get-base-directory()}"/>
+	<property name="rootdir" value="${basedir}\.."/>
+	<include buildfile="${basedir}\..\RegressionTests\Common.include"/>
+	<include buildfile="${basedir}\..\Common\Build\Common.build"/>
+
+	<property name="AfterBuildDependsOn" value=""/>
+	
+	<target name="prepare" description="Delete all working files">
+		<!-- Remove all working files -->
+		<delete>
+			<fileset basedir="${basedir}">
+				<include name="**/bin/**" />
+				<include name="**/obj/**" />
+				<include name="**/out/**" />
+				<include name="**/*.suo" />
+			</fileset>
+		</delete>
+	</target>
+
+	<target name="build" depends="prepare"> 
+		<foreach property="solution" item="File">
+			<in>
+				<items basedir="${basedir}">
+					<include name="**/*.sln"/>
+				</items>
+			</in>
+			<do>
+				<msbuild project="${solution}" target="Rebuild">
+					<property name="Dot42ExtensionsPath" value="${Dot42ExtensionsPath}" />
+					<property name="Dot42Folder" value="${Dot42Folder}" />
+					<property name="Dot42ReferenceAssembliesFolder" value="${Dot42ReferenceAssembliesFolder}" />
+					<property name="AfterBuildDependsOn" value="${AfterBuildDependsOn}" />
+				</msbuild>
+			</do>
+		</foreach>
+	</target>
+
+	<target name="install" description="Build and install all"> 
+		<property name="AfterBuildDependsOn" value="Install" overwrite="true" />
+		<call target="build" />
+	</target>
+
+</project>

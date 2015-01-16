@@ -1,0 +1,15 @@
+﻿<UserControl xmlns:my="clr-namespace:Dot42.Ide.Editors.Layout"  
+             x:Class="Dot42.Ide.Editors.Layout.XmlLayoutDesignerControl"
+             x:Name="Designer"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:graphics="clr-namespace:Dot42.Graphics;assembly=dot42.Graphics"
+             mc:Ignorable="d" 
+             d:DataContext="{d:DesignInstance Type=my:ILayoutViewModel}"
+             d:DesignHeight="300" d:DesignWidth="300">
+    <UserControl.Resources>
+    </UserControl.Resources>
+    <ContentControl Name="rootContainer"></ContentControl>
+</UserControl>

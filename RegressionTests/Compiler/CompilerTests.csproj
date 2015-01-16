@@ -1,0 +1,160 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{670248FD-0985-49B1-B358-8BC8007F5BD9}</ProjectGuid>
+    <ProjectTypeGuids>{337B7DB7-2D1E-448D-BEBF-17E887A46E37};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Dot42.Tests.Compiler</RootNamespace>
+    <AssemblyName>CompilerTests</AssemblyName>
+    <TargetFrameworkIdentifier>Android</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v4.0.3</TargetFrameworkVersion>
+    <AndroidVersion>$(TargetFrameworkVersion)</AndroidVersion>
+    <SupportedCultures>
+    </SupportedCultures>
+    <ApkOutputs>true</ApkOutputs>
+    <GenerateAndroidManifest>true</GenerateAndroidManifest>
+    <ApkFilename>CompilerTests.apk</ApkFilename>
+    <PackageName>dot42.tests.compiler4</PackageName>
+    <Dot42ExtensionsPath Condition=" '$(Dot42ExtensionsPath)' == '' ">$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\TallApplications\Dot42@ExtensionsPath)</Dot42ExtensionsPath>
+    <ApkCertificatePath>..\Certificate.pfx</ApkCertificatePath>
+    <ApkCertificateThumbprint>E459CAAA643505C4FCE6932D22C8F6681A9E1F48</ApkCertificateThumbprint>
+    <AfterBuildDependsOn Condition=" '$(BuildingInsideVisualStudio)' != 'true'">Test</AfterBuildDependsOn>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>Bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;TRACE;DOT42</DefineConstants>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>Bin\Release</OutputPath>
+    <DefineConstants>TRACE;DOT42</DefineConstants>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Dot42" />
+    <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="$(ResourcesGeneratedCodePath)R.cs" />
+    <Compile Include="Sources\AssemblyInfo.cs" />
+    <Compile Include="Sources\TestWhile.cs" />
+    <Compile Include="Sources\TestEnumPerformance.cs" />
+    <Compile Include="Sources\TestGenerics.cs" />
+    <Compile Include="Sources\InterfaceSubjects\ClassWithFoo.cs" />
+    <Compile Include="Sources\InterfaceSubjects\DerivedSimpleImplementation.cs" />
+    <Compile Include="Sources\TestMemberwiseClone.cs" />
+    <Compile Include="Sources\TestIndexer.cs" />
+    <Compile Include="Sources\TestConstructor.cs" />
+    <Compile Include="Sources\TestIntPtr.cs" />
+    <Compile Include="Sources\TestUsing.cs" />
+    <Compile Include="Sources\TestByte.cs" />
+    <Compile Include="Sources\TestInternal.cs" />
+    <Compile Include="Sources\TestMisc.cs" />
+    <Compile Include="Sources\TestNewInClass.cs" />
+    <Compile Include="Sources\TestNewInClassWithInterface.cs" />
+    <Compile Include="Sources\TestOperatorsNUnit.cs" />
+    <Compile Include="Sources\TestULong.cs" />
+    <Compile Include="Sources\TestOperators.cs" />
+    <Compile Include="Sources\TestRegisterSpilling.cs" />
+    <Compile Include="Sources\TestArrays.cs" />
+    <Compile Include="Sources\TestCloneable.cs" />
+    <Compile Include="Sources\TestDecimal.cs" />
+    <Compile Include="Sources\TestTryCatchSpecial.cs" />
+    <Compile Include="Sources\TestGenericJavaInterface.cs" />
+    <Compile Include="Sources\TestNonCastSpecial.cs" />
+    <Compile Include="Sources\TestArrayAsIEnumerable.cs" />
+    <Compile Include="Sources\TestArrayCasts.cs" />
+    <Compile Include="Sources\TestArrayAsIList.cs" />
+    <Compile Include="Sources\TestDictionaryKeyValue.cs" />
+    <Compile Include="Sources\TestArrayAsICollection.cs" />
+    <Compile Include="Sources\TestBaseCall.cs" />
+    <Compile Include="Sources\TestGenericConstraints.cs" />
+    <Compile Include="Sources\TestMultiDimensionalArray.cs" />
+    <Compile Include="Sources\TestGenericClassCtor.cs" />
+    <Compile Include="Sources\TestConstSharing.cs" />
+    <Compile Include="Sources\TestEnum.cs" />
+    <Compile Include="Sources\TestEnumSpecial.cs" />
+    <Compile Include="Sources\TestNewT.cs" />
+    <Compile Include="Sources\TestGenericArray.cs" />
+    <Compile Include="Sources\TestReflection.cs" />
+    <Compile Include="Sources\TestAttributes.cs" />
+    <Compile Include="Sources\TestEvents.cs" />
+    <Compile Include="Sources\TestByRefParam.cs" />
+    <Compile Include="Sources\TestAddressOf.cs" />
+    <Compile Include="Sources\TestLambda.cs" />
+    <Compile Include="Sources\TestOutParam.cs" />
+    <Compile Include="Sources\TestBoxGenericArray.cs" />
+    <Compile Include="Sources\TestCast.cs" />
+    <Compile Include="Sources\TestChecked.cs" />
+    <Compile Include="Sources\TestInstanceOf.cs" />
+    <Compile Include="Sources\TestOverflow.cs" />
+    <Compile Include="Sources\TestReservedWords.cs" />
+    <Compile Include="Sources\TestTypeOf.cs" />
+    <Compile Include="Sources\TestUInt.cs" />
+    <Compile Include="Sources\TestUShort.cs" />
+    <Compile Include="Sources\TestMisingUnSigned.cs" />
+    <Compile Include="Sources\TestForEach.cs" />
+    <Compile Include="Sources\TestInitializedArrays.cs" />
+    <Compile Include="Sources\TestReferenceEquals.cs" />
+    <Compile Include="Sources\TestLock.cs" />
+    <Compile Include="Sources\GenericInterfaceSubjects\ExplicitGenericImplementation1.cs" />
+    <Compile Include="Sources\TestDefaultT.cs" />
+    <Compile Include="Sources\TestGenericInterface.cs" />
+    <Compile Include="Sources\GenericInterfaceSubjects\GenericImplementation1.cs" />
+    <Compile Include="Sources\GenericInterfaceSubjects\IGenericInterface.cs" />
+    <Compile Include="Sources\InterfaceSubjects\ExtSimpleAndClashImplementation3.cs" />
+    <Compile Include="Sources\InterfaceSubjects\ExtSimpleAndClashImplementation2.cs" />
+    <Compile Include="Sources\InterfaceSubjects\ExtSimpleAndClashImplementation1.cs" />
+    <Compile Include="Sources\InterfaceSubjects\IClashInterface2.cs" />
+    <Compile Include="Sources\InterfaceSubjects\SimpleAndClashImplementation.cs" />
+    <Compile Include="Sources\InterfaceSubjects\OnlyViaInterface.cs" />
+    <Compile Include="Sources\InterfaceSubjects\ExtExplicitImplementation.cs" />
+    <Compile Include="Sources\InterfaceSubjects\ExplicitImplementation.cs" />
+    <Compile Include="Sources\TestInterface.cs" />
+    <Compile Include="Sources\InterfaceSubjects\DerivedExtSimpleImplementation.cs" />
+    <Compile Include="Sources\InterfaceSubjects\VirtualExtSimpleImplementation.cs" />
+    <Compile Include="Sources\InterfaceSubjects\ExtSimpleImplementation.cs" />
+    <Compile Include="Sources\InterfaceSubjects\IClashInterface.cs" />
+    <Compile Include="Sources\InterfaceSubjects\IExtSimpleInterface.cs" />
+    <Compile Include="Sources\InterfaceSubjects\ISimpleInterface.cs" />
+    <Compile Include="Sources\InterfaceSubjects\SimpleImplementation.cs" />
+    <Compile Include="Sources\TestGenericList.cs" />
+    <Compile Include="Sources\TestDelegate.cs" />
+    <Compile Include="Sources\TestPrimitiveArrays.cs" />
+    <Compile Include="Sources\TestString.cs" />
+    <Compile Include="Sources\TestForLoop.cs" />
+    <Compile Include="Sources\TestSwitch.cs" />
+    <Compile Include="Sources\TestNullable.cs" />
+    <Compile Include="Sources\TestThrow.cs" />
+    <Compile Include="Sources\TestDouble.cs" />
+    <Compile Include="Sources\TestFloat.cs" />
+    <Compile Include="Sources\TestInt.cs" />
+    <Compile Include="Sources\TestLong.cs" />
+    <Compile Include="Sources\TestShort.cs" />
+    <Compile Include="Sources\TestTryCatch.cs" />
+    <Compile Include="Sources\TestStruct.cs" />
+    <Compile Include="Sources\TestStructSemantics.cs" />
+    <Compile Include="Sources\TestXor.cs" />
+    <Compile Include="Sources\TestUIntPtr.cs" />
+  </ItemGroup>
+  <Import Project="$(Dot42ExtensionsPath)\Dot42.CSharp.targets" />
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild" DependsOnTargets="$(AfterBuildDependsOn)">
+  </Target>
+  <ProjectExtensions />
+</Project>

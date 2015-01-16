@@ -1,0 +1,30 @@
+﻿<!--
+***********************************************************************************************
+dot42.Tasks.targets
+
+WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and have
+          created a backup copy.  Incorrect changes to this file will make it
+          impossible to load or build your projects from the command-line or the IDE.
+
+This file defines the common steps in the build process of a Dot42 application.
+
+Copyright (C) TallComponents BV. All rights reserved.
+***********************************************************************************************
+-->
+
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <Dot42Folder Condition="'$(Dot42Folder)' == ''">$(registry:HKEY_CURRENT_USER\SOFTWARE\dot42\Android\@Current)</Dot42Folder>
+    <Dot42Folder Condition="'$(Dot42Folder)' == ''">$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\dot42\Android\@Current)</Dot42Folder>
+    <Dot42TasksFile>$(Dot42Folder)\Dot42.MSBuild.Tasks.Android.dll</Dot42TasksFile>
+  </PropertyGroup>
+
+  <UsingTask TaskName="Dot42.MSBuild.Tasks.InstallApk" AssemblyFile="$(Dot42TasksFile)" />
+  <UsingTask TaskName="Dot42.MSBuild.Tasks.UninstallApk" AssemblyFile="$(Dot42TasksFile)" />
+  <UsingTask TaskName="Dot42.MSBuild.Tasks.InstrumentApk" AssemblyFile="$(Dot42TasksFile)" />
+  <UsingTask TaskName="Dot42.MSBuild.Tasks.StartServer" AssemblyFile="$(Dot42TasksFile)" />
+  <UsingTask TaskName="Dot42.MSBuild.Tasks.StopServer" AssemblyFile="$(Dot42TasksFile)" />
+  <UsingTask TaskName="Dot42.MSBuild.Tasks.WaitForDevice" AssemblyFile="$(Dot42TasksFile)" />
+
+</Project>

@@ -1,0 +1,210 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{13F162A6-FF66-F61A-A258-7AD5C0B4A386}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Dot42.Compiler</RootNamespace>
+    <AssemblyName>Dot42.ILSpy.Plugin</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SignAssembly>false</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\Dot42.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="ICSharpCode.Decompiler, Version=2.0.0.1486, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Binaries\ILSpy\ICSharpCode.Decompiler.dll</HintPath>
+    </Reference>
+    <Reference Include="ILSpy">
+      <HintPath>..\..\Binaries\ILSpy\ILSpy.exe</HintPath>
+    </Reference>
+    <Reference Include="Mono.Cecil">
+      <HintPath>..\..\Binaries\ILSpy\Mono.Cecil.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DexLib\DexLib.csproj">
+      <Project>{CAF03EFC-1CF0-49DA-8C2E-684949E08833}</Project>
+      <Name>DexLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FrameworkDefinitions\FrameworkDefinitions.csproj">
+      <Project>{13F162A6-AA66-BB55-CC77-7AD5C0B4BB22}</Project>
+      <Name>FrameworkDefinitions</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Utility\Utility.csproj">
+      <Project>{13F162A6-F530-40B3-1234-7AD5C0B4A386}</Project>
+      <Name>Utility</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Version.cs" />
+    <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="Code\AssemblyResolver.cs" />
+    <Compile Include="Code\AssemblyCompiler.cs" />
+    <Compile Include="Code\CompiledMethod.cs" />
+    <Compile Include="Code\DelegateInstanceType.cs" />
+    <Compile Include="Code\DelegateInstanceTypeBuilder.cs" />
+    <Compile Include="Code\DelegateType.cs" />
+    <Compile Include="Code\DelegateTypeBuilder.cs" />
+    <Compile Include="Code\Extensions\Reachable.cs" />
+    <Compile Include="Code\Extensions\ReachableResolver.cs" />
+    <Compile Include="Code\ReachableContext.cs" />
+    <Compile Include="Code\ReachableWalker.cs" />
+    <Compile Include="Code\RL\Transformations\InvokeTypeTransformation.cs" />
+    <Compile Include="Code\SkipTypeBuilder.cs" />
+    <Compile Include="Code\StandardTypeBuilder.cs" />
+    <Compile Include="Code\DexCompiler\DexCompiler.cs" />
+    <Compile Include="Code\DexCompiler\Optimizer\BranchOptimizer.cs" />
+    <Compile Include="Code\DexCompiler\Optimizer\DexOptimizer.cs" />
+    <Compile Include="Code\DexCompiler\Optimizer\IDexTransformation.cs" />
+    <Compile Include="Code\DexCompiler\Optimizer\InstructionOptimizer.cs" />
+    <Compile Include="Code\DexCompiler\RegisterMapper.cs" />
+    <Compile Include="Code\ILAst\Extensions\ExceptionHandling.cs" />
+    <Compile Include="Code\ILAst\Extensions\ILCode.cs" />
+    <Compile Include="Code\ILAst\Extensions\ILExpression.cs" />
+    <Compile Include="Code\ILAst\ILOptimizers\BranchOptimizer.cs" />
+    <Compile Include="Code\ILAst\ILOptimizers\DelegateConverter.cs" />
+    <Compile Include="Code\ILAst\ILOptimizers\ILAstOptimizerVisitor.cs" />
+    <Compile Include="Code\ILAst\Optimizer\ILAstOptimizationStep.cs" />
+    <Compile Include="Code\DexCompiler\Extensions\DexInstructions.cs" />
+    <Compile Include="Code\Extensions\MethodDefinition.cs" />
+    <Compile Include="Code\Extensions\AreSame.cs" />
+    <Compile Include="Code\Extensions\Cecil.cs" />
+    <Compile Include="Code\Extensions\JRef.cs" />
+    <Compile Include="Code\Extensions\Dex.cs" />
+    <Compile Include="Code\FlowAnalisys\ControlFlowEdge.cs" />
+    <Compile Include="Code\FlowAnalisys\ControlFlowGraph.cs" />
+    <Compile Include="Code\FlowAnalisys\ControlFlowNode.cs" />
+    <Compile Include="Code\ILAst\DecompilerContext.cs" />
+    <Compile Include="Code\ILAst\DefaultDictionary.cs" />
+    <Compile Include="Code\ILAst\DisassemblerHelpers.cs" />
+    <Compile Include="Code\ILAst\ILBasicBlock.cs" />
+    <Compile Include="Code\ILAst\ILBlock.cs" />
+    <Compile Include="Code\ILAst\ILExpression.cs" />
+    <Compile Include="Code\ILAst\ILExpressionPrefix.cs" />
+    <Compile Include="Code\ILAst\ILLabel.cs" />
+    <Compile Include="Code\ILAst\ILRange.cs" />
+    <Compile Include="Code\ILAst\ILSwitch.cs" />
+    <Compile Include="Code\ILAst\ILTryCatchBlock.cs" />
+    <Compile Include="Code\ILAst\ILVariable.cs" />
+    <Compile Include="Code\ILAst\Optimizer\GotoRemoval.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Code\ILAst\ILAstBuilder.cs" />
+    <Compile Include="Code\ILAst\Optimizer\ILAstOptimizer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Code\ILAst\ILNode.cs" />
+    <Compile Include="Code\ILAst\ILCodes.cs" />
+    <Compile Include="Code\ILAst\Optimizer\ILInlining.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Code\ILAst\ILNodeVisitor.cs" />
+    <Compile Include="Code\ILAst\Optimizer\InitializerPeepholeTransforms.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Code\ILAst\Optimizer\LiftedOperators.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Code\ILAst\PatternMatching.cs" />
+    <Compile Include="Code\ILAst\Optimizer\PeepholeTransform.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Code\ILAst\Optimizer\SimpleControlFlow.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Code\ILAst\Optimizer\TypeAnalysis.cs" />
+    <Compile Include="Code\DexCompiler\Extensions\ILCompilerExtensions.cs" />
+    <Compile Include="Code\MethodBodyCompiler.cs" />
+    <Compile Include="Code\MethodBuilder.cs" />
+    <Compile Include="Code\FieldBuilder.cs" />
+    <Compile Include="Code\Extensions\Extensions.cs" />
+    <Compile Include="Code\RL\BasicBlock.cs" />
+    <Compile Include="Code\RL\Catch.cs" />
+    <Compile Include="Code\RL\ExceptionHandler.cs" />
+    <Compile Include="Code\RL\Extensions\InstructionRange.cs" />
+    <Compile Include="Code\RL\Extensions\Registers.cs" />
+    <Compile Include="Code\RL\Extensions\RLExtensions.cs" />
+    <Compile Include="Code\RL\Extensions\RCode.cs" />
+    <Compile Include="Code\RL\IInstructionRange.cs" />
+    <Compile Include="Code\RL\ILAstCompiler\ArgumentRegisterSpec.cs" />
+    <Compile Include="Code\RL\ILAstCompiler\DexRange.cs" />
+    <Compile Include="Code\RL\ILAstCompiler\Extensions\RCode.cs" />
+    <Compile Include="Code\RL\ILAstCompiler\ILAstCompilerVisitor.cs" />
+    <Compile Include="Code\RL\ILAstCompiler\InvocationFrame.cs" />
+    <Compile Include="Code\RL\ILAstCompiler\LabelManager.cs" />
+    <Compile Include="Code\RL\ILAstCompiler\RegisterSpec.cs" />
+    <Compile Include="Code\RL\ILAstCompiler\VariableRegisterSpec.cs" />
+    <Compile Include="Code\RL\Instruction.cs" />
+    <Compile Include="Code\RL\InstructionList.cs" />
+    <Compile Include="Code\RL\InstructionRange.cs" />
+    <Compile Include="Code\RL\IRLTransformation.cs" />
+    <Compile Include="Code\RL\MethodBody.cs" />
+    <Compile Include="Code\RL\RCategory.cs" />
+    <Compile Include="Code\RL\RFlags.cs" />
+    <Compile Include="Code\RL\Transformations\BranchRerouter.cs" />
+    <Compile Include="Code\RL\Transformations\ConstPropagationTransformation.cs" />
+    <Compile Include="Code\RL\Transformations\FlattenExceptionsTransformation.cs" />
+    <Compile Include="Code\RL\Transformations\ShareRegistersTransformation.cs" />
+    <Compile Include="Code\RL\Transformations\InvokeRangeTransformation.cs" />
+    <Compile Include="Code\RL\Transformations\NopRemoveTransformation.cs" />
+    <Compile Include="Code\RL\Transformations\RLTransformations.cs" />
+    <Compile Include="Code\RL\RCode.cs" />
+    <Compile Include="Code\RL\Register.cs" />
+    <Compile Include="ILSpy\RLLanguage.cs" />
+    <Compile Include="ILSpy\DexInputLanguage.cs" />
+    <Compile Include="ILSpy\DexLanguage.cs" />
+    <Compile Include="ILSpy\TextOutputBridge.cs" />
+    <Compile Include="NamespaceConverter.cs" />
+    <Compile Include="Code\PrototypeBuilder.cs" />
+    <Compile Include="Code\TypeBuilder.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy /Y $(SolutionDir)\Binaries\ILSpy\*.* $(SolutionDir)\Build\ILSpy\
+xcopy /Y $(TargetDir)*.* $(SolutionDir)\Build\ILSpy\</PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

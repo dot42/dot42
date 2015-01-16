@@ -1,0 +1,119 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{6DCF1AFE-6A13-45E6-ACB4-635073840D64}</ProjectGuid>
+    <ProjectTypeGuids>{337B7DB7-2D1E-448D-BEBF-17E887A46E37};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Support4Demos</RootNamespace>
+    <AssemblyName>Support4Demos</AssemblyName>
+    <TargetFrameworkIdentifier>Android</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v2.1</TargetFrameworkVersion>
+    <AndroidVersion>$(TargetFrameworkVersion)</AndroidVersion>
+    <SupportedCultures>
+    </SupportedCultures>
+    <ApkOutputs>true</ApkOutputs>
+    <GenerateAndroidManifest>true</GenerateAndroidManifest>
+    <ApkFilename>Support4Demos.apk</ApkFilename>
+    <PackageName>com.Support4Demos</PackageName>
+    <Dot42ExtensionsPath Condition=" '$(Dot42ExtensionsPath)' == '' ">$(Registry:HKEY_CURRENT_USER\SOFTWARE\TallApplications\Dot42@ExtensionsPath)</Dot42ExtensionsPath>
+    <Dot42ExtensionsPath Condition=" '$(Dot42ExtensionsPath)' == '' ">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\TallApplications\Dot42@ExtensionsPath)</Dot42ExtensionsPath>
+    <ApkCertificatePath>C:\Users\robert\Documents\dot42\Samples\Samples.pfx</ApkCertificatePath>
+    <ApkCertificateThumbprint>4E82D2B63E7C88067DC34E368DA16A1B77A38545</ApkCertificateThumbprint>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>Bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;TRACE;DOT42</DefineConstants>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>Bin\Release</OutputPath>
+    <DefineConstants>TRACE;DOT42</DefineConstants>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Dot42" />
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="MainActivity.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <LayoutResource Include="MainLayout.xml" />
+  </ItemGroup>
+  <Import Project="$(Dot42ExtensionsPath)\Dot42.CSharp.targets" />
+  <ItemGroup>
+    <Compile Include="$(ResourcesGeneratedCodePath)R.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <LayoutResource Include="res\anim\decelerate_quint.xml" />
+    <AnimationResource Include="res\anim\fragment_slide_left_enter.xml" />
+    <AnimationResource Include="res\anim\fragment_slide_left_exit.xml" />
+    <AnimationResource Include="res\anim\fragment_slide_right_enter.xml" />
+    <AnimationResource Include="res\anim\fragment_slide_right_exit.xml" />
+    <DrawableResource Include="res\drawable-hdpi\alert_dialog_icon.png" />
+    <DrawableResource Include="res\drawable-hdpi\app_sample_code.png" />
+    <DrawableResource Include="res\drawable-mdpi\alert_dialog_icon.png" />
+    <DrawableResource Include="res\drawable-mdpi\app_sample_code.png" />
+    <LayoutResource Include="res\layout-land\fragment_arguments_support.xml" />
+    <LayoutResource Include="res\layout-land\fragment_layout_support.xml" />
+    <LayoutResource Include="res\layout\accessibility_delegate.xml" />
+    <LayoutResource Include="res\layout\accessibility_manager.xml" />
+    <LayoutResource Include="res\layout\fragment_arguments_support.xml" />
+    <LayoutResource Include="res\layout\fragment_context_menu.xml" />
+    <LayoutResource Include="res\layout\fragment_dialog.xml" />
+    <LayoutResource Include="res\layout\fragment_dialog_or_activity.xml" />
+    <LayoutResource Include="res\layout\fragment_hide_show_support.xml" />
+    <LayoutResource Include="res\layout\fragment_layout_support.xml" />
+    <LayoutResource Include="res\layout\fragment_menu.xml" />
+    <LayoutResource Include="res\layout\fragment_pager.xml" />
+    <LayoutResource Include="res\layout\fragment_pager_list.xml" />
+    <LayoutResource Include="res\layout\fragment_retain_instance.xml" />
+    <LayoutResource Include="res\layout\fragment_stack.xml" />
+    <LayoutResource Include="res\layout\fragment_tabs.xml" />
+    <LayoutResource Include="res\layout\fragment_tabs_pager.xml" />
+    <LayoutResource Include="res\layout\hello_world.xml" />
+    <LayoutResource Include="res\layout\labeled_text_edit.xml" />
+    <LayoutResource Include="res\layout\list_item_icon_text.xml" />
+    <LayoutResource Include="res\layout\local_service_broadcaster.xml" />
+    <LayoutResource Include="res\layout\receive_result.xml" />
+    <LayoutResource Include="res\layout\send_result.xml" />
+    <LayoutResource Include="res\layout\sharing_receiver_support.xml" />
+    <LayoutResource Include="res\layout\sharing_support.xml" />
+    <Content Include="res\layout\simple_list_item_checkable_1.xml" />
+    <MenuResource Include="res\menu\shortcuts.xml" />
+    <ValuesResource Include="res\values-v11\styles.xml" />
+    <ValuesResource Include="res\values\attrs.xml" />
+    <ValuesResource Include="res\values\colors.xml" />
+    <ValuesResource Include="res\values\strings.xml" />
+    <ValuesResource Include="res\values\styles.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="res\drawable-ldpi\" />
+    <Folder Include="res\drawable-xhdpi\" />
+  </ItemGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <ProjectExtensions />
+</Project>

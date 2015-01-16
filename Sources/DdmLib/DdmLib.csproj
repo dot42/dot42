@@ -1,0 +1,127 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{13F162A6-DD65-40B3-1234-7AD5C0B4A386}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Dot42.DdmLib</RootNamespace>
+    <AssemblyName>Dot42.DdmLib</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SignAssembly>false</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\Dot42.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Version.cs" />
+    <Compile Include="AdbCommandRejectedException.cs" />
+    <Compile Include="AdbHelper.cs" />
+    <Compile Include="AllocationInfo.cs" />
+    <Compile Include="AndroidDebugBridge.cs" />
+    <Compile Include="AnonymousInnerClassHelpers.cs" />
+    <Compile Include="BadPacketException.cs" />
+    <Compile Include="CanceledException.cs" />
+    <Compile Include="ChunkHandler.cs" />
+    <Compile Include="Client.cs" />
+    <Compile Include="ClientData.cs" />
+    <Compile Include="CollectingOutputReceiver.cs" />
+    <Compile Include="DdmConstants.cs" />
+    <Compile Include="DdmPreferences.cs" />
+    <Compile Include="Debugger.cs" />
+    <Compile Include="DebugPortManager.cs" />
+    <Compile Include="Device.cs" />
+    <Compile Include="DeviceMonitor.cs" />
+    <Compile Include="EmulatorConsole.cs" />
+    <Compile Include="FileListingService.cs" />
+    <Compile Include="GetPropReceiver.cs" />
+    <Compile Include="HandleAppName.cs" />
+    <Compile Include="HandleExit.cs" />
+    <Compile Include="HandleHeap.cs" />
+    <Compile Include="HandleHello.cs" />
+    <Compile Include="HandleNativeHeap.cs" />
+    <Compile Include="HandleProfiling.cs" />
+    <Compile Include="HandleTest.cs" />
+    <Compile Include="HandleThread.cs" />
+    <Compile Include="HandleWait.cs" />
+    <Compile Include="HeapSegment.cs" />
+    <Compile Include="IDevice.cs" />
+    <Compile Include="InstallException.cs" />
+    <Compile Include="IShellOutputReceiver.cs" />
+    <Compile Include="IStackTraceInfo.cs" />
+    <Compile Include="JdwpPacket.cs" />
+    <Compile Include="Log.cs" />
+    <Compile Include="log\EventContainer.cs" />
+    <Compile Include="log\EventLogParser.cs" />
+    <Compile Include="log\EventValueDescription.cs" />
+    <Compile Include="log\GcEventContainer.cs" />
+    <Compile Include="log\InvalidTypeException.cs" />
+    <Compile Include="log\InvalidValueTypeException.cs" />
+    <Compile Include="log\LogReceiver.cs" />
+    <Compile Include="MonitorThread.cs" />
+    <Compile Include="MultiLineReceiver.cs" />
+    <Compile Include="NativeAllocationInfo.cs" />
+    <Compile Include="NativeLibraryMapInfo.cs" />
+    <Compile Include="NativeStackCallInfo.cs" />
+    <Compile Include="NullOutputReceiver.cs" />
+    <Compile Include="RawImage.cs" />
+    <Compile Include="ShellCommandUnresponsiveException.cs" />
+    <Compile Include="StringHelperClass.cs" />
+    <Compile Include="support\BufferUnderflowException.cs" />
+    <Compile Include="support\ByteBuffer.cs" />
+    <Compile Include="support\ByteOrder.cs" />
+    <Compile Include="support\CancelledKeyException.cs" />
+    <Compile Include="support\NotYetBoundException.cs" />
+    <Compile Include="support\Extensions.cs" />
+    <Compile Include="support\Locale.cs" />
+    <Compile Include="support\SelectionKey.cs" />
+    <Compile Include="support\Selector.cs" />
+    <Compile Include="support\ServerSocketChannel.cs" />
+    <Compile Include="support\SocketChannel.cs" />
+    <Compile Include="support\StackTraceElement.cs" />
+    <Compile Include="SyncException.cs" />
+    <Compile Include="SyncService.cs" />
+    <Compile Include="testrunner\InstrumentationResultParser.cs" />
+    <Compile Include="testrunner\IRemoteAndroidTestRunner.cs" />
+    <Compile Include="testrunner\ITestRunListener.cs" />
+    <Compile Include="testrunner\RemoteAndroidTestRunner.cs" />
+    <Compile Include="testrunner\TestIdentifier.cs" />
+    <Compile Include="ThreadInfo.cs" />
+    <Compile Include="TimeoutException.cs" />
+    <Compile Include="utils\ArrayHelper.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

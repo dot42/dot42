@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+***********************************************************************************************
+Copyright (C) TallComponents BV. All rights reserved.
+***********************************************************************************************
+-->
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <!--This is the file that defines the IDs for all the commands exposed by VisualStudio.-->
+  <Extern href="stdidcmd.h"/>
+  <!--This header contains the command ids for the menus provided by the shell.-->
+  <Extern href="vsshlids.h"/>
+  <Extern href="vsdbgcmd.h"/>
+  <Extern href="vsdebugguids.h"/>
+
+  <Commands package="guidDot42Package">
+    <Buttons>
+      <Button guid="guidDot42ProjectCmdSet" id="cmdIdAddJarReference" priority="0x100" type="Button">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_PROJECT_ADD"/>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <Strings>
+          <ButtonText>Add Jar Reference...</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidDot42ProjectCmdSet" id="cmdIdImportResFolder" priority="0x100" type="Button">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_PROJECT_ADD"/>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <Strings>
+          <ButtonText>Import "res" folder...</ButtonText>
+        </Strings>
+      </Button>
+
+      <!-- Add a LogCatToolWindow button to  View=>Other Window -->
+      <Button guid="guidDot42ProjectCmdSet" id="cmdidLogCatTool" priority="0x0100" type="Button">
+        <Parent guid="guidVSDebugGroup" id="IDG_DEBUG_WINDOWS_GENERAL"/>
+        <Icon guid="guidDeviceLogIcon" id="defaulticon"/>
+        <Strings>
+          <CommandName>cmdidLogCatTool</CommandName>
+          <ButtonText>Device log window</ButtonText>
+        </Strings>
+      </Button>
+
+    </Buttons>
+
+    <Bitmaps>
+      <Bitmap guid="guidDeviceLogIcon" href="Resources\history.bmp" usedList="defaulticon" />
+    </Bitmaps>
+  </Commands>
+  <!-- CommandPlacements>
+    - Place the Assembly group also in the main Project menu -
+    <CommandPlacement guid="guidObfuscationProjectCmdSet" id="AssemblyGroup" priority="0x400">
+      <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_PROJECT"/>
+    </CommandPlacement>
+  </CommandPlacements -->
+  
+  <Symbols>    
+    <GuidSymbol name="guidDot42Package" 
+                value="{C2093FE8-FCA6-4F7B-9E52-1BFB9A61C08F}" />
+    <GuidSymbol name="guidDot42ProjectCmdSet" 
+                value="{C2093FE8-FCA6-4F7B-9E52-517E25185656}" >
+      <IDSymbol name="AssemblyGroup" value="0x2001"/>
+      <IDSymbol name="cmdIdAddJarReference" value="0x3001"/>
+      <IDSymbol name="cmdidLogCatTool" value="0x3002"/>
+      <IDSymbol name="cmdIdImportResFolder" value="0x3003"/>
+    </GuidSymbol>
+    <GuidSymbol name="guidDeviceLogIcon" 
+                value="{C2093FE8-FCA6-4F7B-9E52-1C610F6E654B}">
+      <IDSymbol name="defaulticon" value="1"/>
+    </GuidSymbol>
+  </Symbols>
+</CommandTable>

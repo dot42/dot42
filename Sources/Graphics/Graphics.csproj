@@ -1,0 +1,295 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{13F134AD-A566-E5B2-2FE7-7AD5C0B4A386}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Dot42.Graphics</RootNamespace>
+    <AssemblyName>dot42.Graphics</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SignAssembly>false</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\Dot42.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DOT42;DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>DOT42;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="PresentationCore" />
+    <Reference Include="System" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Version.cs" />
+    <Compile Include="Backgrounds.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Backgrounds.resx</DependentUpon>
+    </Compile>
+    <Compile Include="BackgroundColors.cs" />
+    <Compile Include="Icons.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Icons.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Icons16.cs" />
+    <Compile Include="Icons24.cs" />
+    <Compile Include="Icons32.cs" />
+    <Compile Include="Icons128.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Icons128.resx</DependentUpon>
+    </Compile>
+    <Compile Include="RawIcons16.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RawIcons16.resx</DependentUpon>
+    </Compile>
+    <Compile Include="RawIcons24.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RawIcons24.resx</DependentUpon>
+    </Compile>
+    <Compile Include="RawIcons32.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RawIcons32.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Backgrounds.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Backgrounds.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Icons.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Icons.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Icons128.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Icons128.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RawIcons16.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>RawIcons16.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RawIcons24.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <SubType>Designer</SubType>
+      <LastGenOutput>RawIcons24.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RawIcons32.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <SubType>Designer</SubType>
+      <LastGenOutput>RawIcons32.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-32\blog.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-32\folder_view.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-32\help_earth.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-32\history.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-32\magic_wand2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-32\package_add.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-32\twitter-transparent.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Backgrounds\activation 2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Icons\App.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Icons\cpu.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Icons\Dot42.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Icons\SplashScreenIcon_32.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-128\key_128.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-32\key.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-32\antenna.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-24\emulator.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-24\mobilephone3.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-32\emulator.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-32\emulator_edit.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-32\emulator_new.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-32\emulator_play.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-32\media_play.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-16\emulator_delete.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-16\emulator_edit.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-32\emulator_delete.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-24\Check.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-24\mobilephone3_forbidden.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-24\emulator_forbidden.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-24\folder.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-32\arrow_right.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-32\check.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-32\media_pause.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-16\media_pause.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-16\arrow_down_green.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-16\arrow_left_green.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-16\arrow_right_green.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-16\arrow_up_green.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-24\emulator_disabled.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-24\emulator_forbidden_disabled.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-24\mobilephone3_disabled.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-24\mobilephone3_forbidden_disabled.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Icons\icon-48x48-rgba.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-16\media_pause_disabled.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-32\media_play_green.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-32\download.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Icons\icon-32x32-rgba.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-32\information.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-32\codes_of_law.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-32\shopping_cart_empty.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-32\Google_Play_Store.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-32\plug_usb.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-16\folder_16.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-16\certificate_new_16.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-16\unknown.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-16\jar.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-16\jar.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-32\refresh.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Buttons-24\copy.png" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

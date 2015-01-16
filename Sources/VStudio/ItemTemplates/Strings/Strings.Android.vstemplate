@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Item" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
+  <TemplateData>
+    <Name>String table resource</Name>
+    <Description>String table resource</Description>
+    <Icon></Icon>
+    <TemplateID>Dot42.Android.CSharp.Strings</TemplateID>
+    <ProjectType>CSharp</ProjectType>
+    <DefaultName>Strings.xml</DefaultName>
+    <TemplateGroupID>dot42</TemplateGroupID>
+    <NumberOfParentCategoriesToRollUp>0</NumberOfParentCategoriesToRollUp>
+  </TemplateData>
+  <TemplateContent>
+    <ProjectItem ReplaceParameters="true" ItemType="ValuesResource">Strings.xml</ProjectItem>
+  </TemplateContent>
+</VSTemplate>

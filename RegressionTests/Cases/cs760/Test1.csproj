@@ -1,0 +1,92 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <ProjectGuid>{FA60AE97-EB64-4406-8A82-186D664FD676}</ProjectGuid>
+    <ProjectTypeGuids>{337B7DB7-2D1E-448D-BEBF-17E887A46E37};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Test1</RootNamespace>
+    <AssemblyName>Test1</AssemblyName>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <TargetFrameworkIdentifier>Android</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v4.2</TargetFrameworkVersion>
+    <AndroidVersion>$(TargetFrameworkVersion)</AndroidVersion>
+    <SupportedCultures />
+    <ApkOutputs>true</ApkOutputs>
+    <GenerateAndroidManifest>true</GenerateAndroidManifest>
+    <ApkFilename>Test1.apk</ApkFilename>
+    <PackageName>com.Test1</PackageName>
+    <ApkCertificatePath>..\..\SVNWork\dot42\Samples\Samples.pfx</ApkCertificatePath>
+    <ApkCertificateThumbprint>A6146178A65E8690AB503F560C9C0EDBEB16ED8D</ApkCertificateThumbprint>
+    <ProjectTypeGuids>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC};{337B7DB7-2D1E-448D-BEBF-17E887A46E37}</ProjectTypeGuids>
+    <Dot42ExtensionsPath Condition=" '$(Dot42ExtensionsPath)' == '' ">$(Registry:HKEY_CURRENT_USER\SOFTWARE\TallApplications\Dot42@ExtensionsPath)</Dot42ExtensionsPath>
+    <Dot42ExtensionsPath Condition=" '$(Dot42ExtensionsPath)' == '' ">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\TallApplications\Dot42@ExtensionsPath)</Dot42ExtensionsPath>
+    <TargetSdkAndroidVersion />
+    <GenerateWcfProxy>false</GenerateWcfProxy>
+    <ApkCertificatePath>..\..\Certificate.pfx</ApkCertificatePath>
+    <ApkCertificateThumbprint>E459CAAA643505C4FCE6932D22C8F6681A9E1F48</ApkCertificateThumbprint>
+    <AfterBuildDependsOn Condition=" '$(BuildingInsideVisualStudio)' != 'true'">Test</AfterBuildDependsOn>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Platform)' == 'AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <OutputPath>bin\Debug\</OutputPath>
+    <DebugSymbols>True</DebugSymbols>
+    <DebugType>Full</DebugType>
+    <Optimize>False</Optimize>
+    <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <OutputPath>bin\Release\</OutputPath>
+    <DebugSymbols>False</DebugSymbols>
+    <DebugType>None</DebugType>
+    <Optimize>True</Optimize>
+    <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+    <DefineConstants>TRACE</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Dot42" />
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="$(ResourcesGeneratedCodePath)R.cs" />
+    <Compile Include="src\ToDoActivity.cs" />
+    <Compile Include="src\ToDoItem.cs" />
+    <Compile Include="src\ToDoItemAdapter.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <DrawableResource Include="res\drawable\ic_launcher--xhdpi.png" />
+    <DrawableResource Include="res\drawable\ic_launcher-hdpi.png" />
+    <DrawableResource Include="res\drawable\ic_launcher-ldpi.png" />
+    <DrawableResource Include="res\drawable\ic_launcher-mdpi.png" />
+    <LayoutResource Include="res\layout\activity_to_do.xml" />
+    <LayoutResource Include="res\layout\row_list_to_do.xml" />
+    <MenuResource Include="res\menu\activity_main.xml" />
+    <ValuesResource Include="res\values\strings.xml" />
+    <ValuesResource Include="res\values\styles-v11.xml" />
+    <ValuesResource Include="res\values\styles-v14.xml" />
+    <ValuesResource Include="res\values\styles.xml" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <JarReference Include="libs\android-support-v4.jar">
+      <ImportCode>yes</ImportCode>
+    </JarReference>
+    <JarReference Include="libs\gson-2.2.2.jar">
+      <ImportCode>yes</ImportCode>
+    </JarReference>
+    <JarReference Include="libs\mobileservices-0.2.0.jar">
+      <ImportCode>yes</ImportCode>
+    </JarReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(Dot42ExtensionsPath)\Dot42.CSharp.targets" />
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild" DependsOnTargets="$(AfterBuildDependsOn)">
+  </Target>
+</Project>

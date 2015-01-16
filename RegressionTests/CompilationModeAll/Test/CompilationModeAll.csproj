@@ -1,0 +1,83 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <AssemblyCompilationMode>all</AssemblyCompilationMode>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{F75C699D-D4F5-45B5-B710-B284C214C027}</ProjectGuid>
+    <ProjectTypeGuids>{337B7DB7-2D1E-448D-BEBF-17E887A46E37};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>CompilationModeAll</RootNamespace>
+    <AssemblyName>CompilationModeAll</AssemblyName>
+    <TargetFrameworkIdentifier>Android</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v4.0.3</TargetFrameworkVersion>
+    <AndroidVersion>$(TargetFrameworkVersion)</AndroidVersion>
+    <SupportedCultures>
+    </SupportedCultures>
+    <ApkOutputs>true</ApkOutputs>
+    <GenerateAndroidManifest>true</GenerateAndroidManifest>
+    <ApkFilename>CompilationModeAll.apk</ApkFilename>
+    <PackageName>com.dot42.regressiontest.AllModeTest3</PackageName>
+    <Dot42Folder Condition=" '$(Dot42Folder)' == '' ">..\..\Build\Application</Dot42Folder>
+    <Dot42ExtensionsPath Condition=" '$(Dot42ExtensionsPath)' == '' ">..\..\Build\Application</Dot42ExtensionsPath>
+    <Dot42ReferenceAssembliesFolder Condition=" '$(Dot42ReferenceAssembliesFolder)' == '' ">..\..\Build\Debug\Framework</Dot42ReferenceAssembliesFolder>
+    <ApkCertificatePath>..\..\Certificate.pfx</ApkCertificatePath>
+    <ApkCertificateThumbprint>E459CAAA643505C4FCE6932D22C8F6681A9E1F48</ApkCertificateThumbprint>
+    <TargetSdkAndroidVersion />
+    <GenerateWcfProxy>false</GenerateWcfProxy>
+    <AfterBuildDependsOn Condition=" '$(BuildingInsideVisualStudio)' != 'true'">Test</AfterBuildDependsOn>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>Bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;TRACE;DOT42</DefineConstants>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>Bin\Release</OutputPath>
+    <DefineConstants>TRACE;DOT42</DefineConstants>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Dot42" />
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="Test.cs" />
+  </ItemGroup>
+  <Import Project="$(Dot42ExtensionsPath)\Dot42.CSharp.targets" />
+  <ItemGroup>
+    <Compile Include="$(ResourcesGeneratedCodePath)R.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Lib1\Lib1.csproj">
+      <Project>{7268077B-4B80-491C-B7D2-359FA9332424}</Project>
+      <Name>Lib1</Name>
+      <IncludeAllCode>yes</IncludeAllCode>
+    </ProjectReference>
+    <ProjectReference Include="..\Lib2\Lib2.csproj">
+      <Project>{7268077B-2380-491C-B7D2-359FA9332424}</Project>
+      <Name>Lib2</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild" DependsOnTargets="$(AfterBuildDependsOn)">
+  </Target>
+  <ProjectExtensions />
+</Project>

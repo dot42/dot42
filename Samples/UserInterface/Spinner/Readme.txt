@@ -1,0 +1,1 @@
+This samples shows how to use a Spinner control.

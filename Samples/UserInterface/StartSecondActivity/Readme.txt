@@ -1,0 +1,1 @@
+This sample shows how to start a second activity using code.

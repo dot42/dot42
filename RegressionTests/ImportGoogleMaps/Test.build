@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<project name="dot42-ImportGoogleMaps-Test" default="test" basedir=".">
+
+	<property name="nant.settings.currentframework" value="net-4.0" />
+
+	<property name="basedir" value="${project::get-base-directory()}" />
+	<property name="rootdir" value="${basedir}\..\.." />
+	<include buildfile="${basedir}\..\Common.include"/>
+
+	<target name="clean" description="remove all generated files">
+		<!-- Remove all working files -->
+		<delete>
+			<fileset basedir="${basedir}">
+				<include name="**/obj/**" />
+				<include name="**/bin/**" />
+				<include name="**/*.sln.cache" />
+				<include name="**/*.suo" />
+				<include name="**/*.user" />
+			</fileset>
+		</delete>
+	</target>
+
+	
+	<target name="build" depends="clean">
+		<msbuild project="${basedir}\MapsTest.sln" target="Rebuild">
+			<property name="Dot42ExtensionsPath" value="${Dot42ExtensionsPath}" />
+			<property name="Dot42Folder" value="${Dot42Folder}" />
+			<property name="Dot42ReferenceAssembliesFolder" value="${Dot42ReferenceAssembliesFolder}" />
+		</msbuild>
+	</target>
+	
+	<target name="install" depends="build" description="Build and install all"> 
+		<trycatch>
+			<try>
+				<foreach property="apk" item="File">
+					<in>
+						<items basedir="${basedir}">
+							<include name="**/bin/*/*.apk"/>
+						</items>
+					</in>
+					<do>
+						<echo message="${apk}"/>
+						<exec program="${adb}">
+							<arg value="install"/>
+							<arg value="-r"/>
+							<arg value="${apk}"/>
+						</exec>
+					</do>
+				</foreach>
+			</try>
+			<finally>
+				<exec program="${dot42tool}">
+					<arg line="-unapk ${basedir}"/>
+				</exec>
+			</finally>
+		</trycatch>
+	</target>
+	
+	<target name="test" depends="build,install" />
+
+</project>

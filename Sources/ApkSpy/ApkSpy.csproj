@@ -1,0 +1,192 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{13F162A6-FF66-BB55-2277-7AD5C0B4A386}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Dot42.ApkSpy</RootNamespace>
+    <AssemblyName>dot42ApkSpy</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SignAssembly>false</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\Dot42.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Images\Spy.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Images\Class.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common\BouncyCastle\v1.7\BouncyCastle-v1.7.csproj">
+      <Project>{BB4562A6-BB44-BBB6-1111-22D5C0B4A386}</Project>
+      <Name>BouncyCastle-v1.7</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Mono.Cecil\Mono.Cecil.DeepSea.csproj">
+      <Project>{13F162A6-BB55-40B6-BB77-22D5C0B4A386}</Project>
+      <Name>Mono.Cecil.DeepSea</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ApkLib\ApkLib.csproj">
+      <Project>{13F1BB11-ABB6-B755-CC77-7AD5C0B4BB22}</Project>
+      <Name>ApkLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CompilerLib\CompilerLib.csproj">
+      <Project>{13F162A6-DD45-FDB3-1234-7AD5C0B23486}</Project>
+      <Name>CompilerLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DexLib\DexLib.csproj">
+      <Project>{CAF03EFC-1CF0-49DA-8C2E-684949E08833}</Project>
+      <Name>DexLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FrameworkDefinitions\FrameworkDefinitions.csproj">
+      <Project>{13F162A6-AA66-BB55-CC77-7AD5C0B4BB22}</Project>
+      <Name>FrameworkDefinitions</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\JvmClassLib\JvmClassLib.csproj">
+      <Project>{13F162A6-F530-40B6-A258-7AD5C0B4A386}</Project>
+      <Name>JvmClassLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\LoaderLib\LoaderLib.csproj">
+      <Project>{13F162A6-DD45-F343-1234-7ADBD4323486}</Project>
+      <Name>LoaderLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Mapping\MappingLib.csproj">
+      <Project>{13F162A6-F530-40F2-1234-7AD5123AA386}</Project>
+      <Name>MappingLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SharedUI\SharedUI.csproj">
+      <Project>{1456BD11-4559-BB59-44DE-7AD5C0B4BB22}</Project>
+      <Name>SharedUI</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Utility\Utility.csproj">
+      <Project>{13F162A6-F530-40B3-1234-7AD5C0B4A386}</Project>
+      <Name>Utility</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Version.cs" />
+    <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="ISpySettings.cs" />
+    <Compile Include="ISpyContext.cs" />
+    <Compile Include="PasswordDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PasswordDialog.Designer.cs">
+      <DependentUpon>PasswordDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="RecentlyUsedFiles.cs" />
+    <Compile Include="Tree\Asn1FileNode.cs" />
+    <Compile Include="Tree\Pkcs12FileNode.cs" />
+    <Compile Include="Tree\JavaMethodDefinitionNode.cs" />
+    <Compile Include="Tree\JavaFieldDefinitionNode.cs" />
+    <Compile Include="Tree\JavaClassFileNode.cs" />
+    <Compile Include="Tree\DexClassDefinitionNode.cs" />
+    <Compile Include="Tree\SourceFile.cs" />
+    <Compile Include="Tree\TableEntryInstanceNode.cs" />
+    <Compile Include="Tree\TableEntryNode.cs" />
+    <Compile Include="Tree\TableTypeSpecNode.cs" />
+    <Compile Include="Tree\DexMethodDefinitionNode.cs" />
+    <Compile Include="Tree\DexFieldDefinitionNode.cs" />
+    <Compile Include="Tree\DexFileNode.cs" />
+    <Compile Include="Tree\ExceptionNode.cs" />
+    <Compile Include="Tree\TextNode.cs" />
+    <Compile Include="Tree\HexFileNode.cs" />
+    <Compile Include="Tree\NodeComparer.cs" />
+    <Compile Include="Tree\TableFileNode.cs" />
+    <Compile Include="Tree\TextFileNode.cs" />
+    <Compile Include="Tree\TreeExtensions.cs" />
+    <Compile Include="Tree\XmlFileNode.cs" />
+    <Compile Include="Tree\FileNode.cs" />
+    <Compile Include="Tree\UnknownFileNode.cs" />
+    <Compile Include="Tree\DirNode.cs" />
+    <Compile Include="MainForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MainForm.Designer.cs">
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Program.cs" />
+    <Compile Include="Tree\INodeBuilder.cs" />
+    <Compile Include="Tree\Node.cs" />
+    <Compile Include="Tree\NodeBuilders.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="MainForm.resx">
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PasswordDialog.resx">
+      <DependentUpon>PasswordDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Images\Constructor.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Images\Field.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Images\Interface.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Images\Method.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Images\NameSpace.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Images\Spy.ico" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy /Y /C $(TargetDir)*.* $(SolutionDir)\Build\Application\</PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

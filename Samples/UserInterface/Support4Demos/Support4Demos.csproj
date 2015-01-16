@@ -1,0 +1,152 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{6DCF1AFE-6A13-45E6-ACB4-635073840D64}</ProjectGuid>
+    <ProjectTypeGuids>{337B7DB7-2D1E-448D-BEBF-17E887A46E37};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Support4Demos</RootNamespace>
+    <AssemblyName>Support4Demos</AssemblyName>
+    <TargetFrameworkIdentifier>Android</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v2.3.3</TargetFrameworkVersion>
+    <TargetSdkAndroidVersion>v4.2</TargetSdkAndroidVersion>
+    <AndroidVersion>$(TargetFrameworkVersion)</AndroidVersion>
+    <SupportedCultures>
+    </SupportedCultures>
+    <ApkOutputs>true</ApkOutputs>
+    <GenerateAndroidManifest>true</GenerateAndroidManifest>
+    <ApkFilename>Support4Demos.apk</ApkFilename>
+    <PackageName>com.dot42.samples.Support4Demos</PackageName>
+    <Dot42ExtensionsPath Condition=" '$(Dot42ExtensionsPath)' == '' ">$(Registry:HKEY_CURRENT_USER\SOFTWARE\TallApplications\Dot42@ExtensionsPath)</Dot42ExtensionsPath>
+    <Dot42ExtensionsPath Condition=" '$(Dot42ExtensionsPath)' == '' ">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\TallApplications\Dot42@ExtensionsPath)</Dot42ExtensionsPath>
+    <ApkCertificatePath>..\..\Samples.pfx</ApkCertificatePath>
+    <ApkCertificateThumbprint>A6146178A65E8690AB503F560C9C0EDBEB16ED8D</ApkCertificateThumbprint>
+    <AfterBuildDependsOn Condition=" '$(BuildingInsideVisualStudio)' != 'true'">Install</AfterBuildDependsOn>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>Bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;TRACE;DOT42</DefineConstants>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>Bin\Release</OutputPath>
+    <DefineConstants>TRACE;DOT42</DefineConstants>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Dot42" />
+    <Reference Include="Dot42.AndroidSupportLibrary"/>
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="src\accessibility\AccessibilityDelegateSupportActivity.cs" />
+    <Compile Include="src\accessibility\AccessibilityManagerSupportActivity.cs" />
+    <Compile Include="src\app\FragmentAlertDialogSupport.cs" />
+    <Compile Include="src\app\FragmentArgumentsSupport.cs" />
+    <Compile Include="src\app\FragmentContextMenuSupport.cs" />
+    <Compile Include="src\app\FragmentCustomAnimationSupport.cs" />
+    <Compile Include="src\app\FragmentDialogOrActivitySupport.cs" />
+    <Compile Include="src\app\FragmentDialogSupport.cs" />
+    <Compile Include="src\app\FragmentHideShowSupport.cs" />
+    <Compile Include="src\app\FragmentLayoutSupport.cs" />
+    <Compile Include="src\app\FragmentListArraySupport.cs" />
+    <Compile Include="src\app\FragmentMenuFragmentSupport.cs" />
+    <Compile Include="src\app\FragmentMenuSupport.cs" />
+    <Compile Include="src\app\FragmentNestingTabsSupport.cs" />
+    <Compile Include="src\app\FragmentPagerSupport.cs" />
+    <Compile Include="src\app\FragmentReceiveResultSupport.cs" />
+    <Compile Include="src\app\FragmentRetainInstanceSupport.cs" />
+    <Compile Include="src\app\FragmentStackFragmentSupport.cs" />
+    <Compile Include="src\app\FragmentStackSupport.cs" />
+    <Compile Include="src\app\FragmentStatePagerSupport.cs" />
+    <Compile Include="src\app\FragmentTabs.cs" />
+    <Compile Include="src\app\FragmentTabsFragmentSupport.cs" />
+    <Compile Include="src\app\FragmentTabsPager.cs" />
+    <Compile Include="src\app\LoaderCursorSupport.cs" />
+    <Compile Include="src\app\LoaderCustomSupport.cs" />
+    <Compile Include="src\app\LoaderRetainedSupport.cs" />
+    <Compile Include="src\app\LoaderThrottleSupport.cs" />
+    <Compile Include="src\app\SendResult.cs" />
+    <Compile Include="src\app\SharingReceiverSupport.cs" />
+    <Compile Include="src\app\SharingSupport.cs" />
+    <Compile Include="src\Cheeses.cs" />
+    <Compile Include="src\content\LocalServiceBroadcaster.cs" />
+    <Compile Include="src\content\SharingSupportProvider.cs" />
+    <Compile Include="src\Shakespeare.cs" />
+    <Compile Include="src\Support4Demos.cs" />
+    <Compile Include="src\view\CheckableFrameLayout.cs" />
+  </ItemGroup>
+  <Import Project="$(Dot42ExtensionsPath)\Dot42.CSharp.targets" />
+  <ItemGroup>
+    <Compile Include="$(ResourcesGeneratedCodePath)R.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <AnimationResource Include="res\anim\decelerate_quint.xml" />
+    <AnimationResource Include="res\anim\fragment_slide_left_enter.xml" />
+    <AnimationResource Include="res\anim\fragment_slide_left_exit.xml" />
+    <AnimationResource Include="res\anim\fragment_slide_right_enter.xml" />
+    <AnimationResource Include="res\anim\fragment_slide_right_exit.xml" />
+    <ValuesResource Include="res\values\styles.xml" />
+    <ValuesResource Include="res\values\styles-v11.xml" />
+    <DrawableResource Include="res\drawable\alert_dialog_icon-hdpi.png" />
+    <DrawableResource Include="res\drawable\app_sample_code-hdpi.png" />
+    <DrawableResource Include="res\drawable\alert_dialog_icon-mdpi.png" />
+    <DrawableResource Include="res\drawable\app_sample_code-mdpi.png" />
+    <LayoutResource Include="res\layout\fragment_arguments_support-land.xml" />
+    <LayoutResource Include="res\layout\fragment_layout_support-land.xml" />
+    <LayoutResource Include="res\layout\accessibility_delegate.xml" />
+    <LayoutResource Include="res\layout\accessibility_manager.xml" />
+    <LayoutResource Include="res\layout\fragment_arguments_support.xml" />
+    <LayoutResource Include="res\layout\fragment_context_menu.xml" />
+    <LayoutResource Include="res\layout\fragment_dialog.xml" />
+    <LayoutResource Include="res\layout\fragment_dialog_or_activity.xml" />
+    <LayoutResource Include="res\layout\fragment_hide_show_support.xml" />
+    <LayoutResource Include="res\layout\fragment_layout_support.xml" />
+    <LayoutResource Include="res\layout\fragment_menu.xml" />
+    <LayoutResource Include="res\layout\fragment_pager.xml" />
+    <LayoutResource Include="res\layout\fragment_pager_list.xml" />
+    <LayoutResource Include="res\layout\fragment_retain_instance.xml" />
+    <LayoutResource Include="res\layout\fragment_stack.xml" />
+    <LayoutResource Include="res\layout\fragment_tabs.xml" />
+    <LayoutResource Include="res\layout\fragment_tabs_pager.xml" />
+    <LayoutResource Include="res\layout\hello_world.xml" />
+    <LayoutResource Include="res\layout\labeled_text_edit.xml" />
+    <LayoutResource Include="res\layout\list_item_icon_text.xml" />
+    <LayoutResource Include="res\layout\local_service_broadcaster.xml" />
+    <LayoutResource Include="res\layout\receive_result.xml" />
+    <LayoutResource Include="res\layout\send_result.xml" />
+    <LayoutResource Include="res\layout\sharing_receiver_support.xml" />
+    <LayoutResource Include="res\layout\sharing_support.xml" />
+    <LayoutResource Include="res\layout\simple_list_item_checkable_1.xml" />
+    <MenuResource Include="res\menu\shortcuts.xml" />
+    <ValuesResource Include="res\values\attrs.xml">
+      <SubType>Designer</SubType>
+    </ValuesResource>
+    <ValuesResource Include="res\values\colors.xml" />
+    <ValuesResource Include="res\values\strings.xml">
+      <SubType>Designer</SubType>
+    </ValuesResource>
+  </ItemGroup>
+  <ItemGroup />
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild" DependsOnTargets="$(AfterBuildDependsOn)">
+  </Target>
+  <ProjectExtensions />
+</Project>

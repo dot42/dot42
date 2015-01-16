@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+# SharpDevelop 4.3
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompilationModeAll", "Test\CompilationModeAll.csproj", "{F75C699D-D4F5-45B5-B710-B284C214C027}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lib1", "Lib1\Lib1.csproj", "{7268077B-4B80-491C-B7D2-359FA9332424}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lib2", "Lib2\Lib2.csproj", "{7268077B-2380-491C-B7D2-359FA9332424}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F75C699D-D4F5-45B5-B710-B284C214C027}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F75C699D-D4F5-45B5-B710-B284C214C027}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F75C699D-D4F5-45B5-B710-B284C214C027}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F75C699D-D4F5-45B5-B710-B284C214C027}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7268077B-4B80-491C-B7D2-359FA9332424}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7268077B-4B80-491C-B7D2-359FA9332424}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7268077B-4B80-491C-B7D2-359FA9332424}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7268077B-4B80-491C-B7D2-359FA9332424}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7268077B-2380-491C-B7D2-359FA9332424}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7268077B-2380-491C-B7D2-359FA9332424}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7268077B-2380-491C-B7D2-359FA9332424}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7268077B-2380-491C-B7D2-359FA9332424}.Release|Any CPU.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

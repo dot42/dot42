@@ -1,0 +1,1 @@
+This sample shows a basic (integer only) calculater app.

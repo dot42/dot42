@@ -1,0 +1,169 @@
+﻿<AddIn name        = "dot42"
+       author      = "dot42"
+       url         = "http://www.dot42.com"
+       description = "dot42 C# for Android">
+	
+	<Runtime>
+		<Import assembly = ":ICSharpCode.SharpDevelop"/>
+		<Import assembly = "dot42.SharpDevelop.Project.dll">
+			<Doozer name="Dot42ResourceProperty" class="Dot42.SharpDevelop.Project.ResourcePropertyDoozer"/>
+		</Import>
+	</Runtime>
+	
+	<Manifest>
+		<Identity name="Dot42.Project" version="@dot42.SharpDevelop.Project.dll"/>
+		<Dependency addin="SharpDevelop" version="4.3.1"/>
+	</Manifest>
+	
+	<Path path = "/SharpDevelop/BackendBindings/ProjectOptions/C#">
+		<Condition name="ProjectBehaviorSupported" guid="{337B7DB7-2D1E-448D-BEBF-17E887A46E37}">
+			<OptionPanel id    = "Android"
+			             insertbefore="Application"
+			             label = "Android"
+			             class = "Dot42.SharpDevelop.Project.AndroidOptionPanel"/>
+		</Condition>
+	</Path>
+	
+	<Path name = "/SharpDevelop/BackendBindings/Templates">
+		<Directory id = "dot42.itemTemplates" path = "./ItemTemplates" />
+		<Directory id = "dot42.projectTemplates" path = "./ProjectTemplates" />
+	</Path>
+	
+	<Path name = "/SharpDevelop/BackendBindings/TemplateCommands">
+		<Class id="PrepareApplicationProjectCommand" class="Dot42.SharpDevelop.PrepareApplicationProjectCommand"/>
+		<Class id="SetupDot42ProjectCommand" class="Dot42.SharpDevelop.SetupDot42ProjectCommand"/>
+	</Path>
+	
+	<Path path = "/SharpDevelop/Pads/ProjectBrowser/ContextMenu/ProjectNode">
+		<Condition name="ProjectBehaviorSupported" guid="{337B7DB7-2D1E-448D-BEBF-17E887A46E37}">
+			<Condition name="WriteableProject" action="Disable">
+				<MenuItem id    = "AddJarReference"
+				          insertafter="AddReference"
+				          insertbefore="AddServiceReference"
+				          label = "Add Jar Reference"
+				          class = "Dot42.SharpDevelop.Project.AddJarReferenceCommand"/>
+			</Condition>
+		</Condition>
+	</Path>
+	
+	<Path name = "/SharpDevelop/Pads/ProjectBrowser/ContextMenu/ReferenceFolderNode">
+		<Condition name="ProjectBehaviorSupported" guid="{337B7DB7-2D1E-448D-BEBF-17E887A46E37}">
+			<Condition name="WriteableProject" action="Disable">
+				<MenuItem id    = "AddJarReference"
+				          insertafter="AddReference"
+				          insertbefore="AddServiceReference"
+				          label = "Add Jar Reference"
+				          class = "Dot42.SharpDevelop.Project.AddJarReferenceCommand"/>
+			</Condition>
+		</Condition>
+	</Path>
+	
+	<Path name = "/SharpDevelop/Pads/ProjectBrowser/ContextMenu/JarReferenceNode">
+		<Condition name="WriteableProject" action="Disable">
+			<MenuItem id    = "Remove"
+			          label = "${res:Global.RemoveButtonText}"
+			          icon  = "Icons.16x16.DeleteIcon"
+			          class = "ICSharpCode.SharpDevelop.Project.Commands.DeleteProjectBrowserNode"/>
+		</Condition>
+	</Path>
+	
+	<Path name="/SharpDevelop/Views/ProjectBrowser/ContextSpecificProperties">
+		<ComplexCondition>
+			<Or>
+				<Condition name="ProjectItem" itemType="AnimationResource"/>
+				<Condition name="ProjectItem" itemType="DrawableResource"/>
+				<Condition name="ProjectItem" itemType="LayoutResource"/>
+				<Condition name="ProjectItem" itemType="MenuResource"/>
+				<Condition name="ProjectItem" itemType="ValuesResource"/>
+				<Condition name="ProjectItem" itemType="XmlResource"/>
+				<Condition name="ProjectItem" itemType="RawResource"/>
+			</Or>
+			<Dot42ResourceProperty name="MobileCountryCode"/>
+			<Dot42ResourceProperty name="MobileNetworkCarrier"/>
+			<Dot42ResourceProperty name="Language"/>
+			<Dot42ResourceProperty name="Region"/>
+			<Dot42ResourceProperty name="SmallestWidth"/>
+			<Dot42ResourceProperty name="AvailableWidth"/>
+			<Dot42ResourceProperty name="AvailableHeight"/>
+			<Dot42ResourceProperty name="ScreenSize"/>
+			<Dot42ResourceProperty name="ScreenAspect"/>
+			<Dot42ResourceProperty name="ScreenOrientation"/>
+			<Dot42ResourceProperty name="UIMode"/>
+			<Dot42ResourceProperty name="NightMode"/>
+			<Dot42ResourceProperty name="ScreenPixelDensity"/>
+			<Dot42ResourceProperty name="TouchScreenType"/>
+			<Dot42ResourceProperty name="KeyboardAvailability"/>
+			<Dot42ResourceProperty name="PrimaryTextInputMethod"/>
+			<Dot42ResourceProperty name="NavigationKeyAvailability"/>
+			<Dot42ResourceProperty name="PrimaryNonTouchNavigationMethod"/>
+			<Dot42ResourceProperty name="PlatformVersion"/>
+		</ComplexCondition>
+	</Path>
+	
+	<Path name = "/SharpDevelop/Views/ProjectBrowser/NodeBuilders">
+		<Class id = "Dot42ProjectNodeBuilder"
+		       insertbefore="DefaultBuilder"
+		       class = "Dot42.SharpDevelop.Project.Dot42ProjectNodeBuilder"/>
+	</Path>
+	
+	<Path name = "/SharpDevelop/Workbench/DisplayBindings">
+		<DisplayBinding id    = "dot42ResourceEditor"
+		                class = "Dot42.SharpDevelop.Editors.XmlEditorDisplayBinding"
+		                insertbefore    = "Text"
+		                fileNamePattern = "\.xml$"
+		                title = "dot42 Resource Editor"/>
+	</Path>
+	
+	<Path name="/SharpDevelop/Workbench/MainMenu/Project">
+		<Condition name="ProjectBehaviorSupported" guid="{337B7DB7-2D1E-448D-BEBF-17E887A46E37}">
+			<Condition name="WriteableProject" action="Disable">
+				<MenuItem id    = "AddJarReference"
+				          insertafter="AddReference"
+				          insertbefore="AddWebReference"
+				          label = "Add Jar Reference"
+				          class = "Dot42.SharpDevelop.Project.AddJarReferenceCommand"/>
+			</Condition>
+		</Condition>
+	</Path>
+	
+	<Path name = "/SharpDevelop/Workbench/ProjectBehaviors">
+		<Condition name="ProjectBehaviorSupported" guid="{337B7DB7-2D1E-448D-BEBF-17E887A46E37}">
+			<Class id="Dot42ProjectBehavior" class="Dot42.SharpDevelop.Dot42ProjectBehavior" />
+		</Condition>
+	</Path>
+	
+	<Path name="/SharpDevelop/Services/DebuggerService/Debugger">
+		<Debugger id="Dot42Debugger"
+		          insertbefore="DefaultDebugger"
+		          supportsStepping = "true"
+		          supportsExecutionControl = "true"
+		          supportsAttaching = "false"
+		          supportsDetaching = "false"
+		          class="Dot42.SharpDevelop.Dot42Debugger"/>
+	</Path>
+	
+	<Path name = "/SharpDevelop/Workbench/Pads">
+		<Pad id    = "dot42.CallStackPad"
+		     insertbefore="CallStackPad"
+		     category = "Debugger"
+		     title    = "${res:MainWindow.Windows.Debug.CallStack}"
+		     icon     = "PadIcons.CallStack"
+		     class = "Dot42.SharpDevelop.Pads.CallStackPad"
+		     defaultPosition = "Bottom, Hidden" />
+		<Pad id    = "dot42.ThreadsPad"
+		     insertbefore="ThreadsPad"
+		     category = "Debugger"
+		     title    = "${res:MainWindow.Windows.Debug.Threads}"
+		     icon     = "PadIcons.Threads"
+		     class = "Dot42.SharpDevelop.Pads.ThreadsPad"
+		     defaultPosition = "Bottom, Hidden" />
+		<Pad id    = "dot42.LocalsPad"
+		     category = "Debugger"
+		     insertbefore="LocalVarPad"
+		     title    = "${res:MainWindow.Windows.Debug.LocalVariables}"
+		     icon     = "PadIcons.LocalVariables"
+		     class = "Dot42.SharpDevelop.Pads.LocalsPad"
+		     defaultPosition = "Bottom, Hidden" />
+	</Path>
+
+</AddIn>

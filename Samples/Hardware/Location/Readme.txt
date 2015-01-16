@@ -1,0 +1,1 @@
+This sample shows how to query the LocationManager for the current location and shows location changes (position and speed).

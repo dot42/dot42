@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <style name="ViewStyle_FillWidth" >
+    <item name="android:layout_width">fill_parent</item>
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:textAppearance">@style/CustomTextDefault</item>
+  </style>
+  <style name="ViewStyle_WrapBoth">
+    <item name="android:layout_width">wrap_content</item>
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:textAppearance">@style/CustomTextDefault</item>
+  </style>
+  <style name="ViewStyle_WrapBoth_Large">
+    <item name="android:layout_width">wrap_content</item>
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:textAppearance">@style/CustomTextLarge</item>
+  </style>
+  <style name="ApplicationTheme" parent="android:style/Theme.Holo.Light">
+    <item name="android:layout_marginLeft">50dp</item>
+    <item name="android:layout_marginRight">50dp</item>
+    <item name="android:textAppearance">@style/CustomTextDefault</item>
+  </style>
+  <!--<style name="TextAppearance.Medium" parent="@android:style/TextAppearance.Holo.Light.Medium">
+    <item name="android:textColor">#666666</item>
+    <item name="android:textSize">16sp</item>
+  </style>-->
+  <style name="CustomTextDefault" parent="@android:style/TextAppearance.Medium">
+    <!--<item name="android:textSize">30sp</item>-->
+  </style>
+  <style name="CustomTextLarge" parent="@style/CustomTextDefault">
+    <item name="android:textSize">30sp</item>
+  </style>
+  <style name="ButtonStyle_WrapWidth">
+    <item name="android:layout_width">wrap_content</item>
+    <item name="android:layout_height">100dp</item>
+    <item name="android:textAppearance">@style/CustomTextLarge</item>
+  </style>
+  <style name="TextViewStyle_Large">
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:layout_width">wrap_content</item>
+    <item name="android:textAppearance">@style/CustomTextLarge</item>
+  </style>
+
+  <style name="CustomSpinnerTextStyle" parent="@android:style/TextAppearance.Holo">
+    <item name="android:textSize">10sp</item>
+    <item name="android:textColor">#2456c2</item>
+  </style>
+
+</resources>

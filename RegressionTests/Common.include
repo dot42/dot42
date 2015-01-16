@@ -1,0 +1,19 @@
+﻿<?xml version="1.0"?>
+<project name="Common includes">
+
+	<property name="Dot42ExtensionsPath" value="${rootdir}\Build\Application\Scripts\Android" />
+	<property name="Dot42Folder" value="${rootdir}\Build\Application" />
+	<property name="Dot42ReferenceAssembliesFolder" value="${rootdir}\Build\Application\Frameworks" />
+
+	<property name="Dot42ExtensionsPath" value="${environment::get-variable('Dot42ExtensionsPath')}" overwrite="true" if="${environment::variable-exists('Dot42ExtensionsPath')}"/>
+	<property name="Dot42Folder" value="${environment::get-variable('Dot42Folder')}" overwrite="true" if="${environment::variable-exists('Dot42Folder')}"/>
+	<property name="Dot42ReferenceAssembliesFolder" value="${environment::get-variable('Dot42ReferenceAssembliesFolder')}" overwrite="true" if="${environment::variable-exists('Dot42ReferenceAssembliesFolder')}"/>
+
+	<property name="adb" value="${rootdir}\Build\Application\Platform-tools\adb.exe" />
+	<property name="dot42tool" value="${rootdir}\Build\Application\dot42Tool.exe" />
+	
+	<path id="android.classpath">
+		<pathelement file="${rootdir}\Binaries\Platforms\android-17\android.jar"/>
+	</path>
+	
+</project>

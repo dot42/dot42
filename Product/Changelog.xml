@@ -1,0 +1,437 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<versionhistory>
+  <product>Dot42</product>
+  <latest>
+  </latest>
+  <release>
+    <version>1.0.1.81</version>
+    <date>March 28, 2014</date>
+    <feature>ApkSpy reads JAR or APK archive to open, from command line.</feature>
+    <problem>System.BitConverter did not respect endianess.</problem>
+    <problem>Improved number formatting by System.String.Format.</problem>
+    <problem>Unsubscribing from event failed.</problem>
+    <problem>Improved importing JAR (several issues).</problem>
+  </release>
+  <release>
+    <version>1.0.1.80</version>
+    <date>March 10, 2014</date>
+    <problem>Android Manifest template referenced the wrong assembly version.</problem>
+  </release>
+  <release>
+    <version>1.0.1.79</version>
+    <date>February 27, 2014</date>
+    <feature>Added support for AndroidManifest.xml.</feature>
+    <change>Improved unknown serial message.</change>
+  </release>
+  <release>
+    <version>1.0.1.78</version>
+    <date>November 21, 2013</date>
+    <feature>Added support the Android 4.4 (KitKat) API.</feature>
+    <feature>Added OpenGL 20 Basic sample (ported from Android SDK)</feature>
+    <feature>Save framework version and certificate settings for "New project" as user preferences.</feature>
+    <feature>Added copy to clipboard function to Device Log.</feature>
+    <change>All primitive static readonly fields (Java) are now converted to const (C#).</change>
+    <change>Improved not-activated message.</change>
+    <change>Free Apps key no longer required for publishing.</change>
+    <problem>Layout of activation dialog messed up.</problem>
+    <problem>Exception.StackTrace has incorrect type (should be string).</problem>
+  </release>
+  <release>
+    <version>1.0.1.77</version>
+    <date>September 4, 2013</date>
+    <feature>Added CancellationToken support to async.</feature>
+    <feature>Added refresh function to Device center.</feature>
+    <feature>Added copy to clipboard function to Assembly Checker.</feature>
+    <feature>Added "Import 'res' folder" to VisualStudio to import resources in Android (folder structure) format to dot42 (filename) format.</feature>
+    <change>Activation is started directly from installer.</change>
+    <change>Removed support for creating/editing emulator images.</change>
+    <change>Replaced Device connection wizard with online help.</change>
+    <change>Various UI improvements.</change>
+    <change>AtomicInteger/AtomicLong had a few incorrect properties (AndIncrement/AndIncrement). These have been removed.</change>
+    <problem>DateTime.ToString/ToShortDateString had several issues.</problem>
+    <problem>Add JAR reference missing from Visual Studio.</problem>
+  </release>
+  <release>
+    <version>1.0.1.75</version>
+    <date>September 2, 2013</date>
+    <problem>Async can fail on single CPU systems.</problem>
+    <problem>Nested interface constants classes can be non-visible (e.g. ContactsContract.ISyncColumnsConstants).</problem>
+    <problem>Nested try/catch blocks with catch(object) yield incorrect catch blocks.</problem>
+    <problem>Some local variables do not appear in Locals window due to register spilling.</problem>
+  </release>
+  <release>
+    <version>1.0.1.74</version>
+    <date>August 27, 2013</date>
+    <feature>async/await support.</feature>
+    <feature>PropertyInfo support.</feature>
+    <change>Installer name changed to dot42AndroidSetup.</change>
+    <change>Improved enum performance.</change>
+    <problem>Added types missing from .NET framework forward assemblies.</problem>
+    <change>Improved XDocument (fixed errors, improved API).</change>
+    <problem>Lot's of compiler issues. Many struct and generics related.</problem>
+  </release>
+  <release>
+    <version>1.0.1.72</version>
+    <date>July 26, 2013</date>
+    <feature>Added support the Android 4.3 API.</feature>
+    <feature>Added support for custom Application classes.</feature>
+  </release>
+  <release>
+    <version>1.0.1.71</version>
+    <date>July 5, 2013</date>
+    <feature>Added support for Visual Studio 2013 preview.</feature>
+    <feature>Added support for struct behavior.</feature>
+    <feature>Added support WCF JSON services (client).</feature>
+    <problem>Could not set breakpoint in delegate.</problem>
+    <problem>Error removing breakpoints in Visual Studio.</problem>
+    <problem>Cast error in Visual Studio 2012 XML Editor.</problem>
+    <problem>MetaDataAttribute.Resource property has wrong type.</problem>
+    <problem>Various unsigned short/byte errors.</problem>
+    <problem>Various verify and compilation errors.</problem>
+    <problem>Imported java methods with generic parameters fail.</problem>
+    <problem>Rare typing error in code of imported java methods.</problem>
+    <change>System.Object.Wait methods renamed to JavaWait.</change>
+    <change>All C# types now implement java.lang.Cloneable to support MemberwiseClone().</change>
+    <change>Significant compiler performance improvement.</change>
+    <change>Various framework types/methods have been added.</change>
+  </release>
+  <release>
+    <version>1.0.0.70</version>
+    <date>June 21, 2013</date>
+  </release>
+  <release>
+    <version>1.0.0.69</version>
+    <date>June 16, 2013</date>
+    <feature>Import jar now preserves annotations when possible.</feature>
+    <feature>Various .NET framework enhancements.</feature>
+    <change>Import jar references has been greatly improved. Access to members is now much closer to what is meant in java and name conflicts are handled a lot safer.</change>
+    <change>Lots and lots of compiler issues have been fixed. Both errors during compilation and runtime (verify) errors.</change>
+    <change>Compilation performance of large methods has been greatly improved.</change>
+    <change>License agreement must now be accepted during activation.</change>
+    <problem>Various debugger improvements.</problem>
+    <problem>Various SharpDevelop issues.</problem>
+  </release>
+  <release>
+    <version>1.0.0.68</version>
+    <date>May 16, 2013</date>
+    <feature>Added SharpDevelop support.</feature>
+    <feature>Added WCF client support for REST/XML services.</feature>
+    <problem>Various casting problems.</problem>
+    <problem>Various import jar problems.</problem>
+    <problem>Various enum conversion problems.</problem>
+    <change>Setup warns when no valid Visual Studio version is detected.</change>
+  </release>
+  <release>
+    <version>1.0.0.67</version>
+    <date>May 3, 2013</date>
+    <change>Enum types are now implemented are object instances (like in Java) instead of a primitive types (like in .NET). This is done to keep them explicit and avoid overload conflicts.</change>
+    <change>Code signing certificate of dot42 binaries has changed.</change>
+    <change>Improved usability of Device Center.</change>
+    <feature>Many .NET framework members added.</feature>
+    <problem>TearDown attribute not supported for NUnit tests.</problem>
+    <problem>Nullable enum types cause verification error.</problem>
+    <problem>Java classes using Type&lt;Void&gt; signatures fail to compile when imported in C#.</problem>
+    <problem>Various minor compile issues.</problem>
+  </release>
+  <release>
+    <version>1.0.0.65</version>
+    <date>April 22, 2013</date>
+  </release>
+  <release>
+    <version>1.0.0.64</version>
+    <date>April 19, 2013</date>
+    <feature>Added support for jar files containing code (not only stubs).</feature>
+    <feature>Added Android support library assemblies, added Support4Demos sample showing it's use.</feature>
+    <feature>Improved framework support (added few types, improves many base types).</feature>
+    <feature>Improved manifest attributes (provider, service).</feature>
+    <feature>Improved APK Spy wrt. code inspection.</feature>
+    <change>Target SDK version is not specified in the Visual Studio (MSBuild) project, no longer in an assembly attribute.</change>
+    <change>Android framework interfaces that already start with an 'I' are no longer prefixed with an additional 'I' (e.g. IBinder instead of IIBinder).</change>
+    <problem>Adb install task did not report all possible installation errors.</problem>
+    <problem>Enum types with underlying type other than int causes verify error.</problem>
+    <problem>Many small compiler issues.</problem>
+  </release>
+  <release>
+    <version>1.0.0.62</version>
+    <date>April 11, 2013</date>
+    <feature>Added SimpleGps sample showing how to query the location service for the current location and speed.</feature>
+    <feature>Added support for specifying the targetSdkVersion. This enables you to use the modern HOLO theme on your applications even if you target 2.x android versions.</feature>
+    <change>Reachable detection phase of compiler has been changed. Public types that are not marked with an ApplicationRoot attribute (or derived attribute) are no longer included as root of the application.</change>
+    <problem>Verify error in rare cases.</problem>
+  </release>
+  <release>
+    <version>1.0.0.61</version>
+    <date>April 9, 2013</date>
+    <feature>Added AirportInfo sample showing how to fetch data from a JSON webservice.</feature>
+    <feature>Abstract interface implementation methods in the Android framework can now be overriden.</feature>
+    <feature>Primitive number types now implement IFormattable.</feature>
+    <feature>Variable argument methods in the Android framework now have a "params" parameter.</feature>
+    <problem>Including layout files in a Visual Studio project does not always set the build type.</problem>
+    <problem>Convert.ToInt64 fails</problem>
+    <problem>Convert.ToBase64String fails</problem>
+    <problem>Method with generic out parameter may fail when called with primitive or enum value.</problem>
+    <problem>Extension methods on primitive types may cause verify errors.</problem>
+    <problem>Cast problem with UInt32 constants.</problem>
+    <change>String.Format improved.</change>
+  </release>
+  <release>
+    <version>1.0.0.60</version>
+    <date>March 12, 2013</date>
+    <feature>Added Camera sample.</feature>
+    <feature>Added Simple HttpServer sample.</feature>
+    <feature>Added update check to Visual Studio plugin.</feature>
+    <change>Sign converted method (sbyte parameters to byte parameters) have been removed from interfaces.</change>
+    <problem>IntentFilter manifest support fails.</problem>
+  </release>
+  <release>
+    <version>1.0.0.58</version>
+    <date>March 9, 2013</date>
+    <feature>Modify target version of project depending on your device's Android version.</feature>
+    <feature>Added OpenGL and R.Layout.Simple_item_list1 samples.</feature>
+    <feature>Added support for "supports-screens" element in Android manifest.</feature>
+    <change>"static readonly string" constants in the Android API are now available as "const string".</change>
+    <change>Changed debugger attachment process.</change>
+    <problem>'.' in resource ID breaks compilation of R.cs.</problem>
+    <problem>Missing resources.arsc due to MSBuild 'optimization'.</problem>
+  </release>
+  <release>
+    <version>1.0.0.56</version>
+    <date>March 7, 2013</date>
+  </release>
+  <release>
+    <version>1.0.0.55</version>
+    <date>March 4, 2013</date>
+    <feature>Improved exception debugging support</feature>
+    <feature>Added process specific device log in Visual Studio (Debug - Windows - Device log)</feature>
+    <problem>Resource error do to show in the Visual Studio error window</problem>
+    <problem>Debugger does not detect stopped app on device</problem>
+    <change>Changed debugger attachment process.</change>
+    <change>Device log shows Main log instead of System log.</change>
+  </release>
+  <release>
+    <version>1.0.0.54</version>
+    <date>February 27, 2013</date>
+  </release>
+  <release>
+    <version>1.0.0.53</version>
+    <date>February 27, 2013</date>
+  </release>
+  <release>
+    <version>1.0.0.52</version>
+    <date>February 10, 2013</date>
+    <feature>Added support for Free Apps Keys.</feature>
+    <feature>Added (optional) DOT42_AVD_HOME environment variable to set the location of emulator images.</feature>
+    <problem>VS2012 crash after closing a debugging session.</problem>
+    <change>Various framework fixes/improvements.</change>
+    <problem>Install APK via Device Center can cause crash when installation fails.</problem>
+  </release>
+  <release>
+    <version>1.0.0.49</version>
+    <date>February 9, 2013</date>
+    <feature>Added support for Linq (Enumerable) methods on IIterable&lt;T&gt; arguments.</feature>
+    <feature>Added driver information for Alcatel Onetouch devices to Device connection wizard.</feature>
+    <feature>Added "Publish app in Google Play" button to Device Center.</feature>
+    <change>User account is now shown in Device Center even if your license is not yet activated.</change>
+    <problem>Menu designer causes crash or error message box in VS2012.</problem>
+  </release>
+  <release>
+    <version>1.0.0.48</version>
+    <date>February 2, 2013</date>
+    <feature>Improved support for System.Text</feature>
+    <feature>Improved support for System.Xml.Linq</feature>
+    <change>Improved logging when deploying apps to a device.</change>
+    <change>Improved API documentation.</change>
+    <change>Change framework in dot42 Assembly Checkers points to root of frameworks folder.</change>
+    <change>Various exception types in the .NET API are not mapped directly onto corresponding exceptions in the Android API.</change>
+    <problem>Several minor fixes in the compiler.</problem>
+    <problem>Using custom styles with upper-case letters failed.</problem>
+  </release>
+  <release>
+    <version>1.0.0.47</version>
+    <date>January 15, 2013</date>
+    <change>Boxed types such as java.lang.Boolean were incorrectly converted as bool. Now they are bool?.</change>
+    <change>Apps created with community license always get a "(by dot42.com)" postfix in their application name.</change>
+    <problem>In rare case xor operations did not compile correctly.</problem>
+    <feature>Adding support for System.Xml.Linq</feature>
+  </release>
+  <release>
+    <version>1.0.0.46</version>
+    <date>January 13, 2013</date>
+  </release>
+  <release>
+    <version>1.0.0.45</version>
+    <date>January 11, 2013</date>
+  </release>
+  <release>
+    <version>1.0.0.44</version>
+    <date>January 10, 2013</date>
+  </release>
+  <release>
+    <version>1.0.0.43</version>
+    <date>January 10, 2013</date>
+  </release>
+  <release>
+    <version>1.0.0.42</version>
+    <date>January 5, 2013</date>
+  </release>
+  <release>
+    <version>1.0.0.41</version>
+    <date>January 4, 2013</date>
+  </release>
+  <release>
+    <version>1.0.0.40</version>
+    <date>December 19, 2012</date>
+  </release>
+  <release>
+    <version>1.0.0.39</version>
+    <date>December 18, 2012</date>
+  </release>
+  <release>
+    <version>1.0.0.38</version>
+    <date>December 10, 2012</date>
+  </release>
+  <release>
+    <version>1.0.0.37</version>
+    <date>November 27, 2012</date>
+  </release>
+  <release>
+    <version>1.0.0.36</version>
+    <date>November 22, 2012</date>
+  </release>
+  <release>
+    <version>1.0.0.35</version>
+    <date>November 20, 2012</date>
+  </release>
+  <release>
+    <version>1.0.0.34</version>
+    <date>November 20, 2012</date>
+  </release>
+  <release>
+    <version>1.0.0.33</version>
+    <date>November 12, 2012</date>
+  </release>
+  <release>
+    <version>1.0.0.32</version>
+    <date>November 9, 2012</date>
+  </release>
+  <release>
+    <version>1.0.0.31</version>
+    <date>November 9, 2012</date>
+    <feature>Added byref/out parameter support</feature>
+    <feature>Improved Assembly checker</feature>
+    <change>Improved code generator</change>
+  </release>
+  <release>
+    <version>1.0.0.30</version>
+    <date>November 6, 2012</date>
+    <feature>Debug support added</feature>
+  </release>
+  <release>
+    <version>1.0.0.29</version>
+    <date>November 2, 2012</date>
+  </release>
+  <release>
+    <version>1.0.0.28</version>
+    <date>October 3, 2012</date>
+  </release>
+  <release>
+    <version>1.0.0.27</version>
+    <date>October 1, 2012</date>
+  </release>
+  <release>
+    <version>1.0.0.26</version>
+    <date>October 1, 2012</date>
+  </release>
+  <release>
+    <version>1.0.0.25</version>
+    <date>September 30, 2012</date>
+  </release>
+  <release>
+    <version>1.0.0.24</version>
+    <date>September 28, 2012</date>
+  </release>
+  <release>
+    <version>1.0.0.23</version>
+    <date>September 27, 2012</date>
+  </release>
+  <release>
+    <version>1.0.0.22</version>
+    <date>September 25, 2012</date>
+  </release>
+  <release>
+    <version>1.0.0.21</version>
+    <date>September 25, 2012</date>
+  </release>
+  <release>
+    <version>1.0.0.20</version>
+    <date>September 22, 2012</date>
+  </release>
+  <release>
+    <version>1.0.0.19</version>
+    <date>September 22, 2012</date>
+  </release>
+  <release>
+    <version>1.0.0.18</version>
+    <date>September 22, 2012</date>
+  </release>
+  <release>
+    <version>1.0.0.17</version>
+    <date>September 21, 2012</date>
+  </release>
+  <release>
+    <version>1.0.0.16</version>
+    <date>September 21, 2012</date>
+  </release>
+  <release>
+    <version>1.0.0.15</version>
+    <date>September 19, 2012</date>
+  </release>
+  <release>
+    <version>1.0.0.14</version>
+    <date>September 6, 2012</date>
+  </release>
+  <release>
+    <version>1.0.0.13</version>
+    <date>September 4, 2012</date>
+  </release>
+  <release>
+    <version>1.0.0.12</version>
+    <date>September 4, 2012</date>
+  </release>
+  <release>
+    <version>1.0.0.11</version>
+    <date>September 2, 2012</date>
+  </release>
+  <release>
+    <version>1.0.0.10</version>
+    <date>August 27, 2012</date>
+  </release>
+  <release>
+    <version>1.0.0.9</version>
+    <date>August 14, 2012</date>
+  </release>
+  <release>
+    <version>1.0.0.8</version>
+    <date>August 10, 2012</date>
+  </release>
+  <release>
+    <version>1.0.0.7</version>
+    <date>August 9, 2012</date>
+  </release>
+  <release>
+    <version>1.0.0.6</version>
+    <date>August 6, 2012</date>
+  </release>
+  <release>
+    <version>1.0.0.5</version>
+    <date>August 2, 2012</date>
+  </release>
+  <release>
+    <version>1.0.0.4</version>
+    <date>July 3, 2012</date>
+  </release>
+  <release>
+    <version>1.0.0.3</version>
+    <date>March 1, 2012</date>
+  </release>
+</versionhistory>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout 
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:me="http://schemas.android.com/apk/res/com.dot42.samples.Circle"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+		android:textColor="#ff0"
+        android:text="There must be an yellow filled circle below." />
+
+  <Circle.Circle
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+	me:Color="#ff0">
+  </Circle.Circle>
+
+</LinearLayout>

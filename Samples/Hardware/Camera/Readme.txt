@@ -1,0 +1,1 @@
+This sample demonstrates how to take pictures and preview them.

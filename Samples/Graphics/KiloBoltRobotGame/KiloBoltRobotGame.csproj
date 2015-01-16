@@ -1,0 +1,130 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <ProjectGuid>{507151A6-D1CB-4A2D-921C-38B5AF792F77}</ProjectGuid>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <OutputType>Library</OutputType>
+    <RootNamespace>KiloBoltRobotGame</RootNamespace>
+    <AssemblyName>KiloBoltRobotGame</AssemblyName>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <TargetFrameworkIdentifier>Android</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v4.0.3</TargetFrameworkVersion>
+    <AndroidVersion>$(TargetFrameworkVersion)</AndroidVersion>
+    <SupportedCultures />
+    <ApkOutputs>true</ApkOutputs>
+    <GenerateAndroidManifest>true</GenerateAndroidManifest>
+    <ApkFilename>KiloBoltRobotGame.apk</ApkFilename>
+    <PackageName>com.KiloBoltRobotGame</PackageName>
+    <ApkCertificatePath>..\..\Samples.pfx</ApkCertificatePath>
+    <ApkCertificateThumbprint>A6146178A65E8690AB503F560C9C0EDBEB16ED8D</ApkCertificateThumbprint>
+    <ProjectTypeGuids>{337B7DB7-2D1E-448D-BEBF-17E887A46E37};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <Dot42ExtensionsPath Condition=" '$(Dot42ExtensionsPath)' == '' ">$(Registry:HKEY_CURRENT_USER\SOFTWARE\TallApplications\Dot42@ExtensionsPath)</Dot42ExtensionsPath>
+    <Dot42ExtensionsPath Condition=" '$(Dot42ExtensionsPath)' == '' ">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\TallApplications\Dot42@ExtensionsPath)</Dot42ExtensionsPath>
+    <AfterBuildDependsOn Condition=" '$(BuildingInsideVisualStudio)' != 'true'">Install</AfterBuildDependsOn>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Platform)' == 'AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <OutputPath>bin\Debug\</OutputPath>
+    <DebugSymbols>True</DebugSymbols>
+    <DebugType>Full</DebugType>
+    <Optimize>False</Optimize>
+    <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <OutputPath>bin\Release\</OutputPath>
+    <DebugSymbols>False</DebugSymbols>
+    <DebugType>None</DebugType>
+    <Optimize>True</Optimize>
+    <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+    <DefineConstants>TRACE</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Dot42" />
+    <Reference Include="dot42.AndroidSupportLibrary" />
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="$(ResourcesGeneratedCodePath)R.cs" />
+    <Compile Include="Framework\IAudio.cs" />
+    <Compile Include="Framework\IFileIO.cs" />
+    <Compile Include="Framework\IGame.cs" />
+    <Compile Include="Framework\ImageFormat.cs" />
+    <Compile Include="Framework\IGraphics.cs" />
+    <Compile Include="Framework\IImage.cs" />
+    <Compile Include="Framework\IInput.cs" />
+    <Compile Include="Framework\Implementation\AndroidAudio.cs" />
+    <Compile Include="Framework\Implementation\AndroidFastRenderView.cs" />
+    <Compile Include="Framework\Implementation\AndroidFileIO.cs" />
+    <Compile Include="Framework\Implementation\AndroidGame.cs" />
+    <Compile Include="Framework\Implementation\AndroidGraphics.cs" />
+    <Compile Include="Framework\Implementation\AndroidImage.cs" />
+    <Compile Include="Framework\Implementation\AndroidInput.cs" />
+    <Compile Include="Framework\Implementation\AndroidMusic.cs" />
+    <Compile Include="Framework\Implementation\AndroidSound.cs" />
+    <Compile Include="Framework\Implementation\MultiTouchHandler.cs" />
+    <Compile Include="Framework\Implementation\SingleTouchHandler.cs" />
+    <Compile Include="Framework\Implementation\TouchEventFactory.cs" />
+    <Compile Include="Framework\Implementation\TouchHandler.cs" />
+    <Compile Include="Framework\IMusic.cs" />
+    <Compile Include="Framework\Pool.cs" />
+    <Compile Include="Framework\Screen.cs" />
+    <Compile Include="Framework\ISound.cs" />
+    <Compile Include="Framework\TouchEvent.cs" />
+    <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="Robotgame\Animation.cs" />
+    <Compile Include="Robotgame\Assets.cs" />
+    <Compile Include="Robotgame\Background.cs" />
+    <Compile Include="Robotgame\Enemy.cs" />
+    <Compile Include="Robotgame\GameScreen.cs" />
+    <Compile Include="Robotgame\Heliboy.cs" />
+    <Compile Include="Robotgame\LoadingScreen.cs" />
+    <Compile Include="Robotgame\MainMenuScreen.cs" />
+    <Compile Include="Robotgame\Projectile.cs" />
+    <Compile Include="Robotgame\Robot.cs" />
+    <Compile Include="Robotgame\SampleGame.cs" />
+    <Compile Include="Robotgame\SplashLoadingScreen.cs" />
+    <Compile Include="Robotgame\Tile.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <DrawableResource Include="Resources\icon-hdpi.png" />
+    <DrawableResource Include="Resources\ic_launcher-mdpi.png" />
+    <DrawableResource Include="Resources\ic_launcher-xhdpi.png" />
+    <RawResource Include="Resources\map1.txt" />
+    <ValuesResource Include="Resources\strings.xml" />
+    <ValuesResource Include="Resources\styles-v11.xml" />
+    <ValuesResource Include="Resources\styles-v14.xml" />
+    <ValuesResource Include="Resources\styles.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\background.png" />
+    <EmbeddedResource Include="Assets\button.jpg" />
+    <EmbeddedResource Include="Assets\character.png" />
+    <EmbeddedResource Include="Assets\character2.png" />
+    <EmbeddedResource Include="Assets\character3.png" />
+    <EmbeddedResource Include="Assets\down.png" />
+    <EmbeddedResource Include="Assets\heliboy.png" />
+    <EmbeddedResource Include="Assets\heliboy2.png" />
+    <EmbeddedResource Include="Assets\heliboy3.png" />
+    <EmbeddedResource Include="Assets\heliboy4.png" />
+    <EmbeddedResource Include="Assets\heliboy5.png" />
+    <EmbeddedResource Include="Assets\jumped.png" />
+    <EmbeddedResource Include="Assets\menu.png" />
+    <EmbeddedResource Include="Assets\menutheme.mp3" />
+    <EmbeddedResource Include="Assets\splash.jpg" />
+    <EmbeddedResource Include="Assets\tiledirt.png" />
+    <EmbeddedResource Include="Assets\tilegrassbot.png" />
+    <EmbeddedResource Include="Assets\tilegrassleft.png" />
+    <EmbeddedResource Include="Assets\tilegrassright.png" />
+    <EmbeddedResource Include="Assets\tilegrasstop.png" />
+  </ItemGroup>
+  <Import Project="$(Dot42ExtensionsPath)\Dot42.CSharp.targets" />
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild" DependsOnTargets="$(AfterBuildDependsOn)">
+  </Target>
+</Project>

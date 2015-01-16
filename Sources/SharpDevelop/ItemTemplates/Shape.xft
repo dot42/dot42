@@ -1,0 +1,27 @@
+﻿<?xml version="1.0"?>
+<Template 
+	author="Ewout Prangsma"
+	created="02/05/2013"
+	lastModified="02/05/2013"
+	version="1.0">
+	
+	<Config
+		name="Shape resource"
+		icon="C#.File.NewClass"
+		category="C#"
+		subcategory="dot42"
+		defaultname="Shape${Number}.xml"
+		language="XML"/>
+	 
+	<Description>Generic Android shape resource</Description>
+	
+	<Files>
+		<File name="${FullName}" language="XML" buildAction="DrawableResource"><![CDATA[<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+  <padding android:left="12px" android:right="12px" android:top="12px" android:bottom="12px"/>
+  <stroke android:width="1dip" android:color="#ff0000"/>
+</shape>
+]]>
+		</File>
+	</Files>
+</Template>

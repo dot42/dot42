@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Vsix xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Version="1.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2010">
+  <Identifier Id="7137EACA-1DD6-41EE-AB8B-35065C077644">
+    <Name>dot42 C# for Android</Name>
+    <Author>dot42</Author>
+    <Version>1.0</Version>
+    <Description xml:space="preserve">dot42 C# for Android Visual Studio Integration</Description>
+    <Locale>1033</Locale>
+    <License>Product\eula.txt</License>
+    <Icon>..\Graphics\Icons\App.ico</Icon>
+    <InstalledByMsi>true</InstalledByMsi>
+    <SupportedProducts>
+      <VisualStudio Version="10.0">
+        <Edition>Ultimate</Edition>
+        <Edition>Premium</Edition>
+        <Edition>Pro</Edition>
+        <Edition>VSTS</Edition>
+        <Edition>VSTD</Edition>
+      </VisualStudio>
+      <VisualStudio Version="11.0">
+        <Edition>Ultimate</Edition>
+        <Edition>Premium</Edition>
+        <Edition>Pro</Edition>
+        <Edition>VSTS</Edition>
+        <Edition>VSTD</Edition>
+      </VisualStudio>
+    </SupportedProducts>
+    <SupportedFrameworkRuntimeEdition MinVersion="4.0" MaxVersion="4.5" />
+  </Identifier>
+  <References>
+    <Reference Id="Microsoft.VisualStudio.MPF" MinVersion="10.0">
+      <Name>Visual Studio MPF</Name>
+      <MoreInfoUrl>http://nuget.codeplex.com/documentation</MoreInfoUrl>
+    </Reference>
+  </References>
+  <Content>
+    <VsPackage>|VStudio.Project.Android;PkgdefProjectOutputGroup|</VsPackage>
+    <Assembly AssemblyName="|VStudio.Project.Android;AssemblyName|">|VStudio.Project.Android|</Assembly>
+    <MefComponent>|VStudio.Project.Android|</MefComponent>
+    <MefComponent>dot42.VStudio.Xml.vs10.dll</MefComponent>
+    <MefComponent>dot42.VStudio.Xml.vs11.dll</MefComponent>
+    <MefComponent>dot42.VStudio.Xml.vs12.dll</MefComponent>
+    <ProjectTemplate>ProjectTemplates</ProjectTemplate>
+    <ItemTemplate>ItemTemplates</ItemTemplate>
+  </Content>
+</Vsix>

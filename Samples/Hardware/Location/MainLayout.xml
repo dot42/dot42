@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+
+  <TextView android:id="@+id/txStatus"
+            android:layout_height="wrap_content"
+            android:layout_width="fill_parent"/>
+  <TextView android:id="@+id/txProvider"
+            android:layout_height="wrap_content"
+            android:layout_width="fill_parent"/>
+  <TextView android:id="@+id/txAccuracy"
+            android:layout_height="wrap_content"
+            android:layout_width="fill_parent"/>
+  <TextView android:id="@+id/txLatitude"
+            android:layout_height="wrap_content"
+            android:layout_width="fill_parent"/>
+  <TextView android:id="@+id/txLongtitude"
+            android:layout_height="wrap_content"
+            android:layout_width="fill_parent"/>
+  <TextView android:id="@+id/txAltitude"
+            android:layout_height="wrap_content"
+            android:layout_width="fill_parent"/>
+  <TextView android:id="@+id/txSpeed"
+            android:layout_height="wrap_content"
+            android:layout_width="fill_parent"/>
+  <TextView android:id="@+id/txExtra"
+            android:layout_height="wrap_content"
+            android:layout_width="fill_parent"/>
+
+</LinearLayout>

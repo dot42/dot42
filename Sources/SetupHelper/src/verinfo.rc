@@ -1,0 +1,56 @@
+#ifdef APSTUDIO_INVOKED
+#error You have to use a text editor to edit this file
+#endif
+
+#include <windows.h>
+
+#define CONTEXTMENU_MAJOR 1
+#define CONTEXTMENU_MINOR 1
+#define CONTEXTMENU_MICRO 0
+#define CONTEXTMENU_BUILD 0
+#define CONTEXTMENU_VERSION "1.1.0"
+
+#ifndef NDEBUG
+#define CONTEXTMENU_BUILDNOTE "Release"
+#else
+#define CONTEXTMENU_BUILDNOTE "Debug"
+#endif
+
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION CONTEXTMENU_MAJOR,CONTEXTMENU_MINOR,CONTEXTMENU_MICRO,CONTEXTMENU_BUILD
+ PRODUCTVERSION CONTEXTMENU_MAJOR,CONTEXTMENU_MINOR,CONTEXTMENU_MICRO,CONTEXTMENU_BUILD
+ FILEFLAGSMASK 0x3fL
+#ifdef NDEBUG
+ FILEFLAGS 0x0L
+#else
+ FILEFLAGS 0x1L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "000004e4"
+        BEGIN
+            VALUE "CompanyName", "TallApplications\0"
+            VALUE "FileDescription", "Dot42 Setup Helper\0"
+            VALUE "FileVersion", CONTEXTMENU_VERSION
+            VALUE "InternalName", "Dot42.Setup.dll\0"
+            VALUE "LegalCopyright", "Copyright (C) 2006-2012 TallApplications\0"
+            VALUE "LegalTrademarks", " \0"
+            VALUE "OriginalFilename", "Dot42.Setup.dll\0"
+            VALUE "PrivateBuild", CONTEXTMENU_BUILDNOTE
+            VALUE "ProductName", "Dot42\0"
+            VALUE "ProductVersion", "1.0\0"
+            VALUE "SpecialBuild", " \0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x0, 1252
+    END
+END

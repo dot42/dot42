@@ -1,0 +1,57 @@
+﻿<?xml version="1.0"?>
+<project name="All-dot42-Regression-Tests" default="test" basedir=".">
+
+	<property name="devname" value="dot42"/>
+
+	<property name="nant.settings.currentframework" value="net-4.0"/>
+
+	<property name="basedir" value="${project::get-base-directory()}"/>
+	<property name="rootdir" value="${basedir}\.."/>
+	<property name="logfile" value="${basedir}\Test.log"/>
+	<include buildfile="${basedir}\Common.include"/>
+	<include buildfile="${basedir}\..\Common\Build\Common.build"/>
+
+	<target name="prepare" description="Delete all working files">
+		<!-- Remove all working files -->
+		<delete>
+			<fileset basedir="${basedir}">
+				<include name="**/out/**" />
+				<include name="**/obj/**" />
+				<include name="**/bin/**" />
+			</fileset>
+		</delete>
+	</target>
+
+	<target name="test" depends="prepare"> 
+		<record name="${logfile}" action="Start" />
+		<property name="starttime" value="${datetime::now()}"/>
+		<echo message="Test started at ${starttime}"/>
+		<exec program="${adb}">
+			<arg value="start-server"/>
+		</exec>
+
+		<trycatch>
+			<try>
+				<nant failonerror="true">
+					<buildfiles>
+						<include name="**/Test.build" />
+						<!-- avoid recursive execution of current build file -->
+						<exclude name="${project::get-buildfile-path()}" />
+					</buildfiles>
+				</nant>
+			</try>
+			<finally>
+				<exec program="${adb}" failonerror="false">
+					<arg value="kill-server"/>
+				</exec>
+				<echo message="Test took ${double::to-string(timespan::get-total-minutes(datetime::now() - datetime::parse(starttime)))}min."/>
+				<record name="${logfile}" action="Close" />
+			</finally>
+		</trycatch>
+	</target>
+	
+	<target name="small-test" description="Run compiler and framework tests">
+		<nant failonerror="true" buildfile="${basedir}\Compiler\Test.build" />
+		<nant failonerror="true" buildfile="${basedir}\Framework\Test.build" />
+	</target>
+</project>

@@ -1,0 +1,258 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <ProjectGuid>{92C703FD-DFD8-420C-8557-AD2E7905FD54}</ProjectGuid>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Dot42.SharpDevelop</RootNamespace>
+    <AssemblyName>dot42.SharpDevelop.Project</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
+    <NoStdLib>False</NoStdLib>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Platform)' == 'x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <RegisterForComInterop>False</RegisterForComInterop>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+    <BaseAddress>4194304</BaseAddress>
+    <FileAlignment>4096</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <OutputPath>..\..\SharpDevelop\AddIns\Dot42\</OutputPath>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>Full</DebugType>
+    <Optimize>False</Optimize>
+    <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <StartAction>Program</StartAction>
+    <StartProgram>..\..\SharpDevelop\bin\SharpDevelop.exe</StartProgram>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <OutputPath>bin\Release\</OutputPath>
+    <DebugSymbols>False</DebugSymbols>
+    <DebugType>None</DebugType>
+    <Optimize>True</Optimize>
+    <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+    <DefineConstants>TRACE</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="ICSharpCode.AvalonEdit, Version=4.3.1.0, Culture=neutral, PublicKeyToken=9cc39be672370310, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\SharpDevelop\bin\ICSharpCode.AvalonEdit.dll</HintPath>
+    </Reference>
+    <Reference Include="ICSharpCode.Core">
+      <HintPath>..\..\SharpDevelop\bin\ICSharpCode.Core.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="ICSharpCode.Core.Presentation">
+      <HintPath>..\..\SharpDevelop\bin\ICSharpCode.Core.Presentation.dll</HintPath>
+    </Reference>
+    <Reference Include="ICSharpCode.NRefactory">
+      <HintPath>..\..\SharpDevelop\bin\ICSharpCode.NRefactory.dll</HintPath>
+    </Reference>
+    <Reference Include="ICSharpCode.SharpDevelop">
+      <HintPath>..\..\SharpDevelop\bin\ICSharpCode.SharpDevelop.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="ICSharpCode.SharpDevelop.Dom">
+      <HintPath>..\..\SharpDevelop\bin\ICSharpCode.SharpDevelop.Dom.dll</HintPath>
+    </Reference>
+    <Reference Include="ICSharpCode.TreeView">
+      <HintPath>..\..\SharpDevelop\bin\ICSharpCode.TreeView.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Build" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="dot42.Project.addin">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="ItemTemplates\Activity.xft">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="ItemTemplates\AppWidget.xft">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="ItemTemplates\Layout.xft">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="ItemTemplates\Menu.xft">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="ItemTemplates\Plurals.xft">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="ItemTemplates\Shape.xft">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="ItemTemplates\StringArrays.xft">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="ItemTemplates\Strings.xft">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="ItemTemplates\Style.xft">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="ItemTemplates\ViewAnimation.xft">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="ProjectTemplates\ApplicationProject.xpt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Version.cs" />
+    <Compile Include="AssemblyInfo\Project.cs" />
+    <Compile Include="Debugger\DebugLocationBreakpoint.cs" />
+    <Compile Include="Debugger\DebugBreakpointManager.cs" />
+    <Compile Include="Debugger\DebugProcess.cs" />
+    <Compile Include="Debugger\DebugThread.cs" />
+    <Compile Include="Debugger\Dot42Debugger.cs" />
+    <Compile Include="Debugger\ThreadManager.cs" />
+    <Compile Include="Dot42Addin.cs" />
+    <Compile Include="Editors\Menu\XmlMenuViewModel.cs" />
+    <Compile Include="Editors\OpenedFileSerializer.cs" />
+    <Compile Include="Editors\XmlEditorDisplayBinding.cs" />
+    <Compile Include="Editors\XmlEditorView.cs" />
+    <Compile Include="Editors\XmlResource\XmlResourceViewModel.cs" />
+    <Compile Include="Editors\XmlViewModel.cs" />
+    <Compile Include="Pads\CallStackPad.cs" />
+    <Compile Include="Pads\Controls\BoolToVisibilityConverter.cs" />
+    <Compile Include="Pads\Controls\DebugBaseClassProperty.cs" />
+    <Compile Include="Pads\Controls\DebugValueProperty.cs" />
+    <Compile Include="Pads\Controls\DebugArrayLengthProperty.cs" />
+    <Compile Include="Pads\Controls\DebugProperty.cs" />
+    <Compile Include="Pads\Controls\WatchList.xaml.cs">
+      <DependentUpon>WatchList.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Pads\Controls\WatchListAutoCompleteCell.xaml.cs">
+      <DependentUpon>WatchListAutoCompleteCell.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Pads\DebuggerPad.cs" />
+    <Compile Include="Pads\ListViewExtensions.cs" />
+    <Compile Include="Pads\LocalsPad.cs" />
+    <Compile Include="Pads\ThreadsPad.cs" />
+    <Compile Include="Project\AddJarReferenceCommand.cs" />
+    <Compile Include="Project\AndroidOptionPanel.cs" />
+    <Compile Include="Project\Dot42ItemTypes.cs" />
+    <Compile Include="Project\Dot42ProjectBehavior.cs" />
+    <Compile Include="Project\Dot42ProjectNode.cs" />
+    <Compile Include="Project\Dot42ProjectNodeBuilder.cs" />
+    <Compile Include="Project\Dot42ReferenceFolderNode.cs" />
+    <Compile Include="Project\JarReferenceNode.cs" />
+    <Compile Include="Project\JarReferenceProjectItem.cs" />
+    <Compile Include="Project\PrepareApplicationProjectCommand.cs" />
+    <Compile Include="Project\ProjectCreateData.cs" />
+    <Compile Include="Project\ResourceExtender.cs" />
+    <Compile Include="Project\ResourcePropertyDoozer.cs" />
+    <Compile Include="Project\SetupDot42ProjectCommand.cs" />
+    <Compile Include="Services\Ide.cs" />
+    <Compile Include="Services\IdeOutputPane.cs" />
+    <Compile Include="Services\IdeSelectionContainer.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common\BouncyCastle\v1.7\BouncyCastle-v1.7.csproj">
+      <Project>{BB4562A6-BB44-BBB6-1111-22D5C0B4A386}</Project>
+      <Name>BouncyCastle-v1.7</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\SharpZipLib\SharpZipLib.csproj">
+      <Project>{13F162A6-BB55-40B6-A258-7AD5C0B4A386}</Project>
+      <Name>SharpZipLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\AdbLib\AdbLib.csproj">
+      <Project>{13F1BB11-B71A-AA59-44DE-7AD5C0B4BB22}</Project>
+      <Name>AdbLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ApkLib\ApkLib.csproj">
+      <Project>{13F1BB11-ABB6-B755-CC77-7AD5C0B4BB22}</Project>
+      <Name>ApkLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\BarDeployLib\BarDeployLib.csproj">
+      <Project>{13F1BB11-B27A-54DF-44DE-7AD263BFBB22}</Project>
+      <Name>BarDeployLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\BarLib\BarLib.csproj">
+      <Project>{13F1BB11-45DE-B755-CC77-7AD5C0B4BB22}</Project>
+      <Name>BarLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CryptoUI\CryptoUI.csproj">
+      <Project>{EE083D57-34DD-4C67-71CF-3D42A96C86F9}</Project>
+      <Name>CryptoUI</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DebuggerLib\DebuggerLib.csproj">
+      <Project>{13F1BB11-B71A-AA59-32AE-7AD34AB4BB22}</Project>
+      <Name>DebuggerLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DeviceLib\DeviceLib.csproj">
+      <Project>{13F1BB11-B71A-A349-4BEE-7AD5C023BB22}</Project>
+      <Name>DeviceLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DeviceUILib\DeviceUILib.csproj">
+      <Project>{13F1BB11-B759-BB59-44DE-7AD5C0B4BB22}</Project>
+      <Name>DeviceUILib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DexLib\DexLib.csproj">
+      <Project>{CAF03EFC-1CF0-49DA-8C2E-684949E08833}</Project>
+      <Name>DexLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FrameworkDefinitions\FrameworkDefinitions.csproj">
+      <Project>{13F162A6-AA66-BB55-CC77-7AD5C0B4BB22}</Project>
+      <Name>FrameworkDefinitions</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Graphics\Graphics.csproj">
+      <Project>{13F134AD-A566-E5B2-2FE7-7AD5C0B4A386}</Project>
+      <Name>Graphics</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\IdeLib\IdeLib.csproj">
+      <Project>{14523AD1-45BD-BB59-44DE-7AD5C0B4BB22}</Project>
+      <Name>IdeLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\JvmClassLib\JvmClassLib.csproj">
+      <Project>{13F162A6-F530-40B6-A258-7AD5C0B4A386}</Project>
+      <Name>JvmClassLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Mapping\MappingLib.csproj">
+      <Project>{13F162A6-F530-40F2-1234-7AD5123AA386}</Project>
+      <Name>MappingLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ResourcesLib\ResourcesLib.csproj">
+      <Project>{13F162A6-F530-45DE-BB18-7AD5C0B4A386}</Project>
+      <Name>ResourcesLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SharedUI\SharedUI.csproj">
+      <Project>{1456BD11-4559-BB59-44DE-7AD5C0B4BB22}</Project>
+      <Name>SharedUI</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Utility\Utility.csproj">
+      <Project>{13F162A6-F530-40B3-1234-7AD5C0B4A386}</Project>
+      <Name>Utility</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="Strings.resx" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="Pads\Controls\WatchList.xaml" />
+    <Page Include="Pads\Controls\WatchListAutoCompleteCell.xaml" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.Targets" />
+</Project>

@@ -1,0 +1,24 @@
+﻿<?xml version="1.0"?>
+<project name="All-dot42-Manifest-Tests" default="test" basedir=".">
+
+	<property name="basedir" value="${project::get-base-directory()}" />
+	<property name="rootdir" value="${basedir}\..\.." />
+	<include buildfile="${basedir}\..\Common.include"/>
+
+	<target name="test" description="Test all cases"> 
+		<trycatch>
+			<try>
+				<nant failonerror="true">
+					<buildfiles>
+						<include name="**/Build.build" />
+					</buildfiles>
+				</nant>
+			</try>
+			<finally>
+				<exec program="${dot42tool}">
+					<arg line="-unapk ${basedir}"/>
+				</exec>
+			</finally>
+		</trycatch>
+	</target>
+</project>

@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<project name="Case" default="test" basedir=".">
+
+	<property name="nant.settings.currentframework" value="net-4.0" />
+
+	<property name="basedir" value="${project::get-base-directory()}" />
+	<property name="rootdir" value="${basedir}\..\..\.." />
+	<include buildfile="${basedir}\..\..\Common.include"/>
+
+	<target name="test" description="Test" unless="${environment::variable-exists('TEAMCITY_PROJECT_NAME')}">
+		<!-- This project will fail! -->
+		<!-- The test is a success if errors are reported correctly -->
+		
+		<property name="testlog" value="${basedir}\Out\log.txt"/>
+		
+		<mkdir dir="${basedir}\Out"/>
+		<delete file="${testlog}"/>
+		<record name="${testlog}" level="Info" action="Start"/>
+		
+		<msbuild project="${basedir}\Support4Demos.csproj" target="Rebuild" failonerror="false">
+			<property name="Dot42ExtensionsPath" value="${Dot42ExtensionsPath}" />
+			<property name="Dot42Folder" value="${Dot42Folder}" />
+			<property name="Dot42ReferenceAssembliesFolder" value="${Dot42ReferenceAssembliesFolder}" />
+		</msbuild>
+		
+		<record name="${testlog}" action="Close"/>
+		<loadfile file="${testlog}" property="testlogcontent"/>
+		<fail message="Errors expected" unless="${string::contains(testlogcontent, '85 Error(s)')}"/>
+	</target>
+	
+</project>

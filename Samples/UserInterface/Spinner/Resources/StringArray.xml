@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string-array name="my_animals">
+    <item>Dog</item>
+    <item>Chicken</item>
+    <item>Cat</item>
+    <item>Monkey</item>
+    <item>Fish</item>
+  </string-array>
+</resources>

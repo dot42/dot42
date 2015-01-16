@@ -1,0 +1,130 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{13F162A6-FF66-BB55-BD56-7D35C0B4A386}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Dot42.MSBuild</RootNamespace>
+    <AssemblyName>dot42.MSBuild.Tasks.Android</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SignAssembly>false</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\Dot42.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;ANDROID</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE;ANDROID</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <AvailableItemName Include="RootContent">
+      <Visible>false</Visible>
+    </AvailableItemName>
+  </ItemGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Build.Framework" />
+    <Reference Include="Microsoft.Build.Utilities.v4.0" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common\SharpZipLib\SharpZipLib.csproj">
+      <Project>{13F162A6-BB55-40B6-A258-7AD5C0B4A386}</Project>
+      <Name>SharpZipLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\AdbLib\AdbLib.csproj">
+      <Project>{13F1BB11-B71A-AA59-44DE-7AD5C0B4BB22}</Project>
+      <Name>AdbLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ApkLib\ApkLib.csproj">
+      <Project>{13F1BB11-ABB6-B755-CC77-7AD5C0B4BB22}</Project>
+      <Name>ApkLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Compiler\Compiler.csproj">
+      <Project>{13F162A6-FF66-BB55-A258-7AD5C0B4A386}</Project>
+      <Name>Compiler</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FrameworkDefinitions\FrameworkDefinitions.csproj">
+      <Project>{13F162A6-AA66-BB55-CC77-7AD5C0B4BB22}</Project>
+      <Name>FrameworkDefinitions</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ResourcesLib\ResourcesLib.csproj">
+      <Project>{13F162A6-F530-45DE-BB18-7AD5C0B4A386}</Project>
+      <Name>ResourcesLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Utility\Utility.csproj">
+      <Project>{13F162A6-F530-40B3-1234-7AD5C0B4A386}</Project>
+      <Name>Utility</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Version.cs" />
+    <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="Tasks\BuildPackage.cs" />
+    <Compile Include="Tasks\CheckAndroidVersionInManifest.cs" />
+    <Compile Include="Tasks\CompileResources.cs" />
+    <Compile Include="Tasks\CompileAssembly.cs" />
+    <Compile Include="Tasks\AdbToolTask.cs" />
+    <Compile Include="Tasks\BuildTempResourceItems.cs" />
+    <Compile Include="Tasks\AssignLibraryName.cs" />
+    <Compile Include="Tasks\AssignJarLogicalName.cs" />
+    <Compile Include="Tasks\Extensions.cs" />
+    <Compile Include="Tasks\ImportLibraryProjects.cs" />
+    <Compile Include="Tasks\GenerateWcfProxy.cs" />
+    <Compile Include="Tasks\ImportJars.cs" />
+    <Compile Include="Tasks\Dot42CompilerTask.cs" />
+    <Compile Include="Tasks\IResourcesTask.cs" />
+    <Compile Include="Tasks\StopServer.cs" />
+    <Compile Include="Tasks\StartServer.cs" />
+    <Compile Include="Tasks\Utils.cs" />
+    <Compile Include="Tasks\WaitForDevice.cs" />
+    <Compile Include="Tasks\InstrumentApk.cs" />
+    <Compile Include="Tasks\UninstallApk.cs" />
+    <Compile Include="Tasks\InstallApk.cs" />
+    <Compile Include="Tasks\CreateAndroidManifest.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <RootContent Include="Scripts\Android\dot42.Device.targets" />
+    <RootContent Include="Scripts\Android\dot42.Tasks.targets" />
+    <RootContent Include="Scripts\Android\dot42.CSharp.targets">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </RootContent>
+    <RootContent Include="Scripts\Dot42.Common.ApkOutput.targets" />
+    <RootContent Include="Scripts\Dot42.Common.targets">
+      <SubType>Designer</SubType>
+    </RootContent>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy /S /Y $(TargetDir)*.* $(SolutionDir)Build\Application\</PostBuildEvent>
+  </PropertyGroup>
+  <Target Name="BeforeBuild">
+    <Copy DestinationFolder="$(OutputPath)\Scripts\Android" SourceFiles="@(RootContent)" SkipUnchangedFiles="true" />
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+</Project>

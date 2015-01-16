@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Item" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
+  <TemplateData>
+    <Name>Activity</Name>
+    <Description>Activity</Description>
+    <Icon></Icon>
+    <TemplateID>Dot42.BlackBerry.CSharp.Layout</TemplateID>
+    <ProjectType>CSharp</ProjectType>
+    <DefaultName>Activity.cs</DefaultName>
+    <TemplateGroupID>dot42</TemplateGroupID>
+    <NumberOfParentCategoriesToRollUp>0</NumberOfParentCategoriesToRollUp>
+  </TemplateData>
+  <TemplateContent>
+    <References>
+      <Reference>
+        <Assembly>dot42</Assembly>
+      </Reference>
+    </References>
+    <ProjectItem ReplaceParameters="true">Activity.cs</ProjectItem>
+    <ProjectItem ReplaceParameters="true" TargetFileName="$fileinputname$.Layout.xml" ItemType="LayoutResource">Activity.Layout.xml</ProjectItem>
+  </TemplateContent>
+</VSTemplate>

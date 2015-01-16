@@ -1,0 +1,187 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{13F1BB11-B71A-AA59-32AE-7AD34AB4BB22}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Dot42.DebuggerLib</RootNamespace>
+    <AssemblyName>dot42.DebuggerLib</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+    <SignAssembly>false</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\Dot42.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Version.cs" />
+    <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="Chunk.cs" />
+    <Compile Include="ClassInfo.cs" />
+    <Compile Include="Debugger.StringReference.cs" />
+    <Compile Include="Debugger.ArrayReference.cs" />
+    <Compile Include="Debugger.ClassType.cs" />
+    <Compile Include="Debugger.ObjectReference.cs" />
+    <Compile Include="Debugger.Method.cs" />
+    <Compile Include="Debugger.StackFrame.cs" />
+    <Compile Include="Debugger.CompositeCommandProcessor.cs" />
+    <Compile Include="Debugger.CompositeCommand.cs" />
+    <Compile Include="Events\Jdwp\VmDeath.cs" />
+    <Compile Include="Extensions.cs" />
+    <Compile Include="IJdwpServerInfo.cs" />
+    <Compile Include="Model\DalvikExceptionValue.cs" />
+    <Compile Include="Model\ExceptionBehaviorMap.cs" />
+    <Compile Include="Model\DalvikExceptionManager.cs" />
+    <Compile Include="Model\DalvikArrayElementValue.cs" />
+    <Compile Include="Model\DalvikClassPrepareCookie.cs" />
+    <Compile Include="Model\DalvikCookie.cs" />
+    <Compile Include="Model\DalvikFieldValue.cs" />
+    <Compile Include="Model\DalvikStep.cs" />
+    <Compile Include="Model\DalvikStepManager.cs" />
+    <Compile Include="Model\DalvikValue.cs" />
+    <Compile Include="Model\DalvikField.cs" />
+    <Compile Include="Model\DalvikBreakpointManager.cs" />
+    <Compile Include="Model\DalvikLocationBreakpoint.cs" />
+    <Compile Include="Model\DalvikBreakpoint.cs" />
+    <Compile Include="Model\DalvikObjectReference.cs" />
+    <Compile Include="Model\DalvikStackFrameValue.cs" />
+    <Compile Include="Model\DocumentLocation.cs" />
+    <Compile Include="Model\ExceptionBehavior.cs" />
+    <Compile Include="Model\StepRequest.cs" />
+    <Compile Include="Model\SuspendReason.cs" />
+    <Compile Include="SlotRequest.cs" />
+    <Compile Include="Value.cs" />
+    <Compile Include="Events\Jdwp\ClassPrepare.cs" />
+    <Compile Include="Events\Jdwp\ClassUnload.cs" />
+    <Compile Include="Events\Jdwp\FieldModification.cs" />
+    <Compile Include="Events\Jdwp\FieldAccess.cs" />
+    <Compile Include="Events\Jdwp\ThreadDeath.cs" />
+    <Compile Include="Events\Jdwp\ThreadStart.cs" />
+    <Compile Include="TaggedObjectId.cs" />
+    <Compile Include="Jdwp.Tag.cs" />
+    <Compile Include="Events\Jdwp\BaseEvent.cs" />
+    <Compile Include="Events\Jdwp\Breakpoint.cs" />
+    <Compile Include="Events\Jdwp\Exception.cs" />
+    <Compile Include="Events\Jdwp\MethodExit.cs" />
+    <Compile Include="Events\Jdwp\MethodEntry.cs" />
+    <Compile Include="Events\Jdwp\SingleStep.cs" />
+    <Compile Include="Events\Jdwp\VmStart.cs" />
+    <Compile Include="JdwpEvent.cs" />
+    <Compile Include="Jdwp.SuspendPolicy.cs" />
+    <Compile Include="Jdwp.StepDepth.cs" />
+    <Compile Include="Jdwp.StepSize.cs" />
+    <Compile Include="Debugger.EventRequest.cs" />
+    <Compile Include="EventModifiers.cs" />
+    <Compile Include="Model\DalvikMemberList.cs" />
+    <Compile Include="Model\DalvikMethod.cs" />
+    <Compile Include="Model\DalvikStackFrame.cs" />
+    <Compile Include="Model\DalvikProcessChild.cs" />
+    <Compile Include="Model\DalvikThreadManager.cs" />
+    <Compile Include="Model\DalvikThread.cs" />
+    <Compile Include="Model\DalvikReferenceTypeManager.cs" />
+    <Compile Include="Jdwp.EventKind.cs" />
+    <Compile Include="Model\DalvikProcess.cs" />
+    <Compile Include="Model\DalvikReferenceType.cs" />
+    <Compile Include="Jdwp.ClassStatus.cs" />
+    <Compile Include="MethodInfo.cs" />
+    <Compile Include="MemberInfo.cs" />
+    <Compile Include="FieldInfo.cs" />
+    <Compile Include="Debugger.ReferenceType.cs" />
+    <Compile Include="Jdwp.TypeTag.cs" />
+    <Compile Include="EventVisitor.cs" />
+    <Compile Include="DalvikEvent.cs" />
+    <Compile Include="Events\Dalvik\AppNameChanged.cs" />
+    <Compile Include="Events\Dalvik\ThreadStates.cs" />
+    <Compile Include="Events\Dalvik\ThreadStatus.cs" />
+    <Compile Include="Events\Dalvik\ThreadDeath.cs" />
+    <Compile Include="Events\Dalvik\ThreadCreation.cs" />
+    <Compile Include="Events\Dalvik\WaitForDebugger.cs" />
+    <Compile Include="HeloInfo.cs" />
+    <Compile Include="Debugger.Ddms.cs" />
+    <Compile Include="Location.cs" />
+    <Compile Include="ThreadStatusInfo.cs" />
+    <Compile Include="Jdwp.SuspendStatus.cs" />
+    <Compile Include="Jdwp.ThreadStatus.cs" />
+    <Compile Include="Debugger.ThreadReference.cs" />
+    <Compile Include="Debugger.CommandSet.cs" />
+    <Compile Include="Debugger.VirtualMachine.cs" />
+    <Compile Include="Jdwp.cs" />
+    <Compile Include="NotConnectedException.cs" />
+    <Compile Include="DebuggerException.cs" />
+    <Compile Include="JdwpException.cs" />
+    <Compile Include="Jdwp.ErrorCodes.cs" />
+    <Compile Include="ObjectId.cs" />
+    <Compile Include="VariableInfo.cs" />
+    <Compile Include="VersionInfo.cs" />
+    <Compile Include="Debugger.cs" />
+    <Compile Include="IdSizeInfo.cs" />
+    <Compile Include="JdwpConnection.Commands.cs" />
+    <Compile Include="JdwpConnection.cs" />
+    <Compile Include="JdwpPacket.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AdbLib\AdbLib.csproj">
+      <Project>{13F1BB11-B71A-AA59-44DE-7AD5C0B4BB22}</Project>
+      <Name>AdbLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DeviceLib\DeviceLib.csproj">
+      <Project>{13F1BB11-B71A-A349-4BEE-7AD5C023BB22}</Project>
+      <Name>DeviceLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DexLib\DexLib.csproj">
+      <Project>{CAF03EFC-1CF0-49DA-8C2E-684949E08833}</Project>
+      <Name>DexLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\JvmClassLib\JvmClassLib.csproj">
+      <Project>{13F162A6-F530-40B6-A258-7AD5C0B4A386}</Project>
+      <Name>JvmClassLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Mapping\MappingLib.csproj">
+      <Project>{13F162A6-F530-40F2-1234-7AD5123AA386}</Project>
+      <Name>MappingLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Utility\Utility.csproj">
+      <Project>{13F162A6-F530-40B3-1234-7AD5C0B4A386}</Project>
+      <Name>Utility</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Model\Readme.txt" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy /Y $(TargetDir)*.* $(SolutionDir)\Build\Application\</PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

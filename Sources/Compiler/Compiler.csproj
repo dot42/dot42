@@ -1,0 +1,167 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{13F162A6-FF66-BB55-A258-7AD5C0B4A386}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Dot42.Compiler</RootNamespace>
+    <AssemblyName>dot42Compiler</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SignAssembly>false</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\Dot42.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DOT42;DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>DOT42;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Build.Utilities.v4.0" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common\BouncyCastle\v1.7\BouncyCastle-v1.7.csproj">
+      <Project>{BB4562A6-BB44-BBB6-1111-22D5C0B4A386}</Project>
+      <Name>BouncyCastle-v1.7</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Options\Mono.Options.csproj">
+      <Project>{13F162A6-BB55-40B6-1111-22D5C0B4A386}</Project>
+      <Name>Mono.Options</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\SharpZipLib\SharpZipLib.csproj">
+      <Project>{13F162A6-BB55-40B6-A258-7AD5C0B4A386}</Project>
+      <Name>SharpZipLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Mono.Cecil\Mono.Cecil.DeepSea.csproj">
+      <Project>{13F162A6-BB55-40B6-BB77-22D5C0B4A386}</Project>
+      <Name>Mono.Cecil.DeepSea</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ApkLib\ApkLib.csproj">
+      <Project>{13F1BB11-ABB6-B755-CC77-7AD5C0B4BB22}</Project>
+      <Name>ApkLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\BarLib\BarLib.csproj">
+      <Project>{13F1BB11-45DE-B755-CC77-7AD5C0B4BB22}</Project>
+      <Name>BarLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CompilerLib\CompilerLib.csproj">
+      <Project>{13F162A6-DD45-FDB3-1234-7AD5C0B23486}</Project>
+      <Name>CompilerLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FrameworkDefinitions\FrameworkDefinitions.csproj">
+      <Project>{13F162A6-AA66-BB55-CC77-7AD5C0B4BB22}</Project>
+      <Name>FrameworkDefinitions</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ImportJarLib\ImportJarLib.csproj">
+      <Project>{E939B91C-F654-4674-FF11-76A1C8039617}</Project>
+      <Name>ImportJarLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\JvmClassLib\JvmClassLib.csproj">
+      <Project>{13F162A6-F530-40B6-A258-7AD5C0B4A386}</Project>
+      <Name>JvmClassLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\LoaderLib\LoaderLib.csproj">
+      <Project>{13F162A6-DD45-F343-1234-7ADBD4323486}</Project>
+      <Name>LoaderLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Mapping\MappingLib.csproj">
+      <Project>{13F162A6-F530-40F2-1234-7AD5123AA386}</Project>
+      <Name>MappingLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ResourcesLib\ResourcesLib.csproj">
+      <Project>{13F162A6-F530-45DE-BB18-7AD5C0B4A386}</Project>
+      <Name>ResourcesLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Utility\Utility.csproj">
+      <Project>{13F162A6-F530-40B3-1234-7AD5C0B4A386}</Project>
+      <Name>Utility</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\WcfToolsLib\WcfToolsLib.csproj">
+      <Project>{13F162A6-F530-40B3-56AF-7AD54FB4A386}</Project>
+      <Name>WcfToolsLib</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Version.cs" />
+    <Compile Include="ApkBuilder\ApkBuilder.cs" />
+    <Compile Include="ApkBuilder\CertificateSupport.cs" />
+    <Compile Include="ApkBuilder\MetaInfBuilder.cs" />
+    <Compile Include="ApkBuilder\MetaInfCertRsaBuilder.cs" />
+    <Compile Include="ApkBuilder\MetaInfCertSfBuilder.cs" />
+    <Compile Include="ApkBuilder\MetaInfManifestBuilder.cs" />
+    <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="BarBuilder\BarBuilder.cs" />
+    <Compile Include="BarBuilder\IconBuilder.cs" />
+    <Compile Include="BarBuilder\MetaInfManifestBuilder.cs" />
+    <Compile Include="CompilerService.cs" />
+    <Compile Include="Manifest\Application.cs" />
+    <Compile Include="Manifest\Activity.cs" />
+    <Compile Include="Manifest\AppWidgetProvider.cs" />
+    <Compile Include="Manifest\Provider.cs" />
+    <Compile Include="Manifest\SupportsScreens.cs" />
+    <Compile Include="Manifest\MetaData.cs" />
+    <Compile Include="Manifest\Receiver.cs" />
+    <Compile Include="Manifest\PermissionGroup.cs" />
+    <Compile Include="Manifest\Permission.cs" />
+    <Compile Include="Manifest\EnumFlagsFormatter.cs" />
+    <Compile Include="Manifest\Service.cs" />
+    <Compile Include="Manifest\UsesFeature.cs" />
+    <Compile Include="Manifest\EnumFormatter.cs" />
+    <Compile Include="Manifest\UsesSdk.cs" />
+    <Compile Include="Manifest\IntentFilter.cs" />
+    <Compile Include="Manifest\UsesPermission.cs" />
+    <Compile Include="Manifest\Instrumentation.cs" />
+    <Compile Include="Manifest\Extensions.cs" />
+    <Compile Include="Manifest\UsesLibrary.cs" />
+    <Compile Include="Manifest\ManifestBuilder.cs" />
+    <Compile Include="CommandLineOptions.cs" />
+    <Compile Include="Manifest\WindowSoftInputModeFormatter.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Resources\ValuesResourceProcessor.cs" />
+    <Compile Include="Resources\LayoutResourceProcessor.cs" />
+    <Compile Include="Resources\CreateResourceIdsCode.cs" />
+    <Compile Include="Resources\Extensions.cs" />
+    <Compile Include="Resources\ResourceCompiler.cs" />
+    <Compile Include="Resources\StyleableDeclaration.cs" />
+    <Compile Include="Resources\XmlResourceProcessor.cs" />
+    <Compile Include="Shared\AppWidgetProviderResource.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy /Y $(TargetDir)*.* $(SolutionDir)Build\Application\</PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

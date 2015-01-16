@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<project name="dot42-Samples-Test" default="test" basedir=".">
+
+	<property name="nant.settings.currentframework" value="net-4.0" />
+
+	<property name="basedir" value="${project::get-base-directory()}" />
+	<property name="rootdir" value="${basedir}\..\.." />
+	<include buildfile="${basedir}\..\Common.include"/>
+
+	<target name="test" description="Build and install all samples">
+		<trycatch>
+			<try>
+				<nant buildfile="${rootdir}\Samples\Build.build" target="install"/>
+			</try>
+			<finally>
+				<exec program="${dot42tool}">
+					<arg line="-unapk ${rootdir}\Samples"/>
+				</exec>
+			</finally>
+		</trycatch>
+	</target>
+	
+</project>

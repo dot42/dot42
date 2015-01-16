@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright © 2013 Dot42. All rights reserved.-->
+
+<xs:schema targetNamespace="urn:Dot42:TodoApi:1.0"
+    elementFormDefault="qualified"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns="urn:Dot42:TodoApi:1.0">
+
+  <xs:element name="Version" type="VersionType" />
+
+  <xs:simpleType name="VersionType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Unknown" />
+      <xs:enumeration value="v1_0" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:element name="Todos" type="TodosType" />
+
+  <xs:complexType name="TodosType">
+    <xs:sequence>
+      <xs:element name="Todo" type="TodoType" minOccurs="0" maxOccurs="unbounded">
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="TodoType">
+    <xs:sequence>
+      <xs:element name="IsDone" type="IsDoneType" />
+      <xs:element name="Name" type="NameType" />
+	    <xs:element name="Description" type="DescriptionType" />
+      <xs:element name="ExpirationDate" type="DateTimeType" />
+    </xs:sequence>
+    <xs:attribute name="id" type="xs:int" use="optional" />
+  </xs:complexType>
+  
+  <xs:element name="TodoIds" type="TodoIdsType" />
+
+  <xs:complexType name="TodoIdsType">
+    <xs:sequence>
+      <xs:element name="TodoId" type="GuidType" minOccurs="1" maxOccurs="1000">
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:simpleType name="GuidType">
+    <xs:restriction base="xs:string">
+      <!--Guid.Empty not allowed-->
+      <xs:pattern value="(?([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})((?!00000000-0000-0000-0000-000000000000).*))"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="NameType">
+    <xs:restriction base="xs:string">
+      <xs:minLength value="1" />
+      <xs:maxLength value="32" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="DescriptionType">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="1024" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:simpleType name="DateTimeType">
+    <xs:restriction base="xs:dateTime">
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="IsDoneType">
+    <xs:restriction base="xs:boolean">
+    </xs:restriction>
+  </xs:simpleType>
+
+</xs:schema>

@@ -1,0 +1,110 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{13F1BB11-ABB6-B755-CC77-7AD5C0B4BB22}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Dot42.ApkLib</RootNamespace>
+    <AssemblyName>dot42.ApkLib</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+    <SignAssembly>false</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\Dot42.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Version.cs" />
+    <Compile Include="AndroidConstants.cs" />
+    <Compile Include="AndroidEncodings.cs" />
+    <Compile Include="Manifest\Activity.cs" />
+    <Compile Include="Manifest\AndroidManifest.cs" />
+    <Compile Include="ApkFile.cs" />
+    <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="Manifest\Action.cs" />
+    <Compile Include="Manifest\Category.cs" />
+    <Compile Include="Manifest\UsesPermission.cs" />
+    <Compile Include="Manifest\IntentFilter.cs" />
+    <Compile Include="Resources\Table.Entry.cs" />
+    <Compile Include="Resources\Mark.cs" />
+    <Compile Include="Resources\Table.ComplexEntryInstance.cs" />
+    <Compile Include="Resources\Table.SimpleEntryInstance.cs" />
+    <Compile Include="Resources\Table.Map.cs" />
+    <Compile Include="Resources\TableRef.cs" />
+    <Compile Include="Resources\Table.EntryInstance.cs" />
+    <Compile Include="Resources\Enums.cs" />
+    <Compile Include="Resources\ResourceIdMap.cs" />
+    <Compile Include="Resources\XmlTree.Namespace.cs" />
+    <Compile Include="Resources\ResWriter.cs" />
+    <Compile Include="Resources\ResourceMap.cs" />
+    <Compile Include="Resources\XmlTree.StartElement.cs" />
+    <Compile Include="Resources\XmlTree.EndElement.cs" />
+    <Compile Include="Resources\XmlTree.EndNamespace.cs" />
+    <Compile Include="Resources\XmlTree.Element.cs" />
+    <Compile Include="Resources\XmlTree.StartNamespace.cs" />
+    <Compile Include="Resources\StringPoolRef.cs" />
+    <Compile Include="Resources\XmlTree.Attribute.cs" />
+    <Compile Include="Resources\Value.cs" />
+    <Compile Include="Resources\XmlTree.CData.cs" />
+    <Compile Include="Resources\XmlTree.Node.cs" />
+    <Compile Include="Resources\Table.Configuration.cs" />
+    <Compile Include="Resources\Table.cs" />
+    <Compile Include="Resources\Table.Package.cs" />
+    <Compile Include="Resources\XmlTree.cs" />
+    <Compile Include="Resources\Chunk.cs" />
+    <Compile Include="Resources\ChunkTypes.cs" />
+    <Compile Include="Resources\Table.TypeSpec.cs" />
+    <Compile Include="Resources\Table.Type.cs" />
+    <Compile Include="Resources\ResReader.cs" />
+    <Compile Include="Resources\StringPool.cs" />
+    <Compile Include="Resources\StringPoolFlags.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common\SharpZipLib\SharpZipLib.csproj">
+      <Project>{13F162A6-BB55-40B6-A258-7AD5C0B4A386}</Project>
+      <Name>SharpZipLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Utility\Utility.csproj">
+      <Project>{13F162A6-F530-40B3-1234-7AD5C0B4A386}</Project>
+      <Name>Utility</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

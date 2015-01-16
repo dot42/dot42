@@ -1,0 +1,32 @@
+Tests to do with each release.
+
+- Install the setup (all options checked)
+- Run device center
+  - Show device log
+  - Install an APK
+  - Connect to a device via WiFi
+
+**** Visual Studio 2010
+- Create new application project
+  - Create new certificate
+  - Build and run on device
+  - Add new menu resource, make changes to the menu and save
+  - Make changes to a resource file's alternate resource qualifiers (in properties grid)
+  - Click "Add Jar reference", add any jar and build.
+  - Click "Import 'res' folder", import a res folder and verify that Resources folder is added correctly.
+
+- Open an existing sample project
+  - Build and run on device
+  - Set breakpoints
+  - Inspect local variables
+  - Remove breakpoints
+
+**** Visual Studio 2012
+- Do same steps as for Visual Studio 2010
+
+**** Visual Studio 2013
+- Do same steps as for Visual Studio 2010
+
+**** SharpDevelop
+- Do same steps as for Visual Studio 2010
+

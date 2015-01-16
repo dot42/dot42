@@ -1,0 +1,12 @@
+bin/
+obj/
+Out/
+*.suo
+*.sln.cache
+*.user
+/Build
+Thumbs.db
+
+/RegressionTests/Test.log
+*.DotSettings
+/Sources/Android/LocalDocs

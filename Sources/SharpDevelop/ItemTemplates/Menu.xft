@@ -1,0 +1,38 @@
+﻿<?xml version="1.0"?>
+<Template 
+	author="Ewout Prangsma"
+	created="02/05/2013"
+	lastModified="02/05/2013"
+	version="1.0">
+	
+	<Config
+		name="Menu resource"
+		icon="C#.File.NewClass"
+		category="C#"
+		subcategory="dot42"
+		defaultname="Menu${Number}.xml"
+		language="XML"/>
+	 
+	<Description>Generic Android menu resource</Description>
+	
+	<Files>
+		<File name="${FullName}" language="XML" buildAction="MenuResource"><![CDATA[<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/item1"
+          android:title="Click me"/>
+    <group android:id="@+id/firstGroup">
+        <item android:id="@+id/groupItem1"
+              android:title="First group item" />
+    </group>
+    <item android:id="@+id/submenu"
+          android:title="Submenu title"
+          android:showAsAction="ifRoom|withText" >
+        <menu>
+            <item android:id="@+id/submenu_item1"
+                  android:title="First submenu item" />
+        </menu>
+    </item>
+</menu>
+]]>
+		</File>
+	</Files>
+</Template>

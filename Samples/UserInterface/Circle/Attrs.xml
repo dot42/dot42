@@ -1,0 +1,5 @@
+<resources>
+   <declare-styleable name="Circle">
+       <attr name="Color" format="color" />
+   </declare-styleable>
+</resources>

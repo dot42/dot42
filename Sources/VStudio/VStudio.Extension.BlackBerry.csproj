@@ -1,0 +1,184 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectTypeGuids>{82b43b9b-a64c-4715-b499-d71e9ca2bd60};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <ProjectGuid>{CFBB8BAB-AA45-4B3D-85BD-CACF96B94350}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Dot42.VStudio</RootNamespace>
+    <AssemblyName>dot42.BlackBerry</AssemblyName>
+    <SignAssembly>false</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\Dot42.snk</AssemblyOriginatorKeyFile>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <GeneratePkgDefFile>false</GeneratePkgDefFile>
+    <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
+    <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
+    <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
+    <CopyBuildOutputToOutputDirectory>false</CopyBuildOutputToOutputDirectory>
+    <CopyOutputSymbolsToOutputDirectory>false</CopyOutputSymbolsToOutputDirectory>
+    <VsSDKInstall>..\..\Binaries\VsSdk2010</VsSDKInstall>
+    <StartArguments>/rootsuffix Exp /log $(TargetDir)ActivityLog.xml</StartArguments>
+    <StartAction>Program</StartAction>
+    <StartProgram>$(VS100COMNTOOLS)\..\IDE\devenv.exe</StartProgram>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;BB</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE;BB</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="..\..\Product\eula.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <VSIXSubPath>/</VSIXSubPath>
+    </Content>
+    <Content Include="..\..\Build\Application\dot42.VStudio.Xml.vs10.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <VSIXSubPath>/</VSIXSubPath>
+    </Content>
+    <Content Include="..\..\Build\Application\dot42.VStudio.Xml.vs11.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <VSIXSubPath>/</VSIXSubPath>
+    </Content>
+    <Content Include="..\..\Build\Application\dot42.VStudio.Xml.vs12.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <VSIXSubPath>/</VSIXSubPath>
+    </Content>
+    <None Include="Extension\BlackBerry\source.extension.vsixmanifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Version.cs" />
+    <Compile Include="AssemblyInfo\Extension.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="ItemTemplates\Activity\ActivityTemplate.BlackBerry.csproj">
+      <Project>{56E0BA98-51AC-42A5-A9EF-FBC8E3AE4598}</Project>
+      <Name>ActivityTemplate.BlackBerry</Name>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <TemplateType>Item</TemplateType>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <VSIXSubPath>ItemTemplates</VSIXSubPath>
+    </ProjectReference>
+    <ProjectReference Include="ItemTemplates\AppWidget\AppWidget.BlackBerry.csproj">
+      <Project>{796925C9-ED3B-4000-1DFE-89AA312AD44D}</Project>
+      <Name>AppWidget.BlackBerry</Name>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <TemplateType>Item</TemplateType>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <VSIXSubPath>ItemTemplates</VSIXSubPath>
+    </ProjectReference>
+    <ProjectReference Include="ItemTemplates\Layout\LayoutTemplate.BlackBerry.csproj">
+      <Project>{796925C9-ED3B-4000-9567-89AB3A64374D}</Project>
+      <Name>LayoutTemplate.BlackBerry</Name>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <TemplateType>Item</TemplateType>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <VSIXSubPath>ItemTemplates</VSIXSubPath>
+    </ProjectReference>
+    <ProjectReference Include="ItemTemplates\Menu\MenuTemplate.BlackBerry.csproj">
+      <Project>{796925C9-ED3B-4000-9567-720000000000}</Project>
+      <Name>MenuTemplate.BlackBerry</Name>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <TemplateType>Item</TemplateType>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <VSIXSubPath>ItemTemplates</VSIXSubPath>
+    </ProjectReference>
+    <ProjectReference Include="ItemTemplates\Plurals\PluralsTemplate.BlackBerry.csproj">
+      <Project>{796925C9-ED3B-4000-9567-72E43A64374D}</Project>
+      <Name>PluralsTemplate.BlackBerry</Name>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <TemplateType>Item</TemplateType>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <VSIXSubPath>ItemTemplates</VSIXSubPath>
+    </ProjectReference>
+    <ProjectReference Include="ItemTemplates\Shape\ShapeTemplate.BlackBerry.csproj">
+      <Project>{796925C9-ED3B-4000-955A-67E56A64B24D}</Project>
+      <Name>ShapeTemplate.BlackBerry</Name>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <TemplateType>Item</TemplateType>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <VSIXSubPath>ItemTemplates</VSIXSubPath>
+    </ProjectReference>
+    <ProjectReference Include="ItemTemplates\StringArrays\StringArraysTemplate.BlackBerry.csproj">
+      <Project>{796925C9-ED3B-4000-9567-67E43A64374D}</Project>
+      <Name>StringArraysTemplate.BlackBerry</Name>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <TemplateType>Item</TemplateType>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <VSIXSubPath>ItemTemplates</VSIXSubPath>
+    </ProjectReference>
+    <ProjectReference Include="ItemTemplates\Strings\StringsTemplate.BlackBerry.csproj">
+      <Project>{796925C9-ED3B-4000-955A-67E43A64374D}</Project>
+      <Name>StringsTemplate.BlackBerry</Name>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <TemplateType>Item</TemplateType>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <VSIXSubPath>ItemTemplates</VSIXSubPath>
+    </ProjectReference>
+    <ProjectReference Include="ItemTemplates\Style\StyleTemplate.BlackBerry.csproj">
+      <Project>{796925C9-ED3B-4000-955A-672BEA64774D}</Project>
+      <Name>StyleTemplate.BlackBerry</Name>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <TemplateType>Item</TemplateType>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <VSIXSubPath>ItemTemplates</VSIXSubPath>
+    </ProjectReference>
+    <ProjectReference Include="ItemTemplates\ViewAnimation\ViewAnimationTemplate.BlackBerry.csproj">
+      <Project>{839C0A91-FDEB-4D99-B1BF-7DE6DFEA2B32}</Project>
+      <Name>ViewAnimationTemplate.BlackBerry</Name>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <TemplateType>Item</TemplateType>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <VSIXSubPath>ItemTemplates</VSIXSubPath>
+    </ProjectReference>
+    <ProjectReference Include="ProjectTemplates\ApplicationProject\ApplicationProjectTemplate.BlackBerry.csproj">
+      <Project>{3774013F-2399-48DC-23BD-4D5BA1519033}</Project>
+      <Name>ApplicationProjectTemplate.BlackBerry</Name>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <TemplateType>Project</TemplateType>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <VSIXSubPath>ProjectTemplates</VSIXSubPath>
+    </ProjectReference>
+    <ProjectReference Include="ProjectTemplates\ClassLibraryProject\ClassLibraryTemplate.BlackBerry.csproj">
+      <Project>{3774013F-12AD-48DC-32BD-4D5BA1519033}</Project>
+      <Name>ClassLibraryTemplate.BlackBerry</Name>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <TemplateType>Project</TemplateType>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <VSIXSubPath>ProjectTemplates</VSIXSubPath>
+    </ProjectReference>
+    <ProjectReference Include="VStudio.Project.BlackBerry.csproj">
+      <Project>{3E651A4C-97F4-41FC-123D-7D65A86BD794}</Project>
+      <Name>VStudio.Project.BlackBerry</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bPkgdefProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
+    </ProjectReference>
+    <ProjectReference Include="VStudio.Xml.csproj">
+      <Project>{33F2A9DB-6BB1-49A2-9901-65E6A129A6EB}</Project>
+      <Name>VStudio.Xml</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\..\Common\Build\BuildTools.MSBuildTasks.targets" />
+  <Import Project="$(VsSDKInstall)\SdkEnv.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy /Y /C $(TargetDir)*.* $(SolutionDir)\Build\Application</PostBuildEvent>
+  </PropertyGroup>
+</Project>

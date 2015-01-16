@@ -1,0 +1,36 @@
+namespace Dot42.CompilerLib.Ast.Optimizer
+{
+    public enum AstOptimizationStep
+    {
+        RemoveRedundantCode,
+        ReduceBranchInstructionSet,
+        InlineVariables,
+        CopyPropagation,
+        SplitToMovableBlocks,
+        TypeInference,
+        SimplifyNullCoalescing,
+        JoinBasicBlocks,
+        SimplifyShiftOperators,
+        TransformDecimalCtorToConstant,
+        SimplifyLdObjAndStObj,
+        TransformArrayInitializers,
+        TransformMultidimensionalArrayInitializers,
+        MakeAssignmentExpression,
+        IntroducePostIncrement,
+        InlineExpressionTreeParameterDeclarations,
+        InlineVariables2,
+        FindLoops,
+        FindConditions,
+        FlattenNestedMovableBlocks,
+        RemoveEndFinally,
+        RemoveRedundantCode2,
+        GotoRemoval,
+        DuplicateReturns,
+        GotoRemoval2,
+        InlineVariables3,
+        RecombineVariables,
+        TypeInference2,
+        RemoveRedundantCode3,
+        None
+    }
+}

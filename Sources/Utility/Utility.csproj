@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{13F162A6-F530-40B3-1234-7AD5C0B4A386}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Dot42.Utility</RootNamespace>
+    <AssemblyName>dot42.Utility</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SignAssembly>false</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\Dot42.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Version.cs" />
+    <Compile Include="..\..\Common\Extensions\EventHandlerExtensions.cs" />
+    <Compile Include="..\..\Common\Extensions\TaskExtensions.cs" />
+    <Compile Include="..\..\Common\Util\Default.cs" />
+    <Compile Include="..\..\Common\Util\Empty.cs" />
+    <Compile Include="..\..\Common\Util\ErrorLog.cs" />
+    <Compile Include="BigEndianBitConverter.cs" />
+    <Compile Include="Browser.cs" />
+    <Compile Include="CollectionExtensions.cs" />
+    <Compile Include="CompressedXml.cs" />
+    <Compile Include="DContext.cs" />
+    <Compile Include="DefaultDictionary.cs" />
+    <Compile Include="DoubleConverter.cs" />
+    <Compile Include="EndianBitConverter.cs" />
+    <Compile Include="Endianness.cs" />
+    <Compile Include="EventArgs.cs" />
+    <Compile Include="FastEnumerable.cs" />
+    <Compile Include="FrameworkException.cs" />
+    <Compile Include="Hash.cs" />
+    <Compile Include="InvalidSignatureException.cs" />
+    <Compile Include="IniFile.cs" />
+    <Compile Include="JarReferenceHash.cs" />
+    <Compile Include="LicenseAgreement.cs" />
+    <Compile Include="LittleEndianBitConverter.cs" />
+    <Compile Include="Locations.cs" />
+    <Compile Include="DLog.cs" />
+    <Compile Include="NameConverter.cs" />
+    <Compile Include="PathUtils.cs" />
+    <Compile Include="ProcessRunner.cs" />
+    <Compile Include="Profiler.cs" />
+    <Compile Include="ReflectionHelper.cs" />
+    <Compile Include="RegistryConstants.cs" />
+    <Compile Include="Targets.cs" />
+    <Compile Include="TaskExtensions.cs" />
+    <Compile Include="ToolOption.cs" />
+    <Compile Include="Dot42Exception.cs" />
+    <Compile Include="InvalidDescriptorException.cs" />
+    <Compile Include="ITextOutput.cs" />
+    <Compile Include="PlainTextOutput.cs" />
+    <Compile Include="ToolOptions.cs" />
+    <Compile Include="TreeTraversal.cs" />
+    <Compile Include="XmlExtensions.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

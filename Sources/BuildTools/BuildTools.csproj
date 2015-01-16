@@ -1,0 +1,128 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{13F47AA6-AA66-BB55-A358-7AD5C0B4A386}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Dot42.BuildTools</RootNamespace>
+    <AssemblyName>dot42Tool</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\Dot42.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Debug\Dot42Tool.XML</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common\Options\Mono.Options.csproj">
+      <Project>{13F162A6-BB55-40B6-1111-22D5C0B4A386}</Project>
+      <Name>Mono.Options</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Mono.Cecil\Mono.Cecil.DeepSea.csproj">
+      <Project>{13F162A6-BB55-40B6-BB77-22D5C0B4A386}</Project>
+      <Name>Mono.Cecil.DeepSea</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\AdbLib\AdbLib.csproj">
+      <Project>{13F1BB11-B71A-AA59-44DE-7AD5C0B4BB22}</Project>
+      <Name>AdbLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ApkLib\ApkLib.csproj">
+      <Project>{13F1BB11-ABB6-B755-CC77-7AD5C0B4BB22}</Project>
+      <Name>ApkLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Documentation\Documentation.csproj">
+      <Project>{13F162A6-F530-3A56-1DE4-7AD5C0B4A386}</Project>
+      <Name>Documentation</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FrameworkDefinitions\FrameworkDefinitions.csproj">
+      <Project>{13F162A6-AA66-BB55-CC77-7AD5C0B4BB22}</Project>
+      <Name>FrameworkDefinitions</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Utility\Utility.csproj">
+      <Project>{13F162A6-F530-40B3-1234-7AD5C0B4A386}</Project>
+      <Name>Utility</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Version.cs" />
+    <Compile Include="ApiEnhancements\FindApiEnhancements.cs" />
+    <Compile Include="CheckForwarders\CheckForwardAssemblies.cs" />
+    <Compile Include="CommandLineOptions.cs" />
+    <Compile Include="ApiEnhancements\FindRunnableArguments.cs" />
+    <Compile Include="Corlib\FixCorlib.cs" />
+    <Compile Include="Documentation\Icon.cs" />
+    <Compile Include="Documentation\NamespaceDocumentation.cs" />
+    <Compile Include="Documentation\GenericParameterDocumentation.cs" />
+    <Compile Include="Documentation\ParameterDocumentation.cs" />
+    <Compile Include="Documentation\MethodDocumentation.cs" />
+    <Compile Include="Documentation\EventDocumentation.cs" />
+    <Compile Include="Documentation\PropertyDocumentation.cs" />
+    <Compile Include="Documentation\FieldDocumentation.cs" />
+    <Compile Include="Documentation\FrameworkDocumentationSet.cs" />
+    <Compile Include="Documentation\MemberDocumentation.cs" />
+    <Compile Include="Documentation\DocumentationBuilder.cs" />
+    <Compile Include="Documentation\DocumentationSet.cs" />
+    <Compile Include="Documentation\SummaryFile.cs" />
+    <Compile Include="Documentation\TypeDocumentation.cs" />
+    <Compile Include="EnumNames\EnumNamesBuilder.cs" />
+    <Compile Include="Exceptions\AssemblyResolver.cs" />
+    <Compile Include="Exceptions\ExceptionsSnippetBuilder.cs" />
+    <Compile Include="ApiEnhancements\FindListenerInterfaces.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Samples\UninstallDeleteScript.cs" />
+    <Compile Include="SystemIds\SystemIdSources.cs" />
+    <Compile Include="Templates\TemplateUpdater.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy /Y $(TargetDir)*.* $(SolutionDir)\Build\Application\</PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

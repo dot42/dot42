@@ -1,0 +1,159 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{13F162A6-F530-40B6-A258-7AD5C0B4A386}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Dot42.JvmClassLib</RootNamespace>
+    <AssemblyName>dot42.JvmClassLib</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SignAssembly>false</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\Dot42.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System.Core" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Version.cs" />
+    <Compile Include="AbstractReference.cs" />
+    <Compile Include="ArrayTypeReference.cs" />
+    <Compile Include="Attributes\Annotation.cs" />
+    <Compile Include="Attributes\Attribute.cs" />
+    <Compile Include="Attributes\CodeAttribute.cs" />
+    <Compile Include="Attributes\ConstantValueAttribute.cs" />
+    <Compile Include="Attributes\ConstElementValue.cs" />
+    <Compile Include="Attributes\ClassElementValue.cs" />
+    <Compile Include="Attributes\AnnotationElementValue.cs" />
+    <Compile Include="Attributes\ArrayElementValue.cs" />
+    <Compile Include="Attributes\AnnotationsAttribute.cs" />
+    <Compile Include="Attributes\AnnotationDefaultAttribute.cs" />
+    <Compile Include="Attributes\IElementValueVisitor.cs" />
+    <Compile Include="Attributes\IModifiableAttributeProvider.cs" />
+    <Compile Include="Attributes\RuntimeVisibleParameterAnnotationsAttribute.cs" />
+    <Compile Include="Attributes\RuntimeInvisibleParameterAnnotationsAttribute.cs" />
+    <Compile Include="Attributes\ElementValuePair.cs" />
+    <Compile Include="Attributes\RuntimeInvisibleAnnotationsAttribute.cs" />
+    <Compile Include="Attributes\RuntimeVisibleAnnotationsAttribute.cs" />
+    <Compile Include="Attributes\EnumConstElementValue.cs" />
+    <Compile Include="Attributes\ElementValue.cs" />
+    <Compile Include="Attributes\OverrideAttribute.cs" />
+    <Compile Include="Attributes\IAttributeProvider.cs" />
+    <Compile Include="Bytecode\BranchOffset.cs" />
+    <Compile Include="Bytecode\CodeReader.cs" />
+    <Compile Include="Bytecode\IResolveable.cs" />
+    <Compile Include="Bytecode\LocalVariableReference.cs" />
+    <Compile Include="Bytecode\CodeNames.cs" />
+    <Compile Include="Bytecode\TableSwitchData.cs" />
+    <Compile Include="Bytecode\LookupSwitchData.cs" />
+    <Compile Include="Bytecode\Instruction.cs" />
+    <Compile Include="ClassName.cs" />
+    <Compile Include="ClassSignature.cs" />
+    <Compile Include="Generated\Code.cs" />
+    <Compile Include="IAccessModifiers.cs" />
+    <Compile Include="IReachableContext.cs" />
+    <Compile Include="MethodSignature.cs" />
+    <Compile Include="ResolveException.cs" />
+    <Compile Include="TypeParameter.cs" />
+    <Compile Include="TypeVariableReference.cs" />
+    <Compile Include="TypeArgument.cs" />
+    <Compile Include="Signatures.cs" />
+    <Compile Include="Extensions.cs" />
+    <Compile Include="InnerClass.cs" />
+    <Compile Include="Attributes\SignatureAttribute.cs" />
+    <Compile Include="Attributes\DeprecatedAttribute.cs" />
+    <Compile Include="Attributes\LocalVariableTableAttribute.cs" />
+    <Compile Include="Attributes\LineNumberTableAttribute.cs" />
+    <Compile Include="Attributes\SourceFileAttribute.cs" />
+    <Compile Include="Attributes\SyntheticAttribute.cs" />
+    <Compile Include="Attributes\InnerClassesAttribute.cs" />
+    <Compile Include="Attributes\ExceptionsAttribute.cs" />
+    <Compile Include="Attributes\UnknownAttribute.cs" />
+    <Compile Include="BaseTypeReference.cs" />
+    <Compile Include="BaseTypes.cs" />
+    <Compile Include="Bytecode\Code.cs" />
+    <Compile Include="ClassAccessFlags.cs" />
+    <Compile Include="ClassFile.cs" />
+    <Compile Include="ClassFileReader.cs" />
+    <Compile Include="IClassLoader.cs" />
+    <Compile Include="LocalVariable.cs" />
+    <Compile Include="LineNumber.cs" />
+    <Compile Include="NestedClassAccessFlags.cs" />
+    <Compile Include="Descriptors.cs" />
+    <Compile Include="ExceptionHandler.cs" />
+    <Compile Include="StreamExtensions.cs" />
+    <Compile Include="FieldAccessFlags.cs" />
+    <Compile Include="FieldDefinition.cs" />
+    <Compile Include="JarFile.cs" />
+    <Compile Include="MemberDefinition.cs" />
+    <Compile Include="MethodAccessFlags.cs" />
+    <Compile Include="MethodDefinition.cs" />
+    <Compile Include="MethodDescriptor.cs" />
+    <Compile Include="ObjectTypeReference.cs" />
+    <Compile Include="Structures\ConstantPool.cs" />
+    <Compile Include="Structures\ConstantPoolClass.cs" />
+    <Compile Include="Structures\ConstantPoolDouble.cs" />
+    <Compile Include="Structures\ConstantPoolEntry.cs" />
+    <Compile Include="Structures\ConstantPoolFieldRef.cs" />
+    <Compile Include="Structures\ConstantPoolFloat.cs" />
+    <Compile Include="Structures\ConstantPoolInteger.cs" />
+    <Compile Include="Structures\ConstantPoolInterfaceMethodRef.cs" />
+    <Compile Include="Structures\ConstantPoolLong.cs" />
+    <Compile Include="Structures\ConstantPoolMemberRef.cs" />
+    <Compile Include="Structures\ConstantPoolMethodRef.cs" />
+    <Compile Include="Structures\ConstantPoolNameAndType.cs" />
+    <Compile Include="Structures\ConstantPoolString.cs" />
+    <Compile Include="Structures\ConstantPoolTags.cs" />
+    <Compile Include="Structures\ConstantPoolUtf8.cs" />
+    <Compile Include="Structures\ConstantPoolValue.cs" />
+    <Compile Include="Structures\IConstantPoolValue.cs" />
+    <Compile Include="TypeArgumentWildcard.cs" />
+    <Compile Include="TypeReference.cs" />
+    <Compile Include="VoidTypeReference.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common\SharpZipLib\SharpZipLib.csproj">
+      <Project>{13F162A6-BB55-40B6-A258-7AD5C0B4A386}</Project>
+      <Name>SharpZipLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Utility\Utility.csproj">
+      <Project>{13F162A6-F530-40B3-1234-7AD5C0B4A386}</Project>
+      <Name>Utility</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <PropertyGroup>
+    <PostBuildEvent>$(SolutionDir)Build\Application\Dot42Tool.exe --assembly=$(TargetPath) --out=$(ProjectDir)Generated --etn=Dot42.JvmClassLib.Bytecode.Code</PostBuildEvent>
+  </PropertyGroup>
+</Project>

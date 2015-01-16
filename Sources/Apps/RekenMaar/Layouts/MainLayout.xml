@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:orientation="vertical"
+                style="@style/ApplicationTheme">
+
+  <TextView
+    android:id="@+id/result"
+    style="@style/ViewStyle_WrapBoth_Large"
+    android:layout_centerHorizontal="true"
+    
+    android:text="" />
+
+  <LinearLayout
+    android:id="@+id/questionLayout"
+    android:layout_height="wrap_content"
+    android:layout_width="wrap_content"
+    android:layout_alignBottom="@+id/Ok"
+    android:layout_centerHorizontal="true"
+    android:layout_below="@+id/result"
+    android:orientation="horizontal">
+    <TextView
+      android:id="@+id/question"
+      style="@style/TextViewStyle_Large"
+      android:layout_toLeftOf="@+id/is"
+      android:text="" />
+    <TextView
+      android:id="@+id/is"
+      style="@style/TextViewStyle_Large"
+      android:layout_centerHorizontal="true"
+      android:text=" = " />
+    <TextView
+      android:id="@+id/answer"
+      android:layout_width="200dip"
+      style="@style/TextViewStyle_Large"
+      android:layout_toRightOf="@id/is"
+      android:text="" />
+  </LinearLayout>
+
+  <RelativeLayout
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_below="@+id/questionLayout"
+    android:layout_centerHorizontal="true">
+
+    <RelativeLayout
+    android:id="@+id/keyLayout"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_below="@+id/questionLayout">
+      <Button
+        android:id="@+id/cmd1"
+        android:layout_width="130dp"
+        style="@style/ButtonStyle_WrapWidth"
+        android:layout_below="@id/Ok"
+        android:text="1"/>
+      <Button
+        android:id="@+id/cmd2"
+        android:layout_width="130dp"
+        style="@style/ButtonStyle_WrapWidth"
+        android:layout_toRightOf="@id/cmd1"
+        android:layout_below="@id/Ok"
+        android:text="2"/>
+      <Button
+        android:id="@+id/cmd3"
+        android:layout_width="130dp"
+        style="@style/ButtonStyle_WrapWidth"
+        android:layout_toRightOf="@id/cmd2"
+        android:layout_below="@id/Ok"
+        android:text="3"/>
+
+      <Button
+        android:id="@+id/cmd4"
+        android:layout_width="130dp"
+        style="@style/ButtonStyle_WrapWidth"
+        android:layout_below="@+id/cmd1"
+        android:text="4"/>
+      <Button
+        android:id="@+id/cmd5"
+        android:layout_width="130dp"
+        style="@style/ButtonStyle_WrapWidth"
+        android:layout_toRightOf="@+id/cmd4"
+        android:layout_below="@id/cmd1"
+        android:text="5"/>
+      <Button
+        android:id="@+id/cmd6"
+        android:layout_width="130dp"
+        style="@style/ButtonStyle_WrapWidth"
+        android:layout_below="@id/cmd1"
+        android:layout_toRightOf="@id/cmd5"
+        android:text="6"/>
+
+      <Button
+        android:id="@+id/cmd7"
+        android:layout_width="130dp"
+        style="@style/ButtonStyle_WrapWidth"
+        android:layout_below="@id/cmd4"
+        android:text="7"/>
+      <Button
+        android:id="@+id/cmd8"
+        android:layout_width="130dp"
+        style="@style/ButtonStyle_WrapWidth"
+        android:layout_toRightOf="@+id/cmd7"
+        android:layout_below="@id/cmd4"
+        android:text="8"/>
+      <Button
+        android:id="@+id/cmd9"
+        android:layout_width="130dp"
+        style="@style/ButtonStyle_WrapWidth"
+        android:layout_below="@id/cmd4"
+        android:layout_toRightOf="@id/cmd8"
+        android:text="9"/>
+
+      <Button
+        android:id="@+id/cmd0"
+        android:layout_width="130dp"
+        style="@style/ButtonStyle_WrapWidth"
+        android:layout_below="@id/cmd8"
+        android:layout_alignLeft="@id/cmd8"
+        android:text="0"/>
+    </RelativeLayout>
+
+    <Button
+      android:id="@+id/Erase"
+      android:layout_width="130dp"
+      android:layout_height="200dp"
+      style="@style/ButtonStyle_WrapWidth"
+      android:layout_below="@+id/Ok"
+      android:layout_toRightOf="@id/keyLayout"
+      android:text="@string/button_erase"/>
+
+    <Button
+      android:id="@+id/Ok"
+      style="@style/ButtonStyle_WrapWidth"
+      android:layout_width="130dp"
+      android:layout_height="200dp"
+      android:layout_alignParentTop="true"
+      android:layout_toRightOf="@id/keyLayout"
+      android:text="@string/button_ok"/>
+
+
+  </RelativeLayout>
+
+
+</RelativeLayout>

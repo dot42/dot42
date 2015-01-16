@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="numerOfBirdsInTheSky">
+		<item quantity="zero">No birds in the sky.</item>
+		<item quantity="one">One bird in the sky.</item>
+		<item quantity="other">%d birds in the sky.</item>
+	</plurals>
+</resources>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent"
+              android:orientation="vertical"
+              style="@style/ApplicationTheme">
+  <!-- Commentaar -->
+  <TextView
+    android:id="@+id/tableChoosenTxt"
+    style="@style/ViewStyle_WrapBoth"
+    android:text="Gekozen (deel)tafel: "/>
+  <TextView
+    android:id="@+id/tableChoosen"
+    android:layout_toRightOf="@+id/tableChoosenTxt"
+    style="@style/ViewStyle_WrapBoth"/>
+  <SeekBar
+    android:id="@+id/seekbar"
+    android:max="20"
+    style="@style/ViewStyle_FillWidth"
+    android:layout_centerHorizontal="true"
+    android:layout_below="@+id/tableChoosen"/>
+    <!--android:layout_marginRight="10dip"
+    android:layout_marginLeft="10dip"/>-->
+  <TextView
+    android:id="@+id/min"
+    android:layout_alignParentLeft="true"
+    android:layout_below="@+id/seekbar"
+    style="@style/ViewStyle_WrapBoth"
+    android:text="0"/>
+  <TextView
+    android:id="@+id/max"
+    android:layout_alignParentRight="true"
+    android:layout_below="@+id/seekbar"
+    style="@style/ViewStyle_WrapBoth"
+    android:text="20"/>
+
+  <LinearLayout
+    android:id="@+id/layoutSwitch"
+    style="@style/ViewStyle_WrapBoth"
+    android:layout_below="@id/min"
+    android:orientation="horizontal">
+    <TextView
+      style="@style/ViewStyle_WrapBoth"
+      android:text="Sommen doorelkaar"/>
+    <Switch
+      android:id="@+id/isRandom"
+      style="@style/ViewStyle_WrapBoth"
+      android:textOn="Aan"
+      android:textOff="Uit"/>
+  </LinearLayout>
+ 
+  <Spinner
+    android:id="@+id/gameType_spinner"
+    android:layout_below="@id/layoutSwitch"
+    style="@style/ViewStyle_FillWidth"/>
+
+  <Button
+    android:id="@+id/startMultiplicationTableGame"
+    style="@style/ViewStyle_FillWidth"
+    android:layout_below="@id/gameType_spinner"
+    android:text="Start tafel spel"/>
+  <Button
+    android:id="@+id/startDivisionTableGame"
+    android:text="Start deel tafel spel"
+    android:layout_below="@id/startMultiplicationTableGame"
+    style="@style/ViewStyle_FillWidth"/>
+  <Button
+    android:id="@+id/startAdditionGame"
+    style="@style/ViewStyle_FillWidth"
+    android:layout_below="@id/startDivisionTableGame"
+    android:text="Optellen"/>
+
+</RelativeLayout>

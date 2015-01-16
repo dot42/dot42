@@ -1,0 +1,20 @@
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+  <string name="menu_options">Settings</string>
+  <string name="button_erase">Erase</string>
+  <string name="settings_div_mul_title">Settings multiply and divide</string>
+  <string name="settings_choosen_txt">Choose multiplication (divide)table: </string>
+  <string name="on_txt">On</string>
+  <string name="off_txt">Off</string>
+  <string name="tables_until">Multiplication (divide)tables until </string>
+  <string name="settings_add_sub_title">Settings add an subtract</string>
+  <string name="count_until">Count till </string>
+  <string name="count_with">Count with </string>
+  <string name="answer_correct">Correct</string>
+  <string name="answer_incorrect">Wrong</string>
+  <string-array name="gameType_array">
+    <item>Multiply</item>
+    <item>Divide</item>
+    <item>Add</item>
+    <item>Subtract</item>
+  </string-array>
+</resources>

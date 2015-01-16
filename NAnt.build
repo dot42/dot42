@@ -1,0 +1,579 @@
+<?xml version="1.0"?>
+<project name="dot42" default="build" basedir=".">
+
+	<property name="nant.settings.currentframework" value="net-4.0" />
+
+	<property name="basedir" value="${project::get-base-directory()}" />
+	<include buildfile="${basedir}\Common\Build\Common.build"/>
+	<include buildfile="${basedir}\Common\Build\Common-Release.build"/>
+	<property name="vs10comntools" value="${environment::get-variable('VS100COMNTOOLS')}"/>
+	<property name="vs11comntools" value="${environment::get-variable('VS110COMNTOOLS')}"/>
+	<property name="devenvdir" value="${path::get-full-path(path::combine(vs10comntools, '..\ide'))}"/>
+	<property name="devenv11dir" value="${path::get-full-path(path::combine(vs11comntools, '..\ide'))}"/>
+	<property name="devenv" value="${devenvdir}\devenv.com"/>
+	<property name="devenv11" value="${devenv11dir}\devenv.com"/>
+	<property name="adb" value="${basedir}\Binaries\Platform-tools\adb.exe"/>
+
+	<property name="product" value="dot42"/>
+	<property name="configuration" value="Release" />
+	<property name="release-mode" value="false" />
+	<!-- property name="targets" value="Android,BlackBerry" / -->
+	<property name="targets" value="Android" />
+
+	<property name="default-api-level" value="15"/>
+
+	<property name="builddir" value="${basedir}\Build" />
+	<property name="productdir" value="${basedir}\Product"/>
+	<property name="srcdir" value="${basedir}\Sources"/>
+	<!-- Build relative dirs -->
+	<property name="appdir" value="${builddir}\application"/>
+	<property name="docsdir" value="${builddir}\Docs"/>
+	<property name="reposdir.root" value="${builddir}\Repositories" />
+	<property name="reposdir.samples" value="${reposdir.root}\Samples" />
+
+	<target name="prepare">
+		<!-- Create version.cs -->
+		<update-version dir="${productdir}" destdir="${srcdir}"/>
+	</target>
+
+	<target name="clean" description="remove all generated files" depends="kill-adb">
+		<!-- Remove all working files -->
+		<delete>
+			<fileset basedir="${basedir}">
+				<include name="**/obj/**" />
+				<include name="**/bin/**" />
+				<include name="**/out/**" />
+				<include name="**/output/**" />
+				<include name="**/*.sln.cache" />
+				<include name="**/*.suo" />
+				<include name="**/*.user" />
+				<include name="Build/**" />
+				<exclude name="SharpDevelop/**" />
+				<exclude name="**/.git/**" />
+			</fileset>
+		</delete>
+	</target>
+
+	<target name="remove-installed-product" description="remove the files from C:\Program Files (x86)\Microsoft Visual Studio 10.0\Common7\IDE\Extensions">
+		<!-- Remove the installed product -->
+		<delete verbose="true">
+			<fileset basedir="${devenvdir}\Extensions">
+				<include name="dot42/**" />
+			</fileset>
+		</delete>
+	</target>
+
+	<target name="kill-adb">
+		<if test="${file::exists(adb)}">
+			<exec program="${adb}">
+				<arg value="kill-server"/>
+			</exec>
+		</if>
+	</target>
+
+	<target name="remove-extension" description="Remove VisualStudio extensions">
+		<foreach item="String" in="${targets}" delim="," property="target">
+			<property name="extensiondir" value="${devenvdir}\Extensions\dot42 C# for ${target}\1.0"/>
+			<property name="manifestfile" value="${extensiondir}\extension.vsixmanifest"/>
+			<move file="${manifestfile}" tofile="${manifestfile}.delete" if="${file::exists(manifestfile)}"/>
+			<delete dir="${extensiondir}"/>
+		</foreach>
+	</target>
+
+	<target name="compile-base">
+		<msbuild project="${basedir}\Tools.sln" target="Rebuild">
+			<property name="Configuration" value="${configuration}"/>
+		</msbuild>
+		<msbuild project="${basedir}\VStudio11.sln" target="Rebuild">
+			<property name="Configuration" value="${configuration}"/>
+		</msbuild>
+		<msbuild project="${basedir}\VStudio.Android.sln" target="Rebuild">
+			<property name="Configuration" value="${configuration}"/>
+		</msbuild>
+		<copy todir="${builddir}\Application\Clean">
+			<fileset basedir="${builddir}\Application">
+				<include name="**/*.dll"/>
+				<include name="**/*.exe"/>
+				<include name="**/*.pdb"/>
+				<include name="**/*.xml"/>
+			</fileset>
+		</copy>
+		<foreach item="String" in="${targets}" delim="," property="target">
+			<unzip todir="${builddir}\Application\${target}\Extension" zipfile="${builddir}\Application\dot42.${target}.vsix" />
+			<delete file="${builddir}\Application\${target}\Extension\[Content_Types].xml" />
+		</foreach>
+	</target>
+
+	<target name="compile-sharpdevelop">
+		<!-- Build SharpDevelop clean -->
+		<nant buildfile="${basedir}\SharpDevelop\NAnt.build" target="clean"/>
+		<nant buildfile="${basedir}\SharpDevelop\NAnt.build" target="compile-release"/>
+		<!-- Remove debugger addin -->
+		<delete>
+			<fileset basedir="${basedir}\SharpDevelop">
+				<include name="AddIns/Debugger/**"/>
+			</fileset>
+		</delete>
+		<!-- Copy to Build folder -->
+		<copy todir="${builddir}\SharpDevelop">
+			<fileset basedir="${basedir}\SharpDevelop">
+				<include name="AddIns/**"/>
+				<exclude name="AddIns/Debugger/**"/>
+				<include name="bin/**"/>
+				<include name="data/**"/>
+				<include name="doc/**"/>
+				<include name="README.txt"/>
+				<exclude name="**/*.pdb"/>
+				<exclude name="bin/*.xml"/>
+			</fileset>
+		</copy>
+
+		<!-- Build our AddIn -->
+		<msbuild project="${basedir}\SharpDevelopIntegration.sln" target="Rebuild">
+			<property name="Configuration" value="${configuration}"/>
+		</msbuild>
+		<copy todir="${builddir}\SharpDevelop\AddIns\Dot42">
+			<fileset basedir="${srcdir}\SharpDevelop\bin\Release">
+				<include name="*.dll"/>
+				<include name="dot42.Project.Addin"/>
+				<include name="**/*.xft"/>
+				<include name="**/*.xpt"/>
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="compile" depends="remove-extension, compile-base, compile-sharpdevelop">
+	</target>
+
+	<target name="obfuscate" depends="prepare">
+		<exec program="${basedir}\Binaries\tools\ILAutoMerge.exe">
+			<arg value="${builddir}\Application\Clean\dot42ApkSpy.exe"/>
+			<arg value="${builddir}\Application\dot42ApkSpy.exe"/>
+		</exec>
+		<exec program="${basedir}\Binaries\tools\ILAutoMerge.exe">
+			<arg value="${builddir}\Application\Clean\dot42Check.exe"/>
+			<arg value="${builddir}\Application\dot42Check.exe"/>
+		</exec>
+		<exec program="${basedir}\Binaries\tools\ILAutoMerge.exe">
+			<arg value="${builddir}\Application\Clean\dot42Compiler.exe"/>
+			<arg value="${builddir}\Application\dot42Compiler.exe"/>
+		</exec>
+		<exec program="${basedir}\Binaries\tools\ILAutoMerge.exe">
+			<arg value="${builddir}\Application\Clean\dot42.MSBuild.Tasks.Android.dll"/>
+			<arg value="${builddir}\Application\dot42.MSBuild.Tasks.Android.dll"/>
+		</exec>
+		<exec program="${basedir}\Binaries\tools\ILAutoMerge.exe">
+			<arg value="${builddir}\Application\Clean\dot42.MSBuild.Tasks.BlackBerry.dll"/>
+			<arg value="${builddir}\Application\dot42.MSBuild.Tasks.BlackBerry.dll"/>
+		</exec>
+
+		<foreach item="String" in="${targets}" delim="," property="target">
+			<exec program="${basedir}\Binaries\tools\ILAutoMerge.exe">
+				<arg value="${builddir}\Application\Clean\${target}\dot42DevCenter.exe"/>
+				<arg value="${builddir}\Application\${target}\dot42DevCenter.exe"/>
+			</exec>
+		</foreach>
+	</target>
+
+	<target name="verify"> 
+		<!-- Test all verififability -->
+		<peverify>
+			<assemblies basedir="${appdir}">
+				<include name="ApkSpy.exe"/>
+				<include name="dot42DevCenter.exe"/>
+				<include name="dot42Check.exe"/>
+				<include name="dot42Compiler.exe"/>
+				<exclude name="dot42.VStudio10.dll"/>
+			</assemblies>
+		</peverify>
+
+		<!-- Test all assembly references -->
+		<assembly-reference-check>
+			<assemblies basedir="${appdir}">
+				<include name="dot42ApkSpy.exe"/>
+				<include name="dot42DevCenter.exe"/>
+				<include name="dot42Check.exe"/>
+				<include name="dot42Compiler.exe"/>
+				<exclude name="dot42.VStudio10.dll"/>
+			</assemblies>
+		</assembly-reference-check>
+	</target>
+
+	<target name="prepare-install">
+		<!-- Copy platform tools -->
+		<copy todir="${builddir}\Application\Platform-tools">
+			<fileset basedir="${basedir}\Binaries\Platform-tools">
+				<include name="**/*"/>
+			</fileset>
+		</copy>
+		<!-- Copy android tools -->
+		<copy todir="${builddir}\Application\Tools">
+			<fileset basedir="${basedir}\Binaries\tools">
+				<include name="**/*"/>
+			</fileset>
+		</copy>
+		<!-- Copy to application\install -->
+		<copy todir="${builddir}\Application\install">
+			<fileset basedir="${basedir}\Common\Install\isxdl">
+				<include name="*.dll"/>
+			</fileset>
+		</copy>
+		<!-- Copy Updater to application -->
+		<copy todir="${builddir}\Application">
+			<fileset basedir="${basedir}\Binaries\Update\4.0">
+				<include name="*.exe"/>
+			</fileset>
+		</copy>
+		<!-- Copy samples -->
+		<copy todir="${appdir}\Samples">
+			<fileset basedir="${basedir}\Samples">
+				<include name="**/*"/>
+				<exclude name="**/bin/**"/>
+				<exclude name="**/obj/**"/>
+				<exclude name="*.pfx"/>
+				<exclude name="*.build"/>
+			</fileset>
+		</copy>
+		<!-- Zip samples -->
+		<zip zipfile="${appdir}\Samples.zip">
+			<fileset basedir="${basedir}\Samples">
+				<include name="**/*"/>
+				<exclude name="**/bin/**"/>
+				<exclude name="**/obj/**"/>
+				<exclude name="*.pfx"/>
+				<exclude name="*.build"/>
+			</fileset>
+		</zip>
+	</target>
+
+	<target name="build-setuphelper">
+		<nant buildfile="${basedir}\Sources\SetupHelper\NAnt.build" />
+	</target>
+
+	<target name="generate-and-build-frameworks" depends="generate-frameworks build-frameworks" description="Re-generate and build the C# API sources">
+	</target>
+
+	<target name="generate-frameworks">
+		<mkdir dir="${builddir}\Framework"/>
+		<mkdir dir="${builddir}\Temp\Framework"/>
+
+		<foreach item="Folder" in="${basedir}\Binaries\Platforms" property="folder">
+			<echo message="Generating android version ${folder}" />
+
+			<!-- Generate basic mscorlib.dll from android.jar -->
+			<exec program="${basedir}\Build\Application\FrameworkBuilder.exe">
+				<arg value="-jar=${folder}\Android.jar"/>
+				<arg value="-attrs=${folder}\data\res\values\attrs.xml"/>
+				<arg value="-sp=${folder}\source.properties"/>
+				<arg value="-out=${srcdir}\Framework\Generated"/>
+				<arg value="-outfolderfile=${builddir}\Temp\Framework\currentfolder.txt"/>
+				<arg value="-doxygenxml=${srcdir}\Android\Docs\xml"/>
+				<arg value="-forwardassembliesfolder=${srcdir}\Framework\ForwardAssemblies\"/>
+			</exec>	
+			<loadfile file="${builddir}\Temp\Framework\currentfolder.txt" property="generated-folder" />
+			<property name="folder-name" value="${path::get-file-name(folder)}"/>
+			<property name="apiLevelNum" value="${int::parse(string::substring(folder-name, 8, string::get-length(folder-name) - 8))}"/>
+			<property name="apiLevel" value="${int::to-string(apiLevelNum)}"/>
+			<echo message="${apiLevel}" file="${generated-folder}\ApiLevel.txt"/>
+		</foreach>
+	</target>
+
+	<!-- Re-generate the Version.cs file in the C# API sources -->
+	<target name="generate-framework-versions">
+		<foreach item="Folder" in="${basedir}\Binaries\Platforms" property="folder">
+			<exec program="${basedir}\Build\Application\FrameworkBuilder.exe">
+				<arg value="-versiononly" />
+				<arg value="-jar=${folder}\Android.jar"/>
+				<arg value="-attrs=${folder}\data\res\values\attrs.xml"/>
+				<arg value="-sp=${folder}\source.properties"/>
+				<arg value="-out=${srcdir}\Framework\Generated"/>
+				<arg value="-doxygenxml=${srcdir}\Android\Docs\xml"/>
+				<arg value="-publickeytoken=0a72796057571e65"/>
+				<arg value="-forwardassembliesfolder=${srcdir}\Framework\ForwardAssemblies\"/>
+			</exec>	
+		</foreach>
+	</target>
+
+	<target name="build-default-framework" depends="prepare" description="Build only the default framework">
+		<foreach item="Folder" in="${srcdir}\Framework\Generated" property="folder">
+			<loadfile file="${folder}\ApiLevel.txt" property="apiLevelNum" />
+			<if test="${int::to-string(apiLevelNum) == int::to-string(default-api-level)}">
+				<call target="build-framework"/>
+			</if>
+		</foreach>
+		<call target="build-api-docs"/>
+	</target>
+
+	<target name="build-frameworks" depends="prepare" description="Build all frameworks">
+		<foreach item="Folder" in="${srcdir}\Framework\Generated" property="folder">
+			<call target="build-framework"/>
+		</foreach>
+		<call target="build-system-resource-ids"/>
+		<call target="build-debugger-exceptions-snippet"/>
+		<call target="build-api-docs"/>
+		<call target="check-forward-assemblies" />
+	</target>
+
+	<target name="build-framework" depends="prepare">
+		<echo message="Building android version ${folder}" />
+
+		<loadfile file="${folder}\ApiLevel.txt" property="apiLevelNum" />
+		<property name="apiLevel" value="${int::to-string(apiLevelNum)}"/>
+		<property name="android-version" value="${path::get-file-name(folder)}"/>
+		<property name="outfolder" value="${builddir}\Application\Frameworks\${android-version}"/>
+		<property name="apirefoutfolder" value="${builddir}\Application\Frameworks\ApiReferences"/>
+		<property name="platformfolder" value="${basedir}\Binaries\Platforms\android-${string::pad-left(apiLevel, 2, '0')}"/>
+
+		<!-- Compile framework dlls -->
+		<msbuild project="${basedir}\Sources\Framework\Framework.sln" target="Rebuild" verbosity="Quiet">
+			<property name="Configuration" value="${configuration}"/>
+			<property name="AndroidVersion" value="${android-version}"/>
+			<property name="ApiLevel" value="${apiLevel}"/>
+			<property name="FrameworksDirectory" value="${srcdir}\Framework\Generated"/>
+			<property name="OutputPath" value="${outfolder}"/>
+			<property name="VersionFile" value="${folder}\Version.cs"/>
+		</msbuild>
+
+		<!-- Clean before building various libraries into dlls -->
+		<msbuild project="${basedir}\Libraries.sln" target="Clean" verbosity="Quiet">
+			<property name="Dot42ExtensionsPath" value="${basedir}\Build\Application\Scripts\Android" />
+			<property name="Dot42Folder" value="${basedir}\Build\Application" />
+			<property name="Dot42ReferenceAssembliesFolder" value="${basedir}\Build\Application\Frameworks" />
+			<property name="Configuration" value="${configuration}"/>
+		</msbuild>
+
+		<!-- Copy file from temp framework to final framework folder -->
+		<copy todir="${outfolder}">
+			<fileset basedir="${folder}">
+				<include name="base.apk"/>
+				<include name="Version.cs"/>
+				<include name="Framework.ini"/>
+				<include name="**/FrameworkList.xml"/>
+			</fileset>
+		</copy>
+
+		<!-- Copy additional files -->
+		<copy todir="${outfolder}">
+			<fileset basedir="${folder}">
+				<include name="skins\**\*"/>
+				<include name="sdk.properties"/>
+			</fileset>
+		</copy>
+
+		<!-- create portable libs -->
+		<foreach item="File" property="sourceFile">
+			<in>
+				<items basedir="${srcdir}\Framework\ForwardAssemblies">
+					<include name="*.cs"/>
+				</items>
+			</in>
+			<do>
+				<property name="target.name" value="${path::get-file-name-without-extension(sourceFile)}"/>
+				<csc target="library" noconfig="true" nostdlib="true" output="${outfolder}\${target.name}.dll">
+					<references basedir="${outfolder}">
+						<include name="Dot42.dll"/>
+					</references>
+					<sources basedir="${basedir}">
+						<include name="${outfolder}\Version.cs"/>
+						<include name="${sourceFile}"/>
+					</sources>
+				</csc>
+			</do>
+		</foreach>
+		<copy file="${outfolder}\corlib.dll" tofile="${outfolder}\mscorlib.dll"/>
+		<delete file="${outfolder}\corlib.dll"/>
+		<!-- fix assembly name -->
+		<exec program="${basedir}\Build\Application\Dot42Tool.exe">
+			<arg value="-fa=${outfolder}\mscorlib.dll"/>
+		</exec>
+
+		<!-- Compile various libraries into dlls -->
+		<msbuild project="${basedir}\Libraries.sln" target="Rebuild" verbosity="Quiet">
+			<property name="Dot42ExtensionsPath" value="${basedir}\Build\Application\Scripts\Android" />
+			<property name="Dot42Folder" value="${basedir}\Build\Application" />
+			<property name="Dot42ReferenceAssembliesFolder" value="${basedir}\Build\Application\Frameworks" />
+
+			<property name="Configuration" value="${configuration}"/>
+			<property name="AndroidVersion" value="${android-version}"/>
+			<property name="ApiLevel" value="${apiLevel}"/>
+			<property name="FrameworksDirectory" value="${srcdir}\Framework\Generated"/>
+			<property name="OutputPath" value="${outfolder}"/>
+			<property name="VersionFile" value="${folder}\Version.cs"/>
+		</msbuild>
+
+		<!-- Compare API -->
+		<foreach item="File" property="dllfile">
+			<in>
+				<items basedir="${outfolder}">
+					<include name="*.dll"/>
+				</items>
+			</in>
+			<do>
+				<property name="dllfilename" value="${path::get-file-name-without-extension(dllfile)}"/>
+				<assembly-api-compare 
+					assembly="${dllfile}" 
+					reference="${srcdir}\ApiReferences\${apiLevel}\${dllfilename}.xml"
+					output="${srcdir}\ApiReferences\${apiLevel}\${dllfilename}.xml"
+					failonerror="${release-mode}"
+					/>
+			</do>
+		</foreach>
+
+		<!-- Read targets -->
+		<loadfile file="${platformfolder}\targets.txt" property="framework-targets" />
+		<foreach item="String" in="${framework-targets}" delim="," property="target">
+			<property name="targetfolder" value="${builddir}\Frameworks\${target}\${android-version}"/>
+			<copy todir="${targetfolder}">
+				<fileset basedir="${outfolder}">
+					<include name="**\*"/>
+				</fileset>
+			</copy>
+		</foreach>		
+	</target>
+
+	<target name="generate-netframework-reference">
+		<property name="netdir" value="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETPortable\v4.5"/>
+		<foreach item="File" property="filename">
+			<in>
+				<items basedir="${netdir}">
+					<include name="*.dll" />
+				</items>
+			</in>
+			<do>
+				<property name="target.name" value="${path::get-file-name-without-extension(filename)}"/>
+				<assembly-api-compare 
+					assembly="${filename}" 
+					reference="${srcdir}\NETFrameworkReference\${target.name}.xml"
+					output="${srcdir}\NETFrameworkReference\${target.name}.xml"
+					failonerror="${release-mode}"
+					/>
+			</do>
+		</foreach>
+	</target>
+
+	<!-- Build System ID's source -->
+	<target name="build-system-resource-ids">
+		<exec program="${basedir}\Build\Application\Dot42Tool.exe">
+			<arg value="-frameworksfolder=${builddir}\Application\Frameworks"/>
+			<arg value="-idsource=${srcdir}\FrameworkDefinitions\Generated\SystemIdConstants.cs"/>
+			<arg value="-target=Android"/>
+		</exec>	
+	</target>
+
+	<!-- Build Debugger Exception Snippet source -->
+	<target name="build-debugger-exceptions-snippet">
+		<exec program="${basedir}\Build\Application\Dot42Tool.exe">
+			<arg value="-frameworksfolder=${builddir}\Application\Frameworks"/>
+			<arg value="-dbgexceptionssource=${srcdir}\VStudio\Generated\DebuggerExceptions.cs"/>
+			<arg value="-target=Android"/>
+		</exec>	
+	</target>
+
+	<target name="build-api-docs" depends="prepare" description="Build API documentation">
+		<exec program="${basedir}\Build\Application\Dot42Tool.exe">
+			<arg value="-frameworksfolder=${builddir}\Application\Frameworks"/>
+			<arg value="-out=${docsdir}\ApiDocsFiles"/>
+		</exec>	
+		<zip zipfile="${docsdir}\ApiDocs.zip">
+			<fileset basedir="${docsdir}\ApiDocsFiles">
+				<include name="**/*"/>
+			</fileset>
+		</zip>
+	</target>
+
+	<target name="build-docs" depends="prepare" description="Build the differences between our API and NETFramework">
+		<property name="folder" value="${basedir}\Binaries\Platforms\android-${default-api-level}"/>
+		<delete dir="${docsdir}" failonerror="false"/>
+		<copy todir="${docsdir}\Refs">
+			<fileset basedir="${srcdir}\NETFrameworkReference">
+				<include name="*.xml"/>
+			</fileset>
+		</copy>
+		<copy todir="${docsdir}\Refs" file="${srcdir}\ApiReferences\${default-api-level}\Dot42.xml"/>
+		<assembly-api-doc
+			actual-folder="${srcdir}\ApiReferences\${default-api-level}"
+			folder="${docsdir}\Files"
+			failonerror="${release-mode}"
+			product="${product}">
+			<references basedir="${docsdir}\Refs">
+				<include name="*.xml"/>
+			</references>
+		</assembly-api-doc>
+		<move file="${docsdir}\Files\Summary.html" tofile="${docsdir}\Files\index.html" overwrite="true"/>
+		<zip zipfile="${docsdir}\Docs.zip">
+			<fileset basedir="${docsdir}\Files">
+				<include name="*"/>
+				<exclude name="*.xml"/>
+			</fileset>
+		</zip>
+	</target>
+
+	<target name="build-framework-registry-tree">
+		<property name="issfile" value="${builddir}\Registry\Frameworks.iss"/>
+		<echo file="${issfile}" message="[Registry]${environment::newline()}"/>
+		<foreach item="Folder" in="${builddir}\Application\Frameworks" property="folder">
+			<property name="platformVersion" value="${path::get-file-name(folder)}"/>
+			<echo file='${issfile}' message='Root: HKLM32; Subkey: "SOFTWARE\Microsoft\Dot42\${platformVersion}\AssemblyFoldersEx\Platform Assemblies"; ValueType: string; ValueData: "{app}\Frameworks\${platformVersion}"; Flags: uninsdeletekey;${environment::newline()}' append='true'/>
+		</foreach>
+	</target>
+
+	<target name="find-api-enhancements" description="Find all non-used listener interfaces">
+		<foreach item="Folder" in="${builddir}\Application\Frameworks" property="folder">
+			<property name="platformVersion" value="${path::get-file-name(folder)}"/>
+			<echo message="Testing version ${platformVersion}"/>
+			<exec program="${basedir}\Build\Application\Dot42Tool.exe">
+				<arg value="-faea=${folder}\dot42.dll"/>
+			</exec>	
+		</foreach>
+	</target>
+
+	<target name="copy-vs2010-extension" description="Copy visual studio extension to local extension folder">
+		<foreach item="String" in="${targets}" delim="," property="target">
+			<copy todir="${environment::get-folder-path('LocalApplicationData')}\Microsoft\VisualStudio\10.0\Extensions\dot42\dot42 C# for ${target}\1.0">
+				<fileset basedir="${builddir}\Application\Extension\${target}">
+					<include name="**/*"/>
+				</fileset>
+			</copy>
+		</foreach>
+	</target>
+
+	<target name="check-forward-assemblies" description="Make sure all public system types are added to forward assemblies">
+		<foreach item="Folder" in="${builddir}\Application\Frameworks" property="folder">
+			<exec program="${basedir}\Build\Application\Dot42Tool.exe" failonerror="true">
+				<arg value="-chkfwa=${folder}\dot42.dll"/>
+			</exec>	
+		</foreach>
+	</target>
+
+	<target name="build-small" depends="clean, compile, obfuscate, verify, prepare-install">
+	</target>
+
+	<target name="build" depends="build-small, build-default-framework" description="Build clean">
+	</target>
+
+	<target name="build-all" depends="remove-installed-product, build-small, build-setuphelper, build-frameworks" description="Build clean with all frameworks">
+	</target>
+
+	<target name="compile-setup" depends="build-framework-registry-tree">    
+		<!-- Store GIT state -->
+		<mkdir dir="${builddir}\Setup"/>
+		<exec program="git.exe" output="${builddir}\Setup\GitStatus.log">
+			<arg value="describe"/>
+		</exec>
+		<!-- Build full setup -->
+		<foreach item="String" in="${targets}" delim="," property="target">
+			<innosetup script="${productdir}\Setup.iss" workingdir="${productdir}" defines="VS10;${target}"/>
+		</foreach>
+	</target>
+
+	<target name="build-test-setup" depends="build-all, compile-setup" description="Build clean with setup">
+	</target>
+
+	<target name="build-setup" depends="build-all, compile-setup" description="Build clean with setup and copy to release archive">
+	</target>
+
+	<target name="test" description="Run regression tests">
+		<nant buildfile="${basedir}\RegressionTests\Test.build" />
+	</target>
+
+</project>

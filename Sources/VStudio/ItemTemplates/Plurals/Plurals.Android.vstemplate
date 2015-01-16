@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Item" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
+  <TemplateData>
+    <Name>Plurals table resource</Name>
+    <Description>Plurals resource</Description>
+    <Icon></Icon>
+    <TemplateID>Dot42.Android.CSharp.Plurals</TemplateID>
+    <ProjectType>CSharp</ProjectType>
+    <DefaultName>Plurals.xml</DefaultName>
+    <TemplateGroupID>dot42</TemplateGroupID>
+    <NumberOfParentCategoriesToRollUp>0</NumberOfParentCategoriesToRollUp>
+  </TemplateData>
+  <TemplateContent>
+    <ProjectItem ReplaceParameters="true" ItemType="ValuesResource">Plurals.xml</ProjectItem>
+  </TemplateContent>
+</VSTemplate>

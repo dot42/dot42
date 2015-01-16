@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+
+  <TextView
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"
+      android:text="Starting with Android v3.0, menu's are displayed in the action bar. But you can do a lot more with it. Click on the Menu button to reveal the menu items on the action bar." />
+  <TextView
+      android:id="@+id/tbLog"
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"/>
+
+</LinearLayout>

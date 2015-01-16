@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+
+    <TextView
+      android:id="@+id/tbValue"
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"
+      android:text="0"
+      android:background="@drawable/border"/>
+
+  <TableLayout android:layout_width="fill_parent" android:layout_height="wrap_content" android:stretchColumns="0,1,2,3">
+    <TableRow android:layout_width="fill_parent" android:layout_height="wrap_content">
+      <Button android:id="@+id/cmd1" android:text="1"></Button>
+      <Button android:id="@+id/cmd2" android:text="2"></Button>
+      <Button android:id="@+id/cmd3" android:text="3"></Button>
+      <Button android:id="@+id/cmdDiv" android:text="/"></Button>
+    </TableRow>
+    <TableRow android:layout_width="fill_parent" android:layout_height="wrap_content">
+      <Button android:id="@+id/cmd4" android:text="4"></Button>
+      <Button android:id="@+id/cmd5" android:text="5"></Button>
+      <Button android:id="@+id/cmd6" android:text="6"></Button>
+      <Button android:id="@+id/cmdMul" android:text="*"></Button>
+    </TableRow>
+    <TableRow android:layout_width="fill_parent" android:layout_height="wrap_content">
+      <Button android:id="@+id/cmd7" android:text="7"></Button>
+      <Button android:id="@+id/cmd8" android:text="8"></Button>
+      <Button android:id="@+id/cmd9" android:text="9"></Button>
+      <Button android:id="@+id/cmdSub" android:text="-"></Button>
+    </TableRow>
+    <TableRow android:layout_width="fill_parent" android:layout_height="wrap_content">
+      <Button android:id="@+id/cmd0" android:text="0"></Button>
+      <Button android:id="@+id/cmdEnter" android:text="="></Button>
+      <Button android:id="@+id/cmdClear" android:text="C"></Button>
+      <Button android:id="@+id/cmdAdd" android:text="+"></Button>
+    </TableRow>
+  </TableLayout>
+  
+</LinearLayout>

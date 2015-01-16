@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Item" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
+  <TemplateData>
+    <Name>Manifest resource</Name>
+    <Description>Manifest resource</Description>
+    <Icon></Icon>
+    <TemplateID>Dot42.Android.CSharp.Manifest</TemplateID>
+    <ProjectType>CSharp</ProjectType>
+    <DefaultName>AndroidManifest.xml</DefaultName>
+    <TemplateGroupID>dot42</TemplateGroupID>
+    <NumberOfParentCategoriesToRollUp>0</NumberOfParentCategoriesToRollUp>
+  </TemplateData>
+  <TemplateContent>
+    <ProjectItem ReplaceParameters="true" ItemType="ManifestResource">AndroidManifest.xml</ProjectItem>
+  </TemplateContent>
+  <WizardExtension>
+    <Assembly>dot42.VStudio.Project.Android, Version=1.0.1.81, Culture=neutral, PublicKeyToken=0a72796057571e65</Assembly>
+    <FullClassName>Dot42.VStudio.Wizards.AndroidManifestWizard</FullClassName>
+  </WizardExtension>
+</VSTemplate>

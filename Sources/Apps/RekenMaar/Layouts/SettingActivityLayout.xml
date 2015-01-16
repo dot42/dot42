@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent"
+              android:orientation="vertical"
+              style="@style/ApplicationTheme">
+  <!-- Commentaar -->
+  <TextView
+    android:id="@+id/OptionMultiplication"
+    style="@style/ViewStyle_WrapBoth"
+    android:text="@string/settings_div_mul_title"
+    android:layout_centerHorizontal="true"
+    android:layout_margin="10dp"
+    />
+  <TextView
+    android:id="@+id/tableChoosenTxt"
+    style="@style/ViewStyle_WrapBoth"
+    android:text="@string/settings_choosen_txt"
+    android:layout_below="@id/OptionMultiplication"/>
+  <TextView
+    android:id="@+id/tableChoosen"
+    android:layout_toRightOf="@+id/tableChoosenTxt"
+    style="@style/ViewStyle_WrapBoth"
+    android:layout_below="@id/OptionMultiplication"/>
+  <SeekBar
+    android:id="@+id/seekbar"
+    android:max="20"
+    style="@style/ViewStyle_FillWidth"
+    android:layout_centerHorizontal="true"
+    android:layout_below="@+id/tableChoosen"/>
+  <TextView
+    android:id="@+id/min"
+    android:layout_alignParentLeft="true"
+    android:layout_below="@+id/seekbar"
+    style="@style/ViewStyle_WrapBoth"
+    android:text="0"/>
+  <TextView
+    android:id="@+id/max"
+    android:layout_alignParentRight="true"
+    android:layout_below="@+id/seekbar"
+    style="@style/ViewStyle_WrapBoth"
+    android:text="20"/>
+
+  <LinearLayout
+    android:id="@+id/layoutSwitch"
+    style="@style/ViewStyle_WrapBoth"
+    android:layout_below="@id/min"
+    android:layout_margin="20dp"
+    android:orientation="horizontal"
+    >
+    <TextView
+      style="@style/ViewStyle_WrapBoth"
+      android:text="@string/tables_until"/>
+    <Switch
+      android:id="@+id/isRandom"
+      style="@style/ViewStyle_WrapBoth"
+      android:textOn="@string/on_txt"
+      android:textOff="@string/off_txt"/>
+  </LinearLayout>
+
+  <TextView
+    android:id="@+id/OptionAddition"
+    android:layout_below="@id/layoutSwitch"
+    style="@style/ViewStyle_WrapBoth"
+    android:text="@string/settings_add_sub_title"
+    android:layout_centerHorizontal="true"
+    android:layout_margin="30dp" />
+
+  <RelativeLayout
+    android:id="@+id/layoutCountingTo"
+    android:layout_below="@id/OptionAddition"
+    android:layout_marginLeft="50dp"
+    style="@style/ViewStyle_WrapBoth">
+    <TextView
+      android:id="@+id/CountingToTxt"
+      style="@style/ViewStyle_WrapBoth"
+      android:text="@string/count_until"/>
+    <RadioGroup
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/CountingToTxt"
+        android:orientation="vertical">
+      <RadioButton android:id="@+id/To10"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="10"/>
+      <RadioButton android:id="@+id/To50"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="50"/>
+      <RadioButton android:id="@+id/To100"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="100"/>
+      <RadioButton android:id="@+id/To500"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="500"/>
+      <RadioButton android:id="@+id/To1000"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="1000"/>
+    </RadioGroup>
+  </RelativeLayout>
+  <RelativeLayout
+    android:id="@+id/layoutCountingWith"
+    android:layout_toRightOf="@id/layoutCountingTo"
+    android:layout_below="@id/OptionAddition"
+    android:layout_marginLeft="150dp"
+    style="@style/ViewStyle_WrapBoth">
+    <TextView
+      android:id="@+id/CountingWithTxt"
+      style="@style/ViewStyle_WrapBoth"
+      android:text="@string/count_with"/>
+    <RadioGroup
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/CountingWithTxt"
+        android:orientation="vertical">
+      <RadioButton android:id="@+id/With0To10"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="0 - 10"/>
+      <RadioButton android:id="@+id/With10To20"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="10 - 20"/>
+      <RadioButton android:id="@+id/With20To50"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="20 - 50"/>
+      <RadioButton android:id="@+id/With50To100"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="50 - 100"/>
+    </RadioGroup>
+  </RelativeLayout>
+  <RelativeLayout
+          android:layout_below="@id/layoutCountingWith"
+          style="@style/ViewStyle_WrapBoth"
+          android:layout_centerHorizontal="true">
+    <Button
+      android:id="@+id/Cancel"
+      android:text="@string/button_cancel"
+      android:layout_toRightOf="@id/Ok"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="100dp"/>
+    <Button
+      android:id="@+id/Ok"
+      android:text="@string/button_ok"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="100dp"/>
+  </RelativeLayout>
+</RelativeLayout>

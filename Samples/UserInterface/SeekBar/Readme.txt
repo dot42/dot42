@@ -1,0 +1,1 @@
+This samples shows the basic use of a seekbar.

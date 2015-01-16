@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<project name="Drojd-Compiler-Test" default="test" basedir=".">
+
+	<property name="nant.settings.currentframework" value="net-4.0" />
+
+	<property name="basedir" value="${project::get-base-directory()}" />
+	<property name="rootdir" value="${basedir}\..\.." />
+	<include buildfile="${basedir}\..\..\Common\Build\Common.build"/>
+	<include buildfile="${basedir}\..\Common.include"/>
+
+	<target name="prepare">
+		<echo message="namespace RestService { partial class UnitTests { private const string ipAddress = &quot;${buildtools::get-ip-address()}&quot;; } }" file="${basedir}\Build\Url.cs"/>
+		<echo message="namespace RestService { partial class DataUnitTests { private const string ipAddress = &quot;${buildtools::get-ip-address()}&quot;; } }" file="${basedir}\Build\DataUrl.cs"/>
+	</target>
+	
+	<target name="build-server">
+		<msbuild project="${basedir}\RestService\RestService.sln" target="Rebuild">
+			<property name="Dot42ExtensionsPath" value="${Dot42ExtensionsPath}" />
+			<property name="Dot42Folder" value="${Dot42Folder}" />
+			<property name="Dot42ReferenceAssembliesFolder" value="${Dot42ReferenceAssembliesFolder}" />
+		</msbuild>
+	</target>
+	
+	<target name="test" depends="prepare, build-server">
+		<trycatch>
+			<try>
+				<loadtasks assembly="${basedir}\RestService\bin\Debug\RestService.dll"/>
+				<rest-service action="start"/>
+				<msbuild project="${basedir}\WcfClient.sln" target="Rebuild">
+					<property name="Dot42ExtensionsPath" value="${Dot42ExtensionsPath}" />
+					<property name="Dot42Folder" value="${Dot42Folder}" />
+					<property name="Dot42ReferenceAssembliesFolder" value="${Dot42ReferenceAssembliesFolder}" />
+				</msbuild>
+				<rest-service action="stop"/>
+			</try>
+			<finally>
+				<exec program="${dot42tool}">
+					<arg line="-unapk ${basedir}"/>
+				</exec>
+			</finally>
+		</trycatch>
+	</target>
+	
+	<target name="set-access-rights" description="Run this once for each user on this PC" runas="1">
+		<exec program="netsh.exe">
+			<arg value="http"/>
+			<arg value="add"/>
+			<arg value="urlacl"/>
+			<arg value="url=http://+:9222/RestService"/>
+			<arg value="user=${environment::get-user-name()}"/>
+		</exec>
+	</target>
+	
+	<target name="test-ip-address" description="Show the local IP address">
+		<echo message="Local IP address ${buildtools::get-ip-address()}"/>
+	</target>
+	
+</project>

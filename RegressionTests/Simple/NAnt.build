@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<project name="RegressionTest" default="build" basedir=".">
+
+	<property name="nant.settings.currentframework" value="net-4.0" />
+
+	<property name="basedir" value="${project::get-base-directory()}" />
+	<property name="configuration" value="Debug" />
+	
+	<property name="rootdir" value="${basedir}\..\.."/>
+	<property name="appdir" value="${rootdir}\Build\Application"/>
+	<property name="frameworkdir" value="${rootdir}\Build\Framework\v4.0.3"/>
+
+	<include buildfile="${rootdir}\Common\Build\Common.build"/>
+
+	<target name="clean" description="remove all generated files">
+		<!-- Remove all working files -->
+		<delete>
+			<fileset basedir="${basedir}">
+				<include name="**/obj/**" />
+				<include name="**/bin/**" />
+				<include name="**/out/**" />
+				<include name="**/output/**" />
+				<include name="**/*.sln.cache" />
+				<include name="**/*.suo" />
+				<include name="**/*.user" />
+				<include name="Build/**" />
+			</fileset>
+		</delete>
+	</target>
+
+	<target name="compile" description="Compile all">
+		<csc target="library" output="${basedir}\Out\Simple.dll" nostdlib="true">
+			<sources>
+				<include name="*.cs"/>
+			</sources>
+			<references>
+				<include name="${frameworkdir}\mscorlib.dll"/>
+				<include name="${frameworkdir}\System.dll"/>
+			</references>
+		</csc>
+	</target>
+
+	<target name="dex" description="Compile to dex">
+		<exec program="${appdir}\DrojdCompiler.exe">
+			<arg value="-a=${basedir}\Out\Simple.dll"/>
+			<arg value="-out=${basedir}\Out\Code"/>
+			<arg value="-l=${frameworkdir}"/>
+		</exec>
+	</target>
+
+	<target name="manifest" description="Compile AndroidManifest.xml">
+		<exec program="${appdir}\DrojdCompiler.exe">
+			<arg value="-m=${basedir}\Out\Code\AndroidManifest.xml"/>
+			<arg value="-out=${basedir}\Out"/>
+			<arg value="-l=${frameworkdir}"/>
+		</exec>
+	</target>
+
+	<target name="apk" description="Combine into APB">
+		<exec program="${appdir}\ApkBuilder.exe">
+			<arg value="-pkg=${basedir}\Out\Simple.apk"/>
+			<arg value="-m=${basedir}\Out\AndroidManifest.xml"/>
+			<arg value="-c=${basedir}\Out\Code\classes.dex"/>
+			<arg value="-pfx=${basedir}\..\SimpleMSBuild\Certificate.pfx"/>
+			<arg value="-pwd=helloworld"/>
+		</exec>
+	</target>
+
+	<target name="build" depends="clean, compile, dex, manifest, apk" description="Build clean">
+	</target>
+</project>

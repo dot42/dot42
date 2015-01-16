@@ -1,0 +1,1 @@
+This sample shows how to draw simple animated graphics on a Surface.

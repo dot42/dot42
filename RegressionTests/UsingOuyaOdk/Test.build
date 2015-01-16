@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<project name="dot42-UsingSuportLibrary-Test" default="test" basedir=".">
+
+	<property name="nant.settings.currentframework" value="net-4.0" />
+
+	<property name="basedir" value="${project::get-base-directory()}" />
+	<property name="rootdir" value="${basedir}\..\.." />
+	<include buildfile="${basedir}\..\Common.include"/>
+	<include buildfile="${rootdir}\Common\Build\Common.build"/>
+
+	<property name="classdir" value="${basedir}\Out\Classes" />
+	<property name="jarfile" value="${basedir}\Libs\Test.jar" />
+	<property name="srcdir" value="${basedir}\JavaSources" />
+
+	<target name="clean" description="remove all generated files">
+		<!-- Remove all working files -->
+		<delete>
+			<fileset basedir="${basedir}">
+				<include name="**/obj/**" />
+				<include name="**/bin/**" />
+				<include name="**/out/**" />
+				<include name="**/*.sln.cache" />
+				<include name="**/*.suo" />
+				<include name="**/*.user" />
+			</fileset>
+		</delete>
+	</target>
+
+	<target name="build" depends="clean">
+		<trycatch>
+			<try>
+				<msbuild project="${basedir}\UsingOuyaOdk.sln" target="Rebuild">
+					<property name="Dot42ExtensionsPath" value="${Dot42ExtensionsPath}" />
+					<property name="Dot42Folder" value="${Dot42Folder}" />
+					<property name="Dot42ReferenceAssembliesFolder" value="${Dot42ReferenceAssembliesFolder}" />
+				</msbuild>
+			</try>
+			<finally>
+				<exec program="${dot42tool}">
+					<arg line="-unapk ${basedir}"/>
+				</exec>
+			</finally>
+		</trycatch>
+	</target>
+	
+	<target name="test" depends="build" description="Build and test"/>
+
+</project>

@@ -1,0 +1,31 @@
+﻿<?xml version="1.0"?>
+<project name="Common-VC" description="Common VC++ properties">
+
+	<readregistry property="CurrentSdkVersion" key="SOFTWARE\Microsoft\Microsoft SDKs\Windows\CurrentVersion" />
+	<property name="sdkversion" value="${CurrentSdkVersion}" overwrite="false"/>
+	<readregistry property="sdkdir" key="SOFTWARE\Microsoft\Microsoft SDKs\Windows\${sdkversion}\InstallationFolder" />
+	<!-- Tools changes for frameworks -->
+	<readregistry property="sdktoolsdir" key="SOFTWARE\Microsoft\Microsoft SDKs\Windows\${sdkversion}\WinSDK-NetFx40Tools\InstallationFolder" failonerror="false" />
+	<property name="sdktoolsdir" value="${sdkdir}\bin" if="${string::get-length(sdktoolsdir) == 0}" />
+	<readregistry property="sdk7dir" key="SOFTWARE\Microsoft\Microsoft SDKs\Windows\v7.0A\InstallationFolder" />
+	<property name="rcdir" value="${sdk7dir}\bin" />
+
+	<property name='vcdir' value="${environment::get-variable('VS90COMNTOOLS')}\..\..\Vc" if="${environment::variable-exists('VS90COMNTOOLS')}"/>
+	<property name='vcdir' value="${environment::get-variable('VS100COMNTOOLS')}\..\..\Vc" if="${environment::variable-exists('VS100COMNTOOLS')}"/>
+	<property name='vcinc' value='${vcdir}\include'/>
+	<property name='vc32lib' value='${vcdir}\lib'/>
+	<property name='vc64lib' value='${vcdir}\lib\amd64'/>
+	<property name='mfcinc' value='${vcdir}\atlmfc\include'/>
+	<property name='mfc32lib' value='${vcdir}\atlmfc\lib'/>
+	<property name='mfc64lib' value='${vcdir}\atlmfc\lib\amd64'/>
+	<property name='w32inc' value='${vcdir}\PlatformSDK\Include'/>
+	<property name='w32lib' value='${vcdir}\PlatformSDK\lib'/>
+	<property name='w64lib' value='${vcdir}\PlatformSDK\lib\AMD64'/>
+	<property name='sdkinc' value='${sdkdir}\Include'/>
+	<property name='sdk7inc' value='${sdk7dir}\Include'/>
+	<property name='sdk32lib' value='${sdkdir}\lib'/>
+	<property name='sdk64lib' value='${sdkdir}\lib\x64'/>
+	<property name='sdk732lib' value='${sdk7dir}\lib'/>
+	<property name='sdk764lib' value='${sdk7dir}\lib\x64'/>
+
+</project>

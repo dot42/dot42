@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Info>
+  <Manufacturer name="Acer">
+    Go to the <a href="http://www.acer.com/worldwide/support/mobile.html">Acer Mobile download site</a> and download the USB driver for your device.
+    Once you've installed the driver, you can connect your device using the USB cable.
+  </Manufacturer>  
+  <Manufacturer name="Alcatel One Touch">
+    Go to the <a href="http://www.alcatelonetouch.com/global-en/support/faq/usbdriver.html">Alcatel One Touch site</a> and
+	click on question 1. Then click on the Android USB driver link.
+    Connect your device using the USB cable.
+    Then unzip and use the Windows Device Manager to update the driver.
+  </Manufacturer>
+  <Manufacturer name="Archos">
+    Download the USB driver from the <a href="ftp://support.archos.com/ARCHOS%20it/ADB/adb_winusb_driver.zip">Archos FTP site</a>.
+    Connect your device using the USB cable.
+    Then unzip and use the Windows Device Manager to update the driver.
+  </Manufacturer>
+  <Manufacturer name="Asus">
+    Go to the <a href="http://support.asus.com/download/">Asus support site</a> and download the USB driver for your device.
+    Once you've installed the driver, you can connect your device using the USB cable.
+  </Manufacturer>
+  <Manufacturer name="Google">
+    Go to the <a href="http://developer.android.com/sdk/win-usb.html">Google USB driver site</a> and follow on screen instructions for downloading and installing the Google USB driver.
+    Once you've installed the driver, you can connect your device using the USB cable.
+  </Manufacturer>
+  <Manufacturer name="HTC">
+    Go to the <a href="http://www.htc.com/">HTC site</a> click on the Support table to select your device. Then download the USB driver for your device.
+    Once you've installed the driver, you can connect your device using the USB cable.
+  </Manufacturer>
+  <Manufacturer name="Intel">
+    Go to the <a href="http://www.intel.com/software/android">Intel Android site</a> click on Intel USB Driver for Android Devices.
+    Then download the USB driver.
+    Once you've installed the driver, you can connect your device using the USB cable.
+  </Manufacturer>
+  <Manufacturer name="Lenovo">
+    Go to the <a href="http://developer.lenovomm.com/developer/download.jsp">Lenovo developer site (Chinese)</a>.
+    Then download the USB driver for your device.
+    Once you've installed the driver, you can connect your device using the USB cable.
+  </Manufacturer>
+  <Manufacturer name="LGE">
+    Go to the <a href="http://www.lg.com/us/mobile-phones/mobile-support/mobile-lg-mobile-phone-support.jsp">LG Mobile Support site</a>.
+    Then download the USB driver for your device.
+    Once you've installed the driver, you can connect your device using the USB cable.
+  </Manufacturer>
+  <Manufacturer name="Motorola">
+    Go to the <a href="http://developer.motorola.com/docstools/USB_Drivers/">Motorola Tools site</a>. Then download the USB driver for your device.
+    Once you've installed the driver, you can connect your device using the USB cable.
+  </Manufacturer>
+  <Manufacturer name="Samsung">
+    Go to the <a href="http://www.samsung.com/kies">Samsung Kies site</a>. Download and install Kies.
+    This will install the needed USB driver. Once installed, you can connect your device using the USB cable. Then start Kies once.
+  </Manufacturer>
+  <Manufacturer name="Sony">
+    Go to the <a href="http://developer.sonymobile.com/downloads/drivers/">Sony Mobile Developer site</a>. Select the right download for your device.
+    Then unzip and install using the Windows Device manager.
+    Once installed, you can connect your device using the USB cable. 
+  </Manufacturer>
+  <Manufacturer name="ZTE">
+    Go to the <a href="http://support.zte.com.cn/support/news/NewsDetail.aspx?newsId=1000442">ZTE support site</a>. Then download the USB driver for your device.
+    Once you've installed the driver, you can connect your device using the USB cable.
+  </Manufacturer>
+</Info>

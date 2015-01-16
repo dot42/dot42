@@ -1,0 +1,25 @@
+﻿<?xml version="1.0"?>
+<project name="All-GitHub-Issue-Tests" default="test" basedir=".">
+
+	<property name="basedir" value="${project::get-base-directory()}" />
+	<property name="rootdir" value="${basedir}\..\.." />
+	<include buildfile="${basedir}\..\Common.include"/>
+
+	<target name="test" description="Test all cases" verbose="false"> 
+		<trycatch>
+			<try>
+				<nant failonerror="true" verbose="false">
+					<buildfiles>
+						<include name="**/Build.build" />
+					</buildfiles>
+				</nant>
+			</try>
+			<finally>
+				<exec program="${dot42tool}">
+					<arg value="-unapk"/>
+					<arg value="${basedir}"/>
+				</exec>
+			</finally>
+		</trycatch>
+	</target>
+</project>

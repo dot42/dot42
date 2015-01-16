@@ -1,0 +1,27 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+# SharpDevelop 4.3
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientApp", "ClientApp\ClientApp.csproj", "{971077AB-9448-407D-88CE-B27E4B904DBC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TodoServer", "Server\TodoServer.csproj", "{F52E18C6-EEC9-43B5-A28C-7D51432B4598}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{971077AB-9448-407D-88CE-B27E4B904DBC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{971077AB-9448-407D-88CE-B27E4B904DBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{971077AB-9448-407D-88CE-B27E4B904DBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{971077AB-9448-407D-88CE-B27E4B904DBC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F52E18C6-EEC9-43B5-A28C-7D51432B4598}.Debug|Any CPU.Build.0 = Debug|x86
+		{F52E18C6-EEC9-43B5-A28C-7D51432B4598}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{F52E18C6-EEC9-43B5-A28C-7D51432B4598}.Release|Any CPU.Build.0 = Release|x86
+		{F52E18C6-EEC9-43B5-A28C-7D51432B4598}.Release|Any CPU.ActiveCfg = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

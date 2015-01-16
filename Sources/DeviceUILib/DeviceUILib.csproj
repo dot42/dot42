@@ -1,0 +1,163 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{13F1BB11-B759-BB59-44DE-7AD5C0B4BB22}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Dot42.DeviceLib.UI</RootNamespace>
+    <AssemblyName>dot42.DeviceUILib</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+    <SignAssembly>false</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\Dot42.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Version.cs" />
+    <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="BlackBerryNotifications.cs" />
+    <Compile Include="ConnectingTcpipControl.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="ConnectTcpipForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ConnectTcpipForm.Designer.cs">
+      <DependentUpon>ConnectTcpipForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="AndroidDeviceItem.cs" />
+    <Compile Include="BlackBerryDeviceItem.cs" />
+    <Compile Include="ConnectBlackBerryForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ConnectBlackBerryForm.Designer.cs">
+      <DependentUpon>ConnectBlackBerryForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="JdwpProcessListView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="JdwpProcessListView.Designer.cs">
+      <DependentUpon>JdwpProcessListView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="LogCatControl.Filters.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="DeviceItem.cs" />
+    <Compile Include="DevicesListView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="DevicesListView.Designer.cs">
+      <DependentUpon>DevicesListView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="LogCatControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="LogCatControl.Designer.cs">
+      <DependentUpon>LogCatControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="LogCatForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="LogCatForm.Designer.cs">
+      <DependentUpon>LogCatForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AdbLib\AdbLib.csproj">
+      <Project>{13F1BB11-B71A-AA59-44DE-7AD5C0B4BB22}</Project>
+      <Name>AdbLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\BarDeployLib\BarDeployLib.csproj">
+      <Project>{13F1BB11-B27A-54DF-44DE-7AD263BFBB22}</Project>
+      <Name>BarDeployLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DeviceLib\DeviceLib.csproj">
+      <Project>{13F1BB11-B71A-A349-4BEE-7AD5C023BB22}</Project>
+      <Name>DeviceLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Graphics\Graphics.csproj">
+      <Project>{13F134AD-A566-E5B2-2FE7-7AD5C0B4A386}</Project>
+      <Name>Graphics</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SharedUI\SharedUI.csproj">
+      <Project>{1456BD11-4559-BB59-44DE-7AD5C0B4BB22}</Project>
+      <Name>SharedUI</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Utility\Utility.csproj">
+      <Project>{13F162A6-F530-40B3-1234-7AD5C0B4A386}</Project>
+      <Name>Utility</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ConnectingTcpipControl.resx">
+      <DependentUpon>ConnectingTcpipControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ConnectTcpipForm.resx">
+      <DependentUpon>ConnectTcpipForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ConnectBlackBerryForm.resx">
+      <DependentUpon>ConnectBlackBerryForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="JdwpProcessListView.resx">
+      <DependentUpon>JdwpProcessListView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="DevicesListView.resx">
+      <DependentUpon>DevicesListView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="LogCatControl.resx">
+      <DependentUpon>LogCatControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="LogCatForm.resx">
+      <DependentUpon>LogCatForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy /Y $(TargetDir)*.* $(SolutionDir)\Build\Application\</PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
