@@ -12,6 +12,7 @@
 
 	<property name='vcdir' value="${environment::get-variable('VS90COMNTOOLS')}\..\..\Vc" if="${environment::variable-exists('VS90COMNTOOLS')}"/>
 	<property name='vcdir' value="${environment::get-variable('VS100COMNTOOLS')}\..\..\Vc" if="${environment::variable-exists('VS100COMNTOOLS')}"/>
+	<property name='vcdir' value="${environment::get-variable('VS110COMNTOOLS')}\..\..\Vc" if="${environment::variable-exists('VS110COMNTOOLS')}"/>
 	<property name='vcinc' value='${vcdir}\include'/>
 	<property name='vc32lib' value='${vcdir}\lib'/>
 	<property name='vc64lib' value='${vcdir}\lib\amd64'/>

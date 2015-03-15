@@ -16,12 +16,14 @@
     <GenerateAndroidManifest>true</GenerateAndroidManifest>
     <ApkFilename>KiloBoltRobotGame.apk</ApkFilename>
     <PackageName>com.KiloBoltRobotGame</PackageName>
-    <ApkCertificatePath>..\..\Samples.pfx</ApkCertificatePath>
-    <ApkCertificateThumbprint>A6146178A65E8690AB503F560C9C0EDBEB16ED8D</ApkCertificateThumbprint>
+    <ApkCertificatePath>C:\Users\Olaf\Documents\KnutWG - Android-SelfSignedCertificate.pfx</ApkCertificatePath>
+    <ApkCertificateThumbprint>367EF983FCB50B5C4592B9807762EE42EF8D1E06</ApkCertificateThumbprint>
     <ProjectTypeGuids>{337B7DB7-2D1E-448D-BEBF-17E887A46E37};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
     <Dot42ExtensionsPath Condition=" '$(Dot42ExtensionsPath)' == '' ">$(Registry:HKEY_CURRENT_USER\SOFTWARE\TallApplications\Dot42@ExtensionsPath)</Dot42ExtensionsPath>
     <Dot42ExtensionsPath Condition=" '$(Dot42ExtensionsPath)' == '' ">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\TallApplications\Dot42@ExtensionsPath)</Dot42ExtensionsPath>
     <AfterBuildDependsOn Condition=" '$(BuildingInsideVisualStudio)' != 'true'">Install</AfterBuildDependsOn>
+    <TargetSdkAndroidVersion />
+    <GenerateWcfProxy>false</GenerateWcfProxy>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Platform)' == 'AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>

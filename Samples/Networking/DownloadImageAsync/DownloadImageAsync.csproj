@@ -12,7 +12,7 @@
     <RootNamespace>dot42AppNUnit</RootNamespace>
     <AssemblyName>dot42AppNUnit</AssemblyName>
     <TargetFrameworkIdentifier>Android</TargetFrameworkIdentifier>
-    <TargetFrameworkVersion>v4.0.3</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <AndroidVersion>$(TargetFrameworkVersion)</AndroidVersion>
     <SupportedCultures>
     </SupportedCultures>
@@ -22,8 +22,8 @@
     <PackageName>com.DownloadImageAsync</PackageName>
     <Dot42ExtensionsPath Condition=" '$(Dot42ExtensionsPath)' == '' ">$(Registry:HKEY_CURRENT_USER\SOFTWARE\dot42\Android@ExtensionsPath)</Dot42ExtensionsPath>
     <Dot42ExtensionsPath Condition=" '$(Dot42ExtensionsPath)' == '' ">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\dot42\Android@ExtensionsPath)</Dot42ExtensionsPath>
-    <ApkCertificatePath>..\Samples.pfx</ApkCertificatePath>
-    <ApkCertificateThumbprint>A6146178A65E8690AB503F560C9C0EDBEB16ED8D</ApkCertificateThumbprint>
+    <ApkCertificatePath>C:\Users\Olaf\Documents\KnutWG - Android-SelfSignedCertificate.pfx</ApkCertificatePath>
+    <ApkCertificateThumbprint>367EF983FCB50B5C4592B9807762EE42EF8D1E06</ApkCertificateThumbprint>
     <TargetSdkAndroidVersion />
     <GenerateWcfProxy>false</GenerateWcfProxy>
   </PropertyGroup>
