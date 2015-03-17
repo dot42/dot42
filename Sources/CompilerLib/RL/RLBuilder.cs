@@ -11,7 +11,7 @@ using Dot42.FrameworkDefinitions;
 namespace Dot42.CompilerLib.RL
 {
     /// <summary>
-    /// RL vuilder extension methods.
+    /// RL builder extension methods.
     /// </summary>
     internal static class RLBuilder
     {
@@ -129,6 +129,8 @@ namespace Dot42.CompilerLib.RL
 
             if (!type.IsGenericParameter)
             {
+                // TODO: (olaf): check if we should actually do the check_cast 
+                //               if we have a reference to a generic type.
                 // Just cast
                 var checkCast = builder.Add(sequencePoint, RCode.Check_cast, type.GetReference(targetPackage), source);
                 return new RLRange(checkCast, source);
