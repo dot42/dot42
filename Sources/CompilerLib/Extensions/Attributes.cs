@@ -30,8 +30,9 @@ namespace Dot42.CompilerLib.Extensions
             if (!provider.HasCustomAttributes)
                 return Enumerable.Empty<CustomAttribute>();
             return provider.CustomAttributes.Where(x =>
-                (x.AttributeType.Namespace == AttributeConstants.Dot42AttributeNamespace) &&
-                (x.AttributeType.Name == AttributeConstants.IncludeAttributeName));
+                (x.AttributeType.Namespace == AttributeConstants.Dot42AttributeNamespace) 
+                && (x.AttributeType.Name == AttributeConstants.IncludeAttributeName
+                 || x.AttributeType.Name == AttributeConstants.IncludeTypeAttributeName));
         }
 
         /// <summary>

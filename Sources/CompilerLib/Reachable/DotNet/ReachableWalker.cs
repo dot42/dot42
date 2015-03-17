@@ -236,7 +236,7 @@ namespace Dot42.CompilerLib.Reachable.DotNet
         }
 
         /// <summary>
-        /// Mark all eachable items in argument as such.
+        /// Mark all reachable items in argument as such.
         /// </summary>
         private static void Walk(ReachableContext context, EventReference evt)
         {
@@ -261,7 +261,7 @@ namespace Dot42.CompilerLib.Reachable.DotNet
         }
 
         /// <summary>
-        /// Mark all eachable items in argument as such.
+        /// Mark all reachable items in argument as such.
         /// </summary>
         private static void Walk(ReachableContext context, FieldReference field)
         {
@@ -299,7 +299,7 @@ namespace Dot42.CompilerLib.Reachable.DotNet
         }
 
         /// <summary>
-        /// Mark all eachable items in argument as such.
+        /// Mark all reachable items in argument as such.
         /// </summary>
         private static void Walk(ReachableContext context, MethodReference method)
         {
@@ -396,7 +396,7 @@ namespace Dot42.CompilerLib.Reachable.DotNet
         }
 
         /// <summary>
-        /// Mark all eachable items in argument as such.
+        /// Mark all reachable items in argument as such.
         /// </summary>
         private static void Walk(ReachableContext context, MethodBody body)
         {
@@ -576,7 +576,7 @@ namespace Dot42.CompilerLib.Reachable.DotNet
         }
 
         /// <summary>
-        /// Mark all eachable items in argument as such.
+        /// Mark all reachable items in argument as such.
         /// </summary>
         private static void Walk(ReachableContext context, ParameterReference param)
         {
@@ -595,7 +595,7 @@ namespace Dot42.CompilerLib.Reachable.DotNet
         }
 
         /// <summary>
-        /// Mark all eachable items in argument as such.
+        /// Mark all reachable items in argument as such.
         /// </summary>
         private static void Walk(ReachableContext context, ICustomAttributeProvider provider)
         {

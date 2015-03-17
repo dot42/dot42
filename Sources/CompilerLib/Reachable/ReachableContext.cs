@@ -401,7 +401,10 @@ namespace Dot42.CompilerLib.Reachable
                 // Look for Include attribute with ApplyToMembers set.
                 foreach (var attr in type.GetIncludeAttributes())
                 {
-                    var arg = attr.Properties.Where(x => x.Name == AttributeConstants.IncludeAttributeApplyToMembersName).Select(x => (bool)x.Argument.Value).FirstOrDefault();
+                    bool arg = attr.AttributeType.Namespace == AttributeConstants.Dot42AttributeNamespace
+                            && attr.AttributeType.Name == AttributeConstants.IncludeTypeAttributeName;
+
+                    arg = arg || attr.Properties.Where(x => x.Name == AttributeConstants.IncludeAttributeApplyToMembersName).Select(x => (bool)x.Argument.Value).FirstOrDefault();
                     if (arg)
                     {
                         target.Add(new TypeConditionInclude(member, null));                        

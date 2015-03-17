@@ -465,7 +465,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
                                 ann.Arguments.Add(new AnnotationArgument("Get", new[] { pair.Value[0].DexMethod }));
                             if (pair.Value[1] != null)
                                 ann.Arguments.Add(new AnnotationArgument("Set", new[] { pair.Value[1].DexMethod }));
-                            //if (attributes != null) 
+                            //if (attributes != null)
                             //    ann.Arguments.Add(new AnnotationArgument("Attributes", new[] { attributes }));
                             propertyAnnotations.Add(ann);
                         }
