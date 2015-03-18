@@ -10,6 +10,9 @@ namespace Dot42.CompilerLib.Ast.Optimizer
         #region TransformDecimalCtorToConstant
         static bool TransformDecimalCtorToConstant(List<AstNode> body, AstExpression expr, int pos)
         {
+            // TODO: olaf: Ldc_Decimal is not handled in AstCompilerVisitor,
+            //             would be nice if these optimizations could actually be made to work.
+            return false;
             XMethodReference r;
             List<AstExpression> args;
             if (expr.Match(AstCode.Newobj, out r, out args) && r.DeclaringType.IsSystemDecimal())
