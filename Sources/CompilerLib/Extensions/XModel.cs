@@ -172,7 +172,11 @@ namespace Dot42.CompilerLib.Extensions
                         throw new XResolutionException(typeofT);
                     var className = targetPackage.NameConverter.GetConvertedFullName(typeofTDef);
                     var classDef = targetPackage.DexFile.GetClass(className);
-                    return classDef.SuperClass;
+                    if(classDef.SuperClass != null)
+                        return classDef.SuperClass;
+                    // olaf: not sure what i'm doing here, but it might be better 
+                    //       to return something at all?
+                    return classDef; 
                 }
             }
 
