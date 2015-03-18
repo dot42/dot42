@@ -465,8 +465,12 @@ namespace Dot42.CompilerLib.Structure.DotNet
                                 ann.Arguments.Add(new AnnotationArgument("Get", new[] { pair.Value[0].DexMethod }));
                             if (pair.Value[1] != null)
                                 ann.Arguments.Add(new AnnotationArgument("Set", new[] { pair.Value[1].DexMethod }));
-                            //if (attributes != null)
-                            //    ann.Arguments.Add(new AnnotationArgument("Attributes", new[] { attributes }));
+                            if (attributes != null)
+                            {
+                                // olaf: find out how to get this to work.
+                                Console.Error.WriteLine("Warning: in class {0} property {1}: custom attributes for properties not supported at the moment.", Class.Name, pair.Key.Name);
+                                //ann.Arguments.Add(new AnnotationArgument("Attributes", new[] {attributes}));
+                            }
                             propertyAnnotations.Add(ann);
                         }
 

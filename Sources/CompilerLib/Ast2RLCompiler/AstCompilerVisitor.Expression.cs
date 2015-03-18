@@ -1416,6 +1416,7 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                     {
                         if (type.IsGenericParameter)
                         {
+                            // (olaf: todo: here the faulty call gets inserted into the ast)
                             // Cast to declaring type of method
                             this.Add(node.SourceLocation, RCode.Check_cast, targetMethodRef.DeclaringType.GetReference(targetPackage), arguments[0]);
                         }
