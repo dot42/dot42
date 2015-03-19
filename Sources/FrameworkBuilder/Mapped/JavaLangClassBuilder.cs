@@ -80,6 +80,34 @@ namespace Dot42.FrameworkBuilder.Mapped
                     renamer.Rename(method, "JavaGetMethods");
                     method.EditorBrowsableState = EditorBrowsableState.Never;
                     break;
+                case "GetDeclaredConstructor":
+                    renamer.Rename(method, "JavaGetDeclaredConstructor");
+                    method.EditorBrowsableState = EditorBrowsableState.Never;
+                    break;
+                case "GetDeclaredConstructors":
+                    renamer.Rename(method, "JavaGetDeclaredConstructors");
+                    method.EditorBrowsableState = EditorBrowsableState.Never;
+                    break;
+                case "GetDeclaredField":
+                    renamer.Rename(method, "JavaGetDeclaredField");
+                    method.EditorBrowsableState = EditorBrowsableState.Never;
+                    break;
+                case "GetDeclaredFields":
+                    renamer.Rename(method, "JavaGetDeclaredFields");
+                    method.EditorBrowsableState = EditorBrowsableState.Never;
+                    break;
+                case "GetDeclaredInterfaces":
+                    renamer.Rename(method, "JavaGetDeclaredInterfaces");
+                    method.EditorBrowsableState = EditorBrowsableState.Never;
+                    break;
+                case "GetDeclaredMethod":
+                    renamer.Rename(method, "JavaGetDeclaredMethod");
+                    method.EditorBrowsableState = EditorBrowsableState.Never;
+                    break;
+                case "GetDeclaredMethods":
+                    renamer.Rename(method, "JavaGetDeclaredMethods");
+                    method.EditorBrowsableState = EditorBrowsableState.Never;
+                    break;
                 case "GetName":
                     renamer.Rename(method, "JavaGetName");
                     method.EditorBrowsableState = EditorBrowsableState.Never;

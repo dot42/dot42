@@ -20,7 +20,7 @@ namespace Dot42.FrameworkBuilder.Mapped
         /// Default ctor
         /// </summary>
         internal JavaLangReflectFieldBuilder(ClassFile cf)
-            : base(cf, "System.Reflection.FieldInfo", "java/lang/reflect/Field")
+            : base(cf, "System.Reflection.JavaField", "java/lang/reflect/Field")
         {
         }
 

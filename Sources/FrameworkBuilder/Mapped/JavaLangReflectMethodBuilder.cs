@@ -19,7 +19,7 @@ namespace Dot42.FrameworkBuilder.Mapped
         /// Default ctor
         /// </summary>
         internal JavaLangReflectMethodBuilder(ClassFile cf)
-            : base(cf, "System.Reflection.MethodInfo", "java/lang/reflect/Method")
+            : base(cf, "System.Reflection.JavaMethod", "java/lang/reflect/Method")
         {
         }
 

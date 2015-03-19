@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Dot42.CompilerLib.Target;
 using Dot42.CompilerLib.Target.Dex;
 using Dot42.DexLib;
@@ -37,6 +38,12 @@ namespace Dot42.CompilerLib.Structure.DotNet
         {
             dmethod.IsStatic = true;
             dmethod.IsPublic = true;
+
+            // TODO: check if this is the correct behavior. 
+            // the rationale is that the generation of all methods as static 
+            // clashes with virtual/abstract
+            if(method.IsAbstract || method.IsVirtual)
+                Console.Error.WriteLine("Warning: abstract or virtual .NET method {0} in DexImport class {1}", method.Name, method.DeclaringType.FullName);
         }
 
         /// <summary>

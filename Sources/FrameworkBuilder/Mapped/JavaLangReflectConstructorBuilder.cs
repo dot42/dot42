@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.Composition;
+using Dot42.ImportJarLib;
 using Dot42.ImportJarLib.Mapped;
 using Dot42.JvmClassLib;
 
@@ -19,8 +20,9 @@ namespace Dot42.FrameworkBuilder.Mapped
         /// Default ctor
         /// </summary>
         internal JavaLangReflectConstructorBuilder(ClassFile cf)
-            : base(cf, "System.Reflection.ConstructorInfo", "java/lang/reflect/Constructor")
+            : base(cf, "System.Reflection.JavaConstructor", "java/lang/reflect/Constructor")
         {
+
         }
 
         /// <summary>

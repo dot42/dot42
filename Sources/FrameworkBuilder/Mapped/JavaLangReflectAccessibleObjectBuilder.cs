@@ -4,6 +4,7 @@ using Dot42.JvmClassLib;
 
 namespace Dot42.FrameworkBuilder.Mapped
 {
+#if false
     /// <summary>
     /// Helper used to build type definitions from ClassFile's
     /// </summary>
@@ -19,8 +20,9 @@ namespace Dot42.FrameworkBuilder.Mapped
         /// Default ctor
         /// </summary>
         internal JavaLangReflectAccessibleObjectBuilder(ClassFile cf)
-            : base(cf, "System.Reflection.MemberInfo", "java/lang/reflect/AccessibleObject")
+            : base(cf, "System.Reflection.JavaAccessibleObject", "java/lang/reflect/AccessibleObject")
         {
         }
     }
+#endif
 }
