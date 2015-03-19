@@ -187,7 +187,7 @@ namespace Dot42.FrameworkBuilder
                         frameworkIni.Save();
 
                         // Create FrameworkList.xml
-                        FrameworkListBuilder.Build(folder, options.ForwardAssembliesFolder, null,
+                        FrameworkListBuilder.Build(folder, options.ForwardAssembliesFolder, options.PublicKeyToken,
                                                    sourceProperties.AssemblyVersion, sourceProperties.PlatformVersion);
                     }
                 }
