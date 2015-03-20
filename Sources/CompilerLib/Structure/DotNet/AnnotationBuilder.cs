@@ -7,6 +7,7 @@ using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel;
 using Dot42.DexLib;
 using Dot42.FrameworkDefinitions;
+using Dot42.Utility;
 using Mono.Cecil;
 using TypeReference = Mono.Cecil.TypeReference;
 
@@ -117,6 +118,17 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 // Convert .NET type reference to Dex type reference
                 value = ((TypeReference) value).GetReference(targetPackage, module);
             }
+
+            if (valueType.IsArray && value is CustomAttributeArgument[])
+            {
+                DLog.Warning(DContext.CompilerILConverter, "warning: array annotation not supported");
+
+                // TODO: check why this double indirection is neccessary.
+                value = ((CustomAttributeArgument[]) value)
+                                .Select(p => ((CustomAttributeArgument)p.Value).Value).ToArray();
+                //value = null;
+            }
+
             return new AnnotationArgument(name, value);
         }
 
