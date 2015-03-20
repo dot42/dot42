@@ -230,7 +230,11 @@ namespace Dot42.LoaderLib.DotNet
                 {
                     if (t.Namespace.StartsWith("System"))
                     {
-                        return true;
+                        DLog.Warning(DContext.CompilerAssemblyResolver, "warning, contains types in Sytem.* namespace: {0}", t.FullName);
+                        // TODO: check if there is a real reason why the assembly should not contain
+                        //       types in the system namespace.
+                        return false;
+                        //return true;
                     }
                 }
             }
