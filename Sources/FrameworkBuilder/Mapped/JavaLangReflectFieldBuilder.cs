@@ -23,16 +23,5 @@ namespace Dot42.FrameworkBuilder.Mapped
             : base(cf, "System.Reflection.JavaField", "java/lang/reflect/Field")
         {
         }
-
-        /// <summary>
-        /// Modify the name of the given method to another name.
-        /// By calling renamer.Rename, all methods in the same group are also updated.
-        /// </summary>
-        public override void ModifyMethodName(ImportJarLib.Model.NetMethodDefinition method, MethodRenamer renamer)
-        {
-            base.ModifyMethodName(method, renamer);
-            if (method.OriginalJavaName == "get")
-                renamer.Rename(method, "GetValue");
-        }
     }
 }

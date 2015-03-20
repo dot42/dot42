@@ -100,11 +100,18 @@ namespace Dot42.ImportJarLib
         protected virtual string GetPropertyName(NetMethodDefinition getter)
         {
             var name = getter.Name;
+
+            if (name == "GetTypeJava")
+                return "Type";
+
             name = name.StartsWith("Get") ? name.Substring(3) : name;
             if (!(char.IsLetter(name[0]) || (name[0] == '_')))
                 name = "_" + name;
             if (getter.ReturnType.IsBoolean() && !name.StartsWith("Is"))
                 name = "Is" + name;
+            
+            
+
             return name;
         }
 

@@ -651,6 +651,13 @@ namespace Dot42.ImportJarLib
                 // Name conflict with generic parameter
                 newName = "Java" + name;
             }
+
+            // prevent clash with System.Object.GetType()
+            if (name == "GetType" && method.Parameters.Count == 0)
+            {
+                newName = "GetTypeJava";
+            }
+
             if (newName != name)
             {
                 renamer.Rename(method, newName);
