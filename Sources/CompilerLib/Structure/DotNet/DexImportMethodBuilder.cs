@@ -3,6 +3,7 @@ using System.Linq;
 using Dot42.CompilerLib.Target;
 using Dot42.CompilerLib.Target.Dex;
 using Dot42.DexLib;
+using Dot42.Utility;
 using MethodDefinition = Mono.Cecil.MethodDefinition;
 
 namespace Dot42.CompilerLib.Structure.DotNet
@@ -43,7 +44,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
             // the rationale is that the generation of all methods as static 
             // clashes with virtual/abstract
             if(method.IsAbstract || method.IsVirtual)
-                Console.Error.WriteLine("Warning: abstract or virtual .NET method {0} in DexImport class {1}", method.Name, method.DeclaringType.FullName);
+                DLog.Warning(DContext.CompilerILConverter, "Warning: abstract or virtual .NET method '{0}' in DexImport class '{1}'", method.Name, method.DeclaringType.FullName);
         }
 
         /// <summary>

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Dot42.CecilExtensions;
 using Mono.Cecil;
+using Mono.Cecil.Rocks;
 
 namespace Dot42.CompilerLib.XModel.DotNet
 {
@@ -268,35 +269,65 @@ namespace Dot42.CompilerLib.XModel.DotNet
             var postfix = new StringBuilder("$$");
             foreach (var p in method.Parameters)
             {
-                var type = p.ParameterType.GetElementType();
-                var typeChar = '_';
-                if (type.IsPrimitive)
-                {
-                    switch (type.MetadataType)
-                    {
-                        case MetadataType.SByte:
-                            typeChar = 'B';
-                            needsPostfix = true;
-                            break;
-                        case MetadataType.UInt16:
-                            typeChar = 'S';
-                            needsPostfix = true;
-                            break;
-                        case MetadataType.UInt32:
-                            typeChar = 'I';
-                            needsPostfix = true;
-                            break;
-                        case MetadataType.UInt64:
-                            typeChar = 'J';
-                            needsPostfix = true;
-                            break;
-                    }
-                }
+                var typeChar = GetParameterPostfixIfRequired(p.ParameterType, ref needsPostfix);
                 postfix.Append(typeChar);
             }
+
+            if (method.Name.StartsWith("op_Explicit", StringComparison.OrdinalIgnoreCase))
+            {
+                postfix.Append("$");
+                var typeChar = GetParameterPostfixIfRequired(method.ReturnType, ref needsPostfix);
+                postfix.Append(typeChar);
+            }
+
             if (needsPostfix)
                 return postfix.ToString();
             return string.Empty;
+        }
+
+        private static char GetParameterPostfixIfRequired(TypeReference paramType, ref bool needsPostfix)
+        {
+            TypeReference type;
+            var isNullableInstance = paramType.FullName.StartsWith("System.Nullable`1<") && paramType.IsGenericInstance;
+            if (isNullableInstance)
+            {
+                type = ((GenericInstanceType) paramType).GenericArguments[0];
+            }
+            else
+            {
+                type = paramType.GetElementType();
+            }
+
+            var typeChar = '_';
+
+            if (type.IsPrimitive)
+            {
+                switch (type.MetadataType)
+                {
+                    case MetadataType.SByte:
+                        typeChar = 'B';
+                        needsPostfix = true;
+                        break;
+                    case MetadataType.UInt16:
+                        typeChar = 'S';
+                        needsPostfix = true;
+                        break;
+                    case MetadataType.UInt32:
+                        typeChar = 'I';
+                        needsPostfix = true;
+                        break;
+                    case MetadataType.UInt64:
+                        typeChar = 'J';
+                        needsPostfix = true;
+                        break;
+                }
+            }
+            else if (isNullableInstance)
+            {
+                typeChar = 'X';
+                needsPostfix = true;
+            }
+            return typeChar;
         }
 
         private class TypeReferenceCache : Dictionary<TypeReference, XTypeReference> { }

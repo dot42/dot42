@@ -54,12 +54,15 @@ namespace Dot42.DexLib
             return Equals(other as MethodReference);
         }
 
-        /// <summary>
-        /// Gets a hash.
-        /// </summary>
-        public sealed override int GetHashCode()
+        public override int GetHashCode()
         {
-            return Name.GetHashCode();
+            unchecked
+            {
+                var hashCode = Name.GetHashCode();
+                hashCode = (hashCode*397) ^ (Prototype != null ? Prototype.GetHashCode() : 0);
+                hashCode = (hashCode*397) ^ (Owner != null ? Owner.GetHashCode() : 0);
+                return hashCode;
+            }
         }
     }
 }

@@ -7,6 +7,7 @@ using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel;
 using Dot42.DexLib;
 using Dot42.JvmClassLib;
+using Dot42.Utility;
 using ArrayType = Dot42.DexLib.ArrayType;
 using ByReferenceType = Dot42.DexLib.ByReferenceType;
 using FieldReference = Dot42.DexLib.FieldReference;
@@ -176,6 +177,7 @@ namespace Dot42.CompilerLib.Extensions
                         return classDef.SuperClass;
                     // olaf: not sure what i'm doing here, but it might be better 
                     //       to return something at all?
+                    DLog.Warning(DContext.CompilerILConverter, "unable to infer superclass for nullable: {0}", typeofTDef);
                     return classDef; 
                 }
             }

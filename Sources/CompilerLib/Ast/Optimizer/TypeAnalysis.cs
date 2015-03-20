@@ -842,7 +842,7 @@ namespace Dot42.CompilerLib.Ast.Optimizer
                 case AstCode.StGenericInstanceField:
                     return new XArrayType(new XTypeReference.SimpleXTypeReference(module, "System", "Type", null, false, null));
                 default:
-                    Debug.WriteLine("Type Inference: Can't handle " + expr.Code.GetName());
+                    Debug.WriteLine("Type Inference: Can't handle expression " + expr.Code.GetName());
                     return null;
             }
         }

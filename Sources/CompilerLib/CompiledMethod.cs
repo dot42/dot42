@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using Dot42.CompilerLib.RL;
 using Dot42.CompilerLib.RL.Transformations;
@@ -145,8 +146,9 @@ namespace Dot42.CompilerLib
             if ((dmethod.IsAbstract) || (dmethod.IsNative))
                 return;
             var rlBody = RLBody;
+
             if (rlBody == null)
-                throw new ArgumentException("No RL body set");
+                throw new ArgumentException(string.Format("internal compiler error: No RL body set on method '{2}'.'{3}' => '{0}'.'{1}'", dmethod.Owner.Name, dmethod.Name, method == null ? null : method.DeclaringType.FullName, method == null ? null : method.Name));
 
             // Ensure RL is optimized
             OptimizeRL(targetPackage.DexFile);
