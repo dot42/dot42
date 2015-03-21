@@ -58,7 +58,8 @@ namespace Dot42.ImportJarLib
                 using (var writer = new StreamWriter(path, false, Encoding.UTF8, 128 * 1024))
                 {
                     GenerateHeader(writer, context);
-                    var selectedTypes = types.Where(x => context.GetNamespaceRoot(x) == root);
+                    var selectedTypes = types.Where(x => context.GetNamespaceRoot(x) == root)
+                                             .OrderBy(p=>p.FullName);  // generate a stable output.
                     var generator = new CodeGenerator(writer, resolver, context, target);
                     if (addAssemblyAttributes)
                     {

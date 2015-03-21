@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.Composition;
 using System.Linq;
+using Dot42.ApkLib.Resources;
 using Dot42.CompilerLib.Extensions;
 using Dot42.CompilerLib.Reachable;
 using Dot42.FrameworkDefinitions;
@@ -48,6 +49,14 @@ namespace Dot42.CompilerLib.ILConversion
                 // check all types
                 foreach (var type in reachableContext.ReachableTypes)
                 {
+                    //if (type.IsGenericInstance)
+                    //{
+                    //    foreach (var VARIABLE in type.Gen)
+                    //    {
+                            
+                    //    }
+                    //}
+                    
                     foreach (var method in type.Methods.Where(p => p.IsReachable))
                     {
                         ConvertMethodDefinition(method, enumType);

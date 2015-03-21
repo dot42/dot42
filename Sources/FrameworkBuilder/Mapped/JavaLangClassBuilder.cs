@@ -112,6 +112,10 @@ namespace Dot42.FrameworkBuilder.Mapped
                     renamer.Rename(method, "JavaGetName");
                     method.EditorBrowsableState = EditorBrowsableState.Never;
                     break;
+                case "IsEnum":
+                    renamer.Rename(method, "JavaGetIsEnum");
+                    method.EditorBrowsableState = EditorBrowsableState.Never;
+                    break;
                 case "GetComponentType":
                     renamer.Rename(method, "GetElementType");
                     break;

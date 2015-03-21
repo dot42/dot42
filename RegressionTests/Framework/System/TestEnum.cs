@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using Java.Text;
 using Junit.Framework;
 
@@ -127,6 +128,48 @@ namespace Dot42.Tests.System
         private string MethodWithSystemEnumParameter(Enum e)
         {
             return e.ToString();
+        }
+
+        private enum E
+        {
+            Val1,
+            Val2
+        };
+
+        public void testEnumGetType()
+        {
+            Assert.AssertEquals(typeof(E), E.Val1.GetType());
+        }
+
+        public void testIsEnum()
+        {
+            Assert.AssertTrue(typeof(E).IsEnum);
+            Assert.AssertTrue(E.Val1.GetType().IsEnum);
+        }
+
+        public void testRetrieveEnumValuesThroughReflection()
+        {
+            Assert.AssertEquals(2, GetValues(typeof(E)).Count);
+        }
+
+        public static IList<object> GetValues(Type enumType)
+        {
+            if (!enumType.IsEnum)
+                throw new ArgumentException("Type '" + enumType.Name + "' is not an enum.");
+
+            List<object> values = new List<object>();
+
+            var fields = enumType.GetFields();
+
+            foreach (FieldInfo field in fields)
+            {
+                if (!field.IsLiteral)
+                    continue;
+                object value = field.GetValue(enumType);
+                values.Add(value);
+            }
+
+            return values;
         }
 
         static class ClassEnumStaticTest
