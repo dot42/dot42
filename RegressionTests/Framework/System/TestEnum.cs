@@ -113,22 +113,21 @@ namespace Dot42.Tests.System
             AssertEquals("1", formatable.ToString("D", CultureInfo.InvariantCulture));
         }
 
-        private string CalledMethod(Enum e)
+        public void testCallStaticMethodWithEnum()
+        {
+            AssertEquals("Noot", ClassEnumStaticTest.CalledMethod(TwoFields.Noot));
+            AssertEquals("1", ClassEnumStaticTest.CalledMethodD(TwoFields.Noot));
+        }
+
+        public void testCallMethodWithEnum()
+        {
+            AssertEquals("Noot", MethodWithSystemEnumParameter(TwoFields.Noot));
+        }
+
+        private string MethodWithSystemEnumParameter(Enum e)
         {
             return e.ToString();
         }
-
-        public void TestCallStaticMethodWithEnum()
-        {
-            Assert.AssertEquals("Noot", ClassEnumStaticTest.CalledMethod(TwoFields.Noot));
-            Assert.AssertEquals("1", ClassEnumStaticTest.CalledMethodD(TwoFields.Noot));
-        }
-
-        public void TestCallMethodWithEnum()
-        {
-            Assert.AssertEquals("Noot", CalledMethod(TwoFields.Noot));
-        }
-
 
         static class ClassEnumStaticTest
         {

@@ -1,9 +1,7 @@
 ﻿using System.ComponentModel.Composition;
 using System.Linq;
-using Dot42.CecilExtensions;
 using Dot42.CompilerLib.Extensions;
 using Dot42.CompilerLib.Reachable;
-using Dot42.DexLib;
 using Dot42.FrameworkDefinitions;
 using MethodReference = Mono.Cecil.MethodReference;
 using TypeReference = Mono.Cecil.TypeReference;
@@ -11,10 +9,11 @@ using TypeReference = Mono.Cecil.TypeReference;
 namespace Dot42.CompilerLib.ILConversion
 {
     /// <summary>
-    /// Replace plain System.Enum parameter types with Dot32.Internal.Enum
+    /// Redirects all references of System.Enum to Dot32.Internal.Enum
+    /// 
     /// </summary>
     [Export(typeof (ILConverterFactory))]
-    internal class SystemEnumParameterConverter : ILConverterFactory
+    internal class SystemEnumRedirectionConverter : ILConverterFactory
     {
         /// <summary>
         /// Low values come first

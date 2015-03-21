@@ -147,7 +147,7 @@
     <Compile Include="IL2Ast\AstILVariable.cs" />
     <Compile Include="ILConversion\AsyncStateMachineConverter.cs" />
     <Compile Include="ILConversion\GenericClassMethodOverrideConverter.cs" />
-    <Compile Include="ILConversion\SystemEnumParameterConverter.cs" />
+    <Compile Include="ILConversion\SystemEnumRedirectionConverter.cs" />
     <Compile Include="ILConversion\StructSemanticsMethods.cs" />
     <Compile Include="ILConversion\EnsureClassCtors.cs" />
     <Compile Include="ILConversion\InitializeInstanceStructFields.cs" />

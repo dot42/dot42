@@ -136,7 +136,7 @@ namespace Dot42.CompilerLib.Ast.Converters
                                 node.Code = isWide ? AstCode.Enum_to_long : AstCode.Enum_to_int;
                                 node.SetArguments(toPrimitive);
                                 node.Operand = null;
-                                node.SetType(inferredType);
+                                node.SetType(underlyingType);
                             }
                             else if (inferredType.IsPrimitive)
                             {
@@ -164,13 +164,14 @@ namespace Dot42.CompilerLib.Ast.Converters
                             if (inferredType.TryResolve(out inferredTypeDef) && inferredTypeDef.IsEnum)
                             {
                                 // Enum found, non-enum or different enum expected
-                                var isWide = inferredTypeDef.GetEnumUnderlyingType().IsWide();
+                                var underlyingType = inferredTypeDef.GetEnumUnderlyingType();
+                                var isWide = underlyingType.IsWide();
 
                                 var actualValue = new AstExpression(node) {ExpectedType = null};
                                 node.Code = isWide ? AstCode.Enum_to_long : AstCode.Enum_to_int;
                                 node.Operand = null;
                                 node.SetArguments(actualValue);
-                                node.SetType(inferredTypeDef);
+                                node.SetType(underlyingType);
                             }
                         }
                     }
@@ -249,7 +250,9 @@ namespace Dot42.CompilerLib.Ast.Converters
                 default:
                     // Convert enum to numeric
                     var numericValue = new AstExpression(argument);
-                    argument.SetCode(isWide ? AstCode.Enum_to_long : AstCode.Enum_to_int).SetType(enumNumericType).SetArguments(numericValue);
+                    argument.SetCode(isWide ? AstCode.Enum_to_long : AstCode.Enum_to_int)
+                            .SetType(enumNumericType)
+                            .SetArguments(numericValue);
                     break;
             }
         }
