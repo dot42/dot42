@@ -220,6 +220,15 @@ namespace Dot42.CompilerLib.XModel
         }
 
         /// <summary>
+        /// Is the given type a reference to System.Collections.Generic.ICollection`1?
+        /// </summary>
+        public static bool IsSystemCollectionsICollectionT(this XTypeReference type)
+        {
+            if (type == null || !type.IsGenericInstance) return false;
+            return type.FullName == "System.Collections.Generic.ICollection`1";
+        }
+
+        /// <summary>
         /// Is the given type a reference to System.Collections.IEnumerable?
         /// </summary>
         public static bool IsSystemCollectionsIEnumerable(this XTypeReference type)
@@ -228,11 +237,28 @@ namespace Dot42.CompilerLib.XModel
         }
 
         /// <summary>
+        /// Is the given type a reference to System.Collections.Generic.IEnumerable`1?
+        /// </summary>
+        public static bool IsSystemCollectionsIEnumerableT(this XTypeReference type)
+        {
+            if (type == null || !type.IsGenericInstance) return false;
+            return type.FullName == "System.Collections.Generic.IEnumerable`1";
+        }
+
+        /// <summary>
         /// Is the given type a reference to System.Collections.IList?
         /// </summary>
         public static bool IsSystemCollectionsIList(this XTypeReference type)
         {
-            return (type != null) && (type.FullName == "System.Collections.IList");
+            return (type != null) && (type.FullName == "System.Collections.GenericIList");
+        }
+
+        /// <summary>
+        /// Is the given type a reference to System.Collections.Generic.IList`1?
+        /// </summary>
+        public static bool IsSystemCollectionsIListT(this XTypeReference type)
+        {
+            return (type != null) && (type.FullName == "System.Collections.Generic.IList`1");
         }
 
         /// <summary>
