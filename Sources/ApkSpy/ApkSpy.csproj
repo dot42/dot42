@@ -55,6 +55,10 @@
       <Project>{BB4562A6-BB44-BBB6-1111-22D5C0B4A386}</Project>
       <Name>BouncyCastle-v1.7</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Common\SharpZipLib\SharpZipLib.csproj">
+      <Project>{13f162a6-bb55-40b6-a258-7ad5c0b4a386}</Project>
+      <Name>SharpZipLib</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Mono.Cecil\Mono.Cecil.DeepSea.csproj">
       <Project>{13F162A6-BB55-40B6-BB77-22D5C0B4A386}</Project>
       <Name>Mono.Cecil.DeepSea</Name>

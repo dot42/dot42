@@ -80,7 +80,7 @@ namespace Dot42.ApkSpy.Tree
                     sb.AppendLine();
                 }
 
-#if DEBUG
+#if DEBUG || ENABLE_SHOW_AST
                 if (settings.ShowAst)
                 {
                     sb.AppendLine("\n\nAST:\n");

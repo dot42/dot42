@@ -4,31 +4,33 @@ using System.IO;
 using System.Linq;
 using Dot42.ApkLib;
 using Dot42.CompilerLib.XModel;
+using Dot42.DexLib;
 using Dot42.FrameworkDefinitions;
 using Dot42.JvmClassLib;
 using Dot42.LoaderLib.DotNet;
 using Dot42.LoaderLib.Java;
 using Dot42.Mapping;
+using ICSharpCode.SharpZipLib.Zip;
 using Mono.Cecil;
 
 namespace Dot42.ApkSpy.Tree
 {
     public class SourceFile : IDisposable, ISpyContext
     {
-        private readonly ApkFile apk;
+        private readonly IApkFile apk;
         private readonly JarFile jar;
         private readonly ISpySettings settings;
         private readonly MapFile mapFile;
         private readonly string singleFilePath;
 
-#if DEBUG
+#if DEBUG || ENABLE_SHOW_AST
         private readonly XModule module = new XModule();
         private readonly AssemblyDefinition assembly;
         private readonly AssemblyClassLoader classLoader;
 #endif
         private readonly Dictionary<string, ClassFile> classFiles = new Dictionary<string, ClassFile>();
 
-        private SourceFile(ApkFile apk, JarFile jar, ISpySettings settings, MapFile mapFile, string singleFilePath = null)
+        private SourceFile(IApkFile apk, JarFile jar, ISpySettings settings, MapFile mapFile, string singleFilePath = null)
         {
             this.apk = apk;
             this.jar = jar;
@@ -36,7 +38,7 @@ namespace Dot42.ApkSpy.Tree
             this.mapFile = mapFile;
             this.singleFilePath = singleFilePath;
 
-#if DEBUG
+#if DEBUG  || ENABLE_SHOW_AST
             classLoader = new AssemblyClassLoader(module.OnClassLoaded);
             var modParams = new ModuleParameters
             {
@@ -77,7 +79,7 @@ namespace Dot42.ApkSpy.Tree
         /// <summary>
         /// Gets the APK file
         /// </summary>
-        public ApkFile Apk { get { return apk; } }
+        public IApkFile Apk { get { return apk; } }
 
         /// <summary>
         /// Gets the JAR file
@@ -124,7 +126,16 @@ namespace Dot42.ApkSpy.Tree
             {
                 var mapFilePath = Path.ChangeExtension(path, ".d42map");
                 var mapFile = File.Exists(mapFilePath) ? new MapFile(mapFilePath) : null;
-                return new SourceFile(new ApkFile(path), null, settings, mapFile);
+                return new SourceFile(new ApkFileOpenOnAccessOnly(path), null, settings, mapFile);
+            }
+            if (path.EndsWith(".dex", StringComparison.OrdinalIgnoreCase))
+            {
+                var mapFilePath = Path.ChangeExtension(path, ".d42map");
+                var mapFile = File.Exists(mapFilePath) ? new MapFile(mapFilePath) : null;
+
+                var tempFileName = CreateApkOnTheFly(path);
+
+                return new SourceFile(new ApkFile(tempFileName), null, settings, mapFile);
             }
             if (path.EndsWith(".jar", StringComparison.OrdinalIgnoreCase))
                 return new SourceFile(null, new JarFile(File.OpenRead(path), path, null), settings, null);
@@ -133,6 +144,17 @@ namespace Dot42.ApkSpy.Tree
             if (path.EndsWith(".p12", StringComparison.OrdinalIgnoreCase))
                 return new SourceFile(null, null, settings, null, path);
             throw new ArgumentException("Unknown file type");
+        }
+
+        private static string CreateApkOnTheFly(string path)
+        {
+            var tempFileName = Path.GetTempFileName();
+            var file = ZipFile.Create(tempFileName);
+            file.BeginUpdate();
+            file.Add(path, Path.GetFileName(path));
+            file.CommitUpdate();
+            file.Close();
+            return tempFileName;
         }
 
         /// <summary>
@@ -147,7 +169,7 @@ namespace Dot42.ApkSpy.Tree
             if (result == null)
                 return null;
             classFiles[fileName] = result;
-#if DEBUG
+#if DEBUG || ENABLE_SHOW_AST
             module.OnClassLoaded(result);
 #endif
             return result;
@@ -159,7 +181,7 @@ namespace Dot42.ApkSpy.Tree
         /// </summary>
         MapFile ISpyContext.MapFile { get { return mapFile; } }
 
-#if DEBUG
+#if DEBUG || ENABLE_SHOW_AST
         /// <summary>
         /// Show abstract syntax tree
         /// </summary>

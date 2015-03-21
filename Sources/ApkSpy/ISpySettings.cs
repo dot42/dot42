@@ -2,7 +2,7 @@
 {
     internal interface ISpySettings
     {
-#if DEBUG
+#if DEBUG || ENABLE_SHOW_AST
         /// <summary>
         /// Show abstract syntax tree
         /// </summary>

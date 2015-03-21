@@ -13,7 +13,7 @@ namespace Dot42.ApkSpy
         /// </summary>
         MapFile MapFile { get; }
 
-#if DEBUG
+#if DEBUG || ENABLE_SHOW_AST
         /// <summary>
         /// Gets the XModule
         /// </summary>

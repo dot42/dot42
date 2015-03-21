@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
@@ -14,12 +15,8 @@ namespace Dot42.ApkSpy.Tree
         /// </summary>
         internal override Control CreateView(ISpyContext settings)
         {
-            var tb = new TextBox();
-            tb.ReadOnly = true;
-            tb.MaxLength = 64 * 1024 * 1024;
-            tb.Multiline = true;
-            tb.ScrollBars = ScrollBars.Both;
-            tb.WordWrap = false;
+            var tb = CreateTextBox();
+
             try
             {
                 tb.Text = LoadText(settings);
@@ -28,6 +25,27 @@ namespace Dot42.ApkSpy.Tree
             {
                 tb.Text = string.Format("Error: {0}\n\n{1}", ex.Message, ex.StackTrace);
             }
+            return tb;
+        }
+
+        private static TextBox CreateTextBox()
+        {
+            var tb = new TextBox();
+            tb.ReadOnly = true;
+            tb.MaxLength = 64*1024*1024;
+            tb.Multiline = true;
+            tb.ScrollBars = ScrollBars.Both;
+            tb.WordWrap = false;
+            tb.ShortcutsEnabled = true;
+            tb.BackColor = Color.White;
+
+            tb.KeyDown += (sender, e) =>
+            {
+                // as per http://stackoverflow.com/questions/14429445/how-can-i-allow-things-such-as-ctrl-a-and-ctrl-backspace-in-a-c-sharp-textbox
+                if (e.Control & e.KeyCode == Keys.A)
+                    ((TextBox)sender).SelectAll();
+            };
+
             return tb;
         }
 
@@ -60,20 +78,21 @@ namespace Dot42.ApkSpy.Tree
             var nl = Environment.NewLine;
             foreach (var attr in annAttributes)
             {
-                sb.Append("\t");
+                sb.Append("    ");
                 sb.Append(attr.Name);
                 sb.Append(nl);
 
                 foreach (var ann in attr.Annotations)
                 {
-                    sb.Append("\t\t");
+                    sb.Append("        -");
                     sb.Append(ann.AnnotationTypeName);
                     sb.Append(nl);
 
                     foreach (var pair in ann.ValuePairs)
                     {
-                        sb.Append("\t\t\t");
-                        sb.AppendFormat("{0} \t - {1}{2}", pair.ElementName, pair.Value, nl);
+                        sb.Append("            -");
+                        sb.AppendFormat("{0} \t - {1}", pair.ElementName, pair.Value);
+                        sb.Append(nl);
                     }
                 }
             }

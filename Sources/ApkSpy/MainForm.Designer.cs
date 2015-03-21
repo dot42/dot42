@@ -65,6 +65,7 @@ namespace Dot42.ApkSpy
             this.treeView.AllowDrop = true;
             this.treeView.BackColor = System.Drawing.SystemColors.Window;
             this.treeView.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.treeView.HideSelection = false;
             this.treeView.Location = new System.Drawing.Point(0, 0);
             this.treeView.Name = "treeView";
             this.treeView.PathSeparator = ";";
@@ -114,14 +115,14 @@ namespace Dot42.ApkSpy
             // 
             this.miFileOpen.Name = "miFileOpen";
             this.miFileOpen.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
-            this.miFileOpen.Size = new System.Drawing.Size(147, 22);
+            this.miFileOpen.Size = new System.Drawing.Size(148, 22);
             this.miFileOpen.Text = "Open";
             this.miFileOpen.Click += new System.EventHandler(this.miFileOpen_Click);
             // 
             // miFileRecent
             // 
             this.miFileRecent.Name = "miFileRecent";
-            this.miFileRecent.Size = new System.Drawing.Size(147, 22);
+            this.miFileRecent.Size = new System.Drawing.Size(148, 22);
             this.miFileRecent.Text = "Recently used";
             // 
             // miDebug

@@ -12,6 +12,8 @@ namespace Dot42.ApkSpy
     public partial class MainForm : Form, ISpySettings
     {
         private SourceFile source;
+        private string originalPath;
+
         private bool initialized;
 
         /// <summary>
@@ -20,9 +22,9 @@ namespace Dot42.ApkSpy
         public MainForm()
         {
             InitializeComponent();
-#if !DEBUG
+#if !DEBUG && !ENABLE_SHOW_AST
             miDebug.Visible = false;
-#else
+#elif DEBUG
             miShowAst.Checked = true;
 #endif
         }
@@ -85,6 +87,7 @@ namespace Dot42.ApkSpy
                 source.Dispose();
             }
             source = null;
+            originalPath = path;
             try
             {
                 treeView.BeginUpdate();
@@ -131,7 +134,7 @@ namespace Dot42.ApkSpy
         {
             using(var dialog = new OpenFileDialog())
             {
-                dialog.Filter = "Source Files|*.apk;*.jar";
+                dialog.Filter = "Source Files|*.apk;*.jar;*.dex";
 
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
@@ -283,12 +286,30 @@ namespace Dot42.ApkSpy
         {
             get
             {
-#if DEBUG
+#if DEBUG || ENABLE_SHOW_AST
                 return miShowAst.Checked;
 #else
                 return false;
 #endif
             }
+        }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            bool bHandled = false;
+            // switch case is the easy way, a hash or map would be better, 
+            // but more work to get set up.
+            switch (keyData)
+            {
+                case Keys.F5:
+
+                    if(originalPath != null)
+                        Open(originalPath);
+
+                    bHandled = true;
+                    break;
+            }
+            return bHandled;
         }
     }
 }
