@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Dot42.FrameworkDefinitions;
 
 namespace Dot42.CompilerLib.XModel
 {
@@ -169,6 +170,14 @@ namespace Dot42.CompilerLib.XModel
         public static bool IsSystemEnum(this XTypeReference type)
         {
             return (type != null) && (type.FullName == "System.Enum");
+        }
+
+        /// <summary>
+        /// Is the given type Dot42.Internal.Enum?
+        /// </summary>
+        public static bool IsInternalEnum(this XTypeReference type)
+        {
+            return (type != null) && (type.FullName == InternalConstants.Dot42InternalNamespace + ".Enum");
         }
 
         /// <summary>

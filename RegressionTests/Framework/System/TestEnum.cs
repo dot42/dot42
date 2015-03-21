@@ -9,25 +9,25 @@ namespace Dot42.Tests.System
 {
     public class TestEnum : TestCase
     {
-		private enum TwoFields { Aap, Noot }
-	
+        private enum TwoFields { Aap, Noot }
+
         public void testGetNames()
         {
-			var names = Enum.GetNames(typeof(TwoFields));
+            var names = Enum.GetNames(typeof(TwoFields));
             AssertEquals(2, names.Length);
         }
-	
+
         public void testGetName()
         {
-			var x = Enum.GetName(typeof(TwoFields), TwoFields.Aap);
+            var x = Enum.GetName(typeof(TwoFields), TwoFields.Aap);
             AssertEquals("Aap", x);
         }
-	
+
         public void testParse1()
         {
-			var x = Enum.Parse(typeof(TwoFields), "Aap");
+            var x = Enum.Parse(typeof(TwoFields), "Aap");
             AssertEquals(TwoFields.Aap, x);
-			x = Enum.Parse(typeof(TwoFields), "Noot");
+            x = Enum.Parse(typeof(TwoFields), "Noot");
             AssertEquals(TwoFields.Noot, x);
         }
 
@@ -86,13 +86,13 @@ namespace Dot42.Tests.System
             AssertFalse(x);
         }
 
-        public void testToStringDirect()
-        {
-            AssertEquals("Aap", TwoFields.Aap.ToString());
-            AssertEquals("Aap", TwoFields.Aap.ToString("G"));
-            AssertEquals("00000001", TwoFields.Noot.ToString("X"));
-            AssertEquals("1", TwoFields.Noot.ToString("d"));
-        }
+        //public void testToStringDirect()
+        //{
+        //    AssertEquals("Aap", TwoFields.Aap.ToString());
+        //    AssertEquals("Aap", TwoFields.Aap.ToString("G"));
+        //    AssertEquals("00000001", TwoFields.Noot.ToString("X"));
+        //    AssertEquals("1", TwoFields.Noot.ToString("d"));
+        //}
 
         public void testStringFormat()
         {
@@ -104,7 +104,7 @@ namespace Dot42.Tests.System
 
         public void testIFormatable()
         {
-            var formatable = (IFormattable) (object)TwoFields.Aap;
+            var formatable = (IFormattable)(object)TwoFields.Aap;
             AssertEquals("Aap", formatable.ToString());
             AssertEquals("Aap", formatable.ToString("G", CultureInfo.InvariantCulture));
 
@@ -113,5 +113,37 @@ namespace Dot42.Tests.System
             AssertEquals("1", formatable.ToString("D", CultureInfo.InvariantCulture));
         }
 
+        private string CalledMethod(Enum e)
+        {
+            return e.ToString();
+        }
+
+        public void TestCallStaticMethodWithEnum()
+        {
+            Assert.AssertEquals("Noot", ClassEnumStaticTest.CalledMethod(TwoFields.Noot));
+            Assert.AssertEquals("1", ClassEnumStaticTest.CalledMethodD(TwoFields.Noot));
+        }
+
+        public void TestCallMethodWithEnum()
+        {
+            Assert.AssertEquals("Noot", CalledMethod(TwoFields.Noot));
+        }
+
+
+        static class ClassEnumStaticTest
+        {
+            public static string CalledMethod(Enum e)
+            {
+                return e.ToString();
+            }
+
+            public static string CalledMethodD(Enum e)
+            {
+                return e.ToString("D");
+            }
+
+        }
+
     }
+
 }

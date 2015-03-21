@@ -56,6 +56,7 @@
     <Compile Include="Cases\Case651.cs" />
     <Compile Include="Cases\Case656.cs" />
     <Compile Include="Cases\Case657.cs" />
+    <Compile Include="Cases\CaseGenericAndDelegates_InvalidCastException.cs" />
     <Compile Include="Dot42\TestInclude.cs" />
     <Compile Include="Java.Util\TestArrayList.cs" />
     <Compile Include="Java.Util\TestIList.cs" />
@@ -131,7 +132,5 @@
   </Target>
   <Target Name="AfterBuild" DependsOnTargets="Test">
   </Target>
-
-
   <ProjectExtensions />
 </Project>

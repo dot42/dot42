@@ -109,20 +109,6 @@ namespace Dot42.CompilerLib.Ast.Converters
                         node.Arguments.Clear();
                         node.Arguments.Add(numericValue);
                     }
-                }else if (node.Code == AstCode.Call)
-                {
-                    XMethodReference method = node.Operand as XMethodReference;
-                    // redirect the ToString overload.
-                    if (method != null &&
-                        method.DeclaringType.IsSystemEnum() &&
-                        method.Name == "ToString" &&
-                        method.Parameters.Count == 1 &&
-                        method.Parameters[0].ParameterType.IsSystemString())
-                    {
-                        var helper = compiler.GetDot42InternalType(InternalConstants.CompilerHelperName).Resolve();
-                        var enumToString = helper.Methods.First(x => x.Name == "EnumToString");
-                        node.Operand = enumToString;
-                    }
                 }
 
                 // Note: no else here
@@ -132,6 +118,10 @@ namespace Dot42.CompilerLib.Ast.Converters
                     var expectedType = node.ExpectedType;
                     if ((inferredType != null) && (expectedType != null) && !inferredType.IsSame(expectedType))
                     {
+                        // don't convert if either one is the abstract base class.
+                        if (inferredType.IsInternalEnum() || expectedType.IsInternalEnum())
+                            continue;
+
                         XTypeDefinition expectedTypeDef;
                         if (expectedType.TryResolve(out expectedTypeDef) && expectedTypeDef.IsEnum)
                         {
