@@ -164,6 +164,14 @@ namespace Dot42.CompilerLib.XModel
         }
 
         /// <summary>
+        /// Is the given type System.Enum?
+        /// </summary>
+        public static bool IsSystemEnum(this XTypeReference type)
+        {
+            return (type != null) && (type.FullName == "System.Enum");
+        }
+
+        /// <summary>
         /// Is the given type a reference to System.Object?
         /// </summary>
         public static bool IsSystemObject(this XTypeReference type)

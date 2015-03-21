@@ -2,6 +2,7 @@
 using System.Linq;
 using Dot42.CompilerLib.Ast.Extensions;
 using Dot42.CompilerLib.XModel;
+using Dot42.FrameworkDefinitions;
 
 namespace Dot42.CompilerLib.Ast.Converters
 {
@@ -107,6 +108,20 @@ namespace Dot42.CompilerLib.Ast.Converters
                         numericValue.Arguments.Add(enumValue);
                         node.Arguments.Clear();
                         node.Arguments.Add(numericValue);
+                    }
+                }else if (node.Code == AstCode.Call)
+                {
+                    XMethodReference method = node.Operand as XMethodReference;
+                    // redirect the ToString overload.
+                    if (method != null &&
+                        method.DeclaringType.IsSystemEnum() &&
+                        method.Name == "ToString" &&
+                        method.Parameters.Count == 1 &&
+                        method.Parameters[0].ParameterType.IsSystemString())
+                    {
+                        var helper = compiler.GetDot42InternalType(InternalConstants.CompilerHelperName).Resolve();
+                        var enumToString = helper.Methods.First(x => x.Name == "EnumToString");
+                        node.Operand = enumToString;
                     }
                 }
 
