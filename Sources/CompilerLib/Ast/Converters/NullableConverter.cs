@@ -96,9 +96,9 @@ namespace Dot42.CompilerLib.Ast.Converters
                             }
                         }
                     }
-                    else if ((node.Arguments.Count == 1) && (method.Name == "GetValueOrDefault"))
+                    else if ((node.Arguments.Count == 1 || node.Arguments.Count == 2) && (method.Name == "GetValueOrDefault"))
                     {
-                        if (type.IsPrimitive)
+                        if (type.IsPrimitive || node.Arguments.Count == 2)
                         {
                             var target = node.Arguments[0];
                             switch (target.Code)
@@ -109,7 +109,7 @@ namespace Dot42.CompilerLib.Ast.Converters
                                 case AstCode.Ldloc:
                                 case AstCode.Ldfld:
                                 case AstCode.Ldsfld:
-                                    ConvertPrimitiveGetValueOrDefault(node, method, type, target, compiler.Module);
+                                    ConvertGetValueOrDefaultPrimitiveOrWithValue(node, method, type, target, compiler.Module);
                                     break;
                             }
                         }
@@ -124,7 +124,7 @@ namespace Dot42.CompilerLib.Ast.Converters
                                 case AstCode.Ldloc:
                                 case AstCode.Ldfld:
                                 case AstCode.Ldsfld:
-                                    ConvertOtherGetValueOrDefault(node, type);
+                                    ConvertGetValueOrDefaultOther(node, type);
                                     break;
                             }
                         }
@@ -359,24 +359,44 @@ namespace Dot42.CompilerLib.Ast.Converters
         /// <summary>
         /// Convert a nullable .GetValueOrDefault()
         /// </summary>
-        private static void ConvertPrimitiveGetValueOrDefault(AstExpression node, XMethodReference ilMethod, XTypeReference type, AstExpression target, XModule data)
+        private static void ConvertGetValueOrDefaultPrimitiveOrWithValue(AstExpression node, XMethodReference ilMethod, XTypeReference type, AstExpression target, XModule data)
         {
             // Clear node
             var originalArgs = node.Arguments.ToList();
-            var getValueRef = new XMethodReference.Simple("GetValue", false, ilMethod.ReturnType, ilMethod.DeclaringType, new[] { data.TypeSystem.Object, data.TypeSystem.Bool }, null);
-            node.Operand = getValueRef;
-            node.Arguments.Clear();
-            node.InferredType = type;
-            node.ExpectedType = type;
 
-            AddLoadArgument(node, target, originalArgs[0]);
-            node.Arguments.Add(new AstExpression(node.SourceLocation, AstCode.Ldc_I4, 1) { InferredType = data.TypeSystem.Bool });
+            if (originalArgs.Count == 1)
+            {
+                var getValueRef = new XMethodReference.Simple("GetValue", false, ilMethod.ReturnType,
+                    ilMethod.DeclaringType, new[] {data.TypeSystem.Object, data.TypeSystem.Bool}, null);
+                node.Operand = getValueRef;
+                node.Arguments.Clear();
+                node.InferredType = type;
+                node.ExpectedType = type;
+
+                AddLoadArgument(node, target, originalArgs[0]);
+                node.Arguments.Add(new AstExpression(node.SourceLocation, AstCode.Ldc_I4, 1)
+                {
+                    InferredType = data.TypeSystem.Bool
+                });
+            }
+            else
+            {
+                var getValueRef = new XMethodReference.Simple("GetValueOrDefault", false, ilMethod.ReturnType,
+                    ilMethod.DeclaringType, new[] { data.TypeSystem.Object, ilMethod.ReturnType }, null);
+                node.Operand = getValueRef;
+                node.Arguments.Clear();
+                node.InferredType = type;
+                node.ExpectedType = type;
+
+                AddLoadArgument(node, target, originalArgs[0]);
+                node.Arguments.Add(originalArgs[1]);
+            }
         }
 
         /// <summary>
         /// Convert a nullable .GetValueOrDefault()
         /// </summary>
-        private static void ConvertOtherGetValueOrDefault(AstExpression node, XTypeReference type)
+        private static void ConvertGetValueOrDefaultOther(AstExpression node, XTypeReference type)
         {
             var valueArg = node.Arguments[0];
             CopyEnumValueOf(node, type, valueArg);
