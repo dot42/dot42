@@ -238,7 +238,7 @@ namespace Dot42.Tests.System.Threading.Tasks
 			}
             catch (Exception ex)
             {
-                Assert.Fail("Incorrect exception type : " + ex.Type.FullName);
+                Assert.Fail("Incorrect exception type : " + ex.GetType().FullName);
             }
 
             Assert.IsTrue(exceptionThrown, "No exception was thrown");

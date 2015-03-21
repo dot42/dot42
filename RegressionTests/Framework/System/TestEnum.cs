@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using Java.Text;
 using Junit.Framework;
 
 namespace Dot42.Tests.System
@@ -82,6 +84,33 @@ namespace Dot42.Tests.System
             AssertFalse(x);
             x = Enum.TryParse<TwoFields>("doesNotExist", false, out result);
             AssertFalse(x);
+        }
+
+        public void testToStringDirect()
+        {
+            AssertEquals("Aap", TwoFields.Aap.ToString());
+            AssertEquals("Aap", TwoFields.Aap.ToString("G"));
+            AssertEquals("00000001", TwoFields.Noot.ToString("X"));
+            AssertEquals("1", TwoFields.Noot.ToString("d"));
+        }
+
+        public void testStringFormat()
+        {
+            AssertEquals("Aap", string.Format("{0}", TwoFields.Aap));
+            AssertEquals("Aap", string.Format("{0:g}", TwoFields.Aap));
+            AssertEquals("00000001", string.Format("{0:X}", TwoFields.Noot));
+            AssertEquals("1", string.Format("{0:D}", TwoFields.Noot));
+        }
+
+        public void testIFormatable()
+        {
+            var formatable = (IFormattable) (object)TwoFields.Aap;
+            AssertEquals("Aap", formatable.ToString());
+            AssertEquals("Aap", formatable.ToString("G", CultureInfo.InvariantCulture));
+
+            formatable = (IFormattable)(object)TwoFields.Noot;
+            AssertEquals("00000001", formatable.ToString("X", CultureInfo.InvariantCulture));
+            AssertEquals("1", formatable.ToString("D", CultureInfo.InvariantCulture));
         }
 
     }

@@ -394,7 +394,7 @@ namespace Dot42.Tests.System.Threading.Tasks
             {
                 exceptionThrown = true;
 
-                Assert.AssertTrue("Incorrect exception type : " + ex.Type.FullName, ex is AggregateException);
+                Assert.AssertTrue("Incorrect exception type : " + ex.GetType().FullName, ex is AggregateException);
 
                 var aggregateException = ex as AggregateException;
 
