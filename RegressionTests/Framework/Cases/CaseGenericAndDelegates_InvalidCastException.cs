@@ -27,8 +27,6 @@ namespace Dot42.Tests.Cases
             public event PropertyChangedEventHandler PropertyChanged;
         }
 
-
-
     }
 
     internal class Test00_<TSource> where TSource : INotifyPropertyChanged
@@ -56,8 +54,6 @@ namespace Dot42.Tests.Cases
 
             Func<object, object> g = obj => obj.ToString();
             Func<object> getSourceValue = () => g(source);
-
-
         }
     }
 

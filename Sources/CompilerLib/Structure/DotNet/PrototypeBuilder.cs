@@ -28,6 +28,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 var dparameter = new Parameter(method.DeclaringType.GetReference(targetPackage), "this");
                 result.Parameters.Add(dparameter);
             }
+            
             foreach (var p in method.Parameters)
             {
                 try

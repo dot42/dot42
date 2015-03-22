@@ -1,5 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
+using System.Runtime.Serialization.Formatters;
+using System.Runtime.Versioning;
+using Dot42.ApkLib.Resources;
 using Dot42.CompilerLib.Ast2RLCompiler.Extensions;
 using Dot42.CompilerLib.Extensions;
 using Dot42.CompilerLib.RL;
@@ -7,6 +12,7 @@ using Dot42.CompilerLib.Target;
 using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel;
 using Dot42.DexLib;
+using Dot42.Utility;
 using Instruction = Dot42.CompilerLib.RL.Instruction;
 using MethodBody = Dot42.CompilerLib.RL.MethodBody;
 
@@ -191,6 +197,23 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 instance = body.AllocateRegister(RCategory.Temp, RType.Object);
                 ins.Add(new Instruction(RCode.Iget_object, instance, rthis) { Operand = instanceField });
             }
+
+            Register genericInstanceTypeReg = null;
+            if (calledMethod.NeedsGenericInstanceTypeParameter)
+            {
+                DLog.Warning(DContext.CompilerCodeGenerator, "delegate to method {0} of generic class {1}. haven't figured out how to pass correct generic parameters.", calledMethod, calledMethod.DeclaringType);
+                var c = Enumerable.Repeat((TypeReference)FrameworkReferences.Class, calledMethod.DeclaringType.GenericParameters.Count).ToList();
+                genericInstanceTypeReg = CreateGenericParameter(body, ins, targetPackage, c);
+            }
+
+            Register genericInstanceMethodReg = null;
+            if (calledMethod.NeedsGenericInstanceMethodParameter)
+            {
+                DLog.Warning(DContext.CompilerCodeGenerator, "delegate to generic method {0} of class{1}. haven't figured out how to pass correct generic parameters.", calledMethod, calledMethod.DeclaringType);
+                var c = Enumerable.Repeat((TypeReference)FrameworkReferences.Class, calledMethod.GenericParameters.Count).ToList();
+                genericInstanceMethodReg = CreateGenericParameter(body, ins, targetPackage, c);
+            }
+
             // Invoke
             var calledMethodRef = calledMethod.GetReference(targetPackage);
             var inputArgs = calledMethod.IsStatic ? incomingMethodArgs.Skip(1).ToArray() : incomingMethodArgs;
@@ -231,6 +254,12 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 i += inputIsWide ? 2 : 1;
                 parameterIndex++;
             }
+
+            if (calledMethod.NeedsGenericInstanceTypeParameter)
+                outputArgs.Add(genericInstanceTypeReg);
+
+            if (calledMethod.NeedsGenericInstanceMethodParameter)
+                outputArgs.Add(genericInstanceMethodReg);
 
             // Actual call
             ins.Add(new Instruction(calledMethod.Invoke(calledMethod, null), calledMethodRef, outputArgs.ToArray()));
@@ -316,6 +345,29 @@ namespace Dot42.CompilerLib.Structure.DotNet
             ins.Add(returnInstruction);
 
             return body;
+        }
+
+        private static Register CreateGenericParameter(MethodBody body, InstructionList ins, DexTargetPackage targetPackage, IList<TypeReference> genericParameters)
+        {
+            // allocate registers
+            var retReg = body.AllocateRegister(RCategory.Temp, RType.Object);
+            var constReg = body.AllocateRegister(RCategory.Temp, RType.Value);
+
+            ins.Add(new Instruction(RCode.Const, genericParameters.Count, new[] { constReg }));
+            ins.Add(new Instruction(RCode.New_array, FrameworkReferences.ClassArray, new[] { retReg, constReg }));
+
+            var typeReg = body.AllocateRegister(RCategory.Temp, RType.Value);
+
+            for (int i = 0; i < genericParameters.Count; ++i)
+            {
+                ins.Add(new Instruction(RCode.Const, i, new[] {constReg}));
+
+                var gtype = genericParameters[i];
+                ins.Add(new Instruction(RCode.Const_class, gtype, new[] {typeReg}));
+                ins.Add(new Instruction(RCode.Aput_object, new[] {typeReg, retReg, constReg}));
+            }
+
+            return retReg;
         }
 
         /// <summary>

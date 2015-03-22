@@ -375,7 +375,6 @@ namespace MonoTests.System
 		}
 #endif
 
-#if NOT_IMPLEMENTED
 		[Test]
 		public void ParseExact_Format_Empty ()
 		{
@@ -427,7 +426,7 @@ namespace MonoTests.System
 				Assert.AreEqual ("format", ex.ParamName, "#B6");
 			}
 		}
-
+#if NOT_IMPLEMENTED
 		[Test]
 		public void ParseExact_Formats_Empty ()
 		{
@@ -482,7 +481,7 @@ namespace MonoTests.System
 				Assert.IsNotNull (ex.Message, "#B4");
 			}
 		}
-
+#endif
 		[Test]
 		public void ParseExact_String_Empty ()
 		{
@@ -505,7 +504,7 @@ namespace MonoTests.System
 				Assert.IsNull (ex.InnerException, "#B3");
 				Assert.IsNotNull (ex.Message, "#B4");
 			}
-
+#if NOT_IMPLEMENTED
 			try {
 				DateTime.ParseExact (string.Empty, new string [] { "G" }, null,
 					DateTimeStyles.None);
@@ -516,6 +515,7 @@ namespace MonoTests.System
 				Assert.IsNull (ex.InnerException, "#C3");
 				Assert.IsNotNull (ex.Message, "#C4");
 			}
+#endif
 		}
 
 		[Test]
@@ -542,7 +542,7 @@ namespace MonoTests.System
 				Assert.IsNotNull (ex.ParamName, "#B5");
 				Assert.AreEqual ("s", ex.ParamName, "#B6");
 			}
-
+#if NOT_IMPLEMENTED
 			try {
 				DateTime.ParseExact ((string) null, new string [] { "G" }, null,
 					DateTimeStyles.None);
@@ -554,6 +554,7 @@ namespace MonoTests.System
 				Assert.IsNotNull (ex.ParamName, "#C5");
 				Assert.AreEqual ("s", ex.ParamName, "#C6");
 			}
+#endif
 		}
 
 		[Test]
@@ -593,7 +594,7 @@ namespace MonoTests.System
 			s = "6/28/2004 17:00:00 PM";
 			DateTime.ParseExact (s, f, CultureInfo.InvariantCulture);
 		}
-		
+#if NOT_IMPLEMENTED
 		[Test]
 		public void TestParseExact4_2 ()
 		{
@@ -615,7 +616,7 @@ namespace MonoTests.System
 			Assert.AreEqual (23, dt.Hour, "Hour");
 			Assert.AreEqual (21, dt.Minute, "Minute");
 		}
-
+#endif
 		[Test]
 		public void TestParseExactMiliseconds ()
 		{
@@ -649,6 +650,7 @@ namespace MonoTests.System
 			t1 = DateTime.ParseExact ("02/25/2002 05:25:13", "G", null);
 			Assert.AreEqual (myTicks [4], t1.Ticks, "#A6");
 			t1 = DateTime.ParseExact ("Monday, 25 February 2002 04:25:13", "U", null);
+#if NOT_IMPLEMENTED
 			t1 = TimeZone.CurrentTimeZone.ToUniversalTime(t1);
 			Assert.AreEqual (2002, t1.Year, "#A7");
 			Assert.AreEqual (02, t1.Month, "#A8");
@@ -656,6 +658,7 @@ namespace MonoTests.System
 			Assert.AreEqual (04, t1.Hour, "#A10");
 			Assert.AreEqual (25, t1.Minute, "#A11");
 			Assert.AreEqual (13, t1.Second, "#A12");
+#endif
 			t1 = DateTime.ParseExact ("Monday, 25 February 2002 04:25:13", "U", null);
 			Assert.AreEqual ("Monday, 25 February 2002 04:25:13", t1.ToString ("U"), "#A13");
 
@@ -813,6 +816,7 @@ namespace MonoTests.System
 			string rfc850_date = "dddd, dd'-'MMM'-'yy HH':'mm':'ss 'GMT'";
 			string asctime_date = "ddd MMM d HH':'mm':'ss yyyy";
 			string [] formats = new string [] {rfc1123_date, rfc850_date, asctime_date};
+#if NOT_IMPLEMENTED
 			CultureInfo enUS = new CultureInfo("en-US", false);
 			t1 = DateTime.ParseExact ("Sun, 06 Nov 1994 08:49:37 GMT", formats[0], enUS, 
 						DateTimeStyles.AllowWhiteSpaces);
@@ -836,7 +840,7 @@ namespace MonoTests.System
 						"ddddddd, dd MMMMMMM yyyy HHHHH:mmmmm:sssss",
 						null, DateTimeStyles.AdjustToUniversal);
 			Assert.AreEqual (myTicks[4], t1.Ticks, "#J7");
-		
+
 			// Bug 52274
 			t1 = DateTime.ParseExact ("--12--", "--MM--" , null);
 			Assert.AreEqual (12, t1.Month, "#K1");
@@ -859,7 +863,7 @@ namespace MonoTests.System
 				Assert.Fail ("#L1");
 			} catch (FormatException) {
 			}
-
+            #endif
 			// Bug #75213 : literal escaping.
 			t1 = DateTime.ParseExact ("20050707132527Z",
 				"yyyyMMddHHmmss\\Z", CultureInfo.InvariantCulture);
@@ -871,7 +875,7 @@ namespace MonoTests.System
 			//			  CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
 			//Assert.AreEqual (643393064967552000, t1.Ticks, "#M");
 		}
-
+#if NOT_IMPLEMENTED
 		[Test]
 		public void TestParse2 ()
 		{
@@ -879,7 +883,6 @@ namespace MonoTests.System
 			t1 = TimeZone.CurrentTimeZone.ToUniversalTime(t1);
 			Assert.AreEqual (4, t1.Hour);
 		}
-
 #endif
 
 #if CULTURE
@@ -1566,7 +1569,6 @@ namespace MonoTests.System
 			Assert.AreEqual ("9999", DateTime.MaxValue.Year.ToString ());
 		}
 
-#if NOT_IMPLEMENTED
 
 		[Test]
 		public void X509Certificate () 
@@ -1601,7 +1603,7 @@ namespace MonoTests.System
 			Assert.AreEqual (DateTimeKind.Local, dtz.Kind, "#3");
 			Assert.AreEqual (dt, dtz, "#4");
 		}
-
+#if NOT_IMPLEMENTED
 		[Test] // bug 56436
 		public void QuotedFormat ()
 		{
@@ -1875,7 +1877,7 @@ namespace MonoTests.System
 			Assert.AreEqual (0, date.Second, "#6");
 			Assert.AreEqual (0, date.Millisecond, "#7");
 		}
-
+#endif
 		[Test]
 		public void ParseExact_Bug324845 ()
 		{
@@ -1906,7 +1908,7 @@ namespace MonoTests.System
 		{
 			DateTime.ParseExact ("2004-05-26T03:29:01", "yyyy-MM-ddTHH:mm:ssZ", null);
 		}
-
+#if NOT_IMPLEMENTED
 		[Test]
 		public void ParseExactMilliseconds ()
 		{
