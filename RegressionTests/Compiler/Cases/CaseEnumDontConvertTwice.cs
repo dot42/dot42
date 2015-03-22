@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Android.Util;
-using Javax.Security.Auth.X500;
 using Junit.Framework;
 
-namespace dot42.CompilerBugTesting
+namespace Dot42.Tests.Compiler.Cases
 {
     public class CaseEnumDontConvertTwice : TestCase
     {

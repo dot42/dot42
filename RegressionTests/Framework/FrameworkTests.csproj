@@ -56,9 +56,7 @@
     <Compile Include="Cases\Case651.cs" />
     <Compile Include="Cases\Case656.cs" />
     <Compile Include="Cases\Case657.cs" />
-    <Compile Include="Cases\CaseEnumDontConvertTwice.cs" />
     <Compile Include="Cases\CaseGenericAndDelegates_InvalidCastException.cs" />
-    <Compile Include="Cases\TestCaseGenericCalls.cs" />
     <Compile Include="Dot42\TestInclude.cs" />
     <Compile Include="Java.Util\TestArrayList.cs" />
     <Compile Include="Java.Util\TestIList.cs" />
@@ -108,9 +106,6 @@
     <Compile Include="System\TestAction.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="System\TestArrayEnumerable.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="System\TestDateTime_Mono.cs" />
     <Compile Include="System\TestDouble.cs" />
     <Compile Include="System\TestFunc.cs">
@@ -121,7 +116,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="System\TestInt32_Mono.cs" />
-    <Compile Include="System\TestNullable.cs" />
     <Compile Include="System\TestString.cs">
       <SubType>Code</SubType>
     </Compile>

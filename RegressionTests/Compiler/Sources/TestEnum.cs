@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
 using Junit.Framework;
 
 namespace Dot42.Tests.Compiler.Sources
@@ -62,6 +64,9 @@ namespace Dot42.Tests.Compiler.Sources
 
         private EnumULong? instanceEnumULongN;
         private static EnumULong? staticEnumULongN;
+
+        private enum E { Val1, Val2 };
+        private enum TwoFields { Aap, Noot }
 
         public void testEnumSByte1()
         {
@@ -534,6 +539,72 @@ namespace Dot42.Tests.Compiler.Sources
         {
             var result = ReturnInt(EnumInt.V2);
             AssertTrue(result == (int)EnumInt.V2);
+        }
+
+        public void testCallStaticMethodWithEnum()
+        {
+            AssertEquals("Noot", ClassEnumStaticTest.CalledMethod(TwoFields.Noot));
+            AssertEquals("1", ClassEnumStaticTest.CalledMethodD(TwoFields.Noot));
+        }
+
+        public void testCallMethodWithEnum()
+        {
+            AssertEquals("Noot", MethodWithSystemEnumParameter(TwoFields.Noot));
+        }
+
+        private string MethodWithSystemEnumParameter(Enum e)
+        {
+            return e.ToString();
+        }
+
+        public void testEnumGetType()
+        {
+            Assert.AssertEquals(typeof(E), E.Val1.GetType());
+        }
+
+        public void testIsEnum()
+        {
+            Assert.AssertTrue(typeof(E).IsEnum);
+            Assert.AssertTrue(E.Val1.GetType().IsEnum);
+        }
+
+        public void testRetrieveEnumValuesThroughReflection()
+        {
+            Assert.AssertEquals(2, GetValues(typeof(E)).Count);
+        }
+
+        public static IList<object> GetValues(Type enumType)
+        {
+            if (!enumType.IsEnum)
+                throw new ArgumentException("Type '" + enumType.Name + "' is not an enum.");
+
+            List<object> values = new List<object>();
+
+            var fields = enumType.GetFields();
+
+            foreach (FieldInfo field in fields)
+            {
+                if (!field.IsLiteral)
+                    continue;
+                object value = field.GetValue(enumType);
+                values.Add(value);
+            }
+
+            return values;
+        }
+
+        static class ClassEnumStaticTest
+        {
+            public static string CalledMethod(Enum e)
+            {
+                return e.ToString();
+            }
+
+            public static string CalledMethodD(Enum e)
+            {
+                return e.ToString("D");
+            }
+
         }
 
         private EnumInt ReturnEnum(object o)

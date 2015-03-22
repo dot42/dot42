@@ -1,10 +1,10 @@
 ﻿using System;
 using Junit.Framework;
 
-namespace dot42.CompilerBugTesting
+namespace Dot42.Tests.Compiler.Cases
 {
 
-    public class TestCaseGenericCalls : TestCase
+    public class TestGenericDelegates : TestCase
     {
         public void testCallGenericStaticMethodCall1()
         {
@@ -54,6 +54,17 @@ namespace dot42.CompilerBugTesting
             var instance = new TestGenericImplicitStaticCall<int>();
             Assert.AssertEquals(4, Call(instance.Test));
         }
+
+        // this kill the compiler atm
+        //public void testGenericMethodOverload1()
+        //{
+        //    Assert.AssertEquals(4, Call(TestGenericStaticMethodCallSameMethodName.Test<int>));
+        //}
+
+        //public void testGenericMethodOverload2()
+        //{
+        //    Assert.AssertEquals(4, Call(TestGenericStaticMethodCallSameMethodName.Test<int, DateTime>));
+        //}
 
 
         public int Call(Func<int> del)
@@ -130,7 +141,7 @@ namespace dot42.CompilerBugTesting
             }
         }
 
-        // this will kill the compiler.
+        //// this will kill the compiler.
         //internal class TestGenericStaticMethodCallSameMethodName
         //{
         //    public static T Test<T>()

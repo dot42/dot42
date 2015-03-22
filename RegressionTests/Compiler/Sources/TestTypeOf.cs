@@ -59,14 +59,14 @@ namespace Dot42.Tests.Compiler.Sources
 		public void testTypeOfVoid() 
 		{
 			var type = typeof(ReturnVoidClass);
-			var method  = type.GetDeclaredMethod("ReturnVoid");
+			var method  = type.JavaGetDeclaredMethod("ReturnVoid");
 			AssertTrue("void=void", method.ReturnType == typeof(void));
 		}
 		
 		public void testTypeOfVoidAsync() 
 		{
 			var type = typeof(ReturnVoidClass);
-			var method  = type.GetDeclaredMethod("ReturnVoidAsync");
+			var method  = type.JavaGetDeclaredMethod("ReturnVoidAsync");
 			AssertTrue("async void=void", method.ReturnType == typeof(void));
 		}
 		
