@@ -54,7 +54,7 @@
     <Compile Include="$(ResourcesGeneratedCodePath)R.cs" />
     <Compile Include="Cases\CaseEnumDontConvertTwice.cs" />
     <Compile Include="Cases\CaseGenericAndDelegates_InvalidCastException.cs" />
-    <Compile Include="Sources\TestGenericDelegates.cs" />
+    <Compile Include="Sources\TestDelegateToGeneric.cs" />
     <Compile Include="Sources\AssemblyInfo.cs" />
     <Compile Include="Sources\TestWhile.cs" />
     <Compile Include="Sources\TestEnumPerformance.cs" />
@@ -163,6 +163,5 @@
   </Target>-->
   <Target Name="AfterBuild" DependsOnTargets="Test">
   </Target>
-
   <ProjectExtensions />
 </Project>

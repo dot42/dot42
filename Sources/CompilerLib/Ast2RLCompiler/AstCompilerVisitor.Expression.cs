@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using Dot42.ApkLib.Resources;
 using Dot42.CompilerLib.Ast;
+using Dot42.CompilerLib.Ast.Converters;
 using Dot42.CompilerLib.Ast.Extensions;
 using Dot42.CompilerLib.Ast2RLCompiler.Extensions;
 using Dot42.CompilerLib.Extensions;
@@ -1200,26 +1201,37 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                 case AstCode.Delegate:
                     {
                         //Debugger.Launch();
-                        var delegateInfo = (Tuple<XTypeDefinition, XMethodDefinition>)node.Operand;
+                        var delegateInfo = (Tuple<XTypeDefinition, XMethodReference>)node.Operand;
                         var delegateType = compiler.GetDelegateType(delegateInfo.Item1);
-                        var delegateInstanceType = delegateType.GetOrCreateInstance(node.SourceLocation, targetPackage, delegateInfo.Item2);
+                        var delegateInstanceType = delegateType.GetOrCreateInstance(node.SourceLocation, targetPackage, delegateInfo.Item2.GetElementMethod().Resolve());
+
+                        var r = frame.AllocateTemp(delegateInstanceType.InstanceDefinition);
 
                         // Create instance
-                        var r = frame.AllocateTemp(delegateInstanceType.InstanceDefinition);
                         var newobj = this.Add(node.SourceLocation, RCode.New_instance, delegateInstanceType.InstanceDefinition, r);
-                        // Call ctor
-                        if (delegateInstanceType.CalledMethodIsStatic)
+
+                        // collect parameters.
+                        List<RL.Register> registerArgs = new List<RL.Register>();
+                        
+                        registerArgs.Add(r);
+                        
+                        if (delegateInstanceType.ConstructorNeedsInstanceArgument)
+                            registerArgs.Add(args[0].Result);
+
+                        if (delegateInstanceType.ConstructorNeedsGenericInstanceTypeArgument)
+                            registerArgs.Add(args[1].Result);
+                        if (delegateInstanceType.ConstructorNeedsGenericInstanceMethodArgument &&
+                            delegateInstanceType.ConstructorNeedsGenericInstanceTypeArgument)
                         {
-                            // Call without instance argument
-                            var invokeCtor = this.Add(node.SourceLocation, RCode.Invoke_direct, delegateInstanceType.InstanceCtor, r);
-                            return new RLRange(newobj, invokeCtor, r);
+                            registerArgs.Add(args[2].Result);
                         }
-                        else
-                        {
-                            // Call with instance argument
-                            var invokeCtor = this.Add(node.SourceLocation, RCode.Invoke_direct, delegateInstanceType.InstanceCtor, r, args[0].Result);
-                            return new RLRange(newobj, invokeCtor, r);
-                        }
+                        else if (delegateInstanceType.ConstructorNeedsGenericInstanceMethodArgument)
+                            registerArgs.Add(args[1].Result);
+
+                        // call .ctor
+                        var invokeCtor = this.Add(node.SourceLocation, RCode.Invoke_direct,
+                                                  delegateInstanceType.InstanceCtor, registerArgs);
+                        return new RLRange(newobj, invokeCtor, r);
                     }
                 case AstCode.InitArray:
                     {

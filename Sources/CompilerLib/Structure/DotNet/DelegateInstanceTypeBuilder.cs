@@ -1,18 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization.Formatters;
-using System.Runtime.Versioning;
-using Dot42.ApkLib.Resources;
 using Dot42.CompilerLib.Ast2RLCompiler.Extensions;
 using Dot42.CompilerLib.Extensions;
 using Dot42.CompilerLib.RL;
-using Dot42.CompilerLib.Target;
 using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel;
 using Dot42.DexLib;
-using Dot42.Utility;
 using Instruction = Dot42.CompilerLib.RL.Instruction;
 using MethodBody = Dot42.CompilerLib.RL.MethodBody;
 
@@ -87,26 +80,63 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 @class.Fields.Add(instanceField);
             }
 
+            
+            FieldDefinition genericInstanceTypeField = null;
+            if (calledMethod.NeedsGenericInstanceTypeParameter)
+            {
+                
+                genericInstanceTypeField = new FieldDefinition();
+                genericInstanceTypeField.Name = "git$";
+                genericInstanceTypeField.Owner = @class;
+                genericInstanceTypeField.Type = FrameworkReferences.ClassArray;
+                genericInstanceTypeField.AccessFlags = AccessFlags.Private | AccessFlags.Final;
+                @class.Fields.Add(genericInstanceTypeField);
+            }
+
+
+            FieldDefinition genericMethodTypeField = null;
+            if (calledMethod.NeedsGenericInstanceMethodParameter)
+            {
+                genericMethodTypeField = new FieldDefinition();
+                genericMethodTypeField.Name = "gmt$";
+                genericMethodTypeField.Owner = @class;
+                genericMethodTypeField.Type = FrameworkReferences.ClassArray;
+                genericMethodTypeField.AccessFlags = AccessFlags.Private | AccessFlags.Final;
+                @class.Fields.Add(genericMethodTypeField);
+            }
+
             // Add ctor
             var ctor = new Dot42.DexLib.MethodDefinition();
             ctor.Owner = @class;
             ctor.Name = "<init>";
             ctor.AccessFlags = AccessFlags.Public | AccessFlags.Constructor;
             ctor.Prototype = new Prototype(PrimitiveType.Void);
+
             if (!calledMethod.IsStatic)
             {
                 ctor.Prototype.Parameters.Add(new Parameter(instanceTypeRef, "this"));
             }
+
+            if (calledMethod.NeedsGenericInstanceTypeParameter)
+            {
+                ctor.Prototype.Parameters.Add(new Parameter(FrameworkReferences.ClassArray, "genericInstanceType"));
+            }
+
+            if (calledMethod.NeedsGenericInstanceMethodParameter)
+            {
+                ctor.Prototype.Parameters.Add(new Parameter(FrameworkReferences.ClassArray, "genericMethodType"));
+            }
+
             @class.Methods.Add(ctor);
             // Create ctor body
-            var ctorBody = CreateCtorBody(calledMethod, instanceField, delegateClass);
+            var ctorBody = CreateCtorBody(targetPackage, calledMethod, instanceField, genericInstanceTypeField, genericMethodTypeField, delegateClass);
             targetPackage.Record(new CompiledMethod() { DexMethod = ctor, RLBody = ctorBody });
 
             // Add Invoke method
             var invoke = new Dot42.DexLib.MethodDefinition(@class, "Invoke", invokePrototype) { AccessFlags = AccessFlags.Public };
             @class.Methods.Add(invoke);
             // Create body
-            var invokeBody = CreateInvokeBody(sequencePoint, compiler, targetPackage, calledMethod, invokeMethod, invokePrototype, calledMethodPrototype, instanceField, delegateClass);
+            var invokeBody = CreateInvokeBody(sequencePoint, compiler, targetPackage, calledMethod, invokeMethod, invokePrototype, calledMethodPrototype, instanceField, genericInstanceTypeField, genericMethodTypeField, delegateClass);
             targetPackage.Record(new CompiledMethod() { DexMethod = invoke, RLBody = invokeBody });
 
             // Add Equals method
@@ -115,9 +145,9 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 var equals = new Dot42.DexLib.MethodDefinition(@class, "equals", equalsPrototype) { AccessFlags = AccessFlags.Public };
                 @class.Methods.Add(equals);
                 // Create body
-                if (!calledMethod.IsStatic)
+                if (!calledMethod.IsStatic || calledMethod.NeedsGenericInstanceTypeParameter||calledMethod.NeedsGenericInstanceMethodParameter)
                 {
-                    var equalsBody = CreateEqualsBody(sequencePoint, compiler, targetPackage, equalsMethod, equalsPrototype, instanceField, @class);
+                    var equalsBody = CreateEqualsBody(sequencePoint, compiler, targetPackage, equalsMethod, equalsPrototype, instanceField, genericInstanceTypeField, genericMethodTypeField, @class);
                     targetPackage.Record(new CompiledMethod() { DexMethod = equals, RLBody = equalsBody });
                 }
                 else
@@ -148,7 +178,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// <summary>
         /// Create the body of the ctor.
         /// </summary>
-        private static MethodBody CreateCtorBody(XMethodDefinition calledMethod, FieldDefinition instanceField, ClassReference baseClass)
+        private static MethodBody CreateCtorBody(DexTargetPackage targetPackage, XMethodDefinition calledMethod, FieldDefinition instanceField, FieldDefinition genericInstanceTypeField, FieldDefinition genericMethodTypeField, ClassReference baseClass)
         {
             var body = new MethodBody(null);
             // Create code
@@ -157,12 +187,27 @@ namespace Dot42.CompilerLib.Structure.DotNet
             // Call base ctor
             var baseCtorRef = new MethodReference(baseClass, "<init>", new Prototype(PrimitiveType.Void));
             ins.Add(new Instruction(RCode.Invoke_direct, rthis) { Operand = baseCtorRef });
-            if (!calledMethod.IsStatic)
+
+
+            if (instanceField != null)
             {
                 // load instance into field
-                var rvalue = body.AllocateRegister(RCategory.Argument, RType.Object);
-                ins.Add(new Instruction(RCode.Iput_object, rvalue, rthis) {Operand = instanceField});
+                var rInstanceArg = body.AllocateRegister(RCategory.Argument, RType.Object);
+                ins.Add(new Instruction(RCode.Iput_object, rInstanceArg, rthis) {Operand = instanceField});
             }
+
+            if (genericInstanceTypeField != null)
+            {
+                var rArg = body.AllocateRegister(RCategory.Argument, RType.Object);
+                ins.Add(new Instruction(RCode.Iput_object, rArg, rthis) { Operand = genericInstanceTypeField });
+            }
+
+            if (genericMethodTypeField != null)
+            {
+                var rArg = body.AllocateRegister(RCategory.Argument, RType.Object);
+                ins.Add(new Instruction(RCode.Iput_object, rArg, rthis) { Operand = genericMethodTypeField });
+            }
+
             ins.Add(new Instruction(RCode.Return_void));
             return body;
         }
@@ -170,7 +215,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// <summary>
         /// Create the body of the invoke method.
         /// </summary>
-        private static MethodBody CreateInvokeBody(ISourceLocation sequencePoint, AssemblyCompiler compiler, DexTargetPackage targetPackage, XMethodDefinition calledMethod, XMethodDefinition invokeMethod, Prototype invokePrototype, Prototype calledMethodPrototype, FieldDefinition instanceField, ClassReference delegateClass)
+        private static MethodBody CreateInvokeBody(ISourceLocation sequencePoint, AssemblyCompiler compiler, DexTargetPackage targetPackage, XMethodDefinition calledMethod, XMethodDefinition invokeMethod, Prototype invokePrototype, Prototype calledMethodPrototype, FieldDefinition instanceField, FieldDefinition genericInstanceTypeField, FieldDefinition genericMethodTypeField, ClassReference delegateClass)
         {
             var body = new MethodBody(null);
             var rthis = body.AllocateRegister(RCategory.Argument, RType.Object);
@@ -190,28 +235,26 @@ namespace Dot42.CompilerLib.Structure.DotNet
 
             // Create code
             var ins = body.Instructions;
-            Register instance = null;
+            Register instanceReg = null;
             if (!calledMethod.IsStatic)
             {
                 // load instance
-                instance = body.AllocateRegister(RCategory.Temp, RType.Object);
-                ins.Add(new Instruction(RCode.Iget_object, instance, rthis) { Operand = instanceField });
+                instanceReg = body.AllocateRegister(RCategory.Temp, RType.Object);
+                ins.Add(new Instruction(RCode.Iget_object, instanceReg, rthis) { Operand = instanceField });
             }
 
             Register genericInstanceTypeReg = null;
             if (calledMethod.NeedsGenericInstanceTypeParameter)
             {
-                DLog.Warning(DContext.CompilerCodeGenerator, "delegate to method {0} of generic class {1}. haven't figured out how to pass correct generic parameters.", calledMethod, calledMethod.DeclaringType);
-                var c = Enumerable.Repeat((TypeReference)FrameworkReferences.Class, calledMethod.DeclaringType.GenericParameters.Count).ToList();
-                genericInstanceTypeReg = CreateGenericParameter(body, ins, targetPackage, c);
+                genericInstanceTypeReg = body.AllocateRegister(RCategory.Temp, RType.Object);
+                ins.Add(new Instruction(RCode.Iget_object, genericInstanceTypeReg, rthis) { Operand = genericInstanceTypeField });
             }
 
             Register genericInstanceMethodReg = null;
             if (calledMethod.NeedsGenericInstanceMethodParameter)
             {
-                DLog.Warning(DContext.CompilerCodeGenerator, "delegate to generic method {0} of class{1}. haven't figured out how to pass correct generic parameters.", calledMethod, calledMethod.DeclaringType);
-                var c = Enumerable.Repeat((TypeReference)FrameworkReferences.Class, calledMethod.GenericParameters.Count).ToList();
-                genericInstanceMethodReg = CreateGenericParameter(body, ins, targetPackage, c);
+                genericInstanceMethodReg = body.AllocateRegister(RCategory.Temp, RType.Object);
+                ins.Add(new Instruction(RCode.Iget_object, genericInstanceMethodReg, rthis) { Operand = genericMethodTypeField });
             }
 
             // Invoke
@@ -222,7 +265,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
             var outputArgs = new List<Register>();
             if (!calledMethod.IsStatic)
             {
-                outputArgs.Add(instance);
+                outputArgs.Add(instanceReg);
             }
             var parameterIndex = 0;
             for (var i = calledMethod.IsStatic ? 0 : 1; i < inputArgs.Length; )
@@ -373,7 +416,11 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// <summary>
         /// Create the body of the equals method.
         /// </summary>
-        private static MethodBody CreateEqualsBody(ISourceLocation sequencePoint, AssemblyCompiler compiler, DexTargetPackage targetPackage, XMethodDefinition equalsMethod, Prototype equalsPrototype, FieldDefinition instanceField, ClassReference delegateClass)
+        private static MethodBody CreateEqualsBody(ISourceLocation sequencePoint, AssemblyCompiler compiler, 
+                                                   DexTargetPackage targetPackage, XMethodDefinition equalsMethod, 
+                                                   Prototype equalsPrototype, FieldDefinition instanceField, 
+                                                   FieldDefinition genericInstanceTypeField,
+                                                   FieldDefinition genericMethodTypeField, ClassReference delegateClass)
         {
             MethodBody body = new MethodBody(null);
 
@@ -388,33 +435,83 @@ namespace Dot42.CompilerLib.Structure.DotNet
             Register result = body.AllocateRegister(RCategory.Temp, RType.Value);
 
             // Prepare the return instruction.
-            Instruction returnInstruction = new Instruction(RCode.Return, result);
-
+            Instruction returnFalseInstruction = new Instruction(RCode.Return, result);
+            
+            
             // Check if other object can be casted.
             ins.Add(new Instruction(RCode.Instance_of, delegateClass, new[] { result, rother }));
-            ins.Add(new Instruction(RCode.If_eqz, returnInstruction, new[] { result })); // compare instance members
+            ins.Add(new Instruction(RCode.If_eqz, returnFalseInstruction, new[] { result }));
+
+            // Set result to false on default.
+            ins.Add(new Instruction(RCode.Const, 0, new[] { result }));
 
             // Cast of the other object.
             ins.Add(new Instruction(RCode.Check_cast, delegateClass, new[] { rother }));
 
             // Get instance fields of this and other.
-            var thisInstance = body.AllocateRegister(RCategory.Temp, RType.Object);
-            var otherInstance = body.AllocateRegister(RCategory.Temp, RType.Object);
+            var rThisValue = body.AllocateRegister(RCategory.Temp, RType.Object);
+            var rOtherValue = body.AllocateRegister(RCategory.Temp, RType.Object);
 
-            // Load the instance fields.
-            ins.Add(new Instruction(RCode.Iget_object, thisInstance, rthis) { Operand = instanceField });
-            ins.Add(new Instruction(RCode.Iget_object, otherInstance, rother) { Operand = instanceField });
+            if (instanceField != null)
+            {
+                // Load the instance fields.
+                ins.Add(new Instruction(RCode.Iget_object, rThisValue, rthis) {Operand = instanceField});
+                ins.Add(new Instruction(RCode.Iget_object, rOtherValue, rother) {Operand = instanceField});
 
-            // Compare the instance fields.
-            ins.Add(new Instruction(RCode.If_eq, returnInstruction, new[] { thisInstance, otherInstance })); // compare instance members
+                // Compare the instance fields.
+                ins.Add(new Instruction(RCode.If_ne, returnFalseInstruction, new[] {rThisValue, rOtherValue}));
+            }
 
-            // Set result to false if not equal.
-            ins.Add(new Instruction(RCode.Const, 0, new[] { result }));
+            if (genericInstanceTypeField != null)
+                CreateCompareArrayInstructions(ins, body, rthis, rother, genericInstanceTypeField, rThisValue, rOtherValue, returnFalseInstruction);
+
+            if (genericMethodTypeField != null)
+                CreateCompareArrayInstructions(ins, body, rthis, rother, genericMethodTypeField, rThisValue, rOtherValue, returnFalseInstruction);
+
+            // return true, if we made it so far
+            ins.Add(new Instruction(RCode.Const, 1, new[] { result }));
 
             // Add return instructions
-            ins.Add(returnInstruction);
+            ins.Add(returnFalseInstruction);
 
             return body;
+        }
+
+        private static void CreateCompareArrayInstructions(InstructionList ins, MethodBody body, Register rthis, Register rother, FieldDefinition field, Register rThisValue, Register rOtherValue, Instruction returnFalseInstruction)
+        {
+            Instruction done = new Instruction(RCode.Nop);
+            // Load the instance fields.
+            ins.Add(new Instruction(RCode.Iget_object, rThisValue, rthis) {Operand = field});
+            ins.Add(new Instruction(RCode.Iget_object, rOtherValue, rother) {Operand = field});
+
+            var rThisLen = body.AllocateRegister(RCategory.Temp, RType.Value);
+            var rOtherLen = body.AllocateRegister(RCategory.Temp, RType.Value);
+
+            // load length
+            ins.Add(new Instruction(RCode.Array_length, rThisLen, rThisValue));
+            ins.Add(new Instruction(RCode.Array_length, rOtherLen, rOtherValue));
+
+            // Compare the length
+            ins.Add(new Instruction(RCode.If_ne, returnFalseInstruction, new[] { rThisLen, rOtherLen }));
+            ins.Add(new Instruction(RCode.If_eqz, done, new[] {rThisLen}));
+
+            // now iterate over all elements in the array.
+            var thisType = body.AllocateRegister(RCategory.Temp, RType.Object);
+            var otherType = body.AllocateRegister(RCategory.Temp, RType.Object);
+            var counter = body.AllocateRegister(RCategory.Temp, RType.Object);
+            ins.Add(new Instruction(RCode.Const, 0, new[] {counter}));
+
+            var loadThisVal = new Instruction(RCode.Aget_object, thisType, rThisValue, counter);
+            ins.Add(loadThisVal);
+            ins.Add(new Instruction(RCode.Aget_object, otherType, rOtherValue, counter));
+
+            // compare types.
+            ins.Add(new Instruction(RCode.If_ne, returnFalseInstruction, new[] {thisType, otherType}));
+
+            ins.Add(new Instruction(RCode.Add_int_lit, 1, new[] {counter, counter}));
+            ins.Add(new Instruction(RCode.If_ne, loadThisVal, new[] {counter, rThisLen}));
+            
+            ins.Add(done);
         }
 
         /// <summary>

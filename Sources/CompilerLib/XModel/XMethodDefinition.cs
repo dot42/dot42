@@ -150,9 +150,9 @@ namespace Dot42.CompilerLib.XModel
         {
             get
             {
-                if (!DeclaringType.IsGenericClass)
-                    return false;
-                return ((Name == ".ctor") || ((IsStatic) && (Name != ".cctor")));
+                if (DeclaringType.IsGenericClass)
+                    return ((Name == ".ctor") || ((IsStatic) && (Name != ".cctor")));
+                return false;
             }
         }
 

@@ -24,9 +24,10 @@ namespace Dot42.CompilerLib.Ast.Converters
                         var ldftn = node.Arguments[1];
                         if ((ldftn.Code == AstCode.Ldftn) || (ldftn.Code == AstCode.Ldvirtftn))
                         {
-                            var token = (XMethodReference) ldftn.Operand;
                             node.Code = AstCode.Delegate;
-                            node.Operand = Tuple.Create(declaringType, token.GetElementMethod().Resolve());
+
+                            var token = (XMethodReference)ldftn.Operand;
+                            node.Operand = Tuple.Create(declaringType, token);
                             node.Arguments.RemoveAt(1);
                         }
                     }

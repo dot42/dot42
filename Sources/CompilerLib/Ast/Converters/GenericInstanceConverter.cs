@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Dot42.CompilerLib.XModel;
 using Dot42.FrameworkDefinitions;
 using Dot42.Utility;
+using Mono.Cecil;
 
 namespace Dot42.CompilerLib.Ast.Converters
 {
@@ -67,6 +69,32 @@ namespace Dot42.CompilerLib.Ast.Converters
                 {
                     // Add generic instance method parameter
                     var arg = CreateGenericInstance(node.SourceLocation, method, currentMethod, compiler);
+                    node.Arguments.Add(arg);
+                    node.GenericInstanceArgCount++;
+                }
+            }
+
+            // Add generic instance Delegate argumentsfor static methods.
+            foreach (var node in ast.GetSelfAndChildrenRecursive<AstExpression>(x => x.Code == AstCode.Delegate))
+            {
+                var delegateInfo = (Tuple<XTypeDefinition, XMethodReference>)node.Operand;
+
+                var genMethodDef = delegateInfo.Item2 as IXGenericInstance;
+                var genTypeDef = delegateInfo.Item2.DeclaringType as IXGenericInstance;
+
+                // Add generic instance type parameter value, if method is static
+                if (genTypeDef != null && delegateInfo.Item2.Resolve().IsStatic)
+                {
+                    
+                    var arg = CreateGenericInstance(node.SourceLocation, delegateInfo.Item2.DeclaringType, currentMethod, compiler);
+                    node.Arguments.Add(arg);
+                    node.GenericInstanceArgCount++;
+                }
+
+                // add generic method type parameter value.
+                if (genMethodDef != null)
+                {
+                    var arg = CreateGenericInstance(node.SourceLocation, delegateInfo.Item2, currentMethod, compiler);
                     node.Arguments.Add(arg);
                     node.GenericInstanceArgCount++;
                 }
