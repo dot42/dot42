@@ -39,6 +39,17 @@ namespace Dot42.ApkSpy.Tree
             tb.ShortcutsEnabled = true;
             tb.BackColor = Color.White;
 
+            string[] tryFonts = new[] {"Lucida Console", "Consolas"};
+
+            foreach (var fontName in tryFonts)
+            {
+                tb.Font = new Font(fontName, 8, FontStyle.Regular);
+                if (tb.Font.Name == fontName) break;
+            }
+
+            if(!tryFonts.Contains(tb.Font.Name))
+                tb.Font = new Font(FontFamily.GenericMonospace, 9);
+            
             tb.KeyDown += (sender, e) =>
             {
                 // as per http://stackoverflow.com/questions/14429445/how-can-i-allow-things-such-as-ctrl-a-and-ctrl-backspace-in-a-c-sharp-textbox
