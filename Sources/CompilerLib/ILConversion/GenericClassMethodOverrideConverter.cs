@@ -98,6 +98,7 @@ namespace Dot42.CompilerLib.ILConversion
 
                 var cloner = new TypeCloner(true, method.Module.TypeSystem);
                 bridge.ReturnType = cloner.Get(baseMethod.ReturnType, bridge);
+                bridge.IsAbstract = false;
 
                 // Clone parameters
                 foreach (var p in baseMethod.Parameters)

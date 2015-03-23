@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.Composition;
 using System.Linq;
+using System.Net.Mail;
 using Dot42.CecilExtensions;
 using Dot42.CompilerLib.Extensions;
 using Dot42.CompilerLib.Reachable;
@@ -75,6 +76,14 @@ namespace Dot42.CompilerLib.ILConversion
                 {
                     ConvertCtor(ctor);
                 }
+
+                
+                // make sure the class doesn't override any of our methods.
+                foreach (var method in testFixtureType.Methods)
+                {
+                    if (new[] {"SetUp", "TearDown", "CountTestCases", "RunTest"}.Contains(method.Name))
+                        method.Name = method.Name + "Impl";
+                }
             }
 
             /// <summary>
@@ -96,7 +105,7 @@ namespace Dot42.CompilerLib.ILConversion
                     // ctor must have 0 arguments
                     if (methodRef.Parameters.Count != 0)
                         throw new CompilerException(
-                            string.Format("Test fixture type {0} must only called default constructors.",
+                            string.Format("Test fixture type {0} must only call default constructors.",
                                           ctor.DeclaringType.FullName));
                     ins.Operand =
                         baseType.Methods.First(x => x.IsConstructor && (x.Parameters.Count == 0) && (x.Name == ".ctor"));

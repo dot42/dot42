@@ -60,10 +60,12 @@
     <Compile Include="Dot42\TestInclude.cs" />
     <Compile Include="Java.Util\TestArrayList.cs" />
     <Compile Include="Java.Util\TestIList.cs" />
+    <Compile Include="System.Collections.Generic\DictionaryTest_Mono.cs" />
     <Compile Include="System.Collections.Generic\TestList_T.cs" />
+    <Compile Include="System.Collections.ObjectModel\KeyedCollectionTest_Mono.cs" />
     <Compile Include="System.Collections.ObjectModel\ReadOnlyCollectionTest.cs" />
-    <Compile Include="System.Collections\ArrayListTest.cs" />
-    <Compile Include="System.Collections\HashtableTest2.cs" />
+    <Compile Include="System.Collections.Generic\System.Collections\ArrayListTest.cs" />
+    <Compile Include="System.Collections.Generic\System.Collections\HashtableTest2.cs" />
     <Compile Include="System.ComponentModel\TestBackgroundWorker.cs" />
     <Compile Include="System.Diagnostics\TestStopwatch.cs" />
     <Compile Include="System.IO\BinaryReaderTest.cs">

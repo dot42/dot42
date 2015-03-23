@@ -212,7 +212,7 @@ namespace Dot42.CompilerLib.Ast.Converters
                     {
                         // Class ctor's cannot have type information.
                         // Return Object instead
-                        DLog.Warning(DContext.CompilerCodeGenerator, "Class constructor of {0} tries to use generic parameter. This will always yield Object.", currentMethod.DeclaringTypeFullName);
+                        DLog.Warning(DContext.CompilerCodeGenerator, "Class (static) constructor of {0} tries to use generic parameter. This will always yield Object.", currentMethod.DeclaringTypeFullName);
                         return new AstExpression(seqp, AstCode.TypeOf, typeSystem.Object) { ExpectedType = typeSystem.Type };
                     }
                     gi = currentMethod.IsStatic ?
