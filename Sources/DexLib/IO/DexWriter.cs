@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using Dot42.DexLib.Extensions;
 using Dot42.DexLib.IO.Collectors;
@@ -759,7 +760,11 @@ namespace Dot42.DexLib.IO
         /// <returns>True if a code_item was written, false otherwise</returns>
         private bool WriteCodeItem(BinaryWriter writer, MethodDefinition method, uint sectionOffset)
         {
+            if (codes.ContainsKey(method))
+                throw new AmbiguousMatchException("method renamer failed to find a uniquely name for " + method);    
+            
             codes.Add(method, 0);
+
             var body = method.Body;
             if (body == null)
                 return false;

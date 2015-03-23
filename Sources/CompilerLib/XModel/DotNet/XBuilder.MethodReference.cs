@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Linq;
+using Dot42.CompilerLib.Extensions;
 using Mono.Cecil;
 
 namespace Dot42.CompilerLib.XModel.DotNet
@@ -30,7 +31,7 @@ namespace Dot42.CompilerLib.XModel.DotNet
             /// </summary>
             public override string Name
             {
-                get { return method.Name + CreateSignPostfix(method); }
+                get { return method.Name + CreateSignAndGenericsPostfix(method); }
             }
 
             /// <summary>

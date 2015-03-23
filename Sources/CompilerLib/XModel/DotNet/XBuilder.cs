@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using Dot42.CecilExtensions;
+using Dot42.CompilerLib.Ast.Extensions;
+using Dot42.FrameworkDefinitions;
 using Mono.Cecil;
 using Mono.Cecil.Rocks;
 
@@ -256,38 +259,92 @@ namespace Dot42.CompilerLib.XModel.DotNet
         /// <summary>
         /// Create a postfix for the name of the given method based on the "unsigned" parameter types.
         /// </summary>
-        private static string CreateSignPostfix(MethodReference method)
+        private static string CreateSignAndGenericsPostfix(MethodReference method)
         {
-            if (method.DeclaringType.IsArray)
+            var declaringType = method.DeclaringType;
+
+            if (declaringType.IsArray)
                 return string.Empty;
             if ((method.Name == ".ctor") || (method.Name == ".cctor"))
                 return string.Empty;
-            var declType = method.DeclaringType.GetElementType().Resolve();
+
+            var declType = declaringType.GetElementType().Resolve();
             if ((declType != null) && (declType.IsDelegate()))
                 return string.Empty;
+
+            bool isNullableT = declaringType.FullName.StartsWith("System.Nullable`1");
+
+            // do not generics-rename methods that are used internally (better would be: fix were they are generated.)
+            // no not generics-rename interface methods or virtual methods (better would be: to rename these as well, but my code wouldn't work)
+
+            bool processGenerics = !isNullableT && !declaringType.Resolve().IsInterface 
+                                && !method.Resolve().IsVirtual && method.Resolve().Overrides.Count == 0;
+
+            bool needsGenericPostfix = false;
+            StringBuilder genericPostfix = new StringBuilder();
+
+            if (processGenerics)
+            {
+                if (method.ReturnType != null && method.ReturnType.IsGenericParameter)
+                {
+                    genericPostfix.Append("T");
+                    needsGenericPostfix = true;
+                }
+                else
+                    genericPostfix.Append("_");
+
+                if (method.HasGenericParameters)
+                {
+                    needsGenericPostfix = true;
+                    foreach (var e in method.GenericParameters)
+                        genericPostfix.Append("T");
+                }
+            }
+
             var needsPostfix = false;
-            var postfix = new StringBuilder("$$");
+            var paramPostfix = new StringBuilder();
             foreach (var p in method.Parameters)
             {
-                var typeChar = GetParameterPostfixIfRequired(p.ParameterType, ref needsPostfix);
-                postfix.Append(typeChar);
+                var typeChar = GetParameterPostfixIfRequired(p.ParameterType, processGenerics, ref needsPostfix);
+                paramPostfix.Append(typeChar);
             }
 
             if (method.Name.StartsWith("op_Explicit", StringComparison.OrdinalIgnoreCase))
             {
-                postfix.Append("$");
-                var typeChar = GetParameterPostfixIfRequired(method.ReturnType, ref needsPostfix);
-                postfix.Append(typeChar);
+                if(paramPostfix.Length > 0) paramPostfix.Append("$");
+                var typeChar = GetParameterPostfixIfRequired(method.ReturnType, processGenerics, ref needsPostfix);
+                paramPostfix.Append(typeChar);
             }
 
-            if (needsPostfix)
-                return postfix.ToString();
+            if (needsPostfix || needsGenericPostfix)
+            {
+                if (!needsGenericPostfix)
+                    return "$$" + paramPostfix;
+                if (!needsPostfix)
+                    return "$$" + genericPostfix;
+                return "$$$" + genericPostfix + "$" + paramPostfix;
+            }
+
             return string.Empty;
         }
 
-        private static char GetParameterPostfixIfRequired(TypeReference paramType, ref bool needsPostfix)
+        private static string GetPostfixFromName(string name)
+        {
+            int idx = name.IndexOf("$$", StringComparison.Ordinal);
+            if (idx == -1) return "";
+            return name.Substring(idx);
+        }
+
+        private static char GetParameterPostfixIfRequired(TypeReference paramType, bool processGenerics, ref bool needsPostfix)
         {
             TypeReference type;
+
+            if (processGenerics && paramType.IsGenericParameter)
+            {
+                needsPostfix = true;
+                return 'T';
+            }
+
             var isNullableInstance = paramType.FullName.StartsWith("System.Nullable`1<") && paramType.IsGenericInstance;
             if (isNullableInstance)
             {

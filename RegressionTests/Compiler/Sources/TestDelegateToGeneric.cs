@@ -1,7 +1,7 @@
 ﻿using System;
 using Junit.Framework;
 
-namespace dot42.CompilerBugTesting
+namespace Dot42.Tests.Compiler.Sources
 {
     public class TestDelegateToGeneric : TestCase
     {
@@ -64,12 +64,12 @@ namespace dot42.CompilerBugTesting
             Assert.AssertEquals(4, Call(GenericClassGenericStaticMethod<int>.Test<DateTime>));
         }
 
-        // this will kill the compiler atm.
-        //public void testNongenericClassGenericStaticMethodGenericOverload()
-        //{
-        //    var instance = new NongenericClassGenericStaticMethodGenericOverload(4);
-        //    Assert.AssertEquals(4, Call(instance.Test<long>));
-        //}
+         
+        public void testNongenericClassGenericStaticMethodGenericOverload()
+        {
+            Assert.AssertEquals(4, Call(NongenericClassGenericStaticMethodGenericOverload.Test<int>));
+            Assert.AssertEquals(4, Call(NongenericClassGenericStaticMethodGenericOverload.Test<int,DateTime>));
+        }
 
 
         private int Call(Func<int> del)
@@ -192,22 +192,21 @@ namespace dot42.CompilerBugTesting
             }
         }
 
-        // this will kill the compiler.
-        //internal class NongenericClassGenericStaticMethodGenericOverload
-        //{
-        //    public static T Test<T>()
-        //    {
-        //        return (T)(object)4;
-        //    }
+        internal class NongenericClassGenericStaticMethodGenericOverload
+        {
+            public static T Test<T>()
+            {
+                return (T)(object)4;
+            }
 
-        //    public static T Test<T, T2>()
-        //    {
-        //        if (typeof(T2) != typeof(DateTime))
-        //            throw new Exception("T2 wrong type.");
+            public static T Test<T, T2>()
+            {
+                if (typeof(T2) != typeof(DateTime))
+                    throw new Exception("T2 wrong type.");
 
-        //        return (T)(object)4;
-        //    }
-        //}
+                return (T)(object)4;
+            }
+        }
 
     }
 }
