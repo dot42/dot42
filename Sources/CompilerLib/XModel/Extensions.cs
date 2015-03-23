@@ -267,7 +267,7 @@ namespace Dot42.CompilerLib.XModel
         /// </summary>
         public static bool IsSystemCollectionsIList(this XTypeReference type)
         {
-            return (type != null) && (type.FullName == "System.Collections.GenericIList");
+            return (type != null) && (type.FullName == "System.Collections.IList");
         }
 
         /// <summary>
