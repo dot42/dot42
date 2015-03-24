@@ -179,6 +179,7 @@
     <Compile Include="Java2Ast\AstBuilder.ByteCodeBlock.cs" />
     <Compile Include="Java2Ast\AstBuilder.Category.cs" />
     <Compile Include="Java2Ast\SourceLocation.cs" />
+    <Compile Include="Reachable\Testers\AnonymousTypeMethodTester.cs" />
     <Compile Include="Target\Dex\DexMethodBodyCompiler.cs" />
     <Compile Include="Target\MethodBodyCompiler.cs" />
     <Compile Include="MethodSource.cs" />

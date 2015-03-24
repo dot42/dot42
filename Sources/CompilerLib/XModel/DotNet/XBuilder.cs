@@ -276,9 +276,12 @@ namespace Dot42.CompilerLib.XModel.DotNet
 
             // do not generics-rename methods that are used internally (better would be: fix were they are generated.)
             // no not generics-rename interface methods or virtual methods (better would be: to rename these as well, but my code wouldn't work)
+            // do not generics-rename getters or setters.
+            var methodDef = method.Resolve();
 
-            bool processGenerics = !isNullableT && !declaringType.Resolve().IsInterface 
-                                && !method.Resolve().IsVirtual && method.Resolve().Overrides.Count == 0;
+            bool processGenerics = !isNullableT && !methodDef.IsGetter && !methodDef.IsSetter
+                                    && !declaringType.Resolve().IsInterface 
+                                    && !methodDef.IsVirtual && methodDef.Overrides.Count == 0;
 
             bool needsGenericPostfix = false;
             StringBuilder genericPostfix = new StringBuilder();
@@ -288,7 +291,7 @@ namespace Dot42.CompilerLib.XModel.DotNet
                 if (method.ReturnType != null && method.ReturnType.IsGenericParameter)
                 {
                     genericPostfix.Append("T");
-                    needsGenericPostfix = true;
+                    //needsGenericPostfix = true;  // don't mark based on return type only.
                 }
                 else
                     genericPostfix.Append("_");
