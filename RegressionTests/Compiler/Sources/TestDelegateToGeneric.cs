@@ -104,12 +104,15 @@ namespace Dot42.Tests.Compiler.Sources
 
             public GenericClass(T val)
             {
+                Assert.AssertTrue(val is int);
+                Assert.AssertTrue(val.GetType() == typeof(T));
                 this.val = val;
             }
 
             public T Test()
             {
                 Assert.AssertTrue(val is int);
+                Assert.AssertTrue(((object)val) is T);
                 //Assert.AssertEquals(typeof(int), typeof(T));
                 return val;
             }
@@ -127,10 +130,7 @@ namespace Dot42.Tests.Compiler.Sources
 
             public T Test<T>()
             {
-                Assert.AssertTrue(_val is int);
-                //Assert.AssertTrue(typeof(int).IsAssignableFrom(typeof(T)));
-                //Assert.AssertEquals(typeof(int), typeof(T));
-                //Assert.AssertEquals(typeof(int), typeof(T));
+                Assert.AssertTrue(((object)_val) is int);
 
                 return (T)(object)_val;
             }

@@ -29,6 +29,11 @@
         public const string GenericInstanceClassArgumentsField = "Arguments";
 
         /// <summary>
+        /// Name of field in the IGenericInstanceClass class that holds type arguments.
+        /// </summary>
+        public const string GenericInstanceClassArgumentCountField = "ArgumentCount";
+
+        /// <summary>
         /// Name of IGenericMethodParameter class
         /// Interface for annotation that indicates a method parameter as the generic type information for the method.
         /// </summary>

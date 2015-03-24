@@ -29,6 +29,21 @@ namespace Dot42.CompilerLib.Ast.Converters
                 node.CopyFrom(loadExpr);
             }
 
+            // Expand instanceOf
+            foreach (var node in ast.GetSelfAndChildrenRecursive<AstExpression>(x => x.Code == AstCode.SimpleInstanceOf))
+            {
+                var type = (XTypeReference)node.Operand;
+                var gp = type as XGenericParameter;
+                if (gp == null) continue;
+
+                var typeHelperType = compiler.GetDot42InternalType(InternalConstants.TypeHelperName).Resolve();
+                var loadExpr = LoadTypeForGenericInstance(node.SourceLocation, currentMethod, type, typeHelperType, typeSystem); 
+                var typeType = compiler.GetDot42InternalType("System", "Type").Resolve();
+                var isInstanceOfType = typeType.Methods.Single(n => n.Name == "IsInstanceOfType" && n.Parameters.Count == 1);
+                var call = new AstExpression(node.SourceLocation, AstCode.Call, isInstanceOfType, loadExpr, node.Arguments[0]);
+                node.CopyFrom(call);
+            }
+
             // Expand newarr
             foreach (var node in ast.GetSelfAndChildrenRecursive<AstExpression>(x => x.Code == AstCode.Newarr))
             {

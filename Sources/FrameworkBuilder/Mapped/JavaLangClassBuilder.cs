@@ -119,6 +119,9 @@ namespace Dot42.FrameworkBuilder.Mapped
                 case "GetComponentType":
                     renamer.Rename(method, "GetElementType");
                     break;
+                case "IsAssignableFrom":
+                    renamer.Rename(method, "JavaIsAssignableFrom");
+                    break;
             }
         }
 

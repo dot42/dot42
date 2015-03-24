@@ -405,7 +405,8 @@ namespace Dot42.CompilerLib.Structure.DotNet
             Class.GenericInstanceField = field;
             var annType = compiler.GetDot42InternalType(InternalConstants.GenericInstanceClassAnnotation).GetClassReference(targetPackage);
             var annotation = new Annotation(annType, AnnotationVisibility.Runtime,
-                new AnnotationArgument(InternalConstants.GenericInstanceClassArgumentsField, field));
+                //new AnnotationArgument(InternalConstants.GenericInstanceClassArgumentsField, field), // Note: including this field crashed the dalvik virtual machine when the annotation is retrieved.
+                new AnnotationArgument(InternalConstants.GenericInstanceClassArgumentCountField, typeDef.GenericParameters.Count));
             Class.Annotations.Add(annotation);
         }
 
