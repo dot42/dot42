@@ -30,6 +30,11 @@ namespace Dot42.Tests.Compiler.Sources
                 return o is T;
             }
 
+            public bool IsInt(T o)
+            {
+                return o is int;
+            }
+
             public bool ValIsT()
             {
                 return ((object)_val) is T;
@@ -89,7 +94,14 @@ namespace Dot42.Tests.Compiler.Sources
         {
             AssertSame(new GenericClass<int>(42).GetTypeofVal(), typeof(int));
         }
+
+        public void testPrivitiveTypeOfDoesntMatchT3_KnownToFail()
+        {
+            AssertFalse(new GenericClass<int>(42).IsInt(3));
+        }
     
+
+        
         public class Base
         {
             public virtual int Foo()

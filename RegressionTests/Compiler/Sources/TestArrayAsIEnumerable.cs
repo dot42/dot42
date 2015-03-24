@@ -55,6 +55,20 @@ namespace Dot42.Tests.Compiler.Sources
             AssertNotNull(c);
         }
 
+        public void testIsAssignableFrom()
+        {
+            var arr = new int[] { 4, 5, 6 };
+            var type = arr.GetType();
+            AssertTrue(typeof(IEnumerable).IsAssignableFrom(type));
+        }
+
+        public void testIsInstanceOfType()
+        {
+            var arr = new int[] { 4, 5, 6 };
+            AssertTrue(typeof(IEnumerable).IsInstanceOfType(arr));
+        }
+
+
         private static int Count(IEnumerable c)
         {
             var result = 0;

@@ -57,6 +57,15 @@ namespace Dot42.Tests.Compiler.Sources
             catch (ArgumentException)
             {
             }
+
+            try
+            {
+                dict[1] = 1;
+                Fail("Dictionary<int,string> should not accept int as value");
+            }
+            catch (ArgumentException)
+            {
+            }
         }
 
     }

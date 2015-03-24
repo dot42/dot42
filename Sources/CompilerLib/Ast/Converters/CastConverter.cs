@@ -46,6 +46,11 @@ namespace Dot42.CompilerLib.Ast.Converters
                 ConvertRet(compiler, node, typeSystem, currentMethod);
             }
 
+            foreach (var node in ast.GetSelfAndChildrenRecursive<AstExpression>(x => x.Code == AstCode.Call))
+            {
+                ConvertCallIsAssignableFrom(compiler, node, typeSystem);
+            }
+
         }
 
         /// <summary>
@@ -315,7 +320,8 @@ namespace Dot42.CompilerLib.Ast.Converters
                             type.IsSystemCollectionsICollectionT() ||
                             type.IsSystemCollectionsIListT())
             {
-                // TODO: implement InstanceOf for array types.
+                // TODO: implement InstanceOf with type check for array types.
+                // (is that even possible here?)
             }
 
             if (type.IsSystemIFormattable())
@@ -338,6 +344,55 @@ namespace Dot42.CompilerLib.Ast.Converters
 
             // Normal instanceof
             node.Code = AstCode.SimpleInstanceOf;            
+        }
+
+        /// <summary>
+        /// Convert node with code IsAssignableFrom 
+        /// 
+        /// Only works if the this parameter is a constant type (typeof(IEnumerable), etc)
+        /// [ that is, it doesn't work if an intermediate method is called to check for
+        ///   IsAssignableFrom ]
+        /// </summary>
+        private static void ConvertCallIsAssignableFrom(AssemblyCompiler compiler, AstExpression node, XTypeSystem typeSystem)
+        {
+            var targetMethodRef = ((XMethodReference)node.Operand);
+            if (!targetMethodRef.DeclaringType.IsSystemType()) 
+                return;
+            if (targetMethodRef.Name != "IsAssignableFrom")
+                return;
+            if (node.Arguments.Count != 2) 
+                return;
+
+            var firstArg = node.Arguments[0];
+            if (firstArg.Code != AstCode.TypeOf)
+                return;
+
+            var type = (XTypeReference)firstArg.Operand;
+
+            if (type.IsSystemCollectionsIEnumerable() ||
+                type.IsSystemCollectionsICollection() ||
+                type.IsSystemCollectionsIList())
+            {
+                // Call "IsAssignableFrom(x) || x.GetIsArray()"
+                var isArray = targetMethodRef.DeclaringType.Resolve().Methods.First(x => x.Name == "GetIsArray" && x.Parameters.Count == 0 && !x.IsStatic);
+
+                // originalExpression
+                var isExpr = new AstExpression(node);
+
+                // Call IsArray
+                var isArrayExpr = new AstExpression(node.SourceLocation, AstCode.Call, isArray, node.Arguments[1])
+                                            .SetType(typeSystem.Bool);
+
+                // Combined
+                var combined = new AstExpression(node.SourceLocation, AstCode.Or, null, isExpr, isArrayExpr)
+                                            .SetType(typeSystem.Bool);
+                node.CopyFrom(combined);
+
+                return;
+            }
+
+            // TODO: make this work with the generic collections as well.
+            
         }
     }
 }
