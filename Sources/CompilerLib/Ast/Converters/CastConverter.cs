@@ -7,7 +7,9 @@ using Dot42.FrameworkDefinitions;
 namespace Dot42.CompilerLib.Ast.Converters
 {
     /// <summary>
-    /// Add/expand cast expressions
+    /// Add/expand cast / instance of and IsAssignableFrom expressions
+    /// - for Arrays
+    /// - for IFormattable
     /// </summary>
     internal static class CastConverter
     {

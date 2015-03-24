@@ -117,10 +117,16 @@ namespace Dot42.FrameworkBuilder.Mapped
                     method.EditorBrowsableState = EditorBrowsableState.Never;
                     break;
                 case "GetComponentType":
-                    renamer.Rename(method, "GetElementType");
+                    renamer.Rename(method, "JavaGetComponentType");
+                    method.EditorBrowsableState = EditorBrowsableState.Never;
                     break;
                 case "IsAssignableFrom":
                     renamer.Rename(method, "JavaIsAssignableFrom");
+                    method.EditorBrowsableState = EditorBrowsableState.Never;
+                    break;
+                case "IsInstance":
+                    renamer.Rename(method, "JavaIsInstance");
+                    method.EditorBrowsableState = EditorBrowsableState.Never;
                     break;
             }
         }

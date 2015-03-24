@@ -85,19 +85,19 @@ namespace Dot42.Tests.Compiler.Sources
             AssertNotSame(new GenericClass<DateTime>(DateTime.Now).GetTypeofT(), typeof(object));
         }
 
-        public void testPrivitiveTypeOfDoesntMatchT_KnownToFail()
+        public void testPrivitiveTypeOfT_Matches()
         {
             AssertSame(new GenericClass<int>(42).GetTypeofT(), typeof(int));
         }
 
-        public void testPrivitiveTypeOfDoesntMatchT2_KnownToFail()
+        public void testPrivitiveTypeOfT_Matches2()
         {
             AssertSame(new GenericClass<int>(42).GetTypeofVal(), typeof(int));
         }
 
-        public void testPrivitiveTypeOfDoesntMatchT3_KnownToFail()
+        public void testPrivitiveTypeOfT_Matches3()
         {
-            AssertFalse(new GenericClass<int>(42).IsInt(3));
+            AssertTrue(new GenericClass<int>(42).IsInt(3));
         }
     
 

@@ -44,7 +44,7 @@ namespace Dot42.FrameworkBuilder.Mapped
                     renamer.Rename(method, "JavaWait");
                     break;
                 case "GetClass":
-                    renamer.Rename(method, "GetType");
+                    renamer.Rename(method, "JavaGetClass");
                     break;
                 case "Notify":
                     renamer.Rename(method, "JavaNotify");
