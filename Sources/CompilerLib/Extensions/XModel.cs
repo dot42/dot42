@@ -166,18 +166,20 @@ namespace Dot42.CompilerLib.Extensions
                     if (arg.IsDouble()) return new ClassReference("java/lang/Double");
                     if (arg.IsFloat()) return new ClassReference("java/lang/Float");
 
-                    // Use nullable base class of T
+                    // Use nullable base class of T, if enum.
                     var typeofT = git.GenericArguments[0];
                     XTypeDefinition typeofTDef;
                     if (!typeofT.TryResolve(out typeofTDef))
                         throw new XResolutionException(typeofT);
                     var className = targetPackage.NameConverter.GetConvertedFullName(typeofTDef);
                     var classDef = targetPackage.DexFile.GetClass(className);
-                    if(classDef.SuperClass != null)
+
+                    if (classDef.IsEnum) 
                         return classDef.SuperClass;
-                    // olaf: not sure what i'm doing here, but it might be better 
-                    //       to return something at all?
-                    DLog.Warning(DContext.CompilerILConverter, "unable to infer superclass for nullable: {0}", typeofTDef);
+
+                    // I like the base class concept for enums. unfortunately it seems to be 
+                    // impossible for structs and/or might have performance implications.
+                    // Just return the type for structs.
                     return classDef; 
                 }
             }

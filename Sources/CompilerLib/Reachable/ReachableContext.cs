@@ -236,6 +236,11 @@ namespace Dot42.CompilerLib.Reachable
                     }
                 }
             }
+
+            // create classbuilders (here, because now we know for all types
+            // if they are used in Nullable<T>. 
+            reachableTypes.ForEach(CreateClassBuilder);
+
         }
 
         /// <summary>
@@ -500,7 +505,6 @@ namespace Dot42.CompilerLib.Reachable
         public void RecordReachableType(TypeDefinition type)
         {
             reachableTypes.Add(type);
-            CreateClassBuilder(type);
         }
 
         /// <summary>

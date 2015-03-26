@@ -1,4 +1,8 @@
-﻿using Dot42.DexLib;
+﻿using System;
+using Dot42.CompilerLib.Target.Dex;
+using Dot42.CompilerLib.XModel;
+using Dot42.DexLib;
+using Dot42.Utility;
 
 namespace Dot42.CompilerLib.Extensions
 {
@@ -37,5 +41,42 @@ namespace Dot42.CompilerLib.Extensions
             annotation.Arguments.Add(new AnnotationArgument("value", classes));
             provider.Annotations.Add(annotation);
         }
+
+
+        /// <summary>
+        /// Create an INullableT annotation and attach it to the given provider.
+        /// </summary>
+        public static void AddNullableTAnnotation(this IAnnotationProvider provider, ClassReference type)
+        {
+            var annotation = new Annotation { Type = new ClassReference("dot42/Internal/INullableT"), Visibility = AnnotationVisibility.Runtime };
+            annotation.Arguments.Add(new AnnotationArgument("Type", type));
+            provider.Annotations.Add(annotation);
+        }
+
+        /// <summary>
+        /// Create an INullableT annotation and attach it to the given provider.
+        /// </summary>
+        public static void AddNullableTAnnotationIfNullableT(this IAnnotationProvider provider, XTypeReference xtype, DexTargetPackage targetPackage)
+        {
+            //if (xtype.IsNullableT())
+            //    return;
+            if (!xtype.GetElementType().IsNullableT())
+                return;
+
+            var classRef = xtype.GetReference(targetPackage) as ClassReference;
+            
+            if(classRef == null)
+                DLog.Warning(DContext.CompilerCodeGenerator, "Warning: Element {0} has no class refrence. Not creating INullableT annotation.", xtype);                
+            
+            var @class = classRef == null? null : targetPackage.DexFile.GetClass(classRef.Fullname);
+
+            if (@class == null || @class.NullableMarkerClass == null)
+                return;
+
+            var annotation = new Annotation { Type = new ClassReference("dot42/Internal/INullableT"), Visibility = AnnotationVisibility.Runtime };
+            annotation.Arguments.Add(new AnnotationArgument("Type", @class.NullableMarkerClass));
+            provider.Annotations.Add(annotation);
+        }
+
     }
 }

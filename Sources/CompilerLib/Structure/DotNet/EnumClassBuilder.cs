@@ -5,7 +5,6 @@ using Dot42.CecilExtensions;
 using Dot42.CompilerLib.Ast;
 using Dot42.CompilerLib.Extensions;
 using Dot42.CompilerLib.Reachable;
-using Dot42.CompilerLib.Target;
 using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel;
 using Dot42.CompilerLib.XModel.Synthetic;
@@ -38,7 +37,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// <summary>
         /// Sorting low comes first
         /// </summary>
-        protected override int SortPriority { get { return 0; } }
+        protected override int SortPriority { get { return base.Type.UsedInNullableT ? -50 : 0; } }
 
         /// <summary>
         /// Gets the created instance ctor(name, ordinal, value).
@@ -76,6 +75,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
             {
                 // Super class == nullable base class
                 Class.SuperClass = nullableBaseClassBuilder.Class;
+                Class.NullableMarkerClass = nullableBaseClassBuilder.Class;
             }
             else
             {

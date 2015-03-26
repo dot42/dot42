@@ -114,7 +114,7 @@ namespace Dot42.DexLib
         public bool IsSynthetic
         {
             get { return (AccessFlags & AccessFlags.Synthetic) != 0; }
-            set { AccessFlags = AccessFlags.Set(value, AccessFlags.Synchronized); }
+            set { AccessFlags = AccessFlags.Set(value, AccessFlags.Synthetic); }
         }
 
         public bool IsStrictFp

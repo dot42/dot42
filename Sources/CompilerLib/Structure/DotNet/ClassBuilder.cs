@@ -11,11 +11,13 @@ using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel;
 using Dot42.CompilerLib.XModel.DotNet;
 using Dot42.DexLib;
+using Dot42.DexLib.Extensions;
 using Dot42.FrameworkDefinitions;
 using Dot42.JvmClassLib;
 using Dot42.LoaderLib.Extensions;
 using Dot42.LoaderLib.Java;
 using Dot42.Mapping;
+using Dot42.Utility;
 using Mono.Cecil;
 using FieldDefinition = Dot42.DexLib.FieldDefinition;
 using MethodDefinition = Mono.Cecil.MethodDefinition;
@@ -66,10 +68,13 @@ namespace Dot42.CompilerLib.Structure.DotNet
             }
             else
             {
-                IClassBuilder builder = new StandardClassBuilder(context, compiler, typeDef);
-                if (typeDef.UsedInNullableT)
-                    return new[] { builder, new NullableBaseClassBuilder(context, compiler, typeDef) };
-                return new[] { builder };
+                if (!typeDef.UsedInNullableT)
+                    return new[] { new StandardClassBuilder(context, compiler, typeDef) };
+
+                var builder = new StandardClassBuilder(context, compiler, typeDef);
+                var nullableBuilder = new NullableMarkerClassBuilder(context, compiler, typeDef, builder);
+
+                return new IClassBuilder[] { builder, nullableBuilder };
             }
         }
 
@@ -461,14 +466,48 @@ namespace Dot42.CompilerLib.Structure.DotNet
                             var provider = new PropertyAnnotationProvider { Annotations = new List<Annotation>() };
                             AnnotationBuilder.Create(compiler, pair.Key, provider, targetPackage, true);
                             var attributes = provider.Annotations.FirstOrDefault();
-                            var ann = new Annotation(propertyClass, AnnotationVisibility.Runtime, new AnnotationArgument("Name", pair.Key.Name));
+                            string propName = pair.Key.Name;
+                            DexLib.TypeReference propType=null;
+                            var ann = new Annotation(propertyClass, AnnotationVisibility.Runtime, 
+                                                        new AnnotationArgument("Name", propName));
                             if (pair.Value[0] != null)
-                                ann.Arguments.Add(new AnnotationArgument("Get", new[] { pair.Value[0].DexMethod }));
-                            if (pair.Value[1] != null)
-                                ann.Arguments.Add(new AnnotationArgument("Set", new[] { pair.Value[1].DexMethod }));
-                            if (attributes != null)
                             {
-                                ann.Arguments.Add(new AnnotationArgument("Attributes", new [] {attributes}));
+                                var getter = pair.Value[0].DexMethod;
+
+                                if (getter.Prototype.Parameters.Count > 0)
+                                {
+                                    DLog.Info(DContext.CompilerCodeGenerator, "not generating property for getter with arguments " + getter);
+                                    continue;
+                                }
+                                
+                                propType = getter.Prototype.ReturnType;
+                                
+                                var getterName = getter.Name;
+                                if(getterName != "get_" + propName)
+                                    ann.Arguments.Add(new AnnotationArgument("Get", getterName));
+                            }
+
+                            if (pair.Value[1] != null)
+                            {
+                                var setter = pair.Value[1].DexMethod;
+                                if (setter.Prototype.Parameters.Count != 1)
+                                {
+                                    DLog.Info(DContext.CompilerCodeGenerator, "not generating property for setter with wrong argument count " + setter);
+                                    continue;
+                                }
+                                if (propType == null)
+                                    propType = setter.Prototype.Parameters[0].Type;
+
+                                var setterName = setter.Name;
+                                if (setterName != "set_" + propName)
+                                    ann.Arguments.Add(new AnnotationArgument("Set", setterName));
+                            }
+
+                            //provider.AddNullableTAnnotationIfNullableT();
+
+                            if (attributes != null && attributes.Arguments[0].Value != null)
+                            {
+                                //ann.Arguments.Add(new AnnotationArgument("Attributes", attributes.Arguments[0].Value));
                             }
                             propertyAnnotations.Add(ann);
                         }
@@ -484,9 +523,9 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 {
                     var propertyClass = compiler.GetDot42InternalType("IProperty").GetClassReference(targetPackage);
                     var defValue = new Annotation(propertyClass, AnnotationVisibility.Runtime,
-                                                  new AnnotationArgument("Get", new DexLib.MethodDefinition[0]),
-                                                  new AnnotationArgument("Set", new DexLib.MethodDefinition[0]),
-                                                  new AnnotationArgument("Attributes", new Annotation[0]));
+                                                  new AnnotationArgument("Get", ""),
+                                                  new AnnotationArgument("Set", "")/*,
+                                                  new AnnotationArgument("Attributes", new IAttribute[])*/);
                     var defAnnotation = new Annotation(new ClassReference("dalvik.annotation.AnnotationDefault"), 
                         AnnotationVisibility.System, new AnnotationArgument("value", defValue));
                     Class.Annotations.Add(defAnnotation);

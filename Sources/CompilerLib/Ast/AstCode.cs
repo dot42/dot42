@@ -394,6 +394,9 @@
         // Gets the BoxedType (Type instance) of the given XTypeReference operand
         BoxedTypeOf,
 
+        // Gets the NullableType (Type instance) of the given enum or struct XTypeReference operand
+        NullableTypeOf,
+
         // Call TypeHelper.ArrayNewInstance(Class, length)
         ArrayNewInstance,
 

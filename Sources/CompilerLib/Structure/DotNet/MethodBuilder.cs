@@ -7,6 +7,7 @@ using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel;
 using Dot42.CompilerLib.XModel.DotNet;
 using Dot42.DexLib;
+using Dot42.DexLib.Extensions;
 using Dot42.Mapping;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -108,6 +109,9 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 else dmethod.IsFinal = true;
                 //if (method.IsInitOnly) dmethod.IsFinal = true;
             }
+
+            if (method.IsCompilerGenerated())
+                dmethod.IsSynthetic = true;
         }
         
         /// <summary>
@@ -153,6 +157,14 @@ namespace Dot42.CompilerLib.Structure.DotNet
         {
             // Build method annotations
             AnnotationBuilder.Create(compiler, method, dmethod, targetPackage);
+            
+            dmethod.AddNullableTAnnotationIfNullableT(xMethod.ReturnType, targetPackage);
+
+            for (int i = 0; i < xMethod.Parameters.Count; ++i)
+            {
+                var dp = dmethod.Prototype.Parameters[i];
+                dp.AddNullableTAnnotationIfNullableT(xMethod.Parameters[i].ParameterType, targetPackage);
+            }
         }
 
         /// <summary>

@@ -1,12 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Dot42.CompilerLib.Extensions;
-using Dot42.CompilerLib.Target;
 using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel;
-using Dot42.DexLib;
 using Mono.Cecil;
-using MethodDefinition = Mono.Cecil.MethodDefinition;
 
 namespace Dot42.CompilerLib.Structure.DotNet
 {

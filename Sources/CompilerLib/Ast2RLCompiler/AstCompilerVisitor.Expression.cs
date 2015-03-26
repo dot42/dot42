@@ -112,6 +112,17 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                         return new RLRange(first, typeReg);
                     }
 
+                case AstCode.NullableTypeOf:
+                    {
+                        var type = (XTypeReference)node.Operand;
+                        var typeReg = frame.AllocateTemp(FrameworkReferences.Class);
+                        var dbaseType = (ClassReference)type.GetReference(targetPackage);
+                        var dnullabeType = targetPackage.DexFile.GetClass(dbaseType.Fullname)   
+                                                        .NullableMarkerClass;
+                        var first = this.Add(node.SourceLocation, RCode.Const_class, dnullabeType, typeReg);
+                        return new RLRange(first, typeReg);
+                    }
+
                     #endregion
 
                     #region Arithmetic

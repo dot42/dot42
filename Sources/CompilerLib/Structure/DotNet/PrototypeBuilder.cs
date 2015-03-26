@@ -38,8 +38,8 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 }
                 catch (XResolutionException)
                 {
-                    DLog.Warning(DContext.CompilerILConverter, "Error: unable to resolve type for parameter {1} (type {2}) for method {0}", method, p.Name, p.ParameterType);
-                    // TODO: this is a probably a dirty fix. the method should have been filtered out earlier.
+                    DLog.Warning(DContext.CompilerILConverter, "Error: unable to resolve type for parameter {1} (type {2}) for method {0}. Replacing parameter type with System.Object.", method, p.Name, p.ParameterType);
+                    // TODO: might be a dirty fix. maybe the method should have been filtered earlier.
                     result.Parameters.Add(new Parameter(new ClassReference("java/lang/Object"), p.Name));
                 }
             }

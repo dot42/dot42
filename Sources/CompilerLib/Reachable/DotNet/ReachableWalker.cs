@@ -175,7 +175,7 @@ namespace Dot42.CompilerLib.Reachable.DotNet
                     typeDef.Methods.ForEach(x => x.MarkReachable(context));
                 }
 
-                // Record in context and create class builder
+                // Record in context 
                 context.RecordReachableType(typeDef);
             }
             else if ((typeSpec = type as TypeSpecification) != null)
@@ -193,9 +193,11 @@ namespace Dot42.CompilerLib.Reachable.DotNet
                     if (git.ElementType.IsNullableT())
                     {
                         var typeofT = git.GenericArguments[0].Resolve(context);
-                        if (typeofT != null)
+                        if (typeofT != null && !typeofT.UsedInNullableT)
                         {
                             typeofT.UsedInNullableT = true;
+
+                            Utility.DLog.Info(Utility.DContext.CompilerAssemblyResolver, "found System.Nullable<{0}>", typeofT.FullName);
                         }
                     }
                     Walk(context, (IGenericInstance)git);

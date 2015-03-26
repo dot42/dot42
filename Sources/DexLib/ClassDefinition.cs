@@ -39,6 +39,8 @@ namespace Dot42.DexLib
         /// </summary>
         public FieldDefinition GenericInstanceField { get; set; }
 
+        public ClassDefinition NullableMarkerClass { get; set; }
+
         #region IMemberDefinition Members
 
         public AccessFlags AccessFlags { get; set; }

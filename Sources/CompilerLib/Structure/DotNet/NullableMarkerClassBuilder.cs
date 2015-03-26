@@ -1,13 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Dot42.CompilerLib.Extensions;
+using Dot42.CompilerLib.Reachable;
 using Dot42.CompilerLib.RL;
-using Dot42.CompilerLib.Target;
 using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel;
 using Dot42.CompilerLib.XModel.DotNet;
 using Dot42.DexLib;
 using Mono.Cecil;
+using FieldDefinition = Mono.Cecil.FieldDefinition;
 using MethodDefinition = Dot42.DexLib.MethodDefinition;
 using MethodReference = Dot42.DexLib.MethodReference;
 using ILMethodDefinition = Mono.Cecil.MethodDefinition;
@@ -15,16 +16,19 @@ using ILMethodDefinition = Mono.Cecil.MethodDefinition;
 namespace Dot42.CompilerLib.Structure.DotNet
 {
     /// <summary>
-    /// Build ClassDefinition structures for base classes of struct's that are used as Nullable(T).
+    /// Build ClassDefinition structures for marker class of struct's that are used as Nullable(T).
     /// </summary>
-    internal class NullableBaseClassBuilder : ClassBuilder
+    internal class NullableMarkerClassBuilder : ClassBuilder
     {
+        private readonly ClassBuilder _underlyingBuilder;
+
         /// <summary>
         /// Default ctor
         /// </summary>
-        public NullableBaseClassBuilder(Reachable.ReachableContext context, AssemblyCompiler compiler, TypeDefinition typeDef)
+        public NullableMarkerClassBuilder(Reachable.ReachableContext context, AssemblyCompiler compiler, TypeDefinition typeDef, ClassBuilder underlyingBuilder)
             : base(context, compiler, typeDef)
         {
+            _underlyingBuilder = underlyingBuilder;
         }
 
         /// <summary>
@@ -38,7 +42,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
         protected override void CreateClassDefinition(DexTargetPackage targetPackage, ClassDefinition parent, TypeDefinition parentType, XModel.XTypeDefinition parentXType)
         {
             base.CreateClassDefinition(targetPackage, parent, parentType, parentXType);
-            Class.IsFinal = false;
+            Class.IsFinal = true;
             Class.IsAbstract = true;
             Class.IsSynthetic = true;
         }
@@ -56,12 +60,13 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// </summary>
         protected override void ImplementSuperClass(DexTargetPackage targetPackage)
         {
-            var baseType = Type.BaseType;
-            if (baseType != null)
-            {
-                Class.SuperClass = (ClassReference)baseType.GetReference(targetPackage, Compiler.Module);
-            }
+            // TODO: implement Generic Type Definition Classes and derive from System.Nullable`1-Marker.
+            //Class.SuperClass = Compiler.GetDot42InternalType("System", "Nullable`1").GetClassReference(targetPackage);
+            Class.SuperClass = new ClassReference("java/lang/Object");
+            _underlyingBuilder.Class.NullableMarkerClass = Class;
         }
+
+        
 
         /// <summary>
         /// Implement the class now that all classes have been created
@@ -83,6 +88,8 @@ namespace Dot42.CompilerLib.Structure.DotNet
 
             // build original type field
             // Create field definition
+            // NOTE: at the moment the underlying type is both defined as a type and in the annotation.
+            //       remove one or the other when we have determined which is the better way.
             var dfield = new Dot42.DexLib.FieldDefinition();
 
             dfield.Owner = Class;
@@ -93,10 +100,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
             dfield.IsPublic = true;
 
             dfield.Type = Compiler.Module.TypeSystem.Type.GetClassReference(targetPackage);
-
-            // not sure if GetClassReference is the best way to go forward here.
-            // might depend on the sort order of the class builders.
-            dfield.Value = XType.GetClassReference(targetPackage);
+            dfield.Value = _underlyingBuilder.Class;
             
 
             Class.Fields.Add(dfield);
@@ -147,6 +151,42 @@ namespace Dot42.CompilerLib.Structure.DotNet
             ins.Add(new Instruction(RCode.Invoke_direct, paramRegs.ToArray()) { Operand = baseCtorRef });
             ins.Add(new Instruction(RCode.Return_void));
             return body;
+        }
+
+        protected override void CreateGenericInstanceField(DexTargetPackage targetPackage)
+        {
+        }
+
+        public override void CreateAnnotations(DexTargetPackage targetPackage)
+        {
+            Class.AddNullableTAnnotation(_underlyingBuilder.Class);
+        }
+
+        protected override IEnumerable<ClassBuilder> CreateNestedClassBuilders(ReachableContext context, DexTargetPackage targetPackage, ClassDefinition parent)
+        {
+            return new ClassBuilder[0];
+        }
+
+        protected override void ImplementCloneable(DexTargetPackage targetPackage)
+        {
+        }
+
+        protected override void ImplementInnerClasses(DexTargetPackage targetPackage)
+        {
+        }
+
+        protected override bool ShouldImplementField(FieldDefinition field)
+        {
+            return false;
+        }
+
+        protected override bool ShouldImplementMethod(ILMethodDefinition method)
+        {
+            return false;
+        }
+
+        protected override void ImplementInterfaces(DexTargetPackage targetPackage)
+        {
         }
     }
 }

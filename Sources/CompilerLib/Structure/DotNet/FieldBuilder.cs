@@ -1,5 +1,6 @@
 ﻿using System;
 using Dot42.CecilExtensions;
+using Dot42.CompilerLib.Ast.Extensions;
 using Dot42.CompilerLib.Extensions;
 using Dot42.CompilerLib.Target;
 using Dot42.CompilerLib.Target.Dex;
@@ -95,6 +96,9 @@ namespace Dot42.CompilerLib.Structure.DotNet
 
             if (field.IsInitOnly) dfield.IsFinal = true;
             if (field.IsStatic) dfield.IsStatic = true;
+
+            if (field.IsCompilerGenerated())
+                dfield.IsSynthetic = true;
         }
 
         /// <summary>
@@ -116,6 +120,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
         {
             // Build field annotations
             AnnotationBuilder.Create(compiler, field, dfield, targetPackage);
+            dfield.AddNullableTAnnotationIfNullableT(xField.FieldType, targetPackage);
         }
 
         /// <summary>

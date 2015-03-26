@@ -1,4 +1,7 @@
-﻿using Mono.Cecil;
+﻿using Dot42.CompilerLib.Extensions;
+using Dot42.CompilerLib.Target.Dex;
+using Dot42.DexLib;
+using Mono.Cecil;
 
 namespace Dot42.CompilerLib.Structure.DotNet
 {
@@ -18,6 +21,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// <summary>
         /// Sorting low comes first
         /// </summary>
-        protected override int SortPriority { get { return 0; } }
+        protected override int SortPriority { get { return base.Type.UsedInNullableT?-50:0; } }
+
     }
 }
