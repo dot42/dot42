@@ -76,6 +76,7 @@
     <Compile Include="System.IO\TestMemoryStream.cs" />
     <Compile Include="System.IO\TestPath.cs" />
     <Compile Include="System.Linq\TestSelect.cs" />
+    <Compile Include="System.Net\AndroidWifiBasedTestCase.cs" />
     <Compile Include="System.Net\TestHttpWebRequest.cs" />
     <Compile Include="System.Net\TestWebClient.cs" />
     <!-- Compile Include="System.Text.RegularExpressions\PerlTest.cs" / -->

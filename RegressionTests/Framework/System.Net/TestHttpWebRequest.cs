@@ -1,30 +1,11 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using System.Net;
-using System.Text;
-using Android.Content;
-using Android.Net;
-using Android.Net.Wifi;
-using Android.Test;
-using Android.Util;
-using Java.Lang;
-using Java.Util.Concurrent;
-using Junit.Framework;
 using Uri = System.Uri;
 
 namespace Dot42.Tests.System.Net
 {
-    class TestHttpWebRequest : AndroidTestCase
+    class TestHttpWebRequest : AndroidWifiBasedTestCase
     {
-        private static bool wifiWasDisabled;
-
-        protected override void SetUp()
-        {
-            base.SetUp();
-            EnableWifi();
-        }
-
         public void testWebRequestGet()
         {
             var uri = new Uri("http://www.google.com");
@@ -54,88 +35,7 @@ namespace Dot42.Tests.System.Net
             res.Close();
         }
 
-        private void EnableWifi()
-        {
-            var context = GetContext();
-            if (context == null) throw new Exception("Cannot get Context");
-
-            var wifiManager = (WifiManager) context.GetSystemService(Context.WIFI_SERVICE);
-            if (wifiManager == null) throw new Exception("Cannot get WifiManager");
-
-			var networks = wifiManager.GetConfiguredNetworks();
-			if ((networks == null) || (networks.Count == 0))
-			{
-				Log.D("dot42", "No configured WIFI networks");
-				return;
-			}
-			
-            var connectivityManager = (ConnectivityManager) GetContext().GetSystemService(Context.CONNECTIVITY_SERVICE);
-            if (connectivityManager == null) throw new Exception("Cannot get ConnectivityManager");
-
-            if (!wifiWasDisabled)
-            {
-                wifiWasDisabled = true;
-
-                // Turn WIFI off first
-                wifiManager.SetWifiEnabled(false);
-
-                var totalTimeInMs = 0;
-                while (connectivityManager.GetNetworkInfo(1).GetState() != NetworkInfo.State.DISCONNECTED)
-                {
-                    lock (this)
-                    {
-                        //wait and retry
-                        JavaWait(200);
-                        totalTimeInMs += 200;
-                    }
-
-                    if (totalTimeInMs > 60000) throw new TimeoutException("Network cannot disconnect within a minute.");
-                }
-            }
-
-            // Now let's turn it on again
-            if (connectivityManager.GetNetworkInfo(1).GetState() != NetworkInfo.State.CONNECTED) //neworkType 1 is Wifi
-            {
-                if (!wifiManager.IsWifiEnabled())
-                {
-                    wifiManager.SetWifiEnabled(true);
-                    var totalTimeInMs = 0;
-                    while (connectivityManager.GetNetworkInfo(1).GetState() != NetworkInfo.State.CONNECTED)
-                    {
-                        lock (this)
-                        {
-                            //wait and retry
-                            JavaWait(200);
-                            totalTimeInMs += 200;
-                        }
-
-                        if (totalTimeInMs > 60000) throw new TimeoutException("Network cannot connect within a minute.");
-                    }
-
-                    var retry = true;
-                    while (retry)
-                    {
-                        try
-                        {
-                            testWebRequestGet();
-                            retry = false;
-                        }
-                        catch
-                        {
-                            lock (this)
-                            {
-                                //wait and retry
-                                JavaWait(200);
-                                totalTimeInMs += 200;
-                            }
-                        }
-
-                        if (totalTimeInMs > 60000) throw new TimeoutException("Network cannot be accessed within a minute.");
-                    }
-                    
-                }
-            }
-        }
+       
 
         private enum Verb
         {
@@ -194,6 +94,11 @@ namespace Dot42.Tests.System.Net
 				temp.Seek(0L, SeekOrigin.Begin);
 				return temp;
 			}
+        }
+
+        protected override void RunConnectivityTest()
+        {
+            testWebRequestGet();
         }
     }
 }
