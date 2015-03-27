@@ -4,7 +4,6 @@ using System.Linq;
 using Dot42.CompilerLib.XModel;
 using Dot42.FrameworkDefinitions;
 using Dot42.Utility;
-using Mono.Cecil;
 
 namespace Dot42.CompilerLib.Ast.Converters
 {
@@ -13,14 +12,16 @@ namespace Dot42.CompilerLib.Ast.Converters
     /// </summary>
     internal static class GenericInstanceConverter 
     {
-        enum PrimitiveMode
+        enum TypeConversion
         {
-            // wil not change the type
+            // will not change the type
             None,
-            // will change the type of primitive types to their boxed counter parts (at compile time)
-            BoxPrimitiveTypes,
-            // will convert boxed types back to their primitive types (at runtime)
-            EnsurePrimitive,
+            // Will change to nullable marker class if Nullable<T>
+            // (note: this could be expanded to support generic marker classes as well)
+            NullableTypeOf,
+            // will make sure that the type is neither a marker class not a primitive 
+            // type
+            EnsureInstanceType,
         }
 
         /// <summary>
@@ -35,7 +36,7 @@ namespace Dot42.CompilerLib.Ast.Converters
             {
                 var type = (XTypeReference) node.Operand;
                 var typeHelperType = compiler.GetDot42InternalType(InternalConstants.TypeHelperName).Resolve();
-                var loadExpr = LoadTypeForGenericInstance(node.SourceLocation, currentMethod, type, typeHelperType, typeSystem, PrimitiveMode.EnsurePrimitive);
+                var loadExpr = LoadTypeForGenericInstance(node.SourceLocation, currentMethod, type, typeHelperType, typeSystem, TypeConversion.None);
                 node.CopyFrom(loadExpr);
             }
 
@@ -47,7 +48,7 @@ namespace Dot42.CompilerLib.Ast.Converters
                 if (gp == null) continue;
 
                 var typeHelperType = compiler.GetDot42InternalType(InternalConstants.TypeHelperName).Resolve();
-                var loadExpr = LoadTypeForGenericInstance(node.SourceLocation, currentMethod, type, typeHelperType, typeSystem, PrimitiveMode.BoxPrimitiveTypes);
+                var loadExpr = LoadTypeForGenericInstance(node.SourceLocation, currentMethod, type, typeHelperType, typeSystem, TypeConversion.EnsureInstanceType);
                 //// both types are boxed, no need for conversion.
                 var typeType = compiler.GetDot42InternalType("System", "Type").Resolve();
                 var isInstanceOfType = typeType.Methods.Single(n => n.Name == "JavaIsInstance" && n.Parameters.Count == 1);
@@ -63,7 +64,9 @@ namespace Dot42.CompilerLib.Ast.Converters
                 {
                     // Resolve type to a Class<?>
                     var typeHelperType = compiler.GetDot42InternalType(InternalConstants.TypeHelperName).Resolve();
-                    var ldType = LoadTypeForGenericInstance(node.SourceLocation, currentMethod, type, typeHelperType, typeSystem, primitiveMode: PrimitiveMode.None);
+                    // while having primitive arrays for primitive types would be nice, a lot of boxing and unboxing
+                    // would be needed. only for-primitive-specialized generic classes could optimize this.
+                    var ldType = LoadTypeForGenericInstance(node.SourceLocation, currentMethod, type, typeHelperType, typeSystem, TypeConversion.EnsureInstanceType);
                     var newInstanceExpr = new AstExpression(node.SourceLocation, AstCode.ArrayNewInstance, null, ldType, node.Arguments[0]) { ExpectedType = typeSystem.Object };
                     var arrayType = new XArrayType(type);
                     var cast = new AstExpression(node.SourceLocation, AstCode.SimpleCastclass, arrayType, newInstanceExpr) { ExpectedType = arrayType };
@@ -100,7 +103,7 @@ namespace Dot42.CompilerLib.Ast.Converters
                 }
             }
 
-            // Add generic instance Delegate argumentsfor static methods.
+            // Add generic instance Delegate arguments for static methods.
             foreach (var node in ast.GetSelfAndChildrenRecursive<AstExpression>(x => x.Code == AstCode.Delegate))
             {
                 var delegateInfo = (Tuple<XTypeDefinition, XMethodReference>)node.Operand;
@@ -188,7 +191,8 @@ namespace Dot42.CompilerLib.Ast.Converters
             for (var i = 0; i < count; i++)
             {
                 var argType = genericInstance.GenericArguments[i];
-                var typeExpr = LoadTypeForGenericInstance(seqp, currentMethod, argType, typeHelperType, compiler.Module.TypeSystem);
+                var typeExpr = LoadTypeForGenericInstance(seqp, currentMethod, argType, typeHelperType, compiler.Module.TypeSystem, 
+                                                          TypeConversion.NullableTypeOf);
                 typeExpressions.Add(typeExpr);
             }
 
@@ -199,14 +203,14 @@ namespace Dot42.CompilerLib.Ast.Converters
         /// <summary>
         /// Create an expression that loads the given type at runtime.
         /// </summary>
-        private static AstExpression LoadTypeForGenericInstance(ISourceLocation seqp, MethodSource currentMethod, XTypeReference type, XTypeDefinition typeHelperType, XTypeSystem typeSystem, PrimitiveMode primitiveMode = PrimitiveMode.BoxPrimitiveTypes)
+        private static AstExpression LoadTypeForGenericInstance(ISourceLocation seqp, MethodSource currentMethod, XTypeReference type, XTypeDefinition typeHelperType, XTypeSystem typeSystem, TypeConversion typeConversion, XGenericInstanceType typeGenericArguments=null)
         {
             if (type.IsArray)
             {
                 // Array type
                 var arrayType = (XArrayType)type;
                 // Load element type
-                var prefix = LoadTypeForGenericInstance(seqp, currentMethod, ((XArrayType)type).ElementType, typeHelperType, typeSystem, primitiveMode);
+                var prefix = LoadTypeForGenericInstance(seqp, currentMethod, ((XArrayType)type).ElementType, typeHelperType, typeSystem, typeConversion);
                 // Convert to array type
                 if (arrayType.Dimensions.Count() == 1)
                 {
@@ -252,7 +256,7 @@ namespace Dot42.CompilerLib.Ast.Converters
                     if (owner.GetElementMethod().Resolve().DeclaringType.HasDexImportAttribute())
                     {
                         // Imported type
-                        return LoadTypeForGenericInstance(seqp, currentMethod, type.Module.TypeSystem.Object, typeHelperType, typeSystem, primitiveMode);
+                        return LoadTypeForGenericInstance(seqp, currentMethod, type.Module.TypeSystem.Object, typeHelperType, typeSystem, typeConversion);
                     }
                     gi = LoadMethodGenericInstance(seqp, typeSystem);
                 }
@@ -263,8 +267,8 @@ namespace Dot42.CompilerLib.Ast.Converters
 
                 loadExpr.ExpectedType = typeSystem.Type;
 
-                if (primitiveMode == PrimitiveMode.EnsurePrimitive)
-                    return EnsurePrimitiveType(loadExpr, typeSystem, typeHelperType);
+                if (typeConversion == TypeConversion.EnsureInstanceType)
+                    return EnsureGenericInstanceType(loadExpr, typeSystem, typeHelperType);
                 return loadExpr;
             }
             
@@ -272,28 +276,34 @@ namespace Dot42.CompilerLib.Ast.Converters
             {
                 // Just use the element type
                 var typeSpec = (XTypeSpecification)type;
-                return LoadTypeForGenericInstance(seqp, currentMethod, typeSpec.ElementType, typeHelperType, typeSystem, primitiveMode);
-            }
-
-            if (type.IsPrimitive && primitiveMode == PrimitiveMode.BoxPrimitiveTypes)
-            {
-                return new AstExpression(seqp, AstCode.BoxedTypeOf, type) { ExpectedType = typeSystem.Type };
+                var git = type as XGenericInstanceType;
+                return LoadTypeForGenericInstance(seqp, currentMethod, typeSpec.ElementType, typeHelperType, typeSystem, typeConversion, git);
             }
             
+            if (typeConversion == TypeConversion.NullableTypeOf && type.GetElementType().IsNullableT())
+            {
+                if (typeGenericArguments != null)
+                {
+                    var underlying = typeGenericArguments.GenericArguments[0];
+                    var code = underlying.IsPrimitive ? AstCode.BoxedTypeOf : AstCode.NullableTypeOf;
+                    return new AstExpression(seqp, code, underlying) { ExpectedType = typeSystem.Type };
+                }
+                // should not happen...
+                throw new Exception("unable to infer generic arguments: " + currentMethod + ": " + type);
+            }
+
             // Plain type reference or definition
             return new AstExpression(seqp, AstCode.TypeOf, type) { ExpectedType = typeSystem.Type };
         }
 
         /// <summary>
-        /// expand the loadExpression, so that types are converted to their primitive (unboxed) counterparts.
-        ///
-        /// Note that I (olaf) am not sure if it might be better to store the primitive types right
-        /// from the start, and convert them to their boxed counterparts only when needed.
+        /// expand the loadExpression, so that primitive types are converted to their boxed counterparts,
+        /// and marker types are converted to their underlying types.
         /// </summary>
-        private static AstExpression EnsurePrimitiveType(AstExpression loadExpr, XTypeSystem typeSystem, XTypeDefinition typeHelper)
+        private static AstExpression EnsureGenericInstanceType(AstExpression loadExpr, XTypeSystem typeSystem, XTypeDefinition typeHelper)
         {
-            var ensurePrimitiveType = typeHelper.Methods.Single(x => x.Name == "EnsurePrimitiveType");
-            return new AstExpression(loadExpr.SourceLocation, AstCode.Call, ensurePrimitiveType, loadExpr)
+            var ensureMethod = typeHelper.Methods.Single(x => x.Name == "EnsureGenericInstanceType");
+            return new AstExpression(loadExpr.SourceLocation, AstCode.Call, ensureMethod, loadExpr)
                             .SetType(typeSystem.Type);
         }
 
