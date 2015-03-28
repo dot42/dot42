@@ -17,55 +17,55 @@ using NUnit.Framework;
 
 namespace MonoTests.System
 {
-	[TestFixture]
-	public class DateTimeTest
-	{
-		[Flags]
-		internal enum Resolution : ushort
-		{
-			Year = 64,
-			Month = 96,
-			Day = 112,
-			Hour = 120,
-			Minute = 124,
-			Second = 126,
-			Millisecond = 127,
-			_Month = 32,
-			_Day = 16,
-			_Hour = 8,
-			_Minute = 4,
-			_Second = 2,
-			_Millisecond = 1
-		}
+    [TestFixture]
+    public class DateTimeTest
+    {
+        [Flags]
+        internal enum Resolution : ushort
+        {
+            Year = 64,
+            Month = 96,
+            Day = 112,
+            Hour = 120,
+            Minute = 124,
+            Second = 126,
+            Millisecond = 127,
+            _Month = 32,
+            _Day = 16,
+            _Hour = 8,
+            _Minute = 4,
+            _Second = 2,
+            _Millisecond = 1
+        }
 
-		internal void DTAssertEquals (DateTime actual, DateTime expected, Resolution resolution)
-		{
-			DTAssertEquals (actual, expected, resolution, "");
-		}
+        internal void DTAssertEquals(DateTime actual, DateTime expected, Resolution resolution)
+        {
+            DTAssertEquals(actual, expected, resolution, "");
+        }
 
-		internal void DTAssertEquals (DateTime expected, DateTime actual, Resolution resolution, string message)
-		{
-			if ((resolution & Resolution.Year) != 0)
-				Assert.AreEqual (expected.Year, actual.Year, message);
-			if ((resolution & Resolution._Month) != 0)
-				Assert.AreEqual (expected.Month, actual.Month, message);
-			if ((resolution & Resolution._Day) != 0)
-				Assert.AreEqual (expected.Day, actual.Day, message);
-			if ((resolution & Resolution._Hour) != 0)
-				Assert.AreEqual (expected.Hour, actual.Hour, message);
-			if ((resolution & Resolution._Minute) != 0)
-				Assert.AreEqual (expected.Minute, actual.Minute, message);
-			if ((resolution & Resolution._Second) != 0)
-				Assert.AreEqual (expected.Second, actual.Second, message);
-			if ((resolution & Resolution._Millisecond) != 0)
-				Assert.AreEqual (expected.Millisecond, actual.Millisecond, message);
-		}
+        internal void DTAssertEquals(DateTime expected, DateTime actual, Resolution resolution, string message)
+        {
+            if ((resolution & Resolution.Year) != 0)
+                Assert.AreEqual(expected.Year, actual.Year, message);
+            if ((resolution & Resolution._Month) != 0)
+                Assert.AreEqual(expected.Month, actual.Month, message);
+            if ((resolution & Resolution._Day) != 0)
+                Assert.AreEqual(expected.Day, actual.Day, message);
+            if ((resolution & Resolution._Hour) != 0)
+                Assert.AreEqual(expected.Hour, actual.Hour, message);
+            if ((resolution & Resolution._Minute) != 0)
+                Assert.AreEqual(expected.Minute, actual.Minute, message);
+            if ((resolution & Resolution._Second) != 0)
+                Assert.AreEqual(expected.Second, actual.Second, message);
+            if ((resolution & Resolution._Millisecond) != 0)
+                Assert.AreEqual(expected.Millisecond, actual.Millisecond, message);
+        }
 
 #if CULTURE
 		private CultureInfo oldcult;
 #endif
-	
-		long[] myTicks = {
+
+        long[] myTicks = {
 			631501920000000000L,	// 25 Feb 2002 - 00:00:00
 			631502475130080000L,	// 25 Feb 2002 - 15:25:13,8
 			631502115130080000L,	// 25 Feb 2002 - 05:25:13,8
@@ -92,256 +92,262 @@ namespace MonoTests.System
 		}
 #endif
 
-		[Test]
-		public void TestCtors ()
-		{
-			DateTime t1 = new DateTime (2002,2,25);
-			Assert.AreEqual (myTicks [0], t1.Ticks, "A01");
-			DateTime t2 = new DateTime (2002,2,25,15,25,13,8);
-			Assert.AreEqual (myTicks [1], t2.Ticks, "A02");
-			Assert.AreEqual (myTicks [0], t2.Date.Ticks, "A03");
-			Assert.AreEqual (2002, t2.Year, "A04");
-			Assert.AreEqual (2, t2.Month, "A05");
-			Assert.AreEqual (25, t2.Day, "A06");
-			Assert.AreEqual (15, t2.Hour, "A07");
-			Assert.AreEqual (25, t2.Minute, "A08");
-			Assert.AreEqual (13, t2.Second, "A09");
-			Assert.AreEqual (8, t2.Millisecond, "A10");
-			DateTime t3 = new DateTime (2002,2,25,5,25,13,8);
-			Assert.AreEqual (myTicks [2], t3.Ticks, "A11");
-		}
+        [Test]
+        public void TestCtors()
+        {
+            DateTime t1 = new DateTime(2002, 2, 25);
+            Assert.AreEqual(myTicks[0], t1.Ticks, "A01");
+            DateTime t2 = new DateTime(2002, 2, 25, 15, 25, 13, 8);
+            Assert.AreEqual(myTicks[1], t2.Ticks, "A02");
+            Assert.AreEqual(myTicks[0], t2.Date.Ticks, "A03");
+            Assert.AreEqual(2002, t2.Year, "A04");
+            Assert.AreEqual(2, t2.Month, "A05");
+            Assert.AreEqual(25, t2.Day, "A06");
+            Assert.AreEqual(15, t2.Hour, "A07");
+            Assert.AreEqual(25, t2.Minute, "A08");
+            Assert.AreEqual(13, t2.Second, "A09");
+            Assert.AreEqual(8, t2.Millisecond, "A10");
+            DateTime t3 = new DateTime(2002, 2, 25, 5, 25, 13, 8);
+            Assert.AreEqual(myTicks[2], t3.Ticks, "A11");
+        }
 
-		[Test]
-		public void Constructor_Max ()
-		{
-			Assert.AreEqual (3155378975999990000, new DateTime (9999, 12, 31, 23, 59, 59, 999).Ticks, "Max");
-		}
+        [Test]
+        public void Constructor_Max()
+        {
+            Assert.AreEqual(3155378975999990000, new DateTime(9999, 12, 31, 23, 59, 59, 999).Ticks, "Max");
+        }
 
-		[Test][Ignore]
-		[ExpectedException (typeof (ArgumentOutOfRangeException))]
-		public void Constructor_Milliseconds_Negative () 
-		{
-			new DateTime (9999, 12, 31, 23, 59, 59, -1);
-		}
+        [Test]
+        [Ignore]
+        [ExpectedException(typeof(ArgumentOutOfRangeException))]
+        public void Constructor_Milliseconds_Negative()
+        {
+            new DateTime(9999, 12, 31, 23, 59, 59, -1);
+        }
 
-		[Test]
-		[ExpectedException (typeof (ArgumentOutOfRangeException))]
-		public void Constructor_Milliseconds_1000 () 
-		{
-			new DateTime (9999, 12, 31, 23, 59, 59, 1000);
-		}
-		
-		[Test]
-		public void Fields ()
-		{
-			Assert.AreEqual (3155378975999999999L, DateTime.MaxValue.Ticks, "#1");
-			Assert.AreEqual (0, DateTime.MinValue.Ticks, "#2");
-		}
-		
-		[Test]
-		public void Add ()
-		{
-			DateTime t1 = new DateTime (myTicks [1]);
-			TimeSpan span = new TimeSpan (3, 54, 1);
-			DateTime t2 = t1.Add (span);
+        [Test]
+        [ExpectedException(typeof(ArgumentOutOfRangeException))]
+        public void Constructor_Milliseconds_1000()
+        {
+            new DateTime(9999, 12, 31, 23, 59, 59, 1000);
+        }
 
-			Assert.AreEqual (25, t2.Day, "#1");
-			Assert.AreEqual (19, t2.Hour, "#2");
-			Assert.AreEqual (19, t2.Minute, "#3");
-			Assert.AreEqual (14, t2.Second, "#4");
+        [Test]
+        public void Fields()
+        {
+            Assert.AreEqual(3155378975999999999L, DateTime.MaxValue.Ticks, "#1");
+            Assert.AreEqual(0, DateTime.MinValue.Ticks, "#2");
+        }
 
-			Assert.AreEqual (25, t1.Day, "#5");
-			Assert.AreEqual (15, t1.Hour, "#6");
-			Assert.AreEqual (25, t1.Minute, "#7");
-			Assert.AreEqual (13, t1.Second, "#8");
-		}
-		
-		[Test]
-		[ExpectedException(typeof (ArgumentOutOfRangeException))]
-		public void AddOutOfRangeException1 ()
-		{
-			DateTime t1 = new DateTime (myTicks [1]);
-			t1.Add (TimeSpan.MaxValue);
-		}
+        [Test]
+        public void Add()
+        {
+            DateTime t1 = new DateTime(myTicks[1]);
+            TimeSpan span = new TimeSpan(3, 54, 1);
+            DateTime t2 = t1.Add(span);
 
-		[Test]
-		[ExpectedException(typeof (ArgumentOutOfRangeException))]
-		public void AddOutOfRangeException2 ()
-		{
-			DateTime t1 = new DateTime (myTicks [1]);
-			t1.Add (TimeSpan.MinValue);
-		}
-	
-		[Test]
-		public void AddDays ()
-		{
-			DateTime t1 = new DateTime (myTicks [1]);
-			t1 = t1.AddDays (3);
-			Assert.AreEqual (28, t1.Day, "#A1");
-			Assert.AreEqual (15, t1.Hour, "#A2");
-			Assert.AreEqual (25, t1.Minute, "#A3");
-			Assert.AreEqual (13, t1.Second, "#A4");
-			
-			t1 = t1.AddDays (1.9);
-			Assert.AreEqual (2, t1.Day, "#B1");
-			Assert.AreEqual (13, t1.Hour, "#B2");
-			Assert.AreEqual (1, t1.Minute, "#B3");
-			Assert.AreEqual (13, t1.Second, "#B4");
+            Assert.AreEqual(25, t2.Day, "#1");
+            Assert.AreEqual(19, t2.Hour, "#2");
+            Assert.AreEqual(19, t2.Minute, "#3");
+            Assert.AreEqual(14, t2.Second, "#4");
 
-			t1 = t1.AddDays (0.2);
-			Assert.AreEqual (2, t1.Day, "#C1");
-			Assert.AreEqual (17, t1.Hour, "#C2");
-			Assert.AreEqual (49, t1.Minute, "#C3");
-			Assert.AreEqual (13, t1.Second, "#C4");
-		}
-		
-		[Test]
-		[ExpectedException(typeof (ArgumentOutOfRangeException))]
-		public void AddDaysOutOfRangeException1 ()
-		{
-			DateTime t1 = new DateTime (myTicks [1]);
-			t1.AddDays (10000000);
-		}
+            Assert.AreEqual(25, t1.Day, "#5");
+            Assert.AreEqual(15, t1.Hour, "#6");
+            Assert.AreEqual(25, t1.Minute, "#7");
+            Assert.AreEqual(13, t1.Second, "#8");
+        }
 
-		[Test]
-		[ExpectedException(typeof (ArgumentOutOfRangeException))]
-		public void AddDaysOutOfRangeException2 ()
-		{
-			DateTime t1 = new DateTime (myTicks [1]);
-			t1.AddDays (-10000000);
-		}
+        [Test]
+        [ExpectedException(typeof(ArgumentOutOfRangeException))]
+        public void AddOutOfRangeException1()
+        {
+            DateTime t1 = new DateTime(myTicks[1]);
+            t1.Add(TimeSpan.MaxValue);
+        }
 
-		[Test]
-		public void AddHours ()
-		{
-			DateTime t1 = new DateTime (myTicks [1]);
-			t1 = t1.AddHours (10);
-			Assert.AreEqual (26, t1.Day, "#A1");
-			Assert.AreEqual (1, t1.Hour, "#A2");
-			Assert.AreEqual (25, t1.Minute, "#A3");
-			Assert.AreEqual (13, t1.Second, "#A4");
-			
-			t1 = t1.AddHours (-3.7);
-			Assert.AreEqual (25, t1.Day, "#B1");
-			Assert.AreEqual (21, t1.Hour, "#B2");
-			Assert.AreEqual (43, t1.Minute, "#B3");
-			Assert.AreEqual (13, t1.Second, "#B4");
+        [Test]
+        [ExpectedException(typeof(ArgumentOutOfRangeException))]
+        public void AddOutOfRangeException2()
+        {
+            DateTime t1 = new DateTime(myTicks[1]);
+            t1.Add(TimeSpan.MinValue);
+        }
 
-			t1 = t1.AddHours (3.732);
-			Assert.AreEqual (26, t1.Day, "#C1");
-			Assert.AreEqual (1, t1.Hour, "#C2");
-			Assert.AreEqual (27, t1.Minute, "#C3");
-			Assert.AreEqual (8, t1.Second, "#C4");
-		}
-		
-		[Test]
-		[ExpectedException (typeof (ArgumentOutOfRangeException))]
-		public void AddHoursOutOfRangeException1 ()
-		{
-			DateTime t1 = new DateTime (myTicks [1]);
-			t1.AddHours (9E100);
-		}
+        [Test]
+        public void AddDays()
+        {
+            DateTime t1 = new DateTime(myTicks[1]);
+            t1 = t1.AddDays(3);
+            Assert.AreEqual(28, t1.Day, "#A1");
+            Assert.AreEqual(15, t1.Hour, "#A2");
+            Assert.AreEqual(25, t1.Minute, "#A3");
+            Assert.AreEqual(13, t1.Second, "#A4");
 
-		[Test]
-		[ExpectedException (typeof (ArgumentOutOfRangeException))]
-		public void AddHoursOutOfRangeException2 ()
-		{
-			DateTime t1 = new DateTime (myTicks [1]);
-			t1.AddHours (-9E100);
-		}
+            t1 = t1.AddDays(1.9);
+            Assert.AreEqual(2, t1.Day, "#B1");
+            Assert.AreEqual(13, t1.Hour, "#B2");
+            Assert.AreEqual(1, t1.Minute, "#B3");
+            Assert.AreEqual(13, t1.Second, "#B4");
 
-		[Test]
-		public void AddMilliseconds ()
-		{
-			DateTime t1 = new DateTime (myTicks [1]);
-			t1 = t1.AddMilliseconds (1E10);
-			Assert.AreEqual (21, t1.Day, "#A1");
-			Assert.AreEqual (9, t1.Hour, "#A2");
-			Assert.AreEqual (11, t1.Minute, "#A3");
-			Assert.AreEqual (53, t1.Second, "#A4");
-			
-			t1 = t1.AddMilliseconds (-19E10);
-			Assert.AreEqual (13, t1.Day, "#B1");
-			Assert.AreEqual (7, t1.Hour, "#B2");
-			Assert.AreEqual (25, t1.Minute, "#B3");
-			Assert.AreEqual (13, t1.Second, "#B4");
+            t1 = t1.AddDays(0.2);
+            Assert.AreEqual(2, t1.Day, "#C1");
+            Assert.AreEqual(17, t1.Hour, "#C2");
+            Assert.AreEqual(49, t1.Minute, "#C3");
+            Assert.AreEqual(13, t1.Second, "#C4");
+        }
 
-			t1 = t1.AddMilliseconds (15.623);
-			Assert.AreEqual (13, t1.Day, "#C1");
-			Assert.AreEqual (7, t1.Hour, "#C2");
-			Assert.AreEqual (25, t1.Minute, "#C3");
-			Assert.AreEqual (13, t1.Second, "#C4");
-		}
+        [Test]
+        [ExpectedException(typeof(ArgumentOutOfRangeException))]
+        public void AddDaysOutOfRangeException1()
+        {
+            DateTime t1 = new DateTime(myTicks[1]);
+            t1.AddDays(10000000);
+        }
 
-		[Test]
-		[ExpectedException (typeof (ArgumentOutOfRangeException))]
-		public void AddMillisecondsOutOfRangeException1 ()
-		{
-			DateTime t1 = new DateTime (myTicks [1]);
-			t1.AddMilliseconds (9E100);
-		}
+        [Test]
+        [ExpectedException(typeof(ArgumentOutOfRangeException))]
+        public void AddDaysOutOfRangeException2()
+        {
+            DateTime t1 = new DateTime(myTicks[1]);
+            t1.AddDays(-10000000);
+        }
 
-		[Test]
-		[ExpectedException (typeof (ArgumentOutOfRangeException))]
-		public void AddMillisecondsOutOfRangeException2 ()
-		{
-			DateTime t1 = new DateTime (myTicks [1]);
-			t1.AddMilliseconds (-9E100);
-		}
+        [Test]
+        public void AddHours()
+        {
+            DateTime t1 = new DateTime(myTicks[1]);
+            t1 = t1.AddHours(10);
+            Assert.AreEqual(26, t1.Day, "#A1");
+            Assert.AreEqual(1, t1.Hour, "#A2");
+            Assert.AreEqual(25, t1.Minute, "#A3");
+            Assert.AreEqual(13, t1.Second, "#A4");
 
-		[Test][Ignore]
-		public void TestToString ()
-		{
-			DateTime t1 = new DateTime (myTicks[2]);
-			DateTime t2 = new DateTime (myTicks[1]);
-			DateTime t3 = new DateTime (999, 1, 2, 3, 4, 5);
-			// Standard patterns
-			Assert.AreEqual ("02/25/2002", t1.ToString ("d"), "#A1");
-			Assert.AreEqual ("Monday, 25 February 2002", t1.ToString ("D"), "#A2");
-			Assert.AreEqual ("Monday, 25 February 2002 05:25", t1.ToString ("f"), "#A3");
-			Assert.AreEqual ("Monday, 25 February 2002 05:25:13", t1.ToString ("F"), "#A4");
-			Assert.AreEqual ("02/25/2002 05:25", t1.ToString ("g"), "#A5");
-			Assert.AreEqual ("02/25/2002 05:25:13", t1.ToString ("G"), "#A6");
-			Assert.AreEqual ("February 25", t1.ToString ("m"), "#A7");
-			Assert.AreEqual ("February 25", t1.ToString ("M"), "#A8");
-			Assert.AreEqual ("Mon, 25 Feb 2002 05:25:13 GMT", t1.ToString ("r"), "#A9");
-			Assert.AreEqual ("Mon, 25 Feb 2002 05:25:13 GMT", t1.ToString ("R"), "#A10");
-			Assert.AreEqual ("2002-02-25T05:25:13", t1.ToString ("s"), "#A11");
-			Assert.AreEqual ("05:25", t1.ToString ("t"), "#A12");
-			Assert.AreEqual ("05:25:13", t1.ToString ("T"), "#A13");
-			Assert.AreEqual ("2002-02-25 05:25:13Z", t1.ToString ("u"), "#A14");
-			// FIXME: this test is timezone dependent
-			// Assert.AreEqual ("Sunday, 24 February 2002 11:25:13", t1.ToString ("U"), "#A15");
-			Assert.AreEqual ("2002 February", t1.ToString ("y"), "#A16");
-			Assert.AreEqual ("2002 February", t1.ToString ("Y"), "#A17");
-			Assert.AreEqual ("02/25/2002 05:25:13", t1.ToString (""), "#A18");
+            t1 = t1.AddHours(-3.7);
+            Assert.AreEqual(25, t1.Day, "#B1");
+            Assert.AreEqual(21, t1.Hour, "#B2");
+            Assert.AreEqual(43, t1.Minute, "#B3");
+            Assert.AreEqual(13, t1.Second, "#B4");
 
-			// Custom patterns
-			Assert.AreEqual ("25", t1.ToString ("%d"), "#B1");
-			Assert.AreEqual ("25", t1.ToString ("dd"), "#B2");
-			Assert.AreEqual ("Mon", t1.ToString ("ddd"), "#B3");
-			Assert.AreEqual ("Monday", t1.ToString ("dddd"), "#B4");
-			Assert.AreEqual ("2", t1.ToString ("%M"), "#B5");
-			Assert.AreEqual ("02", t1.ToString ("MM"), "#B6");
-			Assert.AreEqual ("Feb", t1.ToString ("MMM"), "#B7");
-			Assert.AreEqual ("February", t1.ToString ("MMMM"), "#B8");
-			Assert.AreEqual ("2", t1.ToString ("%y"), "#B9");
-			Assert.AreEqual ("02", t1.ToString ("yy"), "#B10");
-			Assert.AreEqual ("2002", t1.ToString ("yyyy"), "#B11");
-			Assert.AreEqual ("5", t1.ToString ("%h"), "#B12");
-			Assert.AreEqual ("05", t1.ToString ("hh"), "#B13");
-			Assert.AreEqual ("3", t2.ToString ("%h"), "#B14");
-			Assert.AreEqual ("03", t2.ToString ("hh"), "#B15");
-			Assert.AreEqual ("15", t2.ToString ("%H"), "#B16");
-			Assert.AreEqual ("15", t2.ToString ("HH"), "#B17");
-			Assert.AreEqual ("25", t2.ToString ("%m"), "#B18");
-			Assert.AreEqual ("25", t2.ToString ("mm"), "#B19");
-			Assert.AreEqual ("13", t2.ToString ("%s"), "#B20");
-			Assert.AreEqual ("13", t2.ToString ("ss"), "#B21");
-			Assert.AreEqual ("A", t1.ToString ("%t"), "#B22");
-			Assert.AreEqual ("P", t2.ToString ("%t"), "#B23");
-			Assert.AreEqual ("AM", t1.ToString ("tt"), "#B24");
-			Assert.AreEqual ("PM", t2.ToString ("tt"), "#B25");
+            t1 = t1.AddHours(3.732);
+            Assert.AreEqual(26, t1.Day, "#C1");
+            Assert.AreEqual(1, t1.Hour, "#C2");
+            Assert.AreEqual(27, t1.Minute, "#C3");
+            Assert.AreEqual(8, t1.Second, "#C4");
+        }
+
+        [Test]
+        [ExpectedException(typeof(ArgumentOutOfRangeException))]
+        public void AddHoursOutOfRangeException1()
+        {
+            DateTime t1 = new DateTime(myTicks[1]);
+            t1.AddHours(9E100);
+        }
+
+        [Test]
+        [ExpectedException(typeof(ArgumentOutOfRangeException))]
+        public void AddHoursOutOfRangeException2()
+        {
+            DateTime t1 = new DateTime(myTicks[1]);
+            t1.AddHours(-9E100);
+        }
+
+        [Test]
+        public void AddMilliseconds()
+        {
+            DateTime t1 = new DateTime(myTicks[1]);
+            t1 = t1.AddMilliseconds(1E10);
+            Assert.AreEqual(21, t1.Day, "#A1");
+            Assert.AreEqual(9, t1.Hour, "#A2");
+            Assert.AreEqual(11, t1.Minute, "#A3");
+            Assert.AreEqual(53, t1.Second, "#A4");
+
+            t1 = t1.AddMilliseconds(-19E10);
+            Assert.AreEqual(13, t1.Day, "#B1");
+            Assert.AreEqual(7, t1.Hour, "#B2");
+            Assert.AreEqual(25, t1.Minute, "#B3");
+            Assert.AreEqual(13, t1.Second, "#B4");
+
+            t1 = t1.AddMilliseconds(15.623);
+            Assert.AreEqual(13, t1.Day, "#C1");
+            Assert.AreEqual(7, t1.Hour, "#C2");
+            Assert.AreEqual(25, t1.Minute, "#C3");
+            Assert.AreEqual(13, t1.Second, "#C4");
+        }
+
+        [Test]
+        [ExpectedException(typeof(ArgumentOutOfRangeException))]
+        public void AddMillisecondsOutOfRangeException1()
+        {
+            DateTime t1 = new DateTime(myTicks[1]);
+            t1.AddMilliseconds(9E100);
+        }
+
+        [Test]
+        [ExpectedException(typeof(ArgumentOutOfRangeException))]
+        public void AddMillisecondsOutOfRangeException2()
+        {
+            DateTime t1 = new DateTime(myTicks[1]);
+            t1.AddMilliseconds(-9E100);
+        }
+
+        [Test]
+        //[Ignore]
+        public void TestToString()
+        {
+            DateTime t1 = new DateTime(myTicks[2]);
+            DateTime t2 = new DateTime(myTicks[1]);
+            DateTime t3 = new DateTime(999, 1, 2, 3, 4, 5);
+            // Standard patterns
+            Assert.AreEqual("02/25/2002", t1.ToString("d", CultureInfo.InvariantCulture), "#A1");
+            Assert.AreEqual("Monday, 25 February 2002", t1.ToString("D", CultureInfo.InvariantCulture), "#A2");
+            Assert.AreEqual("Monday, 25 February 2002 05:25", t1.ToString("f", CultureInfo.InvariantCulture), "#A3");
+            Assert.AreEqual("Monday, 25 February 2002 05:25:13", t1.ToString("F", CultureInfo.InvariantCulture), "#A4");
+            Assert.AreEqual("02/25/2002 05:25", t1.ToString("g", CultureInfo.InvariantCulture), "#A5");
+            Assert.AreEqual("02/25/2002 05:25:13", t1.ToString("G", CultureInfo.InvariantCulture), "#A6");
+            Assert.AreEqual("February 25", t1.ToString("m", CultureInfo.InvariantCulture), "#A7");
+            Assert.AreEqual("February 25", t1.ToString("M", CultureInfo.InvariantCulture), "#A8");
+            Assert.AreEqual("Mon, 25 Feb 2002 05:25:13 GMT", t1.ToString("r", CultureInfo.InvariantCulture), "#A9");
+            Assert.AreEqual("Mon, 25 Feb 2002 05:25:13 GMT", t1.ToString("R", CultureInfo.InvariantCulture), "#A10");
+            Assert.AreEqual("2002-02-25T05:25:13", t1.ToString("s", CultureInfo.InvariantCulture), "#A11");
+            Assert.AreEqual("05:25", t1.ToString("t", CultureInfo.InvariantCulture), "#A12");
+            Assert.AreEqual("05:25:13", t1.ToString("T", CultureInfo.InvariantCulture), "#A13");
+            Assert.AreEqual("2002-02-25 05:25:13Z", t1.ToString("u", CultureInfo.InvariantCulture), "#A14");
+            // FIXME: this test is timezone dependent
+            // Assert.AreEqual ("Sunday, 24 February 2002 11:25:13", t1.ToString ("U"), "#A15");
+            Assert.AreEqual("2002 February", t1.ToString("y", CultureInfo.InvariantCulture), "#A16");
+            Assert.AreEqual("2002 February", t1.ToString("Y", CultureInfo.InvariantCulture), "#A17");
+            Assert.AreEqual("02/25/2002 05:25:13", t1.ToString(""), "#A18");
+
+            // Custom patterns
+            Assert.AreEqual("25", t1.ToString("%d", CultureInfo.InvariantCulture), "#B1");
+            Assert.AreEqual("25", t1.ToString("dd", CultureInfo.InvariantCulture), "#B2");
+            Assert.AreEqual("Mon", t1.ToString("ddd", CultureInfo.InvariantCulture), "#B3");
+            Assert.AreEqual("Monday", t1.ToString("dddd", CultureInfo.InvariantCulture), "#B4");
+            Assert.AreEqual("2", t1.ToString("%M", CultureInfo.InvariantCulture), "#B5");
+            Assert.AreEqual("02", t1.ToString("MM", CultureInfo.InvariantCulture), "#B6");
+            Assert.AreEqual("Feb", t1.ToString("MMM", CultureInfo.InvariantCulture), "#B7");
+            Assert.AreEqual("February", t1.ToString("MMMM", CultureInfo.InvariantCulture), "#B8");
+#if NOT_IMPLEMENTED // apparently java doesn't support single digit years
+            Assert.AreEqual("2", t1.ToString("%y"), "#B9");
+#endif
+            Assert.AreEqual("02", t1.ToString("yy", CultureInfo.InvariantCulture), "#B10");
+            Assert.AreEqual("2002", t1.ToString("yyyy", CultureInfo.InvariantCulture), "#B11");
+            Assert.AreEqual("5", t1.ToString("%h", CultureInfo.InvariantCulture), "#B12");
+            Assert.AreEqual("05", t1.ToString("hh", CultureInfo.InvariantCulture), "#B13");
+            Assert.AreEqual("3", t2.ToString("%h", CultureInfo.InvariantCulture), "#B14");
+            Assert.AreEqual("03", t2.ToString("hh", CultureInfo.InvariantCulture), "#B15");
+            Assert.AreEqual("15", t2.ToString("%H", CultureInfo.InvariantCulture), "#B16");
+            Assert.AreEqual("15", t2.ToString("HH", CultureInfo.InvariantCulture), "#B17");
+            Assert.AreEqual("25", t2.ToString("%m", CultureInfo.InvariantCulture), "#B18");
+            Assert.AreEqual("25", t2.ToString("mm", CultureInfo.InvariantCulture), "#B19");
+            Assert.AreEqual("13", t2.ToString("%s", CultureInfo.InvariantCulture), "#B20");
+            Assert.AreEqual("13", t2.ToString("ss", CultureInfo.InvariantCulture), "#B21");
+#if NOT_IMPLEMENTED
+            Assert.AreEqual("A", t1.ToString("%t", CultureInfo.InvariantCulture), "#B22");
+            Assert.AreEqual("P", t2.ToString("%t", CultureInfo.InvariantCulture), "#B23");
+#endif
+            Assert.AreEqual("AM", t1.ToString("tt", CultureInfo.InvariantCulture), "#B24");
+            Assert.AreEqual("PM", t2.ToString("tt", CultureInfo.InvariantCulture), "#B25");
 #if CULTURE
 			long offset = TimeZone.CurrentTimeZone.GetUtcOffset(t1).Ticks / 36000000000;
 			// Must specify '+0' for GMT
@@ -351,15 +357,15 @@ namespace MonoTests.System
 			// +05:30
 			//Assert.AreEqual (offset.ToString("+00;-00;00") + ":00", t1.ToString ("zzz"), "#B28");
 #endif
-			Assert.AreEqual (" : ", t1.ToString (" : "), "#B29");
-			Assert.AreEqual (" / ", t1.ToString (" / "), "#B30");
-			Assert.AreEqual (" yyy ", t1.ToString (" 'yyy' "), "#B31");
-			Assert.AreEqual (" d", t1.ToString (" \\d"), "#B32");
-			Assert.AreEqual ("2002", t1.ToString ("yyy"), "#B33");
-			Assert.AreEqual ("0002002", t1.ToString ("yyyyyyy"), "#B34");
-			Assert.AreEqual ("999", t3.ToString ("yyy"), "#B33");
-			Assert.AreEqual ("0999", t3.ToString ("yyyy"), "#B33");
-		}
+            Assert.AreEqual(" : ", t1.ToString(" : "), "#B29");
+            Assert.AreEqual(" / ", t1.ToString(" / "), "#B30");
+            Assert.AreEqual(" yyy ", t1.ToString(" 'yyy' "), "#B31");
+            Assert.AreEqual(" d", t1.ToString(" \\d"), "#B32");
+            Assert.AreEqual("2002", t1.ToString("yyy"), "#B33");
+            Assert.AreEqual("0002002", t1.ToString("yyyyyyy"), "#B34");
+            Assert.AreEqual("999", t3.ToString("yyy"), "#B33");
+            Assert.AreEqual("0999", t3.ToString("yyyy"), "#B33");
+        }
 
 #if CULTURE
 		[Test]
@@ -373,7 +379,6 @@ namespace MonoTests.System
 			Assert.AreEqual ("leden", dt.ToString ("MMMM", dtf), "#A4");
 			Assert.AreEqual ("leden", dt.ToString ("MMMMMMM", dtf), "#A5");
 		}
-#endif
 
 		[Test]
 		public void ParseExact_Format_Empty ()
@@ -426,7 +431,7 @@ namespace MonoTests.System
 				Assert.AreEqual ("format", ex.ParamName, "#B6");
 			}
 		}
-#if NOT_IMPLEMENTED
+
 		[Test]
 		public void ParseExact_Formats_Empty ()
 		{
@@ -481,7 +486,7 @@ namespace MonoTests.System
 				Assert.IsNotNull (ex.Message, "#B4");
 			}
 		}
-#endif
+
 		[Test]
 		public void ParseExact_String_Empty ()
 		{
@@ -504,7 +509,7 @@ namespace MonoTests.System
 				Assert.IsNull (ex.InnerException, "#B3");
 				Assert.IsNotNull (ex.Message, "#B4");
 			}
-#if NOT_IMPLEMENTED
+
 			try {
 				DateTime.ParseExact (string.Empty, new string [] { "G" }, null,
 					DateTimeStyles.None);
@@ -515,10 +520,9 @@ namespace MonoTests.System
 				Assert.IsNull (ex.InnerException, "#C3");
 				Assert.IsNotNull (ex.Message, "#C4");
 			}
-#endif
 		}
 
-		[Test]
+        [Test]
 		public void ParseExact_String_Null ()
 		{
 			try {
@@ -542,7 +546,7 @@ namespace MonoTests.System
 				Assert.IsNotNull (ex.ParamName, "#B5");
 				Assert.AreEqual ("s", ex.ParamName, "#B6");
 			}
-#if NOT_IMPLEMENTED
+
 			try {
 				DateTime.ParseExact ((string) null, new string [] { "G" }, null,
 					DateTimeStyles.None);
@@ -554,10 +558,10 @@ namespace MonoTests.System
 				Assert.IsNotNull (ex.ParamName, "#C5");
 				Assert.AreEqual ("s", ex.ParamName, "#C6");
 			}
-#endif
 		}
 
-		[Test]
+
+        [Test]
 		public void TestParseExact3 ()
 		{
 			DateTime t1 = DateTime.ParseExact ("2002-02-25 04:25:13Z", "u", null);
@@ -594,7 +598,7 @@ namespace MonoTests.System
 			s = "6/28/2004 17:00:00 PM";
 			DateTime.ParseExact (s, f, CultureInfo.InvariantCulture);
 		}
-#if NOT_IMPLEMENTED
+
 		[Test]
 		public void TestParseExact4_2 ()
 		{
@@ -616,7 +620,7 @@ namespace MonoTests.System
 			Assert.AreEqual (23, dt.Hour, "Hour");
 			Assert.AreEqual (21, dt.Minute, "Minute");
 		}
-#endif
+
 		[Test]
 		public void TestParseExactMiliseconds ()
 		{
@@ -632,25 +636,29 @@ namespace MonoTests.System
 			dt = DateTime.ParseExact (s, "yyyy-MM-dd'T'HH:mm:ssFFF'Z'", CultureInfo.InvariantCulture);
 			Assert.AreEqual (new DateTime (1984, 9, 17, 9, 0, 0, 0), dt, "#3");
 		}
+#endif
+        [Test]
+        public void TestParseExact()
+        {
+            // Standard patterns
+            DateTime t1, t2;
 
-		[Test]
-		public void TestParseExact ()
-		{
-			// Standard patterns
-			DateTime t1 = DateTime.ParseExact ("02/25/2002", "d", null);
-			Assert.AreEqual (myTicks [0], t1.Ticks, "#A1");
-			t1 = DateTime.ParseExact ("Monday, 25 February 2002", "D", null);
-			Assert.AreEqual (myTicks [0], t1.Ticks, "#A2");
-			t1 = DateTime.ParseExact ("Monday, 25 February 2002 05:25", "f", null);
-			Assert.AreEqual (myTicks [3], t1.Ticks, "#A3");
-			t1 = DateTime.ParseExact ("Monday, 25 February 2002 05:25:13", "F", null);
-			Assert.AreEqual (myTicks [4], t1.Ticks, "#A4");
-			t1 = DateTime.ParseExact ("02/25/2002 05:25", "g", null);
-			Assert.AreEqual (myTicks [3], t1.Ticks, "#A5");
-			t1 = DateTime.ParseExact ("02/25/2002 05:25:13", "G", null);
-			Assert.AreEqual (myTicks [4], t1.Ticks, "#A6");
-			t1 = DateTime.ParseExact ("Monday, 25 February 2002 04:25:13", "U", null);
+            t1 = DateTime.ParseExact("02/25/2002", "d", CultureInfo.InvariantCulture);
+            Assert.AreEqual(myTicks[0], t1.Ticks, "#A1");
+
+            t1 = DateTime.ParseExact("Monday, 25 February 2002", "D", CultureInfo.InvariantCulture);
+            Assert.AreEqual(myTicks[0], t1.Ticks, "#A2");
+            t1 = DateTime.ParseExact("Monday, 25 February 2002 05:25", "f", CultureInfo.InvariantCulture);
+            Assert.AreEqual(myTicks[3], t1.Ticks, "#A3");
+            t1 = DateTime.ParseExact("Monday, 25 February 2002 05:25:13", "F", CultureInfo.InvariantCulture);
+            Assert.AreEqual(myTicks[4], t1.Ticks, "#A4");
+
+            t1 = DateTime.ParseExact("02/25/2002 05:25", "g", CultureInfo.InvariantCulture);
+            Assert.AreEqual(myTicks[3], t1.Ticks, "#A5");
+            t1 = DateTime.ParseExact("02/25/2002 05:25:13", "G", CultureInfo.InvariantCulture);
+            Assert.AreEqual(myTicks[4], t1.Ticks, "#A6");
 #if NOT_IMPLEMENTED
+            t1 = DateTime.ParseExact("Monday, 25 February 2002 04:25:13", "U", CultureInfo.InvariantCulture);
 			t1 = TimeZone.CurrentTimeZone.ToUniversalTime(t1);
 			Assert.AreEqual (2002, t1.Year, "#A7");
 			Assert.AreEqual (02, t1.Month, "#A8");
@@ -659,100 +667,100 @@ namespace MonoTests.System
 			Assert.AreEqual (25, t1.Minute, "#A11");
 			Assert.AreEqual (13, t1.Second, "#A12");
 #endif
-			t1 = DateTime.ParseExact ("Monday, 25 February 2002 04:25:13", "U", null);
-			Assert.AreEqual ("Monday, 25 February 2002 04:25:13", t1.ToString ("U"), "#A13");
+            t1 = DateTime.ParseExact("Monday, 25 February 2002 04:25:13", "U", CultureInfo.InvariantCulture);
+            Assert.AreEqual("Monday, 25 February 2002 04:25:13", t1.ToString("U"), "#A13");
 
-			DateTime t2 = new DateTime (DateTime.Today.Year, 2, 25);
-			t1 = DateTime.ParseExact ("February 25", "m", null);
-			Assert.AreEqual (t2.Ticks, t1.Ticks, "#B1");
+            t2 = new DateTime(DateTime.Today.Year, 2, 25);
+            t1 = DateTime.ParseExact("February 25", "m", CultureInfo.InvariantCulture);
+            Assert.AreEqual(t2.Ticks, t1.Ticks, "#B1");
 
-			t2 = new DateTime (DateTime.Today.Year, 2, 25);
-			t1 = DateTime.ParseExact ("February 25", "M", null);
-			Assert.AreEqual (t2.Ticks, t1.Ticks, "#B2");
+            t2 = new DateTime(DateTime.Today.Year, 2, 25);
+            t1 = DateTime.ParseExact("February 25", "M", CultureInfo.InvariantCulture);
+            Assert.AreEqual(t2.Ticks, t1.Ticks, "#B2");
 
-			t1 = DateTime.ParseExact ("Mon, 25 Feb 2002 04:25:13 GMT", "r", null);
-			Assert.AreEqual (2002, t1.Year, "#C1");
-			Assert.AreEqual (02, t1.Month, "#C2");
-			Assert.AreEqual (25, t1.Day, "#C3");
-			Assert.AreEqual (04, t1.Hour, "#C4");
-			Assert.AreEqual (25, t1.Minute, "#C5");
-			Assert.AreEqual (13, t1.Second, "#C6");
+            t1 = DateTime.ParseExact("Mon, 25 Feb 2002 04:25:13 GMT", "r", CultureInfo.InvariantCulture);
+            Assert.AreEqual(2002, t1.Year, "#C1");
+            Assert.AreEqual(02, t1.Month, "#C2");
+            Assert.AreEqual(25, t1.Day, "#C3");
+            Assert.AreEqual(04, t1.Hour, "#C4");
+            Assert.AreEqual(25, t1.Minute, "#C5");
+            Assert.AreEqual(13, t1.Second, "#C6");
 
-			t1 = DateTime.ParseExact ("Mon, 25 Feb 2002 04:25:13 GMT", "R", null);
-			Assert.AreEqual (2002, t1.Year, "#D1");
-			Assert.AreEqual (02, t1.Month, "#D2");
-			Assert.AreEqual (25, t1.Day, "#D3");
-			Assert.AreEqual (04, t1.Hour, "#D4");
-			Assert.AreEqual (25, t1.Minute, "#D5");
-			Assert.AreEqual (13, t1.Second, "#D6");
+            t1 = DateTime.ParseExact("Mon, 25 Feb 2002 04:25:13 GMT", "R", CultureInfo.InvariantCulture);
+            Assert.AreEqual(2002, t1.Year, "#D1");
+            Assert.AreEqual(02, t1.Month, "#D2");
+            Assert.AreEqual(25, t1.Day, "#D3");
+            Assert.AreEqual(04, t1.Hour, "#D4");
+            Assert.AreEqual(25, t1.Minute, "#D5");
+            Assert.AreEqual(13, t1.Second, "#D6");
 
-			t1 = DateTime.ParseExact ("2002-02-25T05:25:13", "s", null);
-			Assert.AreEqual (myTicks [4], t1.Ticks, "#E1");
+            t1 = DateTime.ParseExact("2002-02-25T05:25:13", "s", CultureInfo.InvariantCulture);
+            Assert.AreEqual(myTicks[4], t1.Ticks, "#E1");
 
-			t2 = DateTime.Today + new TimeSpan (5,25,0);
-			t1 = DateTime.ParseExact ("05:25", "t", null);
-			Assert.AreEqual (t2.Ticks, t1.Ticks, "#E2");
+            t2 = DateTime.Today + new TimeSpan(5, 25, 0);
+            t1 = DateTime.ParseExact("05:25", "t", CultureInfo.InvariantCulture);
+            Assert.AreEqual(t2.Ticks, t1.Ticks, "#E2");
 
-			t2 = DateTime.Today + new TimeSpan (5,25,13);
-			t1 = DateTime.ParseExact ("05:25:13", "T", null);
-			Assert.AreEqual (t2.Ticks, t1.Ticks, "#E3");
+            t2 = DateTime.Today + new TimeSpan(5, 25, 13);
+            t1 = DateTime.ParseExact("05:25:13", "T", CultureInfo.InvariantCulture);
+            Assert.AreEqual(t2.Ticks, t1.Ticks, "#E3");
+#if NOT_IMPLEMENTED
+            t2 = new DateTime(2002, 2, 1);
+            t1 = DateTime.ParseExact("2002 February", "y", CultureInfo.InvariantCulture);
+            Assert.AreEqual(t2.Ticks, t1.Ticks, "#E4");
 
-			t2 = new DateTime (2002, 2, 1);
-			t1 = DateTime.ParseExact ("2002 February", "y", null);
-			Assert.AreEqual (t2.Ticks, t1.Ticks, "#E4");
+            t2 = new DateTime(2002, 2, 1);
+            t1 = DateTime.ParseExact("2002 February", "Y", CultureInfo.InvariantCulture);
+            Assert.AreEqual(t2.Ticks, t1.Ticks, "#E5");
+#endif
+            // Custom patterns
+            t2 = new DateTime(DateTime.Now.Year, 1, 25);
+            t1 = DateTime.ParseExact("25", "%d", CultureInfo.InvariantCulture);
+            Assert.AreEqual(t2.Ticks, t1.Ticks, "#F1");
+            t1 = DateTime.ParseExact("25", "dd", CultureInfo.InvariantCulture);
+            Assert.AreEqual(t2.Ticks, t1.Ticks, "#F2");
 
-			t2 = new DateTime (2002, 2, 1);
-			t1 = DateTime.ParseExact ("2002 February", "Y", null);
-			Assert.AreEqual (t2.Ticks, t1.Ticks, "#E5");
+            t2 = new DateTime(DateTime.Today.Year, 2, 1);
+            t1 = DateTime.ParseExact("2", "%M", CultureInfo.InvariantCulture);
+            Assert.AreEqual(t2.Ticks, t1.Ticks, "#G1");
+            t1 = DateTime.ParseExact("02", "MM", CultureInfo.InvariantCulture);
+            Assert.AreEqual(t2.Ticks, t1.Ticks, "#G2");
+            t1 = DateTime.ParseExact("Feb", "MMM", CultureInfo.InvariantCulture);
+            Assert.AreEqual(t2.Ticks, t1.Ticks, "#G3");
+            t1 = DateTime.ParseExact("February", "MMMM", CultureInfo.InvariantCulture);
+            Assert.AreEqual(t2.Ticks, t1.Ticks, "#G4");
 
-			// Custom patterns
-			t2 = new DateTime (DateTime.Now.Year, 1, 25);
-			t1 = DateTime.ParseExact ("25", "%d", null);
-			Assert.AreEqual (t2.Ticks, t1.Ticks, "#F1");
-			t1 = DateTime.ParseExact ("25", "dd", null);
-			Assert.AreEqual (t2.Ticks, t1.Ticks, "#F2");
+            t2 = new DateTime(2005, 1, 1);
+            t1 = DateTime.ParseExact("5", "%y", CultureInfo.InvariantCulture);
+            Assert.AreEqual(t2.Ticks, t1.Ticks, "#G5");
+            t1 = DateTime.ParseExact("05", "yy", CultureInfo.InvariantCulture);
+            Assert.AreEqual(t2.Ticks, t1.Ticks, "#G6");
+            t1 = DateTime.ParseExact("2005", "yyyy", CultureInfo.InvariantCulture);
+            Assert.AreEqual(t2.Ticks, t1.Ticks, "#G7");
 
-			t2 = new DateTime (DateTime.Today.Year, 2, 1);
-			t1 = DateTime.ParseExact ("2", "%M", null);
-			Assert.AreEqual (t2.Ticks, t1.Ticks, "#G1");
-			t1 = DateTime.ParseExact ("02", "MM", null);
-			Assert.AreEqual (t2.Ticks, t1.Ticks, "#G2");
-			t1 = DateTime.ParseExact ("Feb", "MMM", null);
-			Assert.AreEqual (t2.Ticks, t1.Ticks, "#G3");
-			t1 = DateTime.ParseExact ("February", "MMMM", null);
-			Assert.AreEqual (t2.Ticks, t1.Ticks, "#G4");
+            t2 = DateTime.Today + new TimeSpan(5, 0, 0);
+            t1 = DateTime.ParseExact("5A", "ht", CultureInfo.InvariantCulture);
+            Assert.AreEqual(t2.Ticks, t1.Ticks, "#G8");
+            t1 = DateTime.ParseExact("05A", "hht", CultureInfo.InvariantCulture);
+            Assert.AreEqual(t2.Ticks, t1.Ticks, "#G9");
 
-			t2 = new DateTime (2005, 1, 1);
-			t1 = DateTime.ParseExact ("5", "%y", null);
-			Assert.AreEqual (t2.Ticks, t1.Ticks, "#G5");
-			t1 = DateTime.ParseExact ("05", "yy", null);
-			Assert.AreEqual (t2.Ticks, t1.Ticks, "#G6");
-			t1 = DateTime.ParseExact ("2005", "yyyy", null);
-			Assert.AreEqual (t2.Ticks, t1.Ticks, "#G7");
+            t2 = DateTime.Today + new TimeSpan(15, 0, 0);
+            t1 = DateTime.ParseExact("3P", "ht", CultureInfo.InvariantCulture);
+            Assert.AreEqual(t2.Ticks, t1.Ticks, "#G10");
+            t1 = DateTime.ParseExact("03P", "hht", CultureInfo.InvariantCulture);
+            Assert.AreEqual(t2.Ticks, t1.Ticks, "#G11");
 
-			t2 = DateTime.Today + new TimeSpan (5, 0, 0);
-			t1 = DateTime.ParseExact ("5A", "ht", null);
-			Assert.AreEqual (t2.Ticks, t1.Ticks, "#G8");
-			t1 = DateTime.ParseExact ("05A", "hht", null);
-			Assert.AreEqual (t2.Ticks, t1.Ticks, "#G9");
+            t2 = DateTime.Today + new TimeSpan(5, 0, 0);
+            t1 = DateTime.ParseExact("5", "%H", CultureInfo.InvariantCulture);
+            Assert.AreEqual(t2.Ticks, t1.Ticks, "#G12");
 
-			t2 = DateTime.Today + new TimeSpan (15, 0, 0);
-			t1 = DateTime.ParseExact ("3P", "ht", null);
-			Assert.AreEqual (t2.Ticks, t1.Ticks, "#G10");
-			t1 = DateTime.ParseExact ("03P", "hht", null);
-			Assert.AreEqual (t2.Ticks, t1.Ticks, "#G11");
+            t2 = DateTime.Today + new TimeSpan(15, 0, 0);
+            t1 = DateTime.ParseExact("15", "%H", CultureInfo.InvariantCulture);
+            Assert.AreEqual(t2.Ticks, t1.Ticks, "#G13");
+            t1 = DateTime.ParseExact("15", "HH", CultureInfo.InvariantCulture);
+            Assert.AreEqual(t2.Ticks, t1.Ticks, "#G14");
 
-			t2 = DateTime.Today + new TimeSpan (5, 0, 0);
-			t1 = DateTime.ParseExact ("5", "%H", null);
-			Assert.AreEqual (t2.Ticks, t1.Ticks, "#G12");
-
-			t2 = DateTime.Today + new TimeSpan (15, 0, 0);
-			t1 = DateTime.ParseExact ("15", "%H", null);
-			Assert.AreEqual (t2.Ticks, t1.Ticks, "#G13");
-			t1 = DateTime.ParseExact ("15", "HH", null);
-			Assert.AreEqual (t2.Ticks, t1.Ticks, "#G14");
-
-			// Time zones
+            // Time zones
 #if false
 			// Fails durring DST for msft and mono
 			t2 = DateTime.Today + new TimeSpan (17, 18, 0);
@@ -781,41 +789,41 @@ namespace MonoTests.System
 			Assert.AreEqual (t2.Ticks, t1.Ticks, "#H4");
 #endif
 
-			// Options
-			t2 = DateTime.Today + new TimeSpan (16, 18, 0);
-			t1 = DateTime.ParseExact ("11:18AM -5", "h:mmtt z",
-						  null, DateTimeStyles.AdjustToUniversal);
-			Assert.AreEqual (t2.Ticks, t1.Ticks, "#I1");
+            // Options
+            t2 = DateTime.Today + new TimeSpan(16, 18, 0);
+            t1 = DateTime.ParseExact("11:18AM -5", "h:mmtt z",
+                          CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal);
+            Assert.AreEqual(t2.Ticks, t1.Ticks, "#I1");
+#if NOT_IMPLEMENTED
+            t1 = DateTime.ParseExact("Monday, 25 February 2002 05:25:13", "F",
+                          CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal);
+            Assert.AreEqual(myTicks[4], t1.Ticks, "#I2");
+            t1 = DateTime.ParseExact("Monday, 25 February 2002 05:25:13",
+                          "dddd, dd MMMM yyyy HH:mm:ss",
+                          CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal);
+            Assert.AreEqual(myTicks[4], t1.Ticks, "#I3");
+#endif
+            t1 = DateTime.ParseExact("02/25/2002", "d", CultureInfo.InvariantCulture,
+                          DateTimeStyles.AllowWhiteSpaces);
+            Assert.AreEqual(myTicks[0], t1.Ticks, "#I4");
 
-			t1 = DateTime.ParseExact ("Monday, 25 February 2002 05:25:13", "F",
-						  null, DateTimeStyles.AdjustToUniversal);
-			Assert.AreEqual (myTicks [4], t1.Ticks, "#I2");
-			t1 = DateTime.ParseExact ("Monday, 25 February 2002 05:25:13",
-						  "dddd, dd MMMM yyyy HH:mm:ss",
-						  null, DateTimeStyles.AdjustToUniversal);
-			Assert.AreEqual (myTicks [4], t1.Ticks, "#I3");
+            t1 = DateTime.ParseExact("    02/25/2002", "d", CultureInfo.InvariantCulture,
+                          DateTimeStyles.AllowLeadingWhite);
+            Assert.AreEqual(myTicks[0], t1.Ticks, "#I5");
 
-			t1 = DateTime.ParseExact ("02/25/2002", "d", null,
-						  DateTimeStyles.AllowWhiteSpaces);
-			Assert.AreEqual (myTicks [0], t1.Ticks, "#I4");
+            t1 = DateTime.ParseExact("02/25/2002    ", "d", CultureInfo.InvariantCulture,
+                          DateTimeStyles.AllowTrailingWhite);
+            Assert.AreEqual(myTicks[0], t1.Ticks, "#I6");
 
-			t1 = DateTime.ParseExact ("    02/25/2002", "d", null,
-						  DateTimeStyles.AllowLeadingWhite);
-			Assert.AreEqual (myTicks [0], t1.Ticks, "#I5");
+            t1 = DateTime.ParseExact("  02 / 25 / 2002    ", "d", CultureInfo.InvariantCulture,
+                          DateTimeStyles.AllowWhiteSpaces);
+            Assert.AreEqual(myTicks[0], t1.Ticks, "#I7");
 
-			t1 = DateTime.ParseExact ("02/25/2002    ", "d", null,
-						  DateTimeStyles.AllowTrailingWhite);
-			Assert.AreEqual (myTicks [0], t1.Ticks, "#I6");
-
-			t1 = DateTime.ParseExact ("  02 / 25 / 2002    ", "d", null,
-						  DateTimeStyles.AllowWhiteSpaces);
-			Assert.AreEqual (myTicks [0], t1.Ticks, "#I7");
-
-			// Multi Custom Patterns
-			string rfc1123_date = "r";
-			string rfc850_date = "dddd, dd'-'MMM'-'yy HH':'mm':'ss 'GMT'";
-			string asctime_date = "ddd MMM d HH':'mm':'ss yyyy";
-			string [] formats = new string [] {rfc1123_date, rfc850_date, asctime_date};
+            // Multi Custom Patterns
+            string rfc1123_date = "r";
+            string rfc850_date = "dddd, dd'-'MMM'-'yy HH':'mm':'ss 'GMT'";
+            string asctime_date = "ddd MMM d HH':'mm':'ss yyyy";
+            string[] formats = new string[] { rfc1123_date, rfc850_date, asctime_date };
 #if NOT_IMPLEMENTED
 			CultureInfo enUS = new CultureInfo("en-US", false);
 			t1 = DateTime.ParseExact ("Sun, 06 Nov 1994 08:49:37 GMT", formats[0], enUS, 
@@ -863,18 +871,18 @@ namespace MonoTests.System
 				Assert.Fail ("#L1");
 			} catch (FormatException) {
 			}
-            #endif
-			// Bug #75213 : literal escaping.
-			t1 = DateTime.ParseExact ("20050707132527Z",
-				"yyyyMMddHHmmss\\Z", CultureInfo.InvariantCulture);
-			Assert.AreEqual (632563395270000000, t1.Ticks, "#L2");
+#endif
+            // Bug #75213 : literal escaping.
+            t1 = DateTime.ParseExact("20050707132527Z",
+                "yyyyMMddHHmmss\\Z", CultureInfo.InvariantCulture);
+            Assert.AreEqual(632563395270000000, t1.Ticks, "#L2");
 
-			// XAttributeTest.CastDateTimeOffsets():#6b
-			// It is said broken, probably due to timezone difference.
-			//t1 = DateTime.ParseExact ("2039-10-31T12:34:56.7552+00:00", "yyyy-MM-ddTHH:mm:ss.FFFFFFFzzz",
-			//			  CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
-			//Assert.AreEqual (643393064967552000, t1.Ticks, "#M");
-		}
+            // XAttributeTest.CastDateTimeOffsets():#6b
+            // It is said broken, probably due to timezone difference.
+            //t1 = DateTime.ParseExact ("2039-10-31T12:34:56.7552+00:00", "yyyy-MM-ddTHH:mm:ss.FFFFFFFzzz",
+            //			  CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
+            //Assert.AreEqual (643393064967552000, t1.Ticks, "#M");
+        }
 #if NOT_IMPLEMENTED
 		[Test]
 		public void TestParse2 ()
@@ -1197,34 +1205,38 @@ namespace MonoTests.System
 
 #endif
 
-		[Test] // bug #74936
-		public void TestParse4 ()
-		{
-			try {
-				DateTime.Parse("1");
-				Assert.Fail ("#1");
+        [Test] // bug #74936
+        public void TestParse4()
+        {
+            try
+            {
+                DateTime.Parse("1");
+                Assert.Fail("#1");
             }
             catch (ArgumentException)
             {
-			}
+            }
 
-			try {
-				DateTime.Parse("1000");
-				Assert.Fail ("#2");
+            try
+            {
+                DateTime.Parse("1000");
+                Assert.Fail("#2");
             }
             catch (ArgumentException)
             {
-			}
+            }
 
-			try {
-				DateTime.Parse("8:");
-				Assert.Fail ("#3");
+            try
+            {
+                DateTime.Parse("8:");
+                Assert.Fail("#3");
             }
             catch (ArgumentException)
             {
-			}
-		}
+            }
+        }
 
+#if NOT_IMPLEMENTED
 		[Test] // bug #71289
 		public void Parse_Bug71289a ()
 		{
@@ -1245,6 +1257,7 @@ namespace MonoTests.System
 			// ',' after 03 is not allowed.
 			DateTime.Parse ("Sat,,, 01,,, Oct,,, ,,,1994 03,:00:00", CultureInfo.InvariantCulture);
 		}
+#endif
 
 #if CULTURE
 
@@ -1561,14 +1574,12 @@ namespace MonoTests.System
 			Assert.AreEqual (0, DateTime.MinValue.ToOADate ());
 		}
 
-#endif
 
         [Test] // bug52075
 		public void MaxValueYear ()
 		{
 			Assert.AreEqual ("9999", DateTime.MaxValue.Year.ToString ());
 		}
-
 
 		[Test]
 		public void X509Certificate () 
@@ -1603,7 +1614,7 @@ namespace MonoTests.System
 			Assert.AreEqual (DateTimeKind.Local, dtz.Kind, "#3");
 			Assert.AreEqual (dt, dtz, "#4");
 		}
-#if NOT_IMPLEMENTED
+
 		[Test] // bug 56436
 		public void QuotedFormat ()
 		{
@@ -1878,23 +1889,23 @@ namespace MonoTests.System
 			Assert.AreEqual (0, date.Millisecond, "#7");
 		}
 #endif
-		[Test]
-		public void ParseExact_Bug324845 ()
-		{
-			DateTime ctime = new DateTime (2007, 7, 23, 19, 19, 45);
-			ctime = ctime.ToUniversalTime ();
-			string instr = ctime.ToString ("yyyyMMddHHmmss");
+        [Test]
+        public void ParseExact_Bug324845()
+        {
+            DateTime ctime = new DateTime(2007, 7, 23, 19, 19, 45);
+            ctime = ctime.ToUniversalTime();
+            string instr = ctime.ToString("yyyyMMddHHmmss");
 
-			DateTime t = DateTime.ParseExact (instr, "yyyyMMddHHmmss", null, DateTimeStyles.AssumeUniversal);
-			Assert.AreEqual (2007, t.Year);
-			Assert.AreEqual (7, t.Month);
-			Assert.AreEqual (23, t.Day);
-			Assert.AreEqual (19, t.Hour);
-			Assert.AreEqual (19, t.Minute);
-			Assert.AreEqual (45, t.Second);
+            DateTime t = DateTime.ParseExact(instr, "yyyyMMddHHmmss", null, DateTimeStyles.AssumeUniversal);
+            Assert.AreEqual(2007, t.Year);
+            Assert.AreEqual(7, t.Month);
+            Assert.AreEqual(23, t.Day);
+            Assert.AreEqual(19, t.Hour);
+            Assert.AreEqual(19, t.Minute);
+            Assert.AreEqual(45, t.Second);
 
-		}
-
+        }
+#if NOT_IMPLEMENTED
 		[Test]
 		[ExpectedException (typeof (FormatException))]
 		public void ParseExactIsExact()
@@ -1908,7 +1919,7 @@ namespace MonoTests.System
 		{
 			DateTime.ParseExact ("2004-05-26T03:29:01", "yyyy-MM-ddTHH:mm:ssZ", null);
 		}
-#if NOT_IMPLEMENTED
+
 		[Test]
 		public void ParseExactMilliseconds ()
 		{
@@ -2160,19 +2171,19 @@ namespace MonoTests.System
 
 #endif
 
-		[Test]
-		[ExpectedException (typeof (ArgumentException))]
-		public void EmptyString ()
-		{
-			DateTime.Parse ("");
-		}
+        [Test]
+        [ExpectedException(typeof(ArgumentException))]
+        public void EmptyString()
+        {
+            DateTime.Parse("");
+        }
 
-		[Test]
-		public void TryEmptyString ()
-		{
-			DateTime date;
-			Assert.IsFalse (DateTime.TryParse ("", out date));
-		}
+        [Test]
+        public void TryEmptyString()
+        {
+            DateTime date;
+            Assert.IsFalse(DateTime.TryParse("", out date));
+        }
 
 #if NOT_IMPLEMENTED
 		[Test]
@@ -2227,16 +2238,16 @@ namespace MonoTests.System
 
 #endif
 
-		[Test]
-		public void CompareTicks ()
-		{
-			// Only ticks are compared, not kind.
-			var d = new DateTime (0, DateTimeKind.Utc);
-			var f = new DateTime (0);
+        [Test]
+        public void CompareTicks()
+        {
+            // Only ticks are compared, not kind.
+            var d = new DateTime(0, DateTimeKind.Utc);
+            var f = new DateTime(0);
 
-			Assert.AreEqual (d == f, true, "#1");
-		}
-		
+            Assert.AreEqual(d == f, true, "#1");
+        }
+
 #if NOT_IMPLEMENTED
 		[Test]
 		public void FromBinary ()
@@ -2548,5 +2559,5 @@ namespace MonoTests.System
 		}
 
 #endif
-	}
+    }
 }

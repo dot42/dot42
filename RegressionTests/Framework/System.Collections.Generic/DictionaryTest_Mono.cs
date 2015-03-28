@@ -209,7 +209,7 @@ namespace MonoTests.System.Collections.Generic {
 			Assert.AreEqual (20, _dictionary2 [m2].Value, "#4");
 			
 		}
-
+#if NOT_IMPLEMENTED
 		[Test]
 		[Category ("NotWorking")]
 		public void Remove_ZeroOut_KnownToFail ()
@@ -232,7 +232,8 @@ namespace MonoTests.System.Collections.Generic {
 			Assert.IsNull (wrKey.Target, "#1");
 			Assert.IsNull (wrValue.Target, "#2");
 		}
-	
+#endif
+
 		[Test, ExpectedException(typeof(ArgumentNullException))]
 		public void IndexerSetNullTest()
 		{
@@ -263,7 +264,7 @@ namespace MonoTests.System.Collections.Generic {
 				hash += o.GetHashCode ();
 			}
 		}
-
+#if NOT_IMPLEMENTED
 		[Test]
 		[Category ("NotWorking")]
 		public void Clear_ZeroOut_KnownToFail ()
@@ -286,7 +287,7 @@ namespace MonoTests.System.Collections.Generic {
 			Assert.IsNull (wrKey.Target, "#1");
 			Assert.IsNull (wrValue.Target, "#2");
 		}
-
+#endif
 		[Test]
 		public void ContainsKeyTest ()
 		{
@@ -744,7 +745,7 @@ namespace MonoTests.System.Collections.Generic {
 
 		[Test]
 		[ExpectedException (typeof (ArgumentNullException))]
-		public void IDictionary_Add_Null_2_KnownToFail ()
+		public void IDictionary_Add_Null_2 ()
 		{
 			IDictionary d = new Dictionary<int, int> ();
 			d.Add (1, null);

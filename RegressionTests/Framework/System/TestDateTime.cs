@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using NUnit.Framework;
 
 namespace Dot42.Tests.System
@@ -44,7 +45,7 @@ namespace Dot42.Tests.System
             var str = dateTime.ToString("dd.MM.yyyy H:mm");
             Assert.AreEqual("13.08.2013 7:10", str);
 
-            var sd = dateTime.ToShortDateString();
+            var sd = dateTime.ToString("d", CultureInfo.InvariantCulture);
             Assert.AreEqual("08/13/2013", sd);
         }
 
