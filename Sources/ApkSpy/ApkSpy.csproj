@@ -39,6 +39,9 @@
     <ApplicationIcon>Images\Spy.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ICSharpCode.TextEditor">
+      <HintPath>..\..\SharpDevelop\src\AddIns\Misc\PackageManagement\Packages\ICSharpCode.TextEditor\lib\Net20\ICSharpCode.TextEditor.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
@@ -103,8 +106,20 @@
   <ItemGroup>
     <Compile Include="..\Version.cs" />
     <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="IPC\AsyncLineReader.cs" />
+    <Compile Include="IPC\AsyncStreamReader.cs" />
+    <Compile Include="BaksmaliDisassembler.cs" />
+    <Compile Include="IPC\ConsoleProcess.cs" />
+    <Compile Include="IPC\ConsoleReader.cs" />
+    <Compile Include="IPC\Run.cs" />
     <Compile Include="ISpySettings.cs" />
     <Compile Include="ISpyContext.cs" />
+    <Compile Include="ConfigureBaksmaliDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ConfigureBaksmaliDialog.Designer.cs">
+      <DependentUpon>ConfigureBaksmaliDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="PasswordDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -116,7 +131,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="RecentlyUsedFiles.cs" />
+    <Compile Include="SettingsPersitor.cs" />
     <Compile Include="Tree\Asn1FileNode.cs" />
     <Compile Include="Tree\Pkcs12FileNode.cs" />
     <Compile Include="Tree\JavaMethodDefinitionNode.cs" />
@@ -155,6 +170,9 @@
   <ItemGroup>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ConfigureBaksmaliDialog.resx">
+      <DependentUpon>ConfigureBaksmaliDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="PasswordDialog.resx">
       <DependentUpon>PasswordDialog.cs</DependentUpon>

@@ -38,6 +38,10 @@ namespace Dot42.ApkSpy
             this.miFile = new System.Windows.Forms.ToolStripMenuItem();
             this.miFileOpen = new System.Windows.Forms.ToolStripMenuItem();
             this.miFileRecent = new System.Windows.Forms.ToolStripMenuItem();
+            this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.miEnableBacksmali = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.miConfigureBaksmali = new System.Windows.Forms.ToolStripMenuItem();
             this.miDebug = new System.Windows.Forms.ToolStripMenuItem();
             this.miShowAst = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.mainContainer)).BeginInit();
@@ -94,6 +98,7 @@ namespace Dot42.ApkSpy
             // 
             this.menuBar.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.miFile,
+            this.optionsToolStripMenuItem,
             this.miDebug});
             this.menuBar.Location = new System.Drawing.Point(0, 0);
             this.menuBar.Name = "menuBar";
@@ -108,7 +113,7 @@ namespace Dot42.ApkSpy
             this.miFileRecent});
             this.miFile.Name = "miFile";
             this.miFile.Size = new System.Drawing.Size(37, 20);
-            this.miFile.Text = "File";
+            this.miFile.Text = "&File";
             this.miFile.DropDownOpening += new System.EventHandler(this.miFile_DropDownOpening);
             // 
             // miFileOpen
@@ -124,6 +129,36 @@ namespace Dot42.ApkSpy
             this.miFileRecent.Name = "miFileRecent";
             this.miFileRecent.Size = new System.Drawing.Size(148, 22);
             this.miFileRecent.Text = "Recently used";
+            // 
+            // optionsToolStripMenuItem
+            // 
+            this.optionsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.miEnableBacksmali,
+            this.toolStripSeparator1,
+            this.miConfigureBaksmali});
+            this.optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
+            this.optionsToolStripMenuItem.Size = new System.Drawing.Size(61, 20);
+            this.optionsToolStripMenuItem.Text = "Options";
+            // 
+            // miEnableBacksmali
+            // 
+            this.miEnableBacksmali.CheckOnClick = true;
+            this.miEnableBacksmali.Name = "miEnableBacksmali";
+            this.miEnableBacksmali.Size = new System.Drawing.Size(254, 22);
+            this.miEnableBacksmali.Text = "&Use Backsmali to show dex classes";
+            this.miEnableBacksmali.Click += new System.EventHandler(this.miEnableBacksmali_Click);
+            // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(251, 6);
+            // 
+            // miConfigureBaksmali
+            // 
+            this.miConfigureBaksmali.Name = "miConfigureBaksmali";
+            this.miConfigureBaksmali.Size = new System.Drawing.Size(254, 22);
+            this.miConfigureBaksmali.Text = "&Configure Backsmali...";
+            this.miConfigureBaksmali.Click += new System.EventHandler(this.miConfigureBaksmali_Click);
             // 
             // miDebug
             // 
@@ -172,5 +207,9 @@ namespace Dot42.ApkSpy
         private System.Windows.Forms.TreeView treeView;
         private System.Windows.Forms.ToolStripMenuItem miDebug;
         private System.Windows.Forms.ToolStripMenuItem miShowAst;
+        private System.Windows.Forms.ToolStripMenuItem optionsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem miEnableBacksmali;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+        private System.Windows.Forms.ToolStripMenuItem miConfigureBaksmali;
     }
 }

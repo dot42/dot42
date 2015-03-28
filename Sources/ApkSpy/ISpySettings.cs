@@ -8,5 +8,8 @@
         /// </summary>
         bool ShowAst { get; }
 #endif
+        bool EnableBaksmali { get; }
+        string BacksmaliCommand { get; }
+        string BacksmaliParameters { get; }
     }
 }

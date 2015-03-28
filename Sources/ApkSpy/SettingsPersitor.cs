@@ -9,12 +9,15 @@ using Microsoft.Win32;
 
 namespace Dot42.ApkSpy
 {
-    internal static class RecentlyUsedFiles
+    internal static class SettingsPersitor
     {
         private const string FILE_X = "file";
         private const string TREEPATH = "treepath";
         private const string WINDOWSIZE = "size";
         private const string WINDOWLOCATION = "location";
+        private const string BAKSMALI_ENABLE = "baksmali_enable";
+        private const string BAKSMALI_COMMAND = "baksmali_command";
+        private const string BAKSMALI_PARAMETERS = "baksmali_parameters";
         private const int maxNumberOfFiles = 10;
         private const string registryPath = @"Software\TallComponents\Dot42\Mru";
         private static readonly Size DefaultWindowSize = new Size(972, 567);
@@ -92,6 +95,52 @@ namespace Dot42.ApkSpy
                 }
             }
             set { SetValue(WINDOWLOCATION, pointConverter.ConvertToString(value)); }
+        }
+
+        internal static bool EnableBaksmali
+        {
+            get
+            {
+                var loc = GetValue(BAKSMALI_ENABLE);
+                if (string.IsNullOrEmpty(loc))
+                    return false;
+                try
+                {
+                    return int.Parse(loc) != 0;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+            set
+            {
+                SetValue(BAKSMALI_ENABLE, value?"1" : "0");
+            }
+        }
+
+        internal static string BaksmaliCommand
+        {
+            get
+            {
+                return GetValue(BAKSMALI_COMMAND);
+            }
+            set
+            {
+                SetValue(BAKSMALI_COMMAND, value);
+            }
+        }
+
+        internal static string BaksmaliParameters
+        {
+            get
+            {
+                return GetValue(BAKSMALI_PARAMETERS);
+            }
+            set
+            {
+                SetValue(BAKSMALI_PARAMETERS, value);
+            }
         }
 
         /// <summary>

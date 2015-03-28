@@ -5,6 +5,7 @@ using System.Text;
 using System.Windows.Forms;
 using Dot42.DexLib;
 using Dot42.JvmClassLib.Attributes;
+using ICSharpCode.TextEditor;
 
 namespace Dot42.ApkSpy.Tree
 {
@@ -28,34 +29,43 @@ namespace Dot42.ApkSpy.Tree
             return tb;
         }
 
-        private static TextBox CreateTextBox()
+        private static TextEditorControl CreateTextBox()
         {
-            var tb = new TextBox();
-            tb.ReadOnly = true;
-            tb.MaxLength = 64*1024*1024;
-            tb.Multiline = true;
-            tb.ScrollBars = ScrollBars.Both;
-            tb.WordWrap = false;
-            tb.ShortcutsEnabled = true;
-            tb.BackColor = Color.White;
+            var tb = new TextEditorControl();
+            tb.IsReadOnly = true;
+            tb.Font = new Font(tb.Font.OriginalFontName, 9);
+            // TODO: set proper highlighting.
+            tb.SetHighlighting("C#");
+            tb.ShowLineNumbers = true;
+            tb.ShowInvalidLines = false;
+            tb.ShowVRuler = false;
 
-            string[] tryFonts = new[] {"Lucida Console", "Consolas"};
+            //var tb = new TextBox();
+            //tb.ReadOnly = true;
+            //tb.MaxLength = 64*1024*1024;
+            //tb.Multiline = true;
+            //tb.ScrollBars = ScrollBars.Both;
+            //tb.WordWrap = false;
+            //tb.ShortcutsEnabled = true;
+            //tb.BackColor = Color.White;
 
-            foreach (var fontName in tryFonts)
-            {
-                tb.Font = new Font(fontName, 8, FontStyle.Regular);
-                if (tb.Font.Name == fontName) break;
-            }
+            //string[] tryFonts = new[] {"Lucida Console", "Consolas"};
 
-            if(!tryFonts.Contains(tb.Font.Name))
-                tb.Font = new Font(FontFamily.GenericMonospace, 9);
+            //foreach (var fontName in tryFonts)
+            //{
+            //    tb.Font = new Font(fontName, 8, FontStyle.Regular);
+            //    if (tb.Font.Name == fontName) break;
+            //}
+
+            //if(!tryFonts.Contains(tb.Font.Name))
+            //    tb.Font = new Font(FontFamily.GenericMonospace, 9);
             
-            tb.KeyDown += (sender, e) =>
-            {
-                // as per http://stackoverflow.com/questions/14429445/how-can-i-allow-things-such-as-ctrl-a-and-ctrl-backspace-in-a-c-sharp-textbox
-                if (e.Control & e.KeyCode == Keys.A)
-                    ((TextBox)sender).SelectAll();
-            };
+            //tb.KeyDown += (sender, e) =>
+            //{
+            //    // as per http://stackoverflow.com/questions/14429445/how-can-i-allow-things-such-as-ctrl-a-and-ctrl-backspace-in-a-c-sharp-textbox
+            //    if (e.Control & e.KeyCode == Keys.A)
+            //        ((TextBox)sender).SelectAll();
+            //};
 
             return tb;
         }

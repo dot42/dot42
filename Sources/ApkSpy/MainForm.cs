@@ -27,6 +27,7 @@ namespace Dot42.ApkSpy
 #elif DEBUG
             miShowAst.Checked = true;
 #endif
+            miEnableBacksmali.Checked = SettingsPersitor.EnableBaksmali;
         }
 
         /// <summary>
@@ -35,11 +36,11 @@ namespace Dot42.ApkSpy
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
-            Size = RecentlyUsedFiles.WindowSize;
-            var location = RecentlyUsedFiles.WindowLocation;
+            Size = SettingsPersitor.WindowSize;
+            var location = SettingsPersitor.WindowLocation;
             if (Screen.AllScreens.Any(x => x.Bounds.Contains(location)))
-                Location = RecentlyUsedFiles.WindowLocation;
-            string path = RecentlyUsedFiles.Files.FirstOrDefault();
+                Location = SettingsPersitor.WindowLocation;
+            string path = SettingsPersitor.Files.FirstOrDefault();
 
             string[] arguments = Environment.GetCommandLineArgs();
             if (null != arguments)
@@ -61,7 +62,7 @@ namespace Dot42.ApkSpy
             base.OnSizeChanged(e);
             if (initialized)
             {
-                RecentlyUsedFiles.WindowSize = Size;
+                SettingsPersitor.WindowSize = Size;
             }
         }
 
@@ -73,7 +74,7 @@ namespace Dot42.ApkSpy
             base.OnLocationChanged(e);
             if (initialized)
             {
-                RecentlyUsedFiles.WindowLocation = Location;
+                SettingsPersitor.WindowLocation = Location;
             }
         }
 
@@ -110,10 +111,10 @@ namespace Dot42.ApkSpy
                 Text = string.Format("{0} - [{1}]", Application.ProductName, path);
 
                 // Add to MRU
-                RecentlyUsedFiles.Add(path);
+                SettingsPersitor.Add(path);
 
                 // Try to re-open last known tree path
-                TreePath = RecentlyUsedFiles.LastTreePath;
+                TreePath = SettingsPersitor.LastTreePath;
             }
             catch (Exception ex)
             {
@@ -161,10 +162,10 @@ namespace Dot42.ApkSpy
             }
             container.ResumeLayout(true);
 
-            // Cehck if the node was selected programatically.
+            // Check if the node was selected programatically.
             if (e.Action != TreeViewAction.Unknown)
             {
-                RecentlyUsedFiles.LastTreePath = TreePath;
+                SettingsPersitor.LastTreePath = TreePath;
             }
         }
 
@@ -192,7 +193,7 @@ namespace Dot42.ApkSpy
         private void miFile_DropDownOpening(object sender, EventArgs e)
         {
             miFileRecent.DropDownItems.Clear();
-            foreach (var iterator in RecentlyUsedFiles.Files)
+            foreach (var iterator in SettingsPersitor.Files)
             {
                 var path = iterator;
                 var item = new ToolStripMenuItem(Path.GetFileName(path));
@@ -294,6 +295,10 @@ namespace Dot42.ApkSpy
             }
         }
 
+        public bool EnableBaksmali { get { return miEnableBacksmali.Checked; } }
+        public string BacksmaliCommand { get { return SettingsPersitor.BaksmaliCommand; } }
+        public string BacksmaliParameters { get { return SettingsPersitor.BaksmaliParameters; } }
+
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
             bool bHandled = false;
@@ -310,6 +315,34 @@ namespace Dot42.ApkSpy
                     break;
             }
             return bHandled;
+        }
+
+        private void miEnableBacksmali_Click(object sender, EventArgs e)
+        {
+            SettingsPersitor.EnableBaksmali = EnableBaksmali;
+
+            if (EnableBaksmali && string.IsNullOrEmpty(BacksmaliCommand))
+                miConfigureBaksmali_Click(sender,e);
+
+            // update views
+            var node = treeView.SelectedNode;
+            treeView.SelectedNode = null;
+            treeView.SelectedNode = node;
+        }
+
+        private void miConfigureBaksmali_Click(object sender, EventArgs e)
+        {
+            using (var dlg = new ConfigureBaksmaliDialog())
+            {
+                dlg.BaksmaliCommand = SettingsPersitor.BaksmaliCommand;
+                dlg.BaksmaliParameter = SettingsPersitor.BaksmaliParameters;
+
+                if (dlg.ShowDialog(this) == DialogResult.OK)
+                {
+                    SettingsPersitor.BaksmaliCommand = dlg.BaksmaliCommand;
+                    SettingsPersitor.BaksmaliParameters = dlg.BaksmaliParameter;
+                }
+            }
         }
     }
 }
