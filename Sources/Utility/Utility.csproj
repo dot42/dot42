@@ -47,6 +47,7 @@
     <Compile Include="..\..\Common\Util\ErrorLog.cs" />
     <Compile Include="BigEndianBitConverter.cs" />
     <Compile Include="Browser.cs" />
+    <Compile Include="HashCodeUtility.cs" />
     <Compile Include="CollectionExtensions.cs" />
     <Compile Include="CompressedXml.cs" />
     <Compile Include="DContext.cs" />
