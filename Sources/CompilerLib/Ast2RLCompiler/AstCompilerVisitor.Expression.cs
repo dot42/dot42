@@ -470,8 +470,23 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                 case AstCode.Conv_R4:
                     return ConvX(node.SourceLocation, node.Arguments[0].ConvR4(), PrimitiveType.Float, args[0]);
                 case AstCode.Conv_R8:
-                case AstCode.Conv_R_Un:
                     return ConvX(node.SourceLocation, node.Arguments[0].ConvR8(), PrimitiveType.Double, args[0]);
+                case AstCode.Conv_R_Un:
+                {
+                    // This can be either to double or single.
+
+                    // note: This is broken. when converting from uint=>float, ulong=>float or ulong=>double,
+                    //       the current code just treats the unsigned as a signed. this would result in
+                    //       negative results for large values.
+                    //       The problem could be solved - earlier - by converting uint to ulongs first, and 
+                    //       for ulong by treating the highest bit specially and multiplying the result by 2 if
+                    //       neccessary.
+                    
+                    if(node.GetResultType().IsFloat())
+                        return ConvX(node.SourceLocation, node.Arguments[0].ConvR4(), PrimitiveType.Float, args[0]);
+                    else
+                        return ConvX(node.SourceLocation, node.Arguments[0].ConvR8(), PrimitiveType.Double, args[0]);
+                }
                 case AstCode.Int_to_ubyte:
                     {
                         var tmp = this.EnsureTemp(node.SourceLocation, args[0].Result, frame);

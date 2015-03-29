@@ -761,8 +761,10 @@ namespace Dot42.DexLib.IO
         private bool WriteCodeItem(BinaryWriter writer, MethodDefinition method, uint sectionOffset)
         {
             if (codes.ContainsKey(method))
-                throw new AmbiguousMatchException("method renamer failed to find a uniquely name for " + method);    
-            
+            {
+                throw new AmbiguousMatchException("method renamer failed to find a unique name for " + method);
+            }
+
             codes.Add(method, 0);
 
             var body = method.Body;
