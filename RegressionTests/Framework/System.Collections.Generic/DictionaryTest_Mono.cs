@@ -463,12 +463,12 @@ namespace MonoTests.System.Collections.Generic {
 			foreach (KeyValuePair <string, object> entry in ((IEnumerable)_dictionary))
 				i++;
 			Assert.AreEqual(4, i, "fail2: foreach entry failed!");
-#if NOT_IMPLEMENTED
-			i = 0;
+	
+            i = 0;
 			foreach (DictionaryEntry entry in ((IDictionary)_dictionary))
 				i++;
 			Assert.AreEqual (4, i, "fail3: foreach entry failed!");
-#endif
+
 		}
 	
 		[Test]
