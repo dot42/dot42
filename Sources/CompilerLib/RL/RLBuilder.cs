@@ -127,10 +127,10 @@ namespace Dot42.CompilerLib.RL
                 return new RLRange(first, last, rUnboxed);                
             }
 
-            if (!type.IsGenericParameter)
+            bool isGeneric = type.IsGenericParameter || (type.IsByReference && type.ElementType.IsGenericParameter);
+
+            if (!isGeneric)
             {
-                // TODO: (olaf): check if we should actually do the check_cast 
-                //               if we have a reference to a generic type.
                 // Just cast
                 var checkCast = builder.Add(sequencePoint, RCode.Check_cast, type.GetReference(targetPackage), source);
                 return new RLRange(checkCast, source);
