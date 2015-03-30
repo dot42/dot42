@@ -467,9 +467,9 @@ namespace Dot42.CompilerLib.Structure.DotNet
                             AnnotationBuilder.Create(compiler, pair.Key, provider, targetPackage, true);
                             var attributes = provider.Annotations.FirstOrDefault();
                             string propName = pair.Key.Name;
-                            DexLib.TypeReference propType=null;
+
                             var ann = new Annotation(propertyClass, AnnotationVisibility.Runtime, 
-                                                        new AnnotationArgument("Name", propName));
+                                                                    new AnnotationArgument("Name", propName));
                             if (pair.Value[0] != null)
                             {
                                 var getter = pair.Value[0].DexMethod;
@@ -479,8 +479,6 @@ namespace Dot42.CompilerLib.Structure.DotNet
                                     DLog.Info(DContext.CompilerCodeGenerator, "not generating property for getter with arguments " + getter);
                                     continue;
                                 }
-                                
-                                propType = getter.Prototype.ReturnType;
                                 
                                 var getterName = getter.Name;
                                 if(getterName != "get_" + propName)
@@ -495,19 +493,16 @@ namespace Dot42.CompilerLib.Structure.DotNet
                                     DLog.Info(DContext.CompilerCodeGenerator, "not generating property for setter with wrong argument count " + setter);
                                     continue;
                                 }
-                                if (propType == null)
-                                    propType = setter.Prototype.Parameters[0].Type;
+
 
                                 var setterName = setter.Name;
                                 if (setterName != "set_" + propName)
                                     ann.Arguments.Add(new AnnotationArgument("Set", setterName));
                             }
 
-                            //provider.AddNullableTAnnotationIfNullableT();
-
                             if (attributes != null && attributes.Arguments[0].Value != null)
                             {
-                                //ann.Arguments.Add(new AnnotationArgument("Attributes", attributes.Arguments[0].Value));
+                                ann.Arguments.Add(new AnnotationArgument("Attributes", attributes.Arguments[0].Value));
                             }
                             propertyAnnotations.Add(ann);
                         }
@@ -524,8 +519,8 @@ namespace Dot42.CompilerLib.Structure.DotNet
                     var propertyClass = compiler.GetDot42InternalType("IProperty").GetClassReference(targetPackage);
                     var defValue = new Annotation(propertyClass, AnnotationVisibility.Runtime,
                                                   new AnnotationArgument("Get", ""),
-                                                  new AnnotationArgument("Set", "")/*,
-                                                  new AnnotationArgument("Attributes", new IAttribute[])*/);
+                                                  new AnnotationArgument("Set", ""),
+                                                  new AnnotationArgument("Attributes", new Annotation[0] ));
                     var defAnnotation = new Annotation(new ClassReference("dalvik.annotation.AnnotationDefault"), 
                         AnnotationVisibility.System, new AnnotationArgument("value", defValue));
                     Class.Annotations.Add(defAnnotation);

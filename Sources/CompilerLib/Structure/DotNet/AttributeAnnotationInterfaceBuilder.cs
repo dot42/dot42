@@ -1,18 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using Dot42.ApkLib.Resources;
 using Dot42.CecilExtensions;
+using Dot42.CompilerLib.Ast;
+using Dot42.CompilerLib.Ast.Extensions;
 using Dot42.CompilerLib.Ast2RLCompiler.Extensions;
 using Dot42.CompilerLib.Extensions;
 using Dot42.CompilerLib.RL;
-using Dot42.CompilerLib.Target;
 using Dot42.CompilerLib.Target.Dex;
+using Dot42.CompilerLib.XModel;
 using Dot42.CompilerLib.XModel.DotNet;
 using Dot42.DexLib;
-
+using Dot42.FrameworkDefinitions;
 using Mono.Cecil;
-
+using Mono.Cecil.Rocks;
 using MethodDefinition = Dot42.DexLib.MethodDefinition;
 using TypeReference = Dot42.DexLib.TypeReference;
 
@@ -63,47 +65,63 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 @interface.Methods.Add(method);                
             }
 
-            // Add field mapping
-            foreach (var field in attributeType.Fields.Where(x => x.IsReachable && x.IsPublic))
-            {
-                string methodName = CreateGetMethodName(NameConverter.GetConvertedName(field), result);
-                TypeReference dfieldType = field.FieldType.GetReference(targetPackage, compiler.Module);
-                MethodDefinition method = new MethodDefinition(@interface, methodName, new Prototype(dfieldType));
-                method.AccessFlags = AccessFlags.Public | AccessFlags.Abstract;
-                result.FieldToGetMethodMap.Add(field, method);
-                @interface.Methods.Add(method);
-            }
+            TypeDefinition currentType = attributeType;
 
-            // Add property mapping
-            foreach (var property in attributeType.Properties.Where(x => x.IsReachable && (x.SetMethod != null) && (x.SetMethod.IsPublic) && x.SetMethod.IsReachable))
+            while (currentType != null && currentType.FullName != typeof(Attribute).FullName)
             {
-                string methodName = CreateGetMethodName(NameConverter.GetConvertedName(property), result);
-                TypeReference dpropType = property.PropertyType.GetReference(targetPackage, compiler.Module);
-                MethodDefinition method = new MethodDefinition(@interface, methodName, new Prototype(dpropType));
-                method.AccessFlags = AccessFlags.Public | AccessFlags.Abstract;
-                result.PropertyToGetMethodMap.Add(property, method);
-                @interface.Methods.Add(method);
-            }
+                // Add field mapping
+                foreach (var field in currentType.Fields.Where(x => x.IsReachable && x.IsPublic))
+                {
+                    string methodName = CreateGetMethodName(NameConverter.GetConvertedName(field), result);
+                    MethodDefinition method = new MethodDefinition(@interface, methodName,
+                                                        MakePrototype(field.FieldType, targetPackage, compiler.Module));
+                    method.AccessFlags = AccessFlags.Public | AccessFlags.Abstract;
+                    result.FieldToGetMethodMap.Add(field, method);
+                    @interface.Methods.Add(method);
+                }
 
+                // Add property mapping
+                foreach (var property in currentType.Properties.Where(
+                                              x => x.IsReachable && (x.SetMethod != null) 
+                                         && x.SetMethod.IsPublic && x.SetMethod.IsReachable))
+                {
+                    // ignore properties with same name [might be overriden]
+                    if (result.PropertyToGetMethodMap.Keys.Any(k => k.Name == property.Name))
+                        continue;
+
+                    string methodName = CreateGetMethodName(NameConverter.GetConvertedName(property), result);
+                    Mono.Cecil.TypeReference propType = property.PropertyType;
+
+                    MethodDefinition method = new MethodDefinition(@interface, methodName,
+                                                        MakePrototype(propType, targetPackage, compiler.Module));
+                    method.AccessFlags = AccessFlags.Public | AccessFlags.Abstract;
+                    result.PropertyToGetMethodMap.Add(property, method);
+                    @interface.Methods.Add(method);
+                }
+
+                if (currentType.BaseType == null || currentType.BaseType.IsSystemObject())
+                    break;
+
+                currentType = currentType.BaseType.Resolve();
+            }
             // Add ctor mapping
             var argIndex = 0;
             foreach (var ctor in attributeType.Methods.Where(x => (x.Name == ".ctor") && x.IsReachable))
             {
                 // Add methods for the ctor arguments
-                List<MethodDefinition> paramGetMethods = new List<MethodDefinition>();
+                List<Tuple<MethodDefinition, Mono.Cecil.TypeReference>> paramGetMethods = new List<Tuple<MethodDefinition, Mono.Cecil.TypeReference>>();
                 foreach (ParameterDefinition p in ctor.Parameters)
                 {
                     string methodName = CreateGetMethodName("c" + argIndex++, result);
-                    TypeReference dparamType = p.ParameterType.GetReference(targetPackage, compiler.Module);
-                    MethodDefinition method = new MethodDefinition(@interface, methodName, new Prototype(dparamType));
+                    MethodDefinition method = new MethodDefinition(@interface, methodName, MakePrototype(p.ParameterType, targetPackage, compiler.Module));
                     method.AccessFlags = AccessFlags.Public | AccessFlags.Abstract;
                     @interface.Methods.Add(method);
-                    paramGetMethods.Add(method);
+                    paramGetMethods.Add(Tuple.Create(method, p.ParameterType));
                 }
 
                 // Add a builder method
                 MethodDefinition buildMethod = CreateBuildMethod(sequencePoint, ctor, paramGetMethods, compiler, targetPackage, attributeClass, result);
-                result.CtorMap.Add(ctor, new AttributeCtorMapping(buildMethod, paramGetMethods));
+                result.CtorMap.Add(ctor, new AttributeCtorMapping(buildMethod, paramGetMethods.Select(p=>p.Item1).ToList()));
             }
 
             // Create default values annotation
@@ -113,13 +131,24 @@ namespace Dot42.CompilerLib.Structure.DotNet
             return result;
         }
 
+        private static Prototype MakePrototype(Mono.Cecil.TypeReference propType, DexTargetPackage targetPackage, XModule module)
+        {
+            // use object arrays.
+            var type = new DexLib.ArrayType(module.TypeSystem.Object.GetReference(targetPackage));
+            return new Prototype(type);
+
+            // always use arrays.
+            //var arrayType = propType.MakeArrayType().GetReference(targetPackage, module);
+            //return new Prototype(arrayType);
+        }
+
         /// <summary>
         /// Create a method definition for the builder method that builds a custom attribute from an annotation.
         /// </summary>
         private static MethodDefinition CreateBuildMethod(
             ISourceLocation seqp,
             Mono.Cecil.MethodDefinition ctor,
-            List<MethodDefinition> paramGetMethods,
+            List<Tuple<MethodDefinition, Mono.Cecil.TypeReference>> paramGetMethods,
             AssemblyCompiler compiler,
             DexTargetPackage targetPackage,
             ClassDefinition attributeClass,
@@ -143,10 +172,15 @@ namespace Dot42.CompilerLib.Structure.DotNet
 
             // Get ctor arguments
             List<Register> ctorArgRegs = new List<Register>();
-            foreach (MethodDefinition p in paramGetMethods)
+            foreach (var p in paramGetMethods)
             {
-                TypeReference paramType = p.Prototype.ReturnType;
-                Register[] valueRegs = CreateLoadValueSequence(seqp, body, paramType, annotationReg, p);
+                Instruction branchIfNotSet; // this can not happen, but lets keep the code below simple.
+                
+                XModel.XTypeReference xType = XBuilder.AsTypeReference(compiler.Module, p.Item2);
+
+                Register[] valueRegs = CreateLoadValueSequence(seqp, body, xType, annotationReg, p.Item1, compiler, targetPackage, out branchIfNotSet);
+                branchIfNotSet.Operand = body.Instructions.Add(seqp, RCode.Nop);
+
                 ctorArgRegs.AddRange(valueRegs);
             }
 
@@ -157,23 +191,39 @@ namespace Dot42.CompilerLib.Structure.DotNet
             // Get field values
             foreach (var fieldMap in mapping.FieldToGetMethodMap)
             {
-                Mono.Cecil.FieldDefinition field = fieldMap.Key;
-                MethodDefinition getter = fieldMap.Value;
-                Register[] valueRegs = CreateLoadValueSequence(seqp, body, getter.Prototype.ReturnType, annotationReg, getter);
-                DexLib.FieldReference dfield = field.GetReference(targetPackage, compiler.Module);
+                var field = fieldMap.Key;
                 XModel.XTypeReference xFieldType = XBuilder.AsTypeReference(compiler.Module, field.FieldType);
-                body.Instructions.Add(seqp, xFieldType.IPut(), dfield, valueRegs[0], attributeReg);
+                
+                MethodDefinition getter = fieldMap.Value;
+                Instruction branchIfNotSet;
+                
+                Register[] valueRegs = CreateLoadValueSequence(seqp, body, xFieldType, annotationReg, getter, compiler, targetPackage, out branchIfNotSet);
+              
+                var put = body.Instructions.Add(seqp, xFieldType.IPut(), null, valueRegs[0], attributeReg);
+                
+                mapping.FixOperands.Add(Tuple.Create(put, (MemberReference)field));
+
+                branchIfNotSet.Operand = body.Instructions.Add(seqp, RCode.Nop);
             }
 
             // Get property values
             foreach (var propertyMap in mapping.PropertyToGetMethodMap)
             {
                 PropertyDefinition property = propertyMap.Key;
+                XTypeReference xType = XBuilder.AsTypeReference(compiler.Module, property.PropertyType);
+
                 MethodDefinition getter = propertyMap.Value;
-                Register[] valueRegs = CreateLoadValueSequence(seqp, body, getter.Prototype.ReturnType, annotationReg, getter);
-                DexLib.MethodReference dmethod = property.SetMethod.GetReference(targetPackage, compiler.Module);
+                Instruction branchIfNotSet;
+
+                Register[] valueRegs = CreateLoadValueSequence(seqp, body, xType, annotationReg, getter, compiler, targetPackage, out branchIfNotSet);
+                
                 XModel.XMethodDefinition xSetMethod = XBuilder.AsMethodDefinition(compiler.Module, property.SetMethod);
-                body.Instructions.Add(seqp, xSetMethod.Invoke(xSetMethod, null), dmethod, new[] { attributeReg }.Concat(valueRegs).ToArray());
+                
+                var set = body.Instructions.Add(seqp, xSetMethod.Invoke(xSetMethod, null), null, new[] { attributeReg }.Concat(valueRegs).ToArray());
+
+                mapping.FixOperands.Add(Tuple.Create(set, (MemberReference)property.SetMethod));
+
+                branchIfNotSet.Operand = body.Instructions.Add(seqp, RCode.Nop);
             }
 
             // Return attribute
@@ -186,6 +236,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
             return method;
         }
 
+       
         /// <summary>
         /// Create code to load a value from an annotation interface.
         /// </summary>
@@ -193,31 +244,117 @@ namespace Dot42.CompilerLib.Structure.DotNet
         private static Register[] CreateLoadValueSequence(
             ISourceLocation seqp,
             MethodBody body,
-            TypeReference valueType,
+            XTypeReference valueType,
             Register annotationReg,
-            MethodDefinition getter)
+            MethodDefinition getter,
+            AssemblyCompiler compiler,
+            DexTargetPackage targetPackage,
+            out Instruction branchIfNotSet)
         {
+            // NOTE: It would be better if we wouldn't get the values as object arrays
+            //       but as arrays of the actual type. 
+            //       Apparently though the DexWriter will not write our attributes
+            //       if they contain arrays not of type object[]. Therefore the 
+            //       conversion code below.
+            //       All in all it would be much cleaner if we could emit Ast code here
+            //       instead of RL code.
+            List<Register> result = new List<Register>();
+
+            // get the array.
+            Register regObject = body.AllocateRegister(RCategory.Temp, RType.Object);
+            Register regIntVal = body.AllocateRegister(RCategory.Temp, RType.Value);
+            
+            body.Instructions.Add(seqp, RCode.Invoke_interface, getter, annotationReg);
+            body.Instructions.Add(seqp, RCode.Move_result_object, regObject);
+
+            // allocate result, initialize to default value.
             if (valueType.IsWide())
             {
                 Tuple<Register, Register> regs = body.AllocateWideRegister(RCategory.Temp);
-                body.Instructions.Add(seqp, RCode.Invoke_interface, getter, annotationReg);
-                body.Instructions.Add(seqp, RCode.Move_result_wide, regs.Item1);
-                return new[] { regs.Item1, regs.Item2 };
+                body.Instructions.Add(seqp, RCode.Const_wide, 0, regs.Item1);
+                result.Add(regs.Item1);
+                result.Add(regs.Item2);
             }
-            if (valueType is PrimitiveType)
+            else if (valueType.IsPrimitive)
             {
                 Register reg = body.AllocateRegister(RCategory.Temp, RType.Value);
-                body.Instructions.Add(seqp, RCode.Invoke_interface, getter, annotationReg);
-                body.Instructions.Add(seqp, RCode.Move_result, reg);
-                return new[] { reg };
+                body.Instructions.Add(seqp, RCode.Const, 0, reg);
+                result.Add(reg);
+            }
+            else // object 
+            {
+                Register reg = body.AllocateRegister(RCategory.Temp, RType.Object);
+                body.Instructions.Add(seqp, RCode.Const, 0, reg);
+                result.Add(reg);
+            }
+
+            // check if value is unset (array length 0) or null (array length 2)
+            body.Instructions.Add(seqp, RCode.Array_length, regIntVal, regObject);
+            branchIfNotSet = body.Instructions.Add(seqp, RCode.If_eqz, regIntVal);
+            body.Instructions.Add(seqp, RCode.Rsub_int, 1, regIntVal, regIntVal);
+            var branchOnNull = body.Instructions.Add(seqp, RCode.If_nez, regIntVal);
+
+            // get the (boxed) value
+            body.Instructions.Add(seqp, RCode.Const, 0, regIntVal);
+
+            // convert to target type.
+            if (valueType.IsArray)
+            {
+                Register regTmp = body.AllocateRegister(RCategory.Temp, RType.Object);
+                Register regType = body.AllocateRegister(RCategory.Temp, RType.Object);
+                
+                var helper = compiler.GetDot42InternalType(InternalConstants.CompilerHelperName);
+                var convertArray = helper.Resolve().Methods.First(p => p.Name == "ConvertArray" && p.Parameters.Count == 2)
+                                         .GetReference(targetPackage);
+                var underlying = valueType.ElementType.GetReference(targetPackage);
+
+                body.Instructions.Add(seqp, RCode.Aget_object, regTmp, regObject, regIntVal);
+                body.Instructions.Add(seqp, RCode.Const_class, underlying, regType);
+                body.Instructions.Add(seqp, RCode.Invoke_static, convertArray, regTmp, regType);
+                body.Instructions.Add(seqp, RCode.Move_result_object, result[0]);
+                body.Instructions.Add(seqp, RCode.Check_cast, valueType.GetReference(targetPackage), result[0]);
+            }
+            else if (valueType.IsEnum())
+            {
+                Register regTmp = body.AllocateRegister(RCategory.Temp, RType.Object);
+                Register regType = body.AllocateRegister(RCategory.Temp, RType.Object);
+                
+                var getFromObject = compiler.GetDot42InternalType("Enum").Resolve()
+                                            .Methods.Single(p=>p.Name == "GetFromObject")
+                                            .GetReference(targetPackage);
+
+                body.Instructions.Add(seqp, RCode.Aget_object, regTmp, regObject, regIntVal);
+                body.Instructions.Add(seqp, RCode.Const_class, valueType.GetReference(targetPackage), regType);
+                body.Instructions.Add(seqp, RCode.Invoke_static, getFromObject, regType, regTmp);
+                body.Instructions.Add(seqp, valueType.MoveResult(), result[0]);
+                body.Instructions.Add(seqp, RCode.Check_cast, valueType.GetReference(targetPackage), result[0]);
+            }
+            else if(!valueType.IsPrimitive)
+            {
+                body.Instructions.Add(seqp, RCode.Aget_object, result[0], regObject, regIntVal);
+                body.Instructions.Add(seqp, RCode.Check_cast, valueType.GetReference(targetPackage), result[0]);
             }
             else
             {
-                Register reg = body.AllocateRegister(RCategory.Temp, RType.Object);
-                body.Instructions.Add(seqp, RCode.Invoke_interface, getter, annotationReg);
-                body.Instructions.Add(seqp, RCode.Move_result_object, reg);
-                return new[] { reg };
+                Register regTmp = body.AllocateRegister(RCategory.Temp, RType.Object);
+                // unbox and store
+                RCode afterConvert;
+                var unbox  = valueType.GetUnboxValueMethod(compiler, targetPackage, out afterConvert);
+                body.Instructions.Add(seqp, RCode.Aget_object, regTmp, regObject, regIntVal);
+                body.Instructions.Add(seqp, RCode.Invoke_static, unbox, regTmp);
+                body.Instructions.Add(seqp, valueType.MoveResult(), result[0]);
+                
+                if (afterConvert != RCode.Nop)
+                {
+                    body.Instructions.Add(seqp, afterConvert, result[0], result[0]);
+                }
             }
+
+            // nop will be removed at some stage later.
+            var nop = body.Instructions.Add(seqp, RCode.Nop);
+            branchOnNull.Operand = nop;
+
+            return result.ToArray();
         }
 
         /// <summary>
@@ -315,16 +452,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// </summary>
         private static object GetDefaultValue(Mono.Cecil.TypeReference type)
         {
-            if (type.IsByte()) return (byte)0;
-            if (type.IsSByte()) return (sbyte)0;
-            if (type.IsBoolean()) return false;
-            if (type.IsChar()) return '\0';
-            if (type.IsInt16()) return (short)0;
-            if (type.IsInt32()) return 0;
-            if (type.IsInt64()) return 0L;
-            if (type.IsFloat()) return 0.0F;
-            if (type.IsDouble()) return 0.0;
-            return null;
+            return new object[0];
         }
     }
 }

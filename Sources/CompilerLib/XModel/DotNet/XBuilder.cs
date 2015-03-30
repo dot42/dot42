@@ -257,7 +257,18 @@ namespace Dot42.CompilerLib.XModel.DotNet
         }
 
         /// <summary>
-        /// Create a postfix for the name of the given method based on the "unsigned" parameter types.
+        /// Create a postfix for the name of the given method to prevent method-name
+        /// clashes. 
+        /// Note: I believe that the current approch is to fragile. Methods 
+        /// should be renamed based on actual clashing, depending on overrides 
+        /// and new slots and such.
+        /// this miethod would revert to its orginal CreateSignPrefix() to make it
+        /// (with return value handling) to make it clear that it has specific 
+        ///  parameter handling. 
+        /// This would also be the place to warn the user that two constructor 
+        /// overloads clash and can not be resolved. [or - possibly - generating a 
+        /// static factory method calling a constructor with an extra marker 
+        /// parameter - or just adding this marker parameter to all call sites.]
         /// </summary>
         private static string CreateSignAndGenericsPostfix(MethodReference method)
         {
@@ -274,9 +285,9 @@ namespace Dot42.CompilerLib.XModel.DotNet
 
             bool isNullableT = declaringType.FullName.StartsWith("System.Nullable`1");
 
-            // do not generics-rename methods that are used internally (better would be: fix were they are generated.)
-            // no not generics-rename interface methods or virtual methods (better would be: to rename these as well, but my code wouldn't work)
             // do not generics-rename getters or setters.
+            // no not generics-rename interface methods or virtual methods (better would be: to rename these as well, but my code wouldn't work)
+            
             var methodDef = method.Resolve();
 
             bool processGenerics = !isNullableT && !methodDef.IsGetter && !methodDef.IsSetter
@@ -317,6 +328,11 @@ namespace Dot42.CompilerLib.XModel.DotNet
                 if(paramPostfix.Length > 0) paramPostfix.Append("$");
                 var typeChar = GetParameterPostfixIfRequired(method.ReturnType, processGenerics, ref needsPostfix);
                 paramPostfix.Append(typeChar);
+            }
+
+            if (methodDef.IsNewSlot)
+            {
+                // TODO: rename new methods so that they don't accidentially override a base method.
             }
 
             if (needsPostfix || needsGenericPostfix)

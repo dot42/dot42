@@ -429,7 +429,7 @@ namespace MonoTests.System.Collections.Generic {
 			}
 			Assert.AreEqual ("value4", _dictionary ["key4"].ToString (), "");
 		}
-#if NOT_IMPLEMENTED
+
 		[Test]
 		public void IDictionaryEnumeratorTest ()
 		{
@@ -445,7 +445,7 @@ namespace MonoTests.System.Collections.Generic {
 			}
 			Assert.AreEqual ("value4", _dictionary ["key4"].ToString (), "");
 		}
-#endif
+
 		[Test]
 		public void ForEachTest ()
 		{
@@ -551,7 +551,7 @@ namespace MonoTests.System.Collections.Generic {
 			Assert.IsTrue (ke is Dictionary<string, int>.KeyCollection.Enumerator);
 			Assert.IsTrue (ve is Dictionary<string, int>.ValueCollection.Enumerator);
 		}
-
+#endif
 
 		[Test]
 		public void PlainEnumeratorReturnTest ()
@@ -565,7 +565,7 @@ namespace MonoTests.System.Collections.Generic {
 			Assert.AreEqual (typeof (KeyValuePair<string,object>), ((IDictionaryEnumerator)enumerator).Current.GetType (), "#4");
 			Assert.AreEqual (typeof (KeyValuePair<string,object>), ((object) enumerator.Current).GetType (), "#5");
 		}
-
+#if NOT_IMPLEMENTED
 		[Test, ExpectedException (typeof (InvalidOperationException))]
 		public void FailFastTest1_KnownToFail ()
 		{

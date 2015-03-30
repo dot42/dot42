@@ -183,6 +183,7 @@ namespace Dot42.CompilerLib.RL
         Div_double_2addr = 0xce,
         Rem_double_2addr = 0xcf,
         Add_int_lit = 0xd0,
+        Rsub_int = 0xd1,
         Mul_int_lit = 0xd2,
         Div_int_lit = 0xd3,
         Rem_int_lit = 0xd4,

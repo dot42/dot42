@@ -564,8 +564,13 @@ namespace Dot42.CompilerLib.Reachable.DotNet
             if (propDef != null)
             {
                 // DO NOT AUTOMATICALLY MAKE GET and SET REACHABLE.
-                //propDef.GetMethod.MarkReachable(context);
-                //propDef.SetMethod.MarkReachable(context);
+                // (but do so for attributes, so that they can 
+                //  be properly stored and loaded)
+                if (prop.DeclaringType.Resolve().IsAttribute())
+                {
+                    propDef.GetMethod.MarkReachable(context);
+                    propDef.SetMethod.MarkReachable(context);
+                }
 
                 // Custom attributes
                 Walk(context, (ICustomAttributeProvider)propDef);

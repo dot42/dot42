@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Dot42.CecilExtensions;
 using Dot42.CompilerLib.Extensions;
-using Dot42.CompilerLib.Target;
 using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel;
 using Dot42.DexLib;
@@ -110,6 +110,18 @@ namespace Dot42.CompilerLib.Structure.DotNet
 
         /// <summary>
         /// Create an argument for an annotation.
+        /// 
+        /// Java Annotations have some limitations compared to CLRs Attributes:
+        ///    - While they can have default values, there is no way to 
+        ///      specify an "unset" field or property.
+        //     - 'null' is not allowed, neither as value nor as default (!)
+        /// We have to emulate those two extra states to model
+        /// the flexible constructor/property/field approach of
+        /// CLR.
+        /// We therefore save all values in arrays with the semantic:
+        ///   - no elements   unset; this is the default value.
+        ///   - one element:  the actual value
+        ///   - two elements: null
         /// </summary>
         private static AnnotationArgument CreateAnnotationArgument(string name, TypeReference valueType, object value, DexTargetPackage targetPackage, XModule module)
         {
@@ -121,15 +133,52 @@ namespace Dot42.CompilerLib.Structure.DotNet
 
             if (valueType.IsArray && value is CustomAttributeArgument[])
             {
-                DLog.Warning(DContext.CompilerILConverter, "warning: array annotation not supported");
+                List<object> values = new List<object>();
 
-                // TODO: check why this double indirection is neccessary.
-                value = ((CustomAttributeArgument[]) value)
-                                .Select(p => ((CustomAttributeArgument)p.Value).Value).ToArray();
-                //value = null;
+                foreach (var argument in (CustomAttributeArgument[]) value)
+                {
+                    // dereference if argument is an object or params array.
+                    var arg = argument.Value is CustomAttributeArgument 
+                                ? (CustomAttributeArgument)argument.Value 
+                                : argument;
+
+                    object val;
+
+                    if (arg.Type.IsSystemType())
+                        val = ((TypeReference)arg.Value).GetReference(targetPackage, module);
+                    else
+                        val = arg.Value;
+
+                    // Don't add an extra level of indirection for this 
+                    // uncommon case until someone really needs it.
+                    if (val == null)
+                        throw new Exception("CustomAttributes: null values in array arguments are not supported.");
+
+                    values.Add(val);
+                }
+
+                value = values.ToArray();
             }
 
-            return new AnnotationArgument(name, value);
+            if (value != null)
+            {
+                // Note: there could be a special enum handling here, though it should work without.
+
+                if (valueType.IsUInt64())
+                    return new AnnotationArgument(name, new object[] { unchecked((long)(ulong)value) });
+                if (valueType.IsUInt32())
+                    return new AnnotationArgument(name, new object[] { unchecked((int)(uint)value) });
+                if (!valueType.IsPrimitive || valueType.IsWide() || valueType.IsFloat())
+                    return new AnnotationArgument(name, new[] { value });
+                return new AnnotationArgument(name, new object[] { unchecked(Convert.ToInt32(value)) });
+            }
+
+            if(valueType.IsWide())
+                return new AnnotationArgument(name, new object[] { 0L, 0L});
+            if (valueType.IsPrimitive)
+                return new AnnotationArgument(name, new object[] { 0, 0 });
+
+            return new AnnotationArgument(name, new object[] { "", "" });
         }
 
         /// <summary>
