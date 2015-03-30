@@ -63,7 +63,15 @@ namespace Dot42.CompilerLib.Extensions
             if (!xtype.GetElementType().IsNullableT())
                 return;
 
-            var classRef = xtype.GetReference(targetPackage) as ClassReference;
+            // note: this exception handing mirrors the one in
+            //       PrototypeBuilder. see there for a comment.
+            ClassReference classRef = null;
+
+            try
+            {
+                classRef = xtype.GetReference(targetPackage) as ClassReference;
+            }
+            catch (XResolutionException){ }
             
             if(classRef == null)
                 DLog.Warning(DContext.CompilerCodeGenerator, "Warning: Element {0} has no class refrence. Not creating INullableT annotation.", xtype);                

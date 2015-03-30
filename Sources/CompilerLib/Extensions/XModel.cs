@@ -166,14 +166,17 @@ namespace Dot42.CompilerLib.Extensions
                     if (arg.IsDouble()) return new ClassReference("java/lang/Double");
                     if (arg.IsFloat()) return new ClassReference("java/lang/Float");
 
-                    // Use nullable base class of T, if enum.
+                    
                     var typeofT = git.GenericArguments[0];
+
                     XTypeDefinition typeofTDef;
                     if (!typeofT.TryResolve(out typeofTDef))
                         throw new XResolutionException(typeofT);
+
                     var className = targetPackage.NameConverter.GetConvertedFullName(typeofTDef);
                     var classDef = targetPackage.DexFile.GetClass(className);
-
+                    
+                    // Use nullable base class of T, if enum.
                     if (classDef.IsEnum) 
                         return classDef.SuperClass;
 

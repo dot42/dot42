@@ -39,7 +39,10 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 catch (XResolutionException)
                 {
                     DLog.Warning(DContext.CompilerILConverter, "Error: unable to resolve type for parameter {1} (type {2}) for method {0}. Replacing parameter type with System.Object.", method, p.Name, p.ParameterType);
-                    // TODO: might be a dirty fix. maybe the method should have been filtered earlier.
+                    // TODO: might be a dirty fix. maybe the method should have been filtered out earlier,
+                    //       or the resolver should just return javva/lang/Object for such parameters:
+                    //       I believe it has to do that we are generating methods with generic parameters 
+                    //       that are not generic instances. 
                     result.Parameters.Add(new Parameter(new ClassReference("java/lang/Object"), p.Name));
                 }
             }
