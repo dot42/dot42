@@ -27,7 +27,7 @@ namespace Dot42.ApkSpy
 #elif DEBUG
             miShowAst.Checked = true;
 #endif
-            miEnableBacksmali.Checked = SettingsPersitor.EnableBaksmali;
+            miEnableBaksmali.Checked = SettingsPersitor.EnableBaksmali;
         }
 
         /// <summary>
@@ -295,9 +295,9 @@ namespace Dot42.ApkSpy
             }
         }
 
-        public bool EnableBaksmali { get { return miEnableBacksmali.Checked; } }
-        public string BacksmaliCommand { get { return SettingsPersitor.BaksmaliCommand; } }
-        public string BacksmaliParameters { get { return SettingsPersitor.BaksmaliParameters; } }
+        public bool EnableBaksmali { get { return miEnableBaksmali.Checked; } }
+        public string BaksmaliCommand { get { return SettingsPersitor.BaksmaliCommand; } }
+        public string BaksmaliParameters { get { return SettingsPersitor.BaksmaliParameters; } }
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
@@ -317,11 +317,11 @@ namespace Dot42.ApkSpy
             return bHandled;
         }
 
-        private void miEnableBacksmali_Click(object sender, EventArgs e)
+        private void miEnableBaksmali_Click(object sender, EventArgs e)
         {
             SettingsPersitor.EnableBaksmali = EnableBaksmali;
 
-            if (EnableBaksmali && string.IsNullOrEmpty(BacksmaliCommand))
+            if (EnableBaksmali && string.IsNullOrEmpty(BaksmaliCommand))
                 miConfigureBaksmali_Click(sender,e);
 
             // update views

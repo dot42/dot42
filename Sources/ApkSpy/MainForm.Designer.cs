@@ -39,7 +39,7 @@ namespace Dot42.ApkSpy
             this.miFileOpen = new System.Windows.Forms.ToolStripMenuItem();
             this.miFileRecent = new System.Windows.Forms.ToolStripMenuItem();
             this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.miEnableBacksmali = new System.Windows.Forms.ToolStripMenuItem();
+            this.miEnableBaksmali = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.miConfigureBaksmali = new System.Windows.Forms.ToolStripMenuItem();
             this.miDebug = new System.Windows.Forms.ToolStripMenuItem();
@@ -133,20 +133,20 @@ namespace Dot42.ApkSpy
             // optionsToolStripMenuItem
             // 
             this.optionsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.miEnableBacksmali,
+            this.miEnableBaksmali,
             this.toolStripSeparator1,
             this.miConfigureBaksmali});
             this.optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
             this.optionsToolStripMenuItem.Size = new System.Drawing.Size(61, 20);
             this.optionsToolStripMenuItem.Text = "Options";
             // 
-            // miEnableBacksmali
+            // miEnableBaksmali
             // 
-            this.miEnableBacksmali.CheckOnClick = true;
-            this.miEnableBacksmali.Name = "miEnableBacksmali";
-            this.miEnableBacksmali.Size = new System.Drawing.Size(254, 22);
-            this.miEnableBacksmali.Text = "&Use Backsmali to show dex classes";
-            this.miEnableBacksmali.Click += new System.EventHandler(this.miEnableBacksmali_Click);
+            this.miEnableBaksmali.CheckOnClick = true;
+            this.miEnableBaksmali.Name = "miEnableBaksmali";
+            this.miEnableBaksmali.Size = new System.Drawing.Size(254, 22);
+            this.miEnableBaksmali.Text = "&Use Baksmali to show dex classes";
+            this.miEnableBaksmali.Click += new System.EventHandler(this.miEnableBaksmali_Click);
             // 
             // toolStripSeparator1
             // 
@@ -157,7 +157,7 @@ namespace Dot42.ApkSpy
             // 
             this.miConfigureBaksmali.Name = "miConfigureBaksmali";
             this.miConfigureBaksmali.Size = new System.Drawing.Size(254, 22);
-            this.miConfigureBaksmali.Text = "&Configure Backsmali...";
+            this.miConfigureBaksmali.Text = "&Configure Baksmali...";
             this.miConfigureBaksmali.Click += new System.EventHandler(this.miConfigureBaksmali_Click);
             // 
             // miDebug
@@ -208,7 +208,7 @@ namespace Dot42.ApkSpy
         private System.Windows.Forms.ToolStripMenuItem miDebug;
         private System.Windows.Forms.ToolStripMenuItem miShowAst;
         private System.Windows.Forms.ToolStripMenuItem optionsToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem miEnableBacksmali;
+        private System.Windows.Forms.ToolStripMenuItem miEnableBaksmali;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem miConfigureBaksmali;
     }

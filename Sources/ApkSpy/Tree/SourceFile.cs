@@ -203,7 +203,7 @@ namespace Dot42.ApkSpy.Tree
         AssemblyClassLoader ISpyContext.ClassLoader { get { return classLoader; } }
 #endif
         public bool EnableBaksmali { get { return settings.EnableBaksmali; } }
-        public string BacksmaliCommand { get { return settings.BacksmaliCommand; } }
-        public string BacksmaliParameters { get { return settings.BacksmaliParameters; }}
+        public string BaksmaliCommand { get { return settings.BaksmaliCommand; } }
+        public string BaksmaliParameters { get { return settings.BaksmaliParameters; }}
     }
 }

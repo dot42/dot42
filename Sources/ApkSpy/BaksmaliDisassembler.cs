@@ -20,7 +20,7 @@ namespace Dot42.ApkSpy
 
         public string Disassemble(ClassDefinition def)
         {
-            if (string.IsNullOrEmpty(_settings.BacksmaliCommand))
+            if (string.IsNullOrEmpty(_settings.BaksmaliCommand))
                 return "#ERROR: command to run not set.";
 
             StringBuilder ret = new StringBuilder();
@@ -44,7 +44,7 @@ namespace Dot42.ApkSpy
                 dex.Write(dexFileName);
 
                 // run baksmali
-                string cmd = string.Format(@"{0} {1} {2} -o {3}", _settings.BacksmaliCommand, _settings.BacksmaliParameters, dexFileName, tempPath);
+                string cmd = string.Format(@"{0} {1} {2} -o {3}", _settings.BaksmaliCommand, _settings.BaksmaliParameters, dexFileName, tempPath);
 
                 ret.AppendLine("# processed with: " + cmd);
                 ret.AppendLine("#");
@@ -63,15 +63,15 @@ namespace Dot42.ApkSpy
 
                 if (!filenames.Any())
                 {
-                    ret.AppendLine("# ERROR: backsmali did not produce any output files.");
+                    ret.AppendLine("# ERROR: baksmali did not produce any output files.");
                 }
 
                 if (filenames.Count > 1)
-                    ret.AppendLine("# WARNING: baksmali produced multiple files");
+                    ret.AppendLine("# NOTE: baksmali produced multiple files");
 
 
                 IEnumerable<string> contents = filenames.Select(n => File.ReadAllText(Path.Combine(tempPath, n)));
-                ret.Append(string.Join("\n\n-----------", contents));
+                ret.Append(string.Join("\n\n\n\n-----------\n\n\n\n", contents));
 
                 // clean up. (don't clean up on exception, to let the user inspect what happened)
                 Directory.Delete(tempPath, true);
