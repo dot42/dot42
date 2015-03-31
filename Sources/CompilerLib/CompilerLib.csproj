@@ -180,6 +180,8 @@
     <Compile Include="Java2Ast\AstBuilder.Category.cs" />
     <Compile Include="Java2Ast\SourceLocation.cs" />
     <Compile Include="Reachable\Testers\AnonymousTypeMethodTester.cs" />
+    <Compile Include="RL\Transformations\EliminateDeadCodeTransformation.cs" />
+    <Compile Include="RL\Transformations\RemoveEmptySwitchAndGotosTransformation.cs" />
     <Compile Include="Structure\DotNet\NullableMarkerClassBuilder.cs" />
     <Compile Include="Target\Dex\DexMethodBodyCompiler.cs" />
     <Compile Include="Target\MethodBodyCompiler.cs" />

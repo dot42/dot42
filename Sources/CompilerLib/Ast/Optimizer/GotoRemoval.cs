@@ -70,7 +70,45 @@ namespace Dot42.CompilerLib.Ast.Optimizer
 					ilSwitch.CaseBlocks.RemoveAll(b => b.Body.Count == 1 && b.Body.Single().Match(AstCode.LoopOrSwitchBreak));
 				}
 			}
-			
+
+            // collapse empty try blocks
+            bool modifiedTryCatch = false;
+            foreach (AstBlock block in method.GetSelfAndChildrenRecursive<AstBlock>())
+            {
+                for (int i = 0; i < block.Body.Count; ++i)
+                {
+                    var tryCatch = block.Body[i] as AstTryCatchBlock;
+                    if (tryCatch == null) continue;
+
+                    bool isEmptyTry = tryCatch.TryBlock.EntryGoto == null
+                                   && tryCatch.TryBlock.Body.All(p => p is AstLabel || p.Match(AstCode.Nop));
+                    if (isEmptyTry)
+                    {
+                        if (tryCatch.FaultBlock != null) continue; // TODO: don't know what a fault block is.
+                        if (tryCatch.FinallyBlock != null && tryCatch.FinallyBlock.EntryGoto != null) // TODO: don't know how to handle.
+
+                            if (tryCatch.FinallyBlock != null)
+                            {
+                                tryCatch.FinallyBlock.Body.InsertRange(0, tryCatch.TryBlock.Body); // keep labels if any.
+                                tryCatch.TryBlock = tryCatch.FinallyBlock;
+                                tryCatch.FinallyBlock = null;
+                            }
+
+                        // replace.
+                        block.Body[i] = tryCatch.TryBlock;
+                        modifiedTryCatch = true;
+                        // TODO: preserve possible external labels (is this neccessary?)
+                        tryCatch.CatchBlocks.Clear(); // or can they contain labels?
+                    }
+                }
+            }
+
+            if (modifiedTryCatch)
+            {
+                // More removals might be possible
+                new GotoRemoval().RemoveGotos(method);
+            }
+
 			// Remove redundant return at the end of method
 			if (method.Body.Count > 0 && method.Body.Last().Match(AstCode.Ret) && ((AstExpression)method.Body.Last()).Arguments.Count == 0) {
 				method.Body.RemoveAt(method.Body.Count - 1);

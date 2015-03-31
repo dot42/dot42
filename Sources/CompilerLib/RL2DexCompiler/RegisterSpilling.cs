@@ -147,7 +147,12 @@ namespace Dot42.CompilerLib.RL2DexCompiler
             /// </summary>
             public void FinalizeBlock(MethodBody body)
             {
+                // no need to restore registers after return or throw.
+                if (block.Exit.OpCode.IsReturn() || block.Exit.OpCode == OpCodes.Throw)
+                    return;
+
                 Instruction endingNop = null;
+                
                 foreach (var lowRegState in lowRegisters.Where(x => x.SaveToOriginalNeeded))
                 {
                     if (endingNop == null)

@@ -38,7 +38,7 @@ namespace Dot42.CompilerLib.Target
                 if (source.ReturnsVoid)
                 {
                     var instructions = rlBody.Instructions;
-                    if ((instructions.Count == 0) || (instructions.Last().Code != RCode.Return_void))
+                    if ((instructions.Count == 0) || (instructions.Last().Code != RCode.Return_void && instructions.Last().Code != RCode.Throw))
                     {
                         instructions.Add(new RL.Instruction(RCode.Return_void) { SequencePoint = source.GetLastSourceLine() });
                     }

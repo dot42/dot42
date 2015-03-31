@@ -13,6 +13,8 @@ namespace Dot42.CompilerLib.RL.Transformations
             //new ShareConstTransformation(),
             new NopRemoveTransformation(), 
             new FlattenExceptionsTransformation(), 
+            new RemoveEmptySwitchAndGotosTransformation(), 
+            new EliminateDeadCodeTransformation(), 
             // Last
             new InitializeRegistersTransformation(),
         };
