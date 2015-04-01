@@ -27,10 +27,14 @@ namespace Dot42.CompilerLib.Ast.Converters
             TypeOfConverter.Convert(ast, compiler);
             BranchOptimizer.Convert(ast);
             CompoundAssignmentConverter.Convert(ast);
+            // keep this order
+            InterlockedConverter.Convert(ast,compiler);
             ByReferenceParamConverter.Convert(context, ast, compiler);
+            // end
             CompareUnorderedConverter.Convert(ast);
             EnumConverter.Convert(ast, compiler);
             EnumOptimizer.Convert(ast, compiler);
+
 
             // Keep this order
             NullableConverter.Convert(ast, compiler);

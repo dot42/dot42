@@ -67,6 +67,7 @@
     <Compile Include="Ast\Converters\InitializeStructVariablesConverter.cs" />
     <Compile Include="Ast\Converters\GenericsConverter.cs" />
     <Compile Include="Ast\Converters\EnumOptimizer.cs" />
+    <Compile Include="Ast\Converters\InterlockedConverter.cs" />
     <Compile Include="Ast\Converters\TargetConverters.cs" />
     <Compile Include="Ast\Converters\ConvertAfterLoadConversionConverter.cs" />
     <Compile Include="Ast\Converters\ConvertBeforeStoreConversionConverter.cs" />
