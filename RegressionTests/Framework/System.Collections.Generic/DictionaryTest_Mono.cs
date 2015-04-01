@@ -552,6 +552,7 @@ namespace MonoTests.System.Collections.Generic {
 			Assert.IsTrue (ve is Dictionary<string, int>.ValueCollection.Enumerator);
 		}
 #endif
+#if NOT_IMPLEMENTED
 
 		[Test]
 		public void PlainEnumeratorReturnTest ()
@@ -565,7 +566,6 @@ namespace MonoTests.System.Collections.Generic {
 			Assert.AreEqual (typeof (KeyValuePair<string,object>), ((IDictionaryEnumerator)enumerator).Current.GetType (), "#4");
 			Assert.AreEqual (typeof (KeyValuePair<string,object>), ((object) enumerator.Current).GetType (), "#5");
 		}
-#if NOT_IMPLEMENTED
 		[Test, ExpectedException (typeof (InvalidOperationException))]
 		public void FailFastTest1_KnownToFail ()
 		{
