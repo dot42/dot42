@@ -724,13 +724,14 @@ namespace MonoTests.System.Collections.Generic {
 			d.Add ("bar", 1);
 		}
 
+#if NOT_IMPLEMENTED
 		[Test, ExpectedException (typeof (ArgumentException))]
 		public void IDictionary_Add3 ()
 		{
 			IDictionary d = new Dictionary<int, int> ();
 			d.Add (1, "bar");
 		}
-
+#endif
 		[Test]
 		public void IDictionary_Add_Null ()
 		{
@@ -743,6 +744,7 @@ namespace MonoTests.System.Collections.Generic {
 		}
 
 
+#if NOT_IMPLEMENTED
 		[Test]
 		[ExpectedException (typeof (ArgumentNullException))]
 		public void IDictionary_Add_Null_2 ()
@@ -750,7 +752,7 @@ namespace MonoTests.System.Collections.Generic {
 			IDictionary d = new Dictionary<int, int> ();
 			d.Add (1, null);
 		}
-
+#endif
 
 		[Test]
 		public void IDictionary_Remove1 ()

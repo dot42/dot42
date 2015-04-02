@@ -57,7 +57,7 @@ namespace Dot42.Tests.Compiler.Sources
             catch (ArgumentException)
             {
             }
-
+#if NOT_IMPLEMENTED
             try
             {
                 dict[1] = 1;
@@ -66,6 +66,7 @@ namespace Dot42.Tests.Compiler.Sources
             catch (ArgumentException)
             {
             }
+#endif
         }
 
     }

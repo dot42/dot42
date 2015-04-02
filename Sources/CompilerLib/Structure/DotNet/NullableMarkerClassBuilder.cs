@@ -157,11 +157,6 @@ namespace Dot42.CompilerLib.Structure.DotNet
         {
         }
 
-        public override void CreateAnnotations(DexTargetPackage targetPackage)
-        {
-            Class.AddNullableTAnnotation(_underlyingBuilder.Class);
-        }
-
         protected override IEnumerable<ClassBuilder> CreateNestedClassBuilders(ReachableContext context, DexTargetPackage targetPackage, ClassDefinition parent)
         {
             return new ClassBuilder[0];

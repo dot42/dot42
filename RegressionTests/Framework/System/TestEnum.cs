@@ -113,6 +113,19 @@ namespace Dot42.Tests.System
             AssertEquals("00000001", formatable.ToString("X", CultureInfo.InvariantCulture));
             AssertEquals("1", formatable.ToString("D", CultureInfo.InvariantCulture));
         }
+
+        enum LongEnum : ulong
+        {
+            Element0 = 0,
+            Element1 = 0x8000000000000000L,
+            Element2 = 0xFFFFFFFFFFFFFFFFL,
+        }
+
+        public void testGetUnderlying()
+        {
+            Assert.AssertEquals(typeof(int), Enum.GetUnderlyingType(typeof(TwoFields)));
+            Assert.AssertEquals(typeof(ulong), Enum.GetUnderlyingType(typeof(LongEnum)));
+        }
     }
 
 }

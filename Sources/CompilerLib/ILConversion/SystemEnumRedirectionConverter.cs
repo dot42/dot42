@@ -72,14 +72,26 @@ namespace Dot42.CompilerLib.ILConversion
 
                         foreach (var ins in method.Body.Instructions)
                         {
-                            var methodRef = ins.Operand as MethodReference;
-                            if (methodRef == null) continue;
-                            ConvertMethodDefinition(methodRef, enumType);
+                            var typeRef = ins.Operand as TypeReference;
 
-                            if (methodRef.DeclaringType.FullName == SystemEnumName && methodRef.HasThis)
+                            if (typeRef != null && typeRef.FullName == SystemEnumName)
                             {
-                                // redirect instance method calls as well.
-                                methodRef.DeclaringType = enumType;
+                                ins.Operand = enumType;
+                                continue;
+                            }
+
+                            var methodRef = ins.Operand as MethodReference;
+
+                            if (methodRef != null)
+                            {
+                                ConvertMethodDefinition(methodRef, enumType);
+
+                                if (methodRef.DeclaringType.FullName == SystemEnumName && methodRef.HasThis)
+                                {
+                                    // redirect instance method calls as well.
+                                    methodRef.DeclaringType = enumType;
+                                }
+                                continue;
                             }
                         }
                     }

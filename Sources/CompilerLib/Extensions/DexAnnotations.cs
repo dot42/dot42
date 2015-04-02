@@ -41,17 +41,6 @@ namespace Dot42.CompilerLib.Extensions
             provider.Annotations.Add(annotation);
         }
 
-
-        /// <summary>
-        /// Create an INullableT annotation and attach it to the given provider.
-        /// </summary>
-        public static void AddNullableTAnnotation(this IAnnotationProvider provider, ClassReference type)
-        {
-            var annotation = new Annotation { Type = new ClassReference("dot42/Internal/INullableT"), Visibility = AnnotationVisibility.Runtime };
-            annotation.Arguments.Add(new AnnotationArgument("Type", type));
-            provider.Annotations.Add(annotation);
-        }
-
         /// <summary>
         /// Create an INullableT annotation and attach it to the given provider.
         /// </summary>
