@@ -158,12 +158,18 @@ namespace Dot42.CompilerLib.Structure.DotNet
             // Build method annotations
             AnnotationBuilder.Create(compiler, method, dmethod, targetPackage);
             
-            dmethod.AddNullableTAnnotationIfNullableT(xMethod.ReturnType, targetPackage);
-
-            for (int i = 0; i < xMethod.Parameters.Count; ++i)
+            if (!dmethod.IsSynthetic && !dmethod.Owner.IsSynthetic)
             {
-                var dp = dmethod.Prototype.Parameters[i];
-                dp.AddNullableTAnnotationIfNullableT(xMethod.Parameters[i].ParameterType, targetPackage);
+                // only add generics annotation for getters or setters.
+                if (method.IsGetter)
+                    dmethod.AddGenericMemberAnnotationIfGeneric(xMethod.ReturnType, compiler, targetPackage);
+                else if (method.IsSetter)
+                    for (int i = 0; i < xMethod.Parameters.Count; ++i)
+                    {
+                        var dp = dmethod.Prototype.Parameters[i];
+                        dp.AddGenericMemberAnnotationIfGeneric(xMethod.Parameters[i].ParameterType, compiler,
+                            targetPackage);
+                    }
             }
         }
 

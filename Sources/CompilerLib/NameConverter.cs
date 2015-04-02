@@ -196,8 +196,8 @@ namespace Dot42.CompilerLib
                 }
                 else if (ch == '`')
                 {
-                    // try to avoid unreadable hashcodes for generics
-                    sb.Append('-');
+                    // replace with an allowed similar char. (ʹ)
+                    sb.Append('\x02b9');
                 }
                 else
                 {
@@ -221,7 +221,7 @@ namespace Dot42.CompilerLib
                 ((value >= 'a') && (value <= 'z')) ||
                 ((value >= '0') && (value <= '9')) ||
                 (value == '$') ||
-                (value == '-') ||
+                //(value == '-') ||
                 (value == '_') ||
                 ((value >= '\u00a1') && (value <= '\u1fff')) ||
                 ((value >= '\u2010') && (value <= '\u2027')) ||

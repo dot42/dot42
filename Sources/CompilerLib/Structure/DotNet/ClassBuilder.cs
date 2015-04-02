@@ -410,7 +410,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
             Class.GenericInstanceField = field;
             var annType = compiler.GetDot42InternalType(InternalConstants.GenericInstanceClassAnnotation).GetClassReference(targetPackage);
             var annotation = new Annotation(annType, AnnotationVisibility.Runtime,
-                //new AnnotationArgument(InternalConstants.GenericInstanceClassArgumentsField, field), // Note: including this field crashed the dalvik virtual machine when the annotation is retrieved.
+                new AnnotationArgument(InternalConstants.GenericInstanceClassArgumentsField, field.Name), 
                 new AnnotationArgument(InternalConstants.GenericInstanceClassArgumentCountField, typeDef.GenericParameters.Count));
             Class.Annotations.Add(annotation);
         }
@@ -465,7 +465,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
                         {
                             var provider = new PropertyAnnotationProvider { Annotations = new List<Annotation>() };
                             AnnotationBuilder.Create(compiler, pair.Key, provider, targetPackage, true);
-                            var attributes = provider.Annotations.FirstOrDefault();
+                            
                             string propName = pair.Key.Name;
 
                             var ann = new Annotation(propertyClass, AnnotationVisibility.Runtime, 
@@ -483,6 +483,8 @@ namespace Dot42.CompilerLib.Structure.DotNet
                                 var getterName = getter.Name;
                                 if(getterName != "get_" + propName)
                                     ann.Arguments.Add(new AnnotationArgument("Get", getterName));
+
+                                
                             }
 
                             if (pair.Value[1] != null)
@@ -500,6 +502,10 @@ namespace Dot42.CompilerLib.Structure.DotNet
                                     ann.Arguments.Add(new AnnotationArgument("Set", setterName));
                             }
 
+                            //propType = pair.Key.PropertyType;
+                            // Mono.Cecil.TypeReference propType = null;
+
+                            var attributes = provider.Annotations.FirstOrDefault();
                             if (attributes != null && attributes.Arguments[0].Value != null)
                             {
                                 ann.Arguments.Add(new AnnotationArgument("Attributes", attributes.Arguments[0].Value));
@@ -522,6 +528,18 @@ namespace Dot42.CompilerLib.Structure.DotNet
                                                   new AnnotationArgument("Set", ""),
                                                   new AnnotationArgument("Attributes", new Annotation[0] ));
                     var defAnnotation = new Annotation(new ClassReference("dalvik.annotation.AnnotationDefault"), 
+                        AnnotationVisibility.System, new AnnotationArgument("value", defValue));
+                    Class.Annotations.Add(defAnnotation);
+                }
+                // Add annotation defaults
+                if ((Type.Namespace == InternalConstants.Dot42InternalNamespace) && (Type.Name == "IGenericMember"))
+                {
+                    var propertyClass = compiler.GetDot42InternalType("IGenericMember").GetClassReference(targetPackage);
+                    var defValue = new Annotation(propertyClass, AnnotationVisibility.Runtime,
+                                                  new AnnotationArgument("GenericArguments", new object[0]),
+                                                  new AnnotationArgument("GenericInstanceType", new Type[0]),
+                                                  new AnnotationArgument("GenericParameter", -1));
+                    var defAnnotation = new Annotation(new ClassReference("dalvik.annotation.AnnotationDefault"),
                         AnnotationVisibility.System, new AnnotationArgument("value", defValue));
                     Class.Annotations.Add(defAnnotation);
                 }

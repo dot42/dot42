@@ -4,7 +4,7 @@ using NUnit.Framework;
 namespace Dot42.Tests.Compiler.Sources
 {
     [TestFixture]
-    public class NullableIntTest
+    public class TestNullableInt
     {
         [Include]
         public int? intval;
@@ -117,11 +117,11 @@ namespace Dot42.Tests.Compiler.Sources
             Assert.AreEqual(typeof(int?), fieldType);
 
             // this will not work for primitive types
-            //Assert.IsTrue(fieldType.IsAssignableFrom(typeof(DateTime)));
+            //Assert.IsTrue(fieldType.IsAssignableFrom(typeof(int)));
         }
 
         [Test]
-        public void testGetCreateGenericInstanceOfNullable()
+        public void testCreateGenericInstanceOfNullable()
         {
             var fieldType = this.GetType().GetField("intval").FieldType;
             
@@ -132,7 +132,7 @@ namespace Dot42.Tests.Compiler.Sources
             Assert.IsTrue(nullable.IsGenericTypeDefinition);
             Assert.AreEqual(nullable, typeof(Nullable<>));
 
-            Type createdType = nullable.MakeGenericType(fieldType);
+            Type createdType = nullable.MakeGenericType(typeof(int));
             Assert.IsNotNull(createdType);
             Assert.AreEqual(createdType, typeof(int?));
 

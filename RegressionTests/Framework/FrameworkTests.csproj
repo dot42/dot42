@@ -80,6 +80,7 @@
     <Compile Include="System.Net\TestHttpWebRequest.cs" />
     <Compile Include="System.Net\TestWebClient.cs" />
     <!-- Compile Include="System.Text.RegularExpressions\PerlTest.cs" / -->
+    <Compile Include="System.Reflection\GenericReflectionTest.cs" />
     <Compile Include="System.Reflection\ReflectionInfoEqualityTest.cs" />
     <Compile Include="System.Reflection\PropertyInfoTest.cs" />
     <Compile Include="System.Text.RegularExpressions\PerlTrials.cs" />

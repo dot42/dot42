@@ -4,7 +4,7 @@ using NUnit.Framework;
 namespace Dot42.Tests.Compiler.Sources
 {
     [TestFixture]
-    public class NullableEnumTest
+    public class TestNullableEnum
     {
         [Include]
         public JsonToken? token;
@@ -110,7 +110,7 @@ namespace Dot42.Tests.Compiler.Sources
         }
 
         [Test]
-        public void testGetCreateGenericInstanceOfNullable()
+        public void testCreateGenericInstanceOfNullable()
         {
             var fieldType = this.GetType().GetField("token").FieldType;
             Junit.Framework.Assert.AssertTrue(fieldType.IsGenericType);
@@ -119,7 +119,7 @@ namespace Dot42.Tests.Compiler.Sources
             Assert.NotNull(nullable);
             Assert.IsTrue(nullable.IsGenericTypeDefinition);
 
-            Type createdType = nullable.MakeGenericType(fieldType);
+            Type createdType = nullable.MakeGenericType(Nullable.GetUnderlyingType(fieldType));
             Assert.IsNotNull(createdType);
             Assert.AreEqual(typeof(JsonToken?), createdType);
 

@@ -302,7 +302,7 @@ namespace Dot42.CompilerLib.Ast.Converters
         /// </summary>
         private static AstExpression EnsureGenericInstanceType(AstExpression loadExpr, XTypeSystem typeSystem, XTypeDefinition typeHelper)
         {
-            var ensureMethod = typeHelper.Methods.Single(x => x.Name == "EnsureGenericInstanceType");
+            var ensureMethod = typeHelper.Methods.Single(x => x.Name == "EnsureGenericRuntimeType");
             return new AstExpression(loadExpr.SourceLocation, AstCode.Call, ensureMethod, loadExpr)
                             .SetType(typeSystem.Type);
         }

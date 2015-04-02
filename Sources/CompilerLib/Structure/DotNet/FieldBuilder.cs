@@ -120,7 +120,10 @@ namespace Dot42.CompilerLib.Structure.DotNet
         {
             // Build field annotations
             AnnotationBuilder.Create(compiler, field, dfield, targetPackage);
-            dfield.AddNullableTAnnotationIfNullableT(xField.FieldType, targetPackage);
+
+            if(!dfield.IsSynthetic && !dfield.Owner.IsSynthetic)
+                dfield.AddGenericMemberAnnotationIfGeneric(xField.FieldType, compiler, targetPackage);
+
         }
 
         /// <summary>

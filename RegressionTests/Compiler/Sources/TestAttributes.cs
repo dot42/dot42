@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Linq;
-using Android;
-using Javax.Security.Auth.X500;
 using Junit.Framework;
 
 namespace Dot42.Tests.Compiler.Sources

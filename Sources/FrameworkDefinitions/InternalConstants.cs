@@ -23,6 +23,8 @@
         /// </summary>
         public const string GenericInstanceClassAnnotation = "IGenericInstanceClass";
 
+        public const string GenericMemberAnnotation = "IGenericMember";
+
         /// <summary>
         /// Name of field in the IGenericInstanceClass class that holds type arguments.
         /// </summary>

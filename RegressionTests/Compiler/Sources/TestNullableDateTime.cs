@@ -5,7 +5,7 @@ using NUnit.Framework;
 namespace Dot42.Tests.Compiler.Sources
 {
     [TestFixture]
-    public class NullableDateTimeTest
+    public class TestNullableDateTime
     {
         [Include]
         public DateTime? datetime;
@@ -133,14 +133,12 @@ namespace Dot42.Tests.Compiler.Sources
             Assert.NotNull(nullable);
             Assert.IsTrue(nullable.IsGenericTypeDefinition);
 
-            Type createdType = nullable.MakeGenericType(fieldType);
+            Type createdType = nullable.MakeGenericType(Nullable.GetUnderlyingType(fieldType));
             Assert.IsNotNull(createdType);
             Assert.AreEqual(typeof(DateTime?), createdType);
 
             Assert.AreEqual(fieldType, createdType);
             Assert.IsTrue(fieldType.IsAssignableFrom(createdType));
-
-            
 
             DateTime? defaultValue = (DateTime?)Activator.CreateInstance(createdType);
 

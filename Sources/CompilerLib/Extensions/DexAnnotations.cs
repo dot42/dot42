@@ -1,8 +1,7 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel;
 using Dot42.DexLib;
-using Dot42.Utility;
 
 namespace Dot42.CompilerLib.Extensions
 {
@@ -56,33 +55,66 @@ namespace Dot42.CompilerLib.Extensions
         /// <summary>
         /// Create an INullableT annotation and attach it to the given provider.
         /// </summary>
-        public static void AddNullableTAnnotationIfNullableT(this IAnnotationProvider provider, XTypeReference xtype, DexTargetPackage targetPackage)
+        public static void AddGenericMemberAnnotationIfGeneric(this IAnnotationProvider provider, XTypeReference xtype, AssemblyCompiler compiler, DexTargetPackage targetPackage)
         {
-            //if (xtype.IsNullableT())
-            //    return;
-            if (!xtype.GetElementType().IsNullableT())
+            if (!xtype.IsGenericInstance && !xtype.IsGenericParameter)
                 return;
 
-            // note: this exception handing mirrors the one in
-            //       PrototypeBuilder. see there for a comment.
-            ClassReference classRef = null;
+            var genericsMemberClass = compiler.GetDot42InternalType("IGenericMember").GetClassReference(targetPackage);
+            var annotation = new Annotation {Type = genericsMemberClass, Visibility = AnnotationVisibility.Runtime};
 
-            try
+            if (xtype.IsGenericInstance)
             {
-                classRef = xtype.GetReference(targetPackage) as ClassReference;
+                bool handled = false;
+                List<object> genericArguments = new List<object>();
+
+                if (xtype.GetElementType().IsNullableT())
+                {
+                    // privitive and enums are represented by their marker classes. 
+                    // no annotation needed.
+                    var argument = ((XGenericInstanceType) xtype).GenericArguments[0];
+                    if (argument.IsEnum() || argument.IsPrimitive)
+                        return;
+                    
+                    // structs have marker classes.
+                    var classRef = xtype.GetReference(targetPackage) as ClassReference;
+                    var @class = classRef == null ? null : targetPackage.DexFile.GetClass(classRef.Fullname);
+                    if (@class != null && @class.NullableMarkerClass != null)
+                    {
+                        annotation.Arguments.Add(new AnnotationArgument("GenericInstanceType",
+                                                 new object[] {@class.NullableMarkerClass}));
+                        handled = true;
+                    }
+                }
+                
+                if(!handled)
+                {
+                    foreach (var x in ((XGenericInstanceType) xtype).GenericArguments)
+                    {
+                        if (!x.IsGenericParameter)
+                        {
+                            genericArguments.Add(x.GetReference(targetPackage));
+                        }
+                        else
+                        {
+                            var gparm = (XGenericParameter) x;
+
+                            // TODO: if we wanted to annotate methods as well, we should differentiate 
+                            //       between generic method arguments and generic type arguments.
+                            genericArguments.Add(gparm.Position);
+                        }
+                    }
+                    annotation.Arguments.Add(new AnnotationArgument("GenericArguments", genericArguments.ToArray()));
+                }
             }
-            catch (XResolutionException){ }
-            
-            if(classRef == null)
-                DLog.Warning(DContext.CompilerCodeGenerator, "Warning: Element {0} has no class refrence. Not creating INullableT annotation.", xtype);                
-            
-            var @class = classRef == null? null : targetPackage.DexFile.GetClass(classRef.Fullname);
+            else // generic parameter
+            {
+                var parm = (XGenericParameter)xtype;
+                annotation.Arguments.Add(new AnnotationArgument("GenericParameter", parm.Position));
 
-            if (@class == null || @class.NullableMarkerClass == null)
-                return;
+                // TODO: handle parameters of generic parameters.
+            }
 
-            var annotation = new Annotation { Type = new ClassReference("dot42/Internal/INullableT"), Visibility = AnnotationVisibility.Runtime };
-            annotation.Arguments.Add(new AnnotationArgument("Type", @class.NullableMarkerClass));
             provider.Annotations.Add(annotation);
         }
 
