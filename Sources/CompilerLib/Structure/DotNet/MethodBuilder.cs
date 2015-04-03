@@ -162,12 +162,12 @@ namespace Dot42.CompilerLib.Structure.DotNet
             {
                 // only add generics annotation for getters or setters.
                 if (method.IsGetter)
-                    dmethod.AddGenericMemberAnnotationIfGeneric(xMethod.ReturnType, compiler, targetPackage);
+                    dmethod.AddGenericDefinitionAnnotationIfGeneric(xMethod.ReturnType, compiler, targetPackage);
                 else if (method.IsSetter)
                     for (int i = 0; i < xMethod.Parameters.Count; ++i)
                     {
                         var dp = dmethod.Prototype.Parameters[i];
-                        dp.AddGenericMemberAnnotationIfGeneric(xMethod.Parameters[i].ParameterType, compiler,
+                        dp.AddGenericDefinitionAnnotationIfGeneric(xMethod.Parameters[i].ParameterType, compiler,
                             targetPackage);
                     }
             }

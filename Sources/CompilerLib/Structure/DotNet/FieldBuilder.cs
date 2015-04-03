@@ -122,7 +122,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
             AnnotationBuilder.Create(compiler, field, dfield, targetPackage);
 
             if(!dfield.IsSynthetic && !dfield.Owner.IsSynthetic)
-                dfield.AddGenericMemberAnnotationIfGeneric(xField.FieldType, compiler, targetPackage);
+                dfield.AddGenericDefinitionAnnotationIfGeneric(xField.FieldType, compiler, targetPackage);
 
         }
 

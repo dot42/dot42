@@ -408,11 +408,6 @@ namespace Dot42.CompilerLib.Structure.DotNet
             };
             Class.Fields.Add(field);
             Class.GenericInstanceField = field;
-            var annType = compiler.GetDot42InternalType(InternalConstants.GenericInstanceClassAnnotation).GetClassReference(targetPackage);
-            var annotation = new Annotation(annType, AnnotationVisibility.Runtime,
-                new AnnotationArgument(InternalConstants.GenericInstanceClassArgumentsField, field.Name), 
-                new AnnotationArgument(InternalConstants.GenericInstanceClassArgumentCountField, typeDef.GenericParameters.Count));
-            Class.Annotations.Add(annotation);
         }
 
         /// <summary>
@@ -519,30 +514,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
                     }
                 }
 
-                // Add annotation defaults
-                if ((Type.Namespace == InternalConstants.Dot42InternalNamespace) && (Type.Name == "IProperty"))
-                {
-                    var propertyClass = compiler.GetDot42InternalType("IProperty").GetClassReference(targetPackage);
-                    var defValue = new Annotation(propertyClass, AnnotationVisibility.Runtime,
-                                                  new AnnotationArgument("Get", ""),
-                                                  new AnnotationArgument("Set", ""),
-                                                  new AnnotationArgument("Attributes", new Annotation[0] ));
-                    var defAnnotation = new Annotation(new ClassReference("dalvik.annotation.AnnotationDefault"), 
-                        AnnotationVisibility.System, new AnnotationArgument("value", defValue));
-                    Class.Annotations.Add(defAnnotation);
-                }
-                // Add annotation defaults
-                if ((Type.Namespace == InternalConstants.Dot42InternalNamespace) && (Type.Name == "IGenericMember"))
-                {
-                    var propertyClass = compiler.GetDot42InternalType("IGenericMember").GetClassReference(targetPackage);
-                    var defValue = new Annotation(propertyClass, AnnotationVisibility.Runtime,
-                                                  new AnnotationArgument("GenericArguments", new object[0]),
-                                                  new AnnotationArgument("GenericInstanceType", new Type[0]),
-                                                  new AnnotationArgument("GenericParameter", -1));
-                    var defAnnotation = new Annotation(new ClassReference("dalvik.annotation.AnnotationDefault"),
-                        AnnotationVisibility.System, new AnnotationArgument("value", defValue));
-                    Class.Annotations.Add(defAnnotation);
-                }
+                AddDefaultAnnotations(targetPackage);
             }
 
             // Build nested class annotation
@@ -553,6 +525,58 @@ namespace Dot42.CompilerLib.Structure.DotNet
 
             // Build method annotations
             if (methodBuilders != null) methodBuilders.ForEach(x => x.CreateAnnotations(targetPackage));
+        }
+
+        private void AddDefaultAnnotations(DexTargetPackage targetPackage)
+        {
+            // Add annotation defaults
+            if ((Type.Namespace == InternalConstants.Dot42InternalNamespace) && (Type.Name == "IProperty"))
+            {
+                var propertyClass = compiler.GetDot42InternalType("IProperty").GetClassReference(targetPackage);
+                var defValue = new Annotation(propertyClass, AnnotationVisibility.Runtime,
+                    new AnnotationArgument("Get", ""),
+                    new AnnotationArgument("Set", ""),
+                    new AnnotationArgument("Attributes", new Annotation[0]));
+                var defAnnotation = new Annotation(new ClassReference("dalvik.annotation.AnnotationDefault"),
+                    AnnotationVisibility.System, new AnnotationArgument("value", defValue));
+                Class.Annotations.Add(defAnnotation);
+            }
+            // Add annotation defaults
+            if ((Type.Namespace == InternalConstants.Dot42InternalNamespace) &&
+                (Type.Name == InternalConstants.GenericDefinitionAnnotation))
+            {
+                var annotationClass = compiler.GetDot42InternalType(InternalConstants.GenericDefinitionAnnotation)
+                                              .GetClassReference(targetPackage);
+                var objectClass = compiler.Module.TypeSystem.Object.GetClassReference(targetPackage);
+
+                var defValue = new Annotation(annotationClass, AnnotationVisibility.Runtime,
+                    new AnnotationArgument("GenericArguments", new object[0]),
+                    new AnnotationArgument("GenericInstanceType", objectClass),
+                    new AnnotationArgument("GenericTypeDefinition", objectClass),
+                    new AnnotationArgument("GenericParameter", -1));
+
+                var defAnnotation = new Annotation(new ClassReference("dalvik.annotation.AnnotationDefault"),
+                    AnnotationVisibility.System, new AnnotationArgument("value", defValue));
+                Class.Annotations.Add(defAnnotation);
+            }
+
+            // Add annotation defaults
+            if ((Type.Namespace == InternalConstants.Dot42InternalNamespace) 
+                && (Type.Name == InternalConstants.TypeReflectionInfoAnnotation))
+            {
+                var annotationClass = compiler.GetDot42InternalType(InternalConstants.TypeReflectionInfoAnnotation)
+                                              .GetClassReference(targetPackage);
+
+                var defValue = new Annotation(annotationClass, AnnotationVisibility.Runtime,
+                    new AnnotationArgument("GenericArgumentField", ""),
+                    new AnnotationArgument("GenericArgumentCount", 0),
+                    new AnnotationArgument("GenericDefinitions", new Annotation[0]),
+                    new AnnotationArgument("Fields", new Annotation[0]));
+
+                var defAnnotation = new Annotation(new ClassReference("dalvik.annotation.AnnotationDefault"),
+                    AnnotationVisibility.System, new AnnotationArgument("value", defValue));
+                Class.Annotations.Add(defAnnotation);
+            }
         }
 
         /// <summary>

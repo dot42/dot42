@@ -680,14 +680,14 @@ namespace Dot42.CompilerLib.Reachable.DotNet
                 var providerAsType = provider as TypeDefinition;
                 if ((providerAsType != null) && !providerAsType.IsStatic())
                 {
-                    GetDot42InternalType(context, InternalConstants.GenericInstanceClassAnnotation).MarkReachable(context);
+                    GetDot42InternalType(context, InternalConstants.TypeReflectionInfoAnnotation).MarkReachable(context);
                     GetDot42InternalType(context, InternalConstants.GenericTypeParameterAnnotation).MarkReachable(context);
-                    GetDot42InternalType(context, InternalConstants.GenericMemberAnnotation).MarkReachable(context);
+                    GetDot42InternalType(context, InternalConstants.GenericDefinitionAnnotation).MarkReachable(context);
                 }
                 if (provider is MethodDefinition)
                 {
                     GetDot42InternalType(context, InternalConstants.GenericMethodParameterAnnotation).MarkReachable(context);
-                    GetDot42InternalType(context, InternalConstants.GenericMemberAnnotation).MarkReachable(context);
+                    GetDot42InternalType(context, InternalConstants.GenericDefinitionAnnotation).MarkReachable(context);
                 }
 
                 // Mark parameters

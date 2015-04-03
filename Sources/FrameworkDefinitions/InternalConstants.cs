@@ -17,23 +17,27 @@
         /// </summary>
         public const string TypeHelperName = "TypeHelper";
 
+
         /// <summary>
         /// Name of IGenericInstanceClass class
         /// Interface for annotation that stores the field of a generic type that holds the type arguments.
         /// </summary>
-        public const string GenericInstanceClassAnnotation = "IGenericInstanceClass";
-
-        public const string GenericMemberAnnotation = "IGenericMember";
+        public const string TypeReflectionInfoAnnotation = "ITypeReflectionInfo";
+        
+        /// <summary>
+        /// Name of field in the IGenericInstanceClass class that holds type arguments.
+        /// </summary>
+        public const string TypeReflectionInfoGenericArgumentsField = "GenericArgumentsField";
 
         /// <summary>
         /// Name of field in the IGenericInstanceClass class that holds type arguments.
         /// </summary>
-        public const string GenericInstanceClassArgumentsField = "Arguments";
+        public const string TypeReflectionInfoGenericArgumentCountField = "GenericArgumentCount";
 
-        /// <summary>
-        /// Name of field in the IGenericInstanceClass class that holds type arguments.
-        /// </summary>
-        public const string GenericInstanceClassArgumentCountField = "ArgumentCount";
+        public const string TypeReflectionInfoGenericDefinitionsField = "GenericDefinitions";
+        public const string TypeReflectionInfoFieldsField = "Fields";
+
+        public const string GenericDefinitionAnnotation = "IGenericDefinition";
 
         /// <summary>
         /// Name of IGenericMethodParameter class

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
+using Android.Util;
 using NUnit.Framework;
 
 namespace Dot42.Tests.System.Reflection
@@ -15,6 +17,7 @@ namespace Dot42.Tests.System.Reflection
             public string Id { get; set; }
             public string FieldId;
         }
+
         public void TestFieldEquality()
         {
             var task = new Task();
@@ -45,5 +48,6 @@ namespace Dot42.Tests.System.Reflection
             //Assert.AreSame(prop1, prop2);
         }
 
+        
     }
 }

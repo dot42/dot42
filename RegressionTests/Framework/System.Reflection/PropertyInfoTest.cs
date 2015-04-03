@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using NUnit.Framework;
 
 namespace Dot42.Tests.System.Reflection
@@ -55,6 +57,16 @@ namespace Dot42.Tests.System.Reflection
             Assert.AssertEquals(1, attr.Length);
         }
 
+        [Test]
+        public void TestPropertyOrder()
+        {
+            
+            var expected = new[] {"Name", "Description", "Classification", "Studio", "ReleaseDate", "ReleaseCountries"};
+            var props = typeof (Movie).GetProperties().Select(p => p.Name).ToArray();
+
+            CollectionAssert.AreEqual(expected, props);
+        }
+
         private class Class1
         {
             [Include]
@@ -72,6 +84,32 @@ namespace Dot42.Tests.System.Reflection
         private class MyAttribute : Attribute
         {
             public MyAttribute(string message) { }
+        }
+
+        [IncludeType]
+        public class Movie
+        {
+            public string Name { get; set; }
+            public string Description { get; set; }
+            public string Classification { get; set; }
+            public string Studio { get; set; }
+            public DateTime? ReleaseDate { get; set; }
+            public List<string> ReleaseCountries { get; set; }
+
+            public override string ToString()
+            {
+                return base.ToString();
+            }
+
+            public override bool Equals(object obj)
+            {
+                return base.Equals(obj);
+            }
+
+            public override int GetHashCode()
+            {
+                return base.GetHashCode();
+            }
         }
     }
 }

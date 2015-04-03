@@ -19,9 +19,8 @@ namespace Dot42.CompilerLib.Ast.Converters
             // Will change to nullable marker class if Nullable<T>
             // (note: this could be expanded to support generic marker classes as well)
             NullableTypeOf,
-            // will make sure that the type is neither a marker class not a primitive 
-            // type
-            EnsureInstanceType,
+            // will make sure that the type is neither a marker class nor a primitive type
+            EnsureRuntimeType,
         }
 
         /// <summary>
@@ -48,7 +47,7 @@ namespace Dot42.CompilerLib.Ast.Converters
                 if (gp == null) continue;
 
                 var typeHelperType = compiler.GetDot42InternalType(InternalConstants.TypeHelperName).Resolve();
-                var loadExpr = LoadTypeForGenericInstance(node.SourceLocation, currentMethod, type, typeHelperType, typeSystem, TypeConversion.EnsureInstanceType);
+                var loadExpr = LoadTypeForGenericInstance(node.SourceLocation, currentMethod, type, typeHelperType, typeSystem, TypeConversion.EnsureRuntimeType);
                 //// both types are boxed, no need for conversion.
                 var typeType = compiler.GetDot42InternalType("System", "Type").Resolve();
                 var isInstanceOfType = typeType.Methods.Single(n => n.Name == "JavaIsInstance" && n.Parameters.Count == 1);
@@ -66,7 +65,7 @@ namespace Dot42.CompilerLib.Ast.Converters
                     var typeHelperType = compiler.GetDot42InternalType(InternalConstants.TypeHelperName).Resolve();
                     // while having primitive arrays for primitive types would be nice, a lot of boxing and unboxing
                     // would be needed. only for-primitive-specialized generic classes could optimize this.
-                    var ldType = LoadTypeForGenericInstance(node.SourceLocation, currentMethod, type, typeHelperType, typeSystem, TypeConversion.EnsureInstanceType);
+                    var ldType = LoadTypeForGenericInstance(node.SourceLocation, currentMethod, type, typeHelperType, typeSystem, TypeConversion.EnsureRuntimeType);
                     var newInstanceExpr = new AstExpression(node.SourceLocation, AstCode.ArrayNewInstance, null, ldType, node.Arguments[0]) { ExpectedType = typeSystem.Object };
                     var arrayType = new XArrayType(type);
                     var cast = new AstExpression(node.SourceLocation, AstCode.SimpleCastclass, arrayType, newInstanceExpr) { ExpectedType = arrayType };
@@ -267,9 +266,10 @@ namespace Dot42.CompilerLib.Ast.Converters
 
                 loadExpr.ExpectedType = typeSystem.Type;
 
-                if (typeConversion == TypeConversion.EnsureInstanceType)
-                    return EnsureGenericInstanceType(loadExpr, typeSystem, typeHelperType);
-                return loadExpr;
+                if (typeConversion == TypeConversion.EnsureRuntimeType)
+                    return EnsureGenericRuntimeType(loadExpr, typeSystem, typeHelperType);
+                else
+                    return loadExpr;
             }
             
             if (type is XTypeSpecification)
@@ -300,7 +300,7 @@ namespace Dot42.CompilerLib.Ast.Converters
         /// expand the loadExpression, so that primitive types are converted to their boxed counterparts,
         /// and marker types are converted to their underlying types.
         /// </summary>
-        private static AstExpression EnsureGenericInstanceType(AstExpression loadExpr, XTypeSystem typeSystem, XTypeDefinition typeHelper)
+        private static AstExpression EnsureGenericRuntimeType(AstExpression loadExpr, XTypeSystem typeSystem, XTypeDefinition typeHelper)
         {
             var ensureMethod = typeHelper.Methods.Single(x => x.Name == "EnsureGenericRuntimeType");
             return new AstExpression(loadExpr.SourceLocation, AstCode.Call, ensureMethod, loadExpr)
