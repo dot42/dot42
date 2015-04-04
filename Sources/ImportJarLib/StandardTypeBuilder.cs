@@ -21,6 +21,8 @@ namespace Dot42.ImportJarLib
         private NetTypeDefinition typeDef;
         private DocClass docClass;
 
+        private static readonly string[] NamespaceAbbreviations = {"os"};
+
         /// <summary>
         /// Create a builder
         /// </summary>
@@ -52,7 +54,7 @@ namespace Dot42.ImportJarLib
         }
 
         /// <summary>
-        /// Create a type defrinition for the given class file and all inner classes.
+        /// Create a type definition for the given class file and all inner classes.
         /// </summary>
         public override void CreateType(NetTypeDefinition declaringType, NetModule module, TargetFramework target)
         {
@@ -62,7 +64,7 @@ namespace Dot42.ImportJarLib
 
             var fullName = GetFullName();
             var dotIndex = fullName.LastIndexOf('.');
-            var ns = (dotIndex > 0) ? NameConverter.UpperCamelCase(fullName.Substring(0, dotIndex)) : String.Empty;
+            var ns = (dotIndex > 0) ? NameConverter.UpperCamelCase(fullName.Substring(0, dotIndex), NamespaceAbbreviations) : String.Empty;
             var name = (dotIndex > 0) ? NameConverter.UpperCamelCase(fullName.Substring(dotIndex + 1)) : fullName;
 
             name = CreateTypeName(null, cf, name, ns);

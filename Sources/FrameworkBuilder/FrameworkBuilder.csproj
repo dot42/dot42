@@ -91,6 +91,7 @@
     <Compile Include="Custom\SystemEnumBuilder.cs" />
     <Compile Include="Mapped\JavaLangArrayStoreExceptionBuilder.cs" />
     <Compile Include="Mapped\JavaLangIllegalArgumentExceptionBuilder.cs" />
+    <Compile Include="Mapped\JavaLangReflectInvocationTargetException.cs" />
     <Compile Include="Mapped\JavaLangRuntimeExceptionBuilder.cs" />
     <Compile Include="Mapped\JavaLangIndexOutOfBoundsExceptionBuilder.cs" />
     <Compile Include="Mapped\JavaLangComparableBuilder.cs" />
