@@ -93,11 +93,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BarDeployLib", "Sources\Bar
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceLib", "Sources\DeviceLib\DeviceLib.csproj", "{13F1BB11-B71A-A349-4BEE-7AD5C023BB22}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A8A9D84C-0F4A-45CD-BE19-4394C32C0AAE}"
-	ProjectSection(SolutionItems) = preProject
-		Performance1.psess = Performance1.psess
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -533,8 +528,5 @@ Global
 		{13F1BB11-45DE-B755-CC77-7AD5C0B4BB22} = {D5FDE676-C70E-4CE6-87A5-7B01B0A20687}
 		{13F1BB11-B27A-54DF-44DE-7AD263BFBB22} = {D5FDE676-C70E-4CE6-87A5-7B01B0A20687}
 		{13F1BB11-B71A-A349-4BEE-7AD5C023BB22} = {D5FDE676-C70E-4CE6-87A5-7B01B0A20687}
-	EndGlobalSection
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal

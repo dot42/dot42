@@ -21,7 +21,11 @@ namespace Dot42.ImportJarLib
         private NetTypeDefinition typeDef;
         private DocClass docClass;
 
-        private static readonly string[] NamespaceAbbreviations = {"os"};
+        private static readonly string[][] FixedNamespacePrefixRenames =
+        {
+            new[] {"android.os", "Android.OS"},
+            new[] {"android.view", "Android.Views"},
+        };
 
         /// <summary>
         /// Create a builder
@@ -64,7 +68,7 @@ namespace Dot42.ImportJarLib
 
             var fullName = GetFullName();
             var dotIndex = fullName.LastIndexOf('.');
-            var ns = (dotIndex > 0) ? NameConverter.UpperCamelCase(fullName.Substring(0, dotIndex), NamespaceAbbreviations) : String.Empty;
+            var ns = (dotIndex > 0) ? ConvertNamespace(fullName, dotIndex) : String.Empty;
             var name = (dotIndex > 0) ? NameConverter.UpperCamelCase(fullName.Substring(dotIndex + 1)) : fullName;
 
             name = CreateTypeName(null, cf, name, ns);
@@ -85,6 +89,24 @@ namespace Dot42.ImportJarLib
             var finalFullName = string.IsNullOrEmpty(ns) ? name : ns + "." + name;
             RegisterType(target, cf, typeDef);
             CreateNestedTypes(cf, typeDef, finalFullName, module, target);
+        }
+
+        private static string ConvertNamespace(string fullName, int dotIndex)
+        {
+            foreach (var fixedConv in FixedNamespacePrefixRenames)
+            {
+                var len = fixedConv[0].Length;
+                if (fullName.StartsWith(fixedConv[0]))
+                {
+                    if (fullName.Length == len || fullName[len] == '.')
+                    {
+                        fullName = fixedConv[1] + fullName.Substring(len);
+                        dotIndex += fixedConv[1].Length - len;
+                        break;
+                    }
+                }
+            }
+            return NameConverter.UpperCamelCase(fullName.Substring(0, dotIndex));
         }
 
         /// <summary>
