@@ -26,13 +26,13 @@ namespace Dot42.Tests.System.Net
 
         private void EnableWifi()
         {
-            var context = GetContext();
+            var context = Context;
             if (context == null) throw new global::Java.Lang.Exception("Cannot get Context");
 
             var wifiManager = (WifiManager)context.GetSystemService(Context.WIFI_SERVICE);
             if (wifiManager == null) throw new global::Java.Lang.Exception("Cannot get WifiManager");
 
-            var networks = wifiManager.GetConfiguredNetworks();
+            var networks = wifiManager.ConfiguredNetworks;
             if ((networks == null) || (networks.Count == 0))
             {
                 Log.D("dot42", "No configured WIFI networks.");
@@ -40,7 +40,7 @@ namespace Dot42.Tests.System.Net
                 throw new global::System.Exception("No configured WIFI networks.");
             }
 
-            var connectivityManager = (ConnectivityManager)GetContext().GetSystemService(Context.CONNECTIVITY_SERVICE);
+            var connectivityManager = (ConnectivityManager)Context.GetSystemService(Context.CONNECTIVITY_SERVICE);
             if (connectivityManager == null) throw new Exception("Cannot get ConnectivityManager");
 
             if (!wifiWasDisabled)
@@ -67,7 +67,7 @@ namespace Dot42.Tests.System.Net
             // Now let's turn it on again
             if (connectivityManager.GetNetworkInfo(1).GetState() != NetworkInfo.State.CONNECTED) //neworkType 1 is Wifi
             {
-                if (!wifiManager.IsWifiEnabled())
+                if (!wifiManager.IsWifiEnabled)
                 {
                     wifiManager.SetWifiEnabled(true);
                     var totalTimeInMs = 0;

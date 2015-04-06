@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using Junit.Framework;
 using JFile = Java.Io.File;
-using JEnvironment = Android.Os.Environment;
+using JEnvironment = Android.OS.Environment;
 
 namespace Dot42.Tests.System.IO
 {

@@ -372,7 +372,7 @@ namespace Dot42.CompilerLib.Ast.Converters
                 type.IsSystemCollectionsIList())
             {
                 // Call "IsAssignableFrom(x) || x.GetIsArray()"
-                var isArray = targetMethodRef.DeclaringType.Resolve().Methods.First(x => x.Name == "GetIsArray" && x.Parameters.Count == 0 && !x.IsStatic);
+                var isArray = targetMethodRef.DeclaringType.Resolve().Methods.First(x => x.Name == "get_IsArray" && x.Parameters.Count == 0 && !x.IsStatic);
 
                 // originalExpression
                 var isExpr = new AstExpression(node);

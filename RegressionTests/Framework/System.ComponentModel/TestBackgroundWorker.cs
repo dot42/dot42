@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Threading;
-using Android.Os;
+using Android.OS;
 using Junit.Framework;
 
 namespace Dot42.Tests.System.ComponentModel

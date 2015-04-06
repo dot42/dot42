@@ -1,5 +1,5 @@
 ﻿using System;
-using Android.View;
+using Android.Views;
 using Junit.Framework;
 
 namespace Dot42.Tests.Dot42
