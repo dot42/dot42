@@ -12,16 +12,24 @@ namespace Dot42.CompilerLib.ILConversion
         /// </summary>
         internal static MethodDefinition CreateExplicitStub(MethodDefinition implicitImpl, string name, MethodDefinition iMethod, bool avoidGenericParam)
         {
+            MethodReference implicitImplRef = implicitImpl;
+            GenericInstanceMethod implicitGenericInstanceMethod=null;
             // Create method
             var newMethod = new MethodDefinition(name, implicitImpl.Attributes, implicitImpl.ReturnType);
             newMethod.IsVirtual = false;
             newMethod.IsAbstract = false;
             newMethod.IsFinal = true;
 
+            if (implicitImpl.GenericParameters.Count > 0)
+            {
+                implicitImplRef = implicitGenericInstanceMethod = new GenericInstanceMethod(implicitImpl);
+            }
+
             // Clone generic parameters
             foreach (var gp in implicitImpl.GenericParameters)
             {
                 newMethod.GenericParameters.Add(new GenericParameter(gp.Name, newMethod));
+                implicitGenericInstanceMethod.GenericArguments.Add(gp);
             }
 
             // Update according to new context
@@ -59,7 +67,7 @@ namespace Dot42.CompilerLib.ILConversion
                     worker.Emit(OpCodes.Box, implicitImpl.Parameters[i].ParameterType);
                 }
             }
-            worker.Emit(implicitImpl.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, implicitImpl);
+            worker.Emit(implicitImpl.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, implicitImplRef);
             worker.Emit(OpCodes.Ret);
 
             // Mark method reachable

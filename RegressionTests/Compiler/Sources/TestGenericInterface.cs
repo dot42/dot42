@@ -130,5 +130,18 @@ namespace Dot42.Tests.Compiler.Sources
             x.Foo(6);
             AssertEquals(x.FooReturn(), 0.0, 0.000001);
         }
+
+        public void testGenericMethodInInterface()
+        {
+            int i = new ClassImplementGenericMethodFromInterface().FooReturn<int>();
+            AssertEquals(0, i);
+        }
+
+        public void testGenericMethodCallsGenericMethod()
+        {
+            int i = new ClassCallsGenericMethodFromGenericMethod().FooReturn<int>();
+            AssertEquals(0, i);
+        }
+        
     }
 }

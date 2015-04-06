@@ -54,6 +54,7 @@
     <Compile Include="$(ResourcesGeneratedCodePath)R.cs" />
     <Compile Include="Cases\CaseEnumDontConvertTwice.cs" />
     <Compile Include="Cases\TestGenericsWithDelegatesAndContrainedCallvirtHandling.cs" />
+    <Compile Include="Sources\GenericInterfaceSubjects\IInterfaceWithGenericMethod.cs" />
     <Compile Include="Sources\TestNullableDateTime.cs" />
     <Compile Include="Sources\TestNullableEnum.cs" />
     <Compile Include="Sources\TestNullableInt.cs" />
