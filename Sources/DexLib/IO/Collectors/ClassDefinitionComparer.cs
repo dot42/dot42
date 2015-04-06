@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Dot42.Utility;
 
 namespace Dot42.DexLib.IO.Collectors
 {

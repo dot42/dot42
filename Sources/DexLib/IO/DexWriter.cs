@@ -10,6 +10,7 @@ using Dot42.DexLib.IO.Collectors;
 using Dot42.DexLib.IO.Markers;
 using Dot42.DexLib.Instructions;
 using Dot42.DexLib.Metadata;
+using Dot42.Utility;
 using StringComparer = Dot42.DexLib.IO.Collectors.StringComparer;
 
 namespace Dot42.DexLib.IO

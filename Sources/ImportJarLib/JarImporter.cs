@@ -119,13 +119,25 @@ namespace Dot42.ImportJarLib
         public static void Implement(List<TypeBuilder> typeBuilders, TargetFramework target)
         {
             typeBuilders.ForEach(x => x.Implement(target));
+
+            // order by inheritance, since the properties need information from their parents.
+            var otherBuilders = typeBuilders.Where(b => !(b is StandardTypeBuilder));
+            var standardBuilders = typeBuilders.OfType<StandardTypeBuilder>();
+            standardBuilders = TopologicalSort.Sort(standardBuilders, b => b.TypeDefinition.GetBaseTypes(true),
+                                                                        b => b.TypeDefinition,
+                                                                        new NetTypeReferenceEqualityComparer())
+                                            .ToList();
+            typeBuilders = otherBuilders.Concat(standardBuilders).ToList();
+
+            // finialize.
             typeBuilders.ForEach(x => x.Finalize(target, FinalizeStates.AddRemoveMembers));
             typeBuilders.ForEach(x => x.Finalize(target, FinalizeStates.FixTypes));
             var methodRenamer = new MethodRenamer(target);
             typeBuilders.ForEach(x => x.FinalizeNames(target, methodRenamer));
-            typeBuilders.ForEach(x => x.FinalizeProperties(target));
+            typeBuilders.ForEach(x => x.FinalizeProperties(target, methodRenamer));
             typeBuilders.ForEach(x => x.FinalizeVisibility(target));
         }
+
 
         /// <summary>
         /// Add code to the header of a source file.
@@ -199,5 +211,27 @@ namespace Dot42.ImportJarLib
         /// If true, a lack of generic parameters is accepted.
         /// </summary>
         bool ITypeMapResolver.AcceptLackOfGenericParameters { get { return true; } }
+    }
+
+
+    public class NetTypeReferenceEqualityComparer : IEqualityComparer<NetTypeReference>
+    {
+        public bool Equals(NetTypeReference x, NetTypeReference y)
+        {
+            if (ReferenceEquals(x, y))
+                return true;
+
+            return x.AreSame(y);
+        }
+
+        public int GetHashCode(NetTypeReference obj)
+        {
+            // while equals is rather complicated, just return 
+            // everyting except any generic parameters here.
+            var fullName = obj.FullName;
+            int valid = fullName.IndexOf('<');
+            if (valid == -1) return fullName.GetHashCode();
+            return fullName.Substring(0, valid).GetHashCode();
+        }
     }
 }

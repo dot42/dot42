@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Dot42.DexLib.IO.Collectors
+namespace Dot42.Utility
 { /* Taken from (great thanks)
  * http://stackoverflow.com/questions/1982592/topological-sorting-using-linq
  */
 
-    internal interface IPartialComparer<T>
+    public interface IPartialComparer<T>
     {
         int? PartialCompare(T x, T y);
     }
@@ -29,7 +29,7 @@ namespace Dot42.DexLib.IO.Collectors
         #endregion
     }
 
-    internal class TopologicalSorter
+    public class TopologicalSorter
     {
         public IEnumerable<TElement> TopologicalSort<TElement>(
             IEnumerable<TElement> elements,

@@ -96,7 +96,6 @@
     <Compile Include="IO\Collectors\FieldReferenceComparer.cs" />
     <Compile Include="IO\Collectors\PrototypeComparer.cs" />
     <Compile Include="IO\Collectors\PrototypeCollector.cs" />
-    <Compile Include="IO\Collectors\TopologicalSorter.cs" />
     <Compile Include="IO\Collectors\TypeReferenceComparer.cs" />
     <Compile Include="IO\AnnotationSet.cs" />
     <Compile Include="IO\CatchSet.cs" />
@@ -144,7 +143,12 @@
     <Compile Include="ClassDefinition.cs" />
     <Compile Include="TypeReference.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\Utility\Utility.csproj">
+      <Project>{13f162a6-f530-40b3-1234-7ad5c0b4a386}</Project>
+      <Name>Utility</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

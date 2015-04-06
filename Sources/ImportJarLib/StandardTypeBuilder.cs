@@ -24,7 +24,10 @@ namespace Dot42.ImportJarLib
         private static readonly string[][] FixedNamespacePrefixRenames =
         {
             new[] {"android.os", "Android.OS"},
+            new[] {"android.view.animation", "Android.Views.Animations"},
             new[] {"android.view", "Android.Views"},
+            new[] {"android.graphics.drawable", "Android.Graphics.Drawables"},
+            
         };
 
         /// <summary>
@@ -211,7 +214,7 @@ namespace Dot42.ImportJarLib
         /// <summary>
         /// Gets the created CLR type
         /// </summary>
-        protected NetTypeDefinition TypeDefinition { get { return typeDef; } }
+        protected internal NetTypeDefinition TypeDefinition { get { return typeDef; } }
 
         /// <summary>
         /// Resolve the given generic parameter into a type reference.
@@ -240,7 +243,7 @@ namespace Dot42.ImportJarLib
         /// <summary>
         /// Full typename of the context without any generic types.
         /// </summary>
-        protected override string FullTypeName { get { return typeDef.Name + "." + typeDef.Name; } }
+        protected override string FullTypeName { get { return typeDef.Namespace + "." + typeDef.Name; } }
 
         /// <summary>
         /// Gets the documentation of this type.
@@ -322,6 +325,26 @@ namespace Dot42.ImportJarLib
                 if (!classFile.TryGetSuperClass(out classFile))
                     return null;
             }
+        }
+
+        public int? CompareByInheritance(StandardTypeBuilder other)
+        {
+            if (ReferenceEquals(other, this))
+                return 0;
+
+            var myBaseTypes = TypeDefinition.GetBaseTypes(true);
+            if (myBaseTypes.Any(other.TypeDefinition.AreSame))
+                return 1;
+            var otherBaseTypes = other.TypeDefinition.GetBaseTypes(true);
+            if (otherBaseTypes.Any(TypeDefinition.AreSame))
+                return -1;
+
+            return null;
+        }
+
+        public override string ToString()
+        {
+            return "TypeBuilder: " + TypeDefinition.FullName;
         }
     }
 }

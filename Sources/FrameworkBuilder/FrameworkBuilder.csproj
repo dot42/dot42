@@ -84,22 +84,28 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\Version.cs" />
+    <Compile Include="Android\AndroidViewsViewBuilder.cs" />
     <Compile Include="Android\AndroidBuilder.cs" />
-    <Compile Include="Android\JavaLangConcurrentAtomicAtomicLongBuilder.cs" />
+    <Compile Include="Android\AndroidAppActivityBuilder.cs" />
     <Compile Include="Android\JavaLangConcurrentAtomicAtomicIntegerBuilder.cs" />
+    <Compile Include="Android\JavaLangConcurrentAtomicAtomicLongBuilder.cs" />
+    <Compile Include="Android\JavaNioByteBufferBuilder.cs" />
+    <Compile Include="Android\JavaLangReflectTypeVariableBuilder.cs" />
+    <Compile Include="Android\NoPropertyBuilder.cs" />
+    <Compile Include="Android\SkipSpecifiedPropertyBuilder.cs" />
     <Compile Include="CommandLineOptions.cs" />
     <Compile Include="Custom\SystemEnumBuilder.cs" />
     <Compile Include="Mapped\JavaLangArrayStoreExceptionBuilder.cs" />
     <Compile Include="Mapped\JavaLangIllegalArgumentExceptionBuilder.cs" />
+    <Compile Include="Android\JavaLangReflectAnnotatedElementBuilder.cs" />
+    <Compile Include="Android\JavaLangReflectGenericDeclarationBuilder.cs" />
     <Compile Include="Mapped\JavaLangReflectInvocationTargetException.cs" />
     <Compile Include="Mapped\JavaLangRuntimeExceptionBuilder.cs" />
     <Compile Include="Mapped\JavaLangIndexOutOfBoundsExceptionBuilder.cs" />
     <Compile Include="Mapped\JavaLangComparableBuilder.cs" />
     <Compile Include="Mapped\JavaUtilRandomBuilder.cs" />
-    <Compile Include="Mapped\JavaLangReflectAccessibleObjectBuilder.cs" />
-    <Compile Include="Mapped\JavaLangReflectConstructorBuilder.cs" />
-    <Compile Include="Mapped\JavaLangReflectFieldBuilder.cs" />
-    <Compile Include="Mapped\JavaLangReflectMethodBuilder.cs" />
+    <Compile Include="Android\JavaLangReflectConstructorBuilder.cs" />
+    <Compile Include="Android\JavaLangReflectMethodBuilder.cs" />
     <Compile Include="Mapped\JavaNetUriBuilder.cs" />
     <Compile Include="Mapped\JavaIoEOFExceptionBuilder.cs" />
     <Compile Include="Mapped\JavaIoFileNotFoundExceptionBuilder.cs" />

@@ -24,6 +24,7 @@ namespace Dot42.ImportJarLib.Model
         private readonly OverrideCollection overrides;
         private readonly string createReason;
         private bool requiredNewSlot;
+        private NetPropertyDefinition property; 
 
         /// <summary>
         /// Default ctor
@@ -440,6 +441,15 @@ namespace Dot42.ImportJarLib.Model
             {
                 IsFamily = true;
             }
+        }
+        
+        /// <summary>
+        /// Is this method getter or setter of a property?
+        /// </summary>
+        public NetPropertyDefinition Property
+        {
+            get { return property; }
+            set { property = value; }
         }
     }
 }

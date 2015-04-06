@@ -27,7 +27,7 @@ namespace Dot42.ImportJarLib
         /// <summary>
         /// Helps in sorting type builders
         /// </summary>
-        public virtual int Priority { get { return int.MaxValue; } }
+        public virtual int Priority { get { return int.MaxValue/2; } }
 
         /// <summary>
         /// Create a type defrinition for the given class file and all inner classes.
@@ -274,7 +274,7 @@ namespace Dot42.ImportJarLib
                 }
             }
         }
-
+    
         /// <summary>
         /// Rename members that conflict with other members.
         /// </summary>
@@ -506,9 +506,10 @@ namespace Dot42.ImportJarLib
         /// <summary>
         /// Implement interface members
         /// </summary>
-        public void FinalizeProperties(TargetFramework target)
+        public void FinalizeProperties(TargetFramework target, MethodRenamer methodRenamer)
         {
-            if (propertyBuilder != null) propertyBuilder.Finalize(target);
+            if (propertyBuilder != null) propertyBuilder.Finalize(target, methodRenamer);
+            nestedTypeBuilders.ForEach(n => n.FinalizeProperties(target, methodRenamer));
         }
 
         /// <summary>
@@ -650,12 +651,6 @@ namespace Dot42.ImportJarLib
             {
                 // Name conflict with generic parameter
                 newName = "Java" + name;
-            }
-
-            // prevent clash with System.Object.GetType()
-            if (name == "GetType" && method.Parameters.Count == 0)
-            {
-                newName = "GetTypeJava";
             }
 
             if (newName != name)

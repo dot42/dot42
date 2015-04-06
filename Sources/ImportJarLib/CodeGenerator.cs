@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Text;
 using Dot42.FrameworkDefinitions;
@@ -205,7 +206,8 @@ namespace Dot42.ImportJarLib
                 }
                 foreach (var member in type.Methods)
                 {
-                    CreateMethodCode(member);
+                    if(member.Property == null) // TODO: this check clearly belongs somewhere else, but where?
+                        CreateMethodCode(member);
                 }
                 foreach (var member in type.Properties)
                 {
@@ -358,10 +360,11 @@ namespace Dot42.ImportJarLib
         /// </summary>
         private void CreatePropertyCode(NetPropertyDefinition prop)
         {
-            CreateComments(prop.Description, prop.Getter.OriginalJavaName);
+            var mainMethod = (prop.Getter??prop.Setter);
+            CreateComments(prop.Description, mainMethod.OriginalJavaName);
             CreateAttributes(prop.CustomAttributes, prop);
             writer.Write(indent);
-            writer.Write(Convert(prop.Getter, prop.Getter.Attributes, context.GenerateExternalMethods, true));
+            writer.Write(Convert(mainMethod, mainMethod.Attributes, context.GenerateExternalMethods, false));
             writer.Write(CreateRef(prop.PropertyType, true, true, true, false, prop.DeclaringType, target));
             writer.Write(" ");
             writer.Write(prop.Name);
@@ -383,49 +386,67 @@ namespace Dot42.ImportJarLib
             }
 
             // Create method body
-            var isAbstract = prop.Getter.IsAbstract;
+            var isAbstract = mainMethod.IsAbstract;
+            var isInterface = mainMethod.DeclaringType.IsInterface;
+
             writer.WriteLine();
 
             writer.Write(indent);
             writer.WriteLine("{");
 
-            CreateAttributes(prop.Getter.CustomAttributes, prop.Getter);
-            writer.Write(indent);
-            writer.Write("\t\tget");
+            // increase indent
+            var oldIndent = indent;
+            indent += "\t\t";
 
-            bool isEmptyMethod = false; // isAbstract || context.GenerateExternalMethods;
-
-            if (!isEmptyMethod)
+            try
             {
-                ////writer.Write("{ return default(");
-                ////writer.Write(CreateRef(prop.PropertyType, false, true, true, prop.DeclaringType));
-                ////writer.Write("); }");
-                writer.Write("{{ return {0}({1}); }}", prop.Getter.Name, string.Join(", ", prop.Getter.Parameters.Select((x, i) => (i == 0) ? "index" : x.Name)));
-            }
-            else
-            {
-                writer.Write(";");
-            }
-            writer.WriteLine();
-
-            if (prop.Setter != null)
-            {
-                CreateAttributes(prop.Setter.CustomAttributes, prop.Setter);
-                writer.Write(indent);
-                writer.Write("\t\tset");
-                if (!isEmptyMethod)
+                if (prop.Getter != null)
                 {
-                    writer.Write("{{ {0}({1}); }}", prop.Setter.Name,
-                                 string.Join(", ", prop.Setter.Parameters.Select((x, i) => (i == 0) ? "value" : x.Name)));
-                }
-                else
-                {
-                    writer.Write(";");
-                }
-                ////writer.Write(!isAbstract && !context.GenerateExternalMethods ? "{ }" : ";");
-                writer.WriteLine();
-            }
+                    CreateAttributes(mainMethod.CustomAttributes, prop.Getter);
+                    writer.Write(indent);
+                    writer.Write("get");
 
+                    bool isEmptyMethod = isAbstract || isInterface || context.GenerateExternalMethods;
+
+                    if (!isEmptyMethod)
+                    {
+                        writer.Write("{ return default(");
+                        writer.Write(CreateRef(prop.PropertyType, false, true, true, false, prop.Getter.DeclaringType,
+                            target));
+                        writer.Write("); }");
+                        //writer.Write("{{ return {0}({1}); }}", prop.Getter.Name, string.Join(", ", prop.Getter.Parameters.Select((x, i) => (i == 0) ? "index" : x.Name)));
+                    }
+                    else
+                    {
+                        writer.Write(";");
+                    }
+                    writer.WriteLine();
+                }
+
+                if (prop.Setter != null)
+                {
+                    CreateAttributes(prop.Setter.CustomAttributes, prop.Setter);
+                    writer.Write(indent);
+                    writer.Write("set");
+                    //if (!isEmptyMethod)
+                    //{
+                    //    writer.Write("{{ {0}({1}); }}", prop.Setter.Name,
+                    //        string.Join(", ", prop.Setter.Parameters.Select((x, i) => (i == 0) ? "value" : x.Name)));
+                    //}
+                    //else
+                    //{
+                    //    writer.Write(";");
+                    //}
+                    writer.Write(!isAbstract && !context.GenerateExternalMethods ? "{ }" : ";");
+                    writer.WriteLine();
+                }
+            }
+            finally
+            {
+                indent = indent = oldIndent;
+
+            }
+            // restore indent
             writer.Write(indent);
             writer.WriteLine("}");
 

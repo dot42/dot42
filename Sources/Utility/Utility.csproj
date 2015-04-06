@@ -47,6 +47,7 @@
     <Compile Include="..\..\Common\Util\ErrorLog.cs" />
     <Compile Include="BigEndianBitConverter.cs" />
     <Compile Include="Browser.cs" />
+    <Compile Include="TopologicalSort.cs" />
     <Compile Include="HashCodeUtility.cs" />
     <Compile Include="CollectionExtensions.cs" />
     <Compile Include="CompressedXml.cs" />
@@ -80,6 +81,7 @@
     <Compile Include="ITextOutput.cs" />
     <Compile Include="PlainTextOutput.cs" />
     <Compile Include="ToolOptions.cs" />
+    <Compile Include="TopologicalSorter.cs" />
     <Compile Include="TreeTraversal.cs" />
     <Compile Include="XmlExtensions.cs" />
   </ItemGroup>

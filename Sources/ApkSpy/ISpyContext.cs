@@ -1,4 +1,7 @@
-﻿using Dot42.Mapping;
+﻿using Dot42.CompilerLib.XModel;
+using Dot42.LoaderLib.Java;
+using Dot42.Mapping;
+using Mono.Cecil;
 
 namespace Dot42.ApkSpy
 {

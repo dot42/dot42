@@ -1,15 +1,14 @@
 ﻿using System.ComponentModel.Composition;
-using Dot42.ImportJarLib;
 using Dot42.ImportJarLib.Mapped;
 using Dot42.JvmClassLib;
 
-namespace Dot42.FrameworkBuilder.Mapped
+namespace Dot42.FrameworkBuilder.Android
 {
     /// <summary>
     /// Helper used to build type definitions from ClassFile's
     /// </summary>
     [Export(typeof(IMappedTypeBuilder))]
-    internal sealed class JavaLangReflectConstructorBuilder: JavaBaseTypeBuilder
+    internal sealed class JavaLangReflectConstructorBuilder: AndroidBuilder
     {
         /// <summary>
         /// Empty ctor
@@ -20,7 +19,7 @@ namespace Dot42.FrameworkBuilder.Mapped
         /// Default ctor
         /// </summary>
         internal JavaLangReflectConstructorBuilder(ClassFile cf)
-            : base(cf, "System.Reflection.JavaConstructor", "java/lang/reflect/Constructor")
+            : base(cf, "java/lang/reflect/Constructor")
         {
 
         }

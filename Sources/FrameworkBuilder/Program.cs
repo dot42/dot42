@@ -218,12 +218,19 @@ namespace Dot42.FrameworkBuilder
             var target = new TargetFramework(null, classLoader, xmlModel, LogMissingParamNamesType, true, false, Enumerable.Empty<string>());
 
             List<TypeBuilder> typeBuilders;
-            using (Profiler.Profile(x => Console.WriteLine("Create took {0}ms", x.TotalMilliseconds)))
+            using (Profiler.Profile(x => Console.WriteLine("{0:####} ms for Create", x.TotalMilliseconds)))
             {
                 var classTypeBuilders = jf.ClassNames.SelectMany(n => StandardTypeBuilder.Create(jf.LoadClass(n), target));
-                var customTypeBuilder = CompositionContainer.GetExportedValues<ICustomTypeBuilder>().OrderBy(x => x.CustomTypeName).Select(x => x.AsTypeBuilder());
+                var customTypeBuilder = CompositionContainer.GetExportedValues<ICustomTypeBuilder>()
+                                                            .OrderBy(x => x.CustomTypeName)
+                                                            .Select(x => x.AsTypeBuilder());
 
-                typeBuilders = classTypeBuilders.Concat(customTypeBuilder).OrderBy(x => x.Priority).ToList();
+                typeBuilders = classTypeBuilders.Concat(customTypeBuilder)
+                                                .OrderBy(x => x.Priority)
+                                                .ToList();
+
+                
+                                                                           
                 typeBuilders.ForEach(x => x.CreateType(null, module, target));
             }
 
@@ -231,13 +238,13 @@ namespace Dot42.FrameworkBuilder
             //JavaRefAttributeBuilder.Build(asm.MainModule);
 
             // Implement and finalize types
-            using (Profiler.Profile(x => Console.WriteLine("Implement took {0}ms", x.TotalMilliseconds)))
+            using (Profiler.Profile(x => Console.WriteLine("{0:####} ms for Implement", x.TotalMilliseconds)))
             {
                 JarImporter.Implement(typeBuilders, target);
             }
 
             // Save
-            using (Profiler.Profile(x => Console.WriteLine("Generate took {0}ms", x.TotalMilliseconds)))
+            using (Profiler.Profile(x => Console.WriteLine("{0:####} ms for generate", x.TotalMilliseconds)))
             {
                 CodeGenerator.Generate(folder, module.Types, new List<NetCustomAttribute>(), target, new FrameworkCodeGeneratorContext(), target);
             }

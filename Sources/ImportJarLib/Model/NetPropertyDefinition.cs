@@ -34,7 +34,7 @@ namespace Dot42.ImportJarLib.Model
         /// <summary>
         /// Type of the property
         /// </summary>
-        public NetTypeReference PropertyType { get { return Getter.ReturnType; } }
+        public NetTypeReference PropertyType { get { return Getter !=null ? Getter.ReturnType : Setter.Parameters[0].ParameterType; } }
 
         /// <summary>
         /// All parameters

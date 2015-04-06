@@ -326,6 +326,10 @@ namespace Dot42.ImportJarLib
                 if (commaCount1 != commaCount2)
                     return false;
 
+                if ((gp1.Length == 0 || gp2.Length == 0) && gp1.Length != gp2.Length)
+                    return false; // TODO: check if this is correct, or if true is correct.
+
+
                 gp1 = gp1.Substring(1, gp1.Length - 2);
                 gp2 = gp2.Substring(1, gp2.Length - 2);
 

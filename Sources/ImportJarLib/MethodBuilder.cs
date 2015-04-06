@@ -265,17 +265,35 @@ namespace Dot42.ImportJarLib
             var expectedRetType = GenericParameters.Resolve(baseMethod.ReturnType, declaringType, target.TypeNameMap);
             var retType = GenericParameters.Resolve(method.ReturnType, declaringType, target.TypeNameMap);
 
-            if (!retType.AreSame(expectedRetType))
+            if (!AreEqual(retType, expectedRetType))
             {
-                if (baseMethod.IsAbstract)
+                // TODO: check if this change is correct.
+                //bool areSame = retType.AreSame(expectedRetType);
+                //if (!areSame)
                 {
-                    method.ReturnType = expectedRetType;
-                }
-                else
-                {
-                    method.RequireNewSlot();
+                    if (baseMethod.IsAbstract)
+                    {
+                        method.ReturnType = expectedRetType;
+                    }
+                    else
+                    {
+                        method.RequireNewSlot();
+                    }
                 }
             }
+        }
+
+        internal static bool AreEqual(NetTypeReference type1, NetTypeReference type2)
+        {
+            if ((type1 == null) && (type2 == null))
+                return true;
+            if ((type1 == null) || (type2 == null))
+                return false;
+
+            string fullName1 = type1.FullName;
+            string fullName2 = type2.FullName;
+
+            return fullName1 == fullName2;
         }
 
         /// <summary>
