@@ -198,6 +198,7 @@ namespace Dot42.ApkSpy
                 var path = iterator;
                 var item = new ToolStripMenuItem(Path.GetFileName(path));
                 item.Click += (s, x) => Open(path);
+                item.ToolTipText = path;
                 miFileRecent.DropDownItems.Add(item);
             }
             miFileRecent.Enabled = (miFileRecent.DropDownItems.Count > 0);
