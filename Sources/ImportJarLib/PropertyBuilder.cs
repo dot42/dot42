@@ -5,6 +5,7 @@ using System.Linq;
 using Dot42.ImportJarLib.Model;
 using Dot42.Utility;
 using Mono.Cecil;
+using Mono.Cecil.Cil;
 
 namespace Dot42.ImportJarLib
 {
@@ -111,6 +112,7 @@ namespace Dot42.ImportJarLib
         {
             FixOverridenProperties(methodRenamer);
             RemoveClashingProperties();
+            FixPropertyFinalState();
         }
 
         /// <summary>
@@ -202,15 +204,14 @@ namespace Dot42.ImportJarLib
             if (getName.StartsWith("Get"))
                 getName = getName.Substring(3);
             else if(getName.StartsWith("Is"))
-                getName = getName.Substring(1);
+                getName = getName.Substring(2);
 
             var name = "Set" + getName;
 
             var type = getMethod.ReturnType;
 
             var possibleMatch = setters.Where(x => x.Name == name 
-                                                && x.Parameters[0].ParameterType.AreSame(type)
-                                                && x.IsFinal == getMethod.IsFinal)
+                                                && x.Parameters[0].ParameterType.AreSame(type))
                                        .ToList();
 
             if (possibleMatch.Count > 1)
@@ -309,6 +310,26 @@ namespace Dot42.ImportJarLib
                 if (prop.Getter != null) prop.Getter.Property = null;
                 if (prop.Setter != null) prop.Setter.Property = null;
                 typeDef.Properties.Remove(prop);
+            }
+        }
+
+        private void FixPropertyFinalState()
+        {
+            // remove all properties with clashes
+            foreach (var prop in typeDef.Properties)
+            {
+                var getter = prop.Getter;
+                var setter = prop.Setter;
+
+                if(getter == null || setter == null)
+                    continue;
+
+                if (getter.IsFinal != setter.IsFinal)
+                {
+                    Console.Error.WriteLine("Warning: Property Getters/Setters {0} {1}/{2} have different virtual status. Importing both as virtual.", typeDef.FullName, getter.OriginalJavaName, setter.OriginalJavaName);
+                    getter.IsVirtual = true;
+                    setter.IsVirtual = true;
+                }
             }
         }
 

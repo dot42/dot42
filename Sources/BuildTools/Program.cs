@@ -29,7 +29,11 @@ namespace Dot42.BuildTools
                     args = new[] {
                         @"-fa=S:\SVNWork\dot42\Build\Application\Frameworks\v4.0.3\mscorlib.dll"
                     };
-
+                    args = new[]
+                    {
+                        @"--frameworksfolder=c:\Program Files\dot42\Android\Frameworks",
+                        @"--idsource=N:\develop\Projekte\TODO\dot42\dot42\Sources\FrameworkDefinitions\Generated\SystemIdConstants.cs"
+                    };
                 }
 #endif
 

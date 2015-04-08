@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Text;
 using Dot42.FrameworkDefinitions;
