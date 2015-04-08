@@ -18,7 +18,7 @@ namespace Dot42.CompilerLib.Extensions
         public static void AddEnclosingClassAnnotation(this IAnnotationProvider provider, ClassReference @class)
         {
             var annotation = new Annotation { Type = new ClassReference("dalvik/annotation/EnclosingClass"), Visibility = AnnotationVisibility.System };
-            annotation.Arguments.Add(new AnnotationArgument("class", @class));
+            annotation.Arguments.Add(new AnnotationArgument("value", @class));
             provider.Annotations.Add(annotation);
         }
 
