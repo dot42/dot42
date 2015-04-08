@@ -57,6 +57,28 @@ namespace Dot42.Tests.Compiler.Sources
             }
         }
 
+        public class Foo1
+        {
+            public object foo { get; set; }
+        }
+
+        public class Bar1
+        {
+            public object bar { get; set; }
+        }
+
+        public class Foo1<T> : Foo1
+        {
+            public new T foo { get; set; }
+
+            public T foo2 { get; set; }
+        }
+
+        public class FooBar1 : Foo1
+        {
+            public new Bar1 foo { get; set; }
+        }
+
         public void testInstance1()
         {
             var a = new A();
@@ -106,6 +128,26 @@ namespace Dot42.Tests.Compiler.Sources
 
             var bAsA = b as A;
             AssertEquals("bAsA", "a", bAsA.Give());
+        }
+
+        public void testNewProperty()
+        {
+            var foo = new Foo1<int>();
+            foo.foo = 1;
+            ((Foo1) foo).foo = "A";
+
+            AssertEquals(1, foo.foo);
+            AssertEquals("A", ((Foo1) foo).foo);
+        }
+
+        public void testNewProperty2()
+        {
+            var foo = new FooBar1();
+            foo.foo = new Bar1();
+            ((Foo1)foo).foo = "A";
+
+            AssertEquals(typeof(Bar1), foo.foo.GetType());
+            AssertEquals("A", ((Foo1)foo).foo);
         }
     }
 }

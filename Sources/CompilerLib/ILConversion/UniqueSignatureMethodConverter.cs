@@ -15,7 +15,7 @@ using Mono.Cecil;
 namespace Dot42.CompilerLib.ILConversion
 {
     /// <summary>
-    /// this class makes sure all methods have a unique name in the target namespace:
+    /// this class makes sure all methods have a unique name in the target namespace.
     /// </summary>
     [Export(typeof (ILConverterFactory))]
     internal class UniqueSignatureMethodConverter : ILConverterFactory
@@ -48,7 +48,7 @@ namespace Dot42.CompilerLib.ILConversion
             {
                 // Only consider 
                 //   - methods that don't implement and interface or overwrite another method
-                //   - are not getters or setters
+                //   - are not getters or setters, if they don't hide a base setter/getter.
                 //   - are not event-adders or removers
                 //   - do not generics-rename Nullable<T>, as it is used heavily by the compiler.
                 //   - don't belong to Dot42.Internal namespace (as these are compiler-used)
@@ -56,7 +56,7 @@ namespace Dot42.CompilerLib.ILConversion
                 var consideredMethods = reachableContext.ReachableTypes.SelectMany(x => x.Methods)
                                                         .Where(m => !m.IsRuntimeSpecialName
                                                                     && m.GetDexOrJavaImportAttribute() == null
-                                                                    &&!m.IsGetter && !m.IsSetter
+                                                                    &&((!m.IsGetter && !m.IsSetter) || m.IsHideBySig)
                                                                     &&!m.IsExplicitImplementation()
                                                                     &&!DontConsiderForMethodRenaming(m.DeclaringType)
                                                                     && m.GetBaseMethod() == null
@@ -200,8 +200,10 @@ namespace Dot42.CompilerLib.ILConversion
 
             List<ParameterDefinition> types = new List<ParameterDefinition>(method.Parameters);
 
-            if (ReturnTypeSegregatesOverloads(method)) // Note that for CLR, the return type always segregates overloads.
-                                                       // It doesn't for C#, and that's what we are aiming at at the moment.
+            if (ReturnTypeSegregatesOverloads(methodDef) // Note that for CLR, the return type always segregates overloads.
+             || methodDef.IsHideBySig)                   // It doesn't for C# (and most high level languages), 
+                                                         // and that's what we are aiming at at the moment.
+                                                          
                 types.Add(new ParameterDefinition(method.ReturnType));
 
             foreach (var parm in types)
@@ -341,7 +343,7 @@ namespace Dot42.CompilerLib.ILConversion
             return null;
         }
 
-        private static bool ReturnTypeSegregatesOverloads(MethodReference method)
+        private static bool ReturnTypeSegregatesOverloads(MethodDefinition method)
         {
             return method.Name.StartsWith("op_Explicit", StringComparison.OrdinalIgnoreCase);
         }
