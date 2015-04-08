@@ -31,7 +31,7 @@ namespace Dot42.CompilerLib.XModel.DotNet
             /// </summary>
             public override string Name
             {
-                get { return method.Name + CreateSignAndGenericsPostfix(method); }
+                get { return method.Name; }
             }
 
             /// <summary>

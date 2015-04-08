@@ -133,6 +133,9 @@ namespace Dot42.CompilerLib.ILConversion
                 seq.AppendTo(body);
                 body.ComputeOffsets();
 
+                // add overrides, so that we can find the method later
+                bridge.Overrides.Add(baseMethod);
+
                 // Add to class
                 method.DeclaringType.Methods.Add(bridge);
                 bridge.SetReachable(reachableContext);
