@@ -11,6 +11,7 @@ using Dot42.CompilerLib.Reachable;
 using Dot42.LoaderLib.Extensions;
 using Dot42.Utility;
 using Mono.Cecil;
+using Mono.Cecil.Cil;
 
 namespace Dot42.CompilerLib.ILConversion
 {
@@ -38,9 +39,6 @@ namespace Dot42.CompilerLib.ILConversion
 
         private class Converter : ILConverter
         {
-            private List<MethodDefinition> reachableMethods;
-            private NameSet methodNames;
-
             /// <summary>
             /// Rename "new" methods that override a final base method.
             /// </summary>
@@ -53,6 +51,8 @@ namespace Dot42.CompilerLib.ILConversion
                 //   - do not generics-rename Nullable<T>, as it is used heavily by the compiler.
                 //   - don't belong to Dot42.Internal namespace (as these are compiler-used)
                 //   - [think about this: ] don't belong to interfaces in the System.* namespace (to reduce clutter; we know there are no clashes there)
+
+                // TODO: either check here or in CreateSignaturePostfix, but not at both places...
                 var consideredMethods = reachableContext.ReachableTypes.SelectMany(x => x.Methods)
                                                         .Where(m => !m.IsRuntimeSpecialName
                                                                     && m.GetDexOrJavaImportAttribute() == null
@@ -85,13 +85,28 @@ namespace Dot42.CompilerLib.ILConversion
                     return;
 
                 // Initialize some sets
-                reachableMethods = reachableContext.ReachableTypes
-                                                   .SelectMany(x => x.Methods)
-                                                   .Where(m => m.IsReachable)
-                                                   .OrderBy(x => x.FullName)
-                                                   .ToList();
+                var reachableMethods = reachableContext.ReachableTypes
+                                                       .SelectMany(x => x.Methods)
+                                                       .Where(m => m.IsReachable)
+                                                       .OrderBy(x => x.FullName)
+                                                       .ToList();
 
-                methodNames = new NameSet(reachableMethods.Select(m => m.Name));
+                var methodNames = new NameSet(reachableMethods.Select(m => m.Name));
+
+                var baseMethodsToImplementationOrOverride = reachableMethods.Except(methodsToRename.Keys)
+                                                                            .SelectMany(m=> m.GetBaseMethods()
+                                                                                    .Concat(m.GetBaseInterfaceMethods())
+                                                                                    .Concat(m.Overrides), 
+                                                                                        (e,m)=>new { Impl=e, Base=m})
+                                                                            .ToLookup(p=>p.Base, p=>p.Impl);
+
+                var reachableMethodReferences =  reachableMethods.Select(x => x.Body)
+                                                                 .Where(x => x != null)
+                                                                 .SelectMany(x=> x.Instructions)
+                                                                 .Where(i => i.Operand is MethodReference)
+                                                                 .Select(i=> ((MethodReference) i.Operand).GetElementMethod())
+                                                                 .ToList();
+                                                                                  
 
                 // Rename methods that need renaming
                 foreach (var keyVal in methodsToRename)
@@ -107,35 +122,17 @@ namespace Dot42.CompilerLib.ILConversion
 
                     if (method.IsVirtual && !method.IsFinal)
                     {
-                        foreach (var otherMethod in reachableMethods.Except(methodsToRename.Keys))
+                        foreach (var otherMethod in baseMethodsToImplementationOrOverride[method])
                         {
-                            var renamedBaseMethod = otherMethod.GetBaseMethods()
-                                            .Concat(otherMethod.GetBaseInterfaceMethods())
-                                            .Concat(otherMethod.Overrides)
-                                                               .FirstOrDefault(m => m == method);
-                            if (renamedBaseMethod != null)
-                            {
-                                // Rename this other method as well
-                                groupMethods.Add(otherMethod);
-                            }
+                            // Rename this other method as well
+                            groupMethods.Add(otherMethod);
                         }
                     }
-
-                    //// Add explicit implementations for interface methods 
-                    //foreach (var iMethod in method.GetBaseInterfaceMethods())
-                    //{
-                    //    var iMethodIsJavaWithGenericParams = iMethod.IsJavaMethodWithGenericParams();
-                    //    var explicitName = methodNames.GetUniqueName(method.DeclaringType.Name + "_" + iMethod.Name);
-                    //    var stub = InterfaceHelper.CreateExplicitStub(method, explicitName, iMethod, iMethodIsJavaWithGenericParams);
-                    //    stub.IsPrivate = true;
-                    //    stub.IsFinal = false;
-                    //    stub.IsVirtual = true;
-                    //}
 
                     // Rename all methods in the group
                     foreach (var m in groupMethods)
                     {
-                        Rename(m, newName);
+                        Rename(m, newName, reachableMethodReferences);
                     }
                 }
             }
@@ -143,19 +140,16 @@ namespace Dot42.CompilerLib.ILConversion
             /// <summary>
             /// Rename the given method and all references to it from code.
             /// </summary>
-            private void Rename(MethodDefinition method, string newName)
+            private void Rename(MethodDefinition method, string newName, IEnumerable<MethodReference> reachableMethodReferences)
             {
+                var resolver = new GenericsResolver(method.DeclaringType);
+
                 // Rename reference to method
-                foreach (var body in reachableMethods.Select(x => x.Body).Where(x => x != null))
+                foreach (var methodRef in reachableMethodReferences)
                 {
-                    var resolver = new GenericsResolver(method.DeclaringType);
-                    foreach (var ins in body.Instructions.Where(x => x.Operand is MethodReference))
+                    if (!ReferenceEquals(methodRef, method) && methodRef.AreSameIncludingDeclaringType(method, resolver.Resolve))
                     {
-                        var methodRef = ((MethodReference) ins.Operand).GetElementMethod();
-                        if (!ReferenceEquals(methodRef, method) && methodRef.AreSameIncludingDeclaringType(method, resolver.Resolve))
-                        {
-                            methodRef.Name = newName;
-                        }
+                        methodRef.Name = newName;
                     }
                 }
                 // Rename method itself
