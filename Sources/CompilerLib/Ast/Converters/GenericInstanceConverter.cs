@@ -274,6 +274,22 @@ namespace Dot42.CompilerLib.Ast.Converters
                     return loadExpr;
             }
 
+            if (type is XTypeSpecification)
+            {
+                var typeSpec = (XTypeSpecification)type;
+                var git = type as XGenericInstanceType;
+                var baseType = LoadTypeForGenericInstance(seqp, currentMethod, typeSpec.ElementType, compiler, typeHelperType, typeSystem, typeConversion, git);
+
+                if (typeConversion != TypeConversion.EnsureTrueOrMarkerType || typeSpec.GetElementType().IsNullableT())
+                    return baseType;
+
+                // Use the element type and make a generic proxy with the generic arguments.
+                var parameters = CreateGenericInstance(seqp, git, currentMethod, compiler);
+                var method = typeHelperType.Methods.First(m => m.Name == "GetGenericInstanceType");
+                return new AstExpression(seqp, AstCode.Call, method, baseType, parameters);
+            }
+
+
             if (typeConversion == TypeConversion.EnsureTrueOrMarkerType && type.GetElementType().IsNullableT())
             {
                 if (typeGenericArguments != null)
@@ -283,21 +299,6 @@ namespace Dot42.CompilerLib.Ast.Converters
                     return new AstExpression(seqp, code, underlying) { ExpectedType = typeSystem.Type };
                 }
                 // if typeGenericArguments is null, this is a generic definition, e.g. typeof(Nullable<>).
-            }
-
-            if (type is XTypeSpecification)
-            {
-                var typeSpec = (XTypeSpecification)type;
-                var git = type as XGenericInstanceType;
-                var baseType = LoadTypeForGenericInstance(seqp, currentMethod, typeSpec.ElementType, compiler, typeHelperType, typeSystem, typeConversion, git);
-
-                if (typeConversion != TypeConversion.EnsureTrueOrMarkerType)
-                    return baseType;
-
-                // Use the element type and make a generic proxy with the generic arguments.
-                var parameters = CreateGenericInstance(seqp, git, currentMethod, compiler);
-                var method = typeHelperType.Methods.First(m => m.Name == "GetGenericInstanceType");
-                return new AstExpression(seqp, AstCode.Call, method, baseType, parameters);
             }
 
             // Plain type reference or definition
