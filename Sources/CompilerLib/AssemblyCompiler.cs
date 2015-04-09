@@ -31,6 +31,7 @@ namespace Dot42.CompilerLib
         private readonly Dictionary<string, XTypeReference> internalTypeReferences = new Dictionary<string, XTypeReference>();
         private string freeAppsKey;
         private bool? addPropertyAnnotations;
+        private bool? addAssemblyTypesAnnotation;
         private readonly ITargetPackage targetPackage;
 
         /// <summary>
@@ -101,6 +102,10 @@ namespace Dot42.CompilerLib
             classBuilders.ForEach(x => x.FixUp(targetPackage));
             classBuilders.ForEach(x => x.GenerateCode(targetPackage));
             classBuilders.ForEach(x => x.CreateAnnotations(targetPackage));
+
+            if (AddAssemblyTypesAnnotations())
+                AssemblyTypesBuilder.CreateAssemblyTypesAnnotations(this, (Target.Dex.DexTargetPackage)targetPackage, reachableContext.ReachableTypes);
+
 
             // Compile all methods
             targetPackage.CompileToTarget(generateDebugInfo, mapFile);
@@ -221,6 +226,20 @@ namespace Dot42.CompilerLib
                 addPropertyAnnotations = properyInfoRef.TryResolve(out typeDef) && typeDef.IsReachable;
             }
             return addPropertyAnnotations.Value;
+        }
+
+        /// <summary>
+        /// Should property annotations be added?
+        /// </summary>
+        internal bool AddAssemblyTypesAnnotations()
+        {
+            if (!addAssemblyTypesAnnotation.HasValue)
+            {
+                var properyInfoRef = GetDot42InternalType("AssemblyTypes");
+                XTypeDefinition typeDef;
+                addAssemblyTypesAnnotation = properyInfoRef.TryResolve(out typeDef) && typeDef.IsReachable;
+            }
+            return addAssemblyTypesAnnotation.Value;
         }
 
         /// <summary>

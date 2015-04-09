@@ -8,6 +8,7 @@ using Dot42.CompilerLib.XModel;
 using Dot42.CompilerLib.XModel.DotNet;
 using Dot42.DexLib;
 using Dot42.Mapping;
+using Dot42.Utility;
 using FieldDefinition = Mono.Cecil.FieldDefinition;
 
 namespace Dot42.CompilerLib.Structure.DotNet
@@ -68,6 +69,12 @@ namespace Dot42.CompilerLib.Structure.DotNet
 
             // Set access flags
             SetAccessFlags(dfield, field);
+
+            // give warning if static in generic class.
+            if (field.IsStatic && declaringType.IsGenericClass)
+            {
+                DLog.Warning(DContext.CompilerILConverter, "Static field {0} in generic class {1}: All generic instances will share the same static field, contrary on how CLR operates. A workaround is to use ConcurrentDictionaries to access the values dependent on the type.", field.Name, declaringType.FullName);
+            }
         }
 
         /// <summary>

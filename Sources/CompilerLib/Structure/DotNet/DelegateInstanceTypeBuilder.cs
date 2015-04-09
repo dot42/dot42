@@ -157,7 +157,18 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 }
             }
 
+            AddAnnotations(calledMethod, @class, compiler, targetPackage);
+
             return new DelegateInstanceType(calledMethod, @class, ctor);
+        }
+
+        private static void AddAnnotations(XMethodDefinition calledMethod, ClassDefinition @class, AssemblyCompiler compiler, DexTargetPackage targetPackage)
+        {
+            var delegateMethod = compiler.GetDot42InternalType("IDelegateMethod")
+                                         .GetClassReference(targetPackage);
+            var anno = new Annotation(delegateMethod, AnnotationVisibility.Runtime,
+                                new AnnotationArgument("Method", calledMethod.GetReference(targetPackage)));
+            @class.Annotations.Add(anno);
         }
 
         /// <summary>

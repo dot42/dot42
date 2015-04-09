@@ -432,86 +432,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 // Properties
                 if ((methodBuilders != null) && compiler.AddPropertyAnnotations())
                 {
-                    // Find property accessors
-                    var propertyMap = new Dictionary<PropertyDefinition, MethodBuilder[]>();
-                    foreach (var methodBuilder in methodBuilders)
-                    {
-                        PropertyDefinition propertyDef;
-                        bool isSetter;
-                        if (!methodBuilder.IsPropertyAccessor(out propertyDef, out isSetter)) 
-                            continue;
-                        MethodBuilder[] accessors;
-                        if (!propertyMap.TryGetValue(propertyDef, out accessors))
-                        {
-                            accessors = new MethodBuilder[2];
-                            propertyMap[propertyDef] = accessors;
-                        }
-                        accessors[isSetter ? 1 : 0] = methodBuilder;
-                    }
-
-                    // Build annotations
-                    if (propertyMap.Count > 0)
-                    {
-                        var propertyClass = compiler.GetDot42InternalType("IProperty").GetClassReference(targetPackage);
-                        var propertiesClass = compiler.GetDot42InternalType("IProperties").GetClassReference(targetPackage);
-                        var propertyAnnotations = new List<Annotation>();
-
-                        foreach (var pair in propertyMap)
-                        {
-                            var provider = new PropertyAnnotationProvider { Annotations = new List<Annotation>() };
-                            AnnotationBuilder.Create(compiler, pair.Key, provider, targetPackage, true);
-                            
-                            string propName = pair.Key.Name;
-
-                            var ann = new Annotation(propertyClass, AnnotationVisibility.Runtime, 
-                                                                    new AnnotationArgument("Name", propName));
-                            if (pair.Value[0] != null)
-                            {
-                                var getter = pair.Value[0].DexMethod;
-
-                                if (getter.Prototype.Parameters.Count > 0)
-                                {
-                                    DLog.Info(DContext.CompilerCodeGenerator, "not generating property for getter with arguments " + getter);
-                                    continue;
-                                }
-                                
-                                var getterName = getter.Name;
-                                if(getterName != "get_" + propName)
-                                    ann.Arguments.Add(new AnnotationArgument("Get", getterName));
-
-                                
-                            }
-
-                            if (pair.Value[1] != null)
-                            {
-                                var setter = pair.Value[1].DexMethod;
-                                if (setter.Prototype.Parameters.Count != 1)
-                                {
-                                    DLog.Info(DContext.CompilerCodeGenerator, "not generating property for setter with wrong argument count " + setter);
-                                    continue;
-                                }
-
-
-                                var setterName = setter.Name;
-                                if (setterName != "set_" + propName)
-                                    ann.Arguments.Add(new AnnotationArgument("Set", setterName));
-                            }
-
-                            //propType = pair.Key.PropertyType;
-                            // Mono.Cecil.TypeReference propType = null;
-
-                            var attributes = provider.Annotations.FirstOrDefault();
-                            if (attributes != null && attributes.Arguments[0].Value != null)
-                            {
-                                ann.Arguments.Add(new AnnotationArgument("Attributes", attributes.Arguments[0].Value));
-                            }
-                            propertyAnnotations.Add(ann);
-                        }
-
-                        var propAnn = new Annotation(propertiesClass, AnnotationVisibility.Runtime,
-                                                     new AnnotationArgument("Properties", propertyAnnotations.ToArray()));
-                        Class.Annotations.Add(propAnn);
-                    }
+                    AddPropertiesAnnotation(targetPackage);
                 }
 
                 AddDefaultAnnotations(targetPackage);
@@ -525,6 +446,90 @@ namespace Dot42.CompilerLib.Structure.DotNet
 
             // Build method annotations
             if (methodBuilders != null) methodBuilders.ForEach(x => x.CreateAnnotations(targetPackage));
+        }
+
+        private void AddPropertiesAnnotation(DexTargetPackage targetPackage)
+        {
+            // Find property accessors
+            var propertyMap = new Dictionary<PropertyDefinition, MethodBuilder[]>();
+            foreach (var methodBuilder in methodBuilders)
+            {
+                PropertyDefinition propertyDef;
+                bool isSetter;
+                if (!methodBuilder.IsPropertyAccessor(out propertyDef, out isSetter))
+                    continue;
+                MethodBuilder[] accessors;
+                if (!propertyMap.TryGetValue(propertyDef, out accessors))
+                {
+                    accessors = new MethodBuilder[2];
+                    propertyMap[propertyDef] = accessors;
+                }
+                accessors[isSetter ? 1 : 0] = methodBuilder;
+            }
+
+            // Build annotations
+            if (propertyMap.Count > 0)
+            {
+                var propertyClass = compiler.GetDot42InternalType("IProperty").GetClassReference(targetPackage);
+                var propertiesClass = compiler.GetDot42InternalType("IProperties").GetClassReference(targetPackage);
+                var propertyAnnotations = new List<Annotation>();
+
+                foreach (var pair in propertyMap)
+                {
+                    var provider = new PropertyAnnotationProvider {Annotations = new List<Annotation>()};
+                    AnnotationBuilder.Create(compiler, pair.Key, provider, targetPackage, true);
+
+                    string propName = pair.Key.Name;
+
+                    var ann = new Annotation(propertyClass, AnnotationVisibility.Runtime,
+                        new AnnotationArgument("Name", propName));
+                    if (pair.Value[0] != null)
+                    {
+                        var getter = pair.Value[0].DexMethod;
+
+                        if (getter.Prototype.Parameters.Count > 0)
+                        {
+                            DLog.Info(DContext.CompilerCodeGenerator,
+                                "not generating property for getter with arguments " + getter);
+                            continue;
+                        }
+
+                        var getterName = getter.Name;
+                        if (getterName != "get_" + propName)
+                            ann.Arguments.Add(new AnnotationArgument("Get", getterName));
+                    }
+
+                    if (pair.Value[1] != null)
+                    {
+                        var setter = pair.Value[1].DexMethod;
+                        if (setter.Prototype.Parameters.Count != 1)
+                        {
+                            DLog.Info(DContext.CompilerCodeGenerator,
+                                "not generating property for setter with wrong argument count " + setter);
+                            continue;
+                        }
+
+
+                        var setterName = setter.Name;
+                        if (setterName != "set_" + propName)
+                            ann.Arguments.Add(new AnnotationArgument("Set", setterName));
+                    }
+
+                    //propType = pair.Key.PropertyType;
+                    // Mono.Cecil.TypeReference propType = null;
+
+                    var attributes = provider.Annotations.FirstOrDefault();
+                    if (attributes != null && attributes.Arguments[0].Value != null)
+                    {
+                        ann.Arguments.Add(new AnnotationArgument("Attributes", attributes.Arguments[0].Value));
+                    }
+                    propertyAnnotations.Add(ann);
+                }
+
+                var propAnn = new Annotation(propertiesClass, AnnotationVisibility.Runtime,
+                    new AnnotationArgument("Properties", propertyAnnotations.ToArray()));
+                Class.Annotations.Add(propAnn);
+            }
         }
 
         private void AddDefaultAnnotations(DexTargetPackage targetPackage)

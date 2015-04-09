@@ -53,7 +53,7 @@ namespace Dot42.CompilerLib.Naming
             var index = 0;
             while (names.Contains(result))
             {
-                result = originalName + index++;
+                result = originalName + "$" + index++;
             }
             names.Add(result);
             return result;
