@@ -407,7 +407,11 @@ namespace MonoTests.System.Collections.Generic {
 			IEnumerator itr = ((IEnumerable)_dictionary).GetEnumerator ();
 			while (itr.MoveNext ())	{
 				object o = itr.Current;
-				Assert.AreEqual (typeof (KeyValuePair<string,object>), o.GetType (), "Current should return a type of KeyValuePair");
+                
+                // dot42 GetType() always returns the instantiable class atm.
+                //Assert.AreEqual (typeof (KeyValuePair<string,object>), o.GetType (), "Current should return a type of KeyValuePair");
+                Assert.IsTrue (o is KeyValuePair<string, object>, "Current should return a type of KeyValuePair");
+
 				KeyValuePair<string,object> entry = (KeyValuePair<string,object>) itr.Current;
 			}
 			Assert.AreEqual ("value4", _dictionary ["key4"].ToString (), "");
@@ -424,8 +428,10 @@ namespace MonoTests.System.Collections.Generic {
 			IEnumerator <KeyValuePair <string, object>> itr = ((IEnumerable <KeyValuePair <string, object>>)_dictionary).GetEnumerator ();
 			while (itr.MoveNext ())	{
 				object o = itr.Current;
-				Assert.AreEqual (typeof (KeyValuePair <string, object>), o.GetType (), "Current should return a type of KeyValuePair<object,string>");
-				KeyValuePair <string, object> entry = (KeyValuePair <string, object>)itr.Current;
+                // dot42 GetType() always returns the instantiable class atm.
+                //Assert.AreEqual (typeof (KeyValuePair<string,object>), o.GetType (), "Current should return a type of KeyValuePair");
+                Assert.IsTrue(o is KeyValuePair<string, object>, "Current should return a type of KeyValuePair");
+                KeyValuePair<string, object> entry = (KeyValuePair<string, object>)itr.Current;
 			}
 			Assert.AreEqual ("value4", _dictionary ["key4"].ToString (), "");
 		}

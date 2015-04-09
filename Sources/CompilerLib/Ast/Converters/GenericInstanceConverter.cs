@@ -16,9 +16,9 @@ namespace Dot42.CompilerLib.Ast.Converters
         {
             // will not change the type
             None,
-            // Will change to nullable marker class if Nullable<T>
-            // (note: this could be expanded to support generic marker classes as well)
-            NullableTypeOf,
+            // Will change to nullable marker class if Nullable<T>, will load/create a generic
+            // proxy if generic instance like IEnumerable<T>, will keep the primitive type.
+            EnsureTrueOrMarkerType,
             // will make sure that the type is neither a marker class nor a primitive type
             EnsureRuntimeType,
         }
@@ -35,7 +35,7 @@ namespace Dot42.CompilerLib.Ast.Converters
             {
                 var type = (XTypeReference) node.Operand;
                 var typeHelperType = compiler.GetDot42InternalType(InternalConstants.TypeHelperName).Resolve();
-                var loadExpr = LoadTypeForGenericInstance(node.SourceLocation, currentMethod, type, typeHelperType, typeSystem, TypeConversion.None);
+                var loadExpr = LoadTypeForGenericInstance(node.SourceLocation, currentMethod, type, compiler, typeHelperType, typeSystem, TypeConversion.EnsureTrueOrMarkerType);
                 node.CopyFrom(loadExpr);
             }
 
@@ -47,7 +47,7 @@ namespace Dot42.CompilerLib.Ast.Converters
                 if (gp == null) continue;
 
                 var typeHelperType = compiler.GetDot42InternalType(InternalConstants.TypeHelperName).Resolve();
-                var loadExpr = LoadTypeForGenericInstance(node.SourceLocation, currentMethod, type, typeHelperType, typeSystem, TypeConversion.EnsureRuntimeType);
+                var loadExpr = LoadTypeForGenericInstance(node.SourceLocation, currentMethod, type, compiler, typeHelperType, typeSystem, TypeConversion.EnsureRuntimeType);
                 //// both types are boxed, no need for conversion.
                 var typeType = compiler.GetDot42InternalType("System", "Type").Resolve();
                 var isInstanceOfType = typeType.Methods.Single(n => n.Name == "JavaIsInstance" && n.Parameters.Count == 1);
@@ -65,7 +65,7 @@ namespace Dot42.CompilerLib.Ast.Converters
                     var typeHelperType = compiler.GetDot42InternalType(InternalConstants.TypeHelperName).Resolve();
                     // while having primitive arrays for primitive types would be nice, a lot of boxing and unboxing
                     // would be needed. only for-primitive-specialized generic classes could optimize this.
-                    var ldType = LoadTypeForGenericInstance(node.SourceLocation, currentMethod, type, typeHelperType, typeSystem, TypeConversion.EnsureRuntimeType);
+                    var ldType = LoadTypeForGenericInstance(node.SourceLocation, currentMethod, type, compiler, typeHelperType, typeSystem, TypeConversion.EnsureRuntimeType);
                     var newInstanceExpr = new AstExpression(node.SourceLocation, AstCode.ArrayNewInstance, null, ldType, node.Arguments[0]) { ExpectedType = typeSystem.Object };
                     var arrayType = new XArrayType(type);
                     var cast = new AstExpression(node.SourceLocation, AstCode.SimpleCastclass, arrayType, newInstanceExpr) { ExpectedType = arrayType };
@@ -190,8 +190,8 @@ namespace Dot42.CompilerLib.Ast.Converters
             for (var i = 0; i < count; i++)
             {
                 var argType = genericInstance.GenericArguments[i];
-                var typeExpr = LoadTypeForGenericInstance(seqp, currentMethod, argType, typeHelperType, compiler.Module.TypeSystem, 
-                                                          TypeConversion.NullableTypeOf);
+                var typeExpr = LoadTypeForGenericInstance(seqp, currentMethod, argType, compiler, typeHelperType, compiler.Module.TypeSystem, 
+                                                          TypeConversion.EnsureTrueOrMarkerType);
                 typeExpressions.Add(typeExpr);
             }
 
@@ -202,14 +202,16 @@ namespace Dot42.CompilerLib.Ast.Converters
         /// <summary>
         /// Create an expression that loads the given type at runtime.
         /// </summary>
-        private static AstExpression LoadTypeForGenericInstance(ISourceLocation seqp, MethodSource currentMethod, XTypeReference type, XTypeDefinition typeHelperType, XTypeSystem typeSystem, TypeConversion typeConversion, XGenericInstanceType typeGenericArguments=null)
+        private static AstExpression LoadTypeForGenericInstance(ISourceLocation seqp, MethodSource currentMethod, 
+                    XTypeReference type, AssemblyCompiler compiler, XTypeDefinition typeHelperType, XTypeSystem typeSystem, 
+                    TypeConversion typeConversion, XGenericInstanceType typeGenericArguments=null)
         {
             if (type.IsArray)
             {
                 // Array type
                 var arrayType = (XArrayType)type;
                 // Load element type
-                var prefix = LoadTypeForGenericInstance(seqp, currentMethod, ((XArrayType)type).ElementType, typeHelperType, typeSystem, typeConversion);
+                var prefix = LoadTypeForGenericInstance(seqp, currentMethod, ((XArrayType)type).ElementType, compiler, typeHelperType, typeSystem, typeConversion);
                 // Convert to array type
                 if (arrayType.Dimensions.Count() == 1)
                 {
@@ -255,7 +257,7 @@ namespace Dot42.CompilerLib.Ast.Converters
                     if (owner.GetElementMethod().Resolve().DeclaringType.HasDexImportAttribute())
                     {
                         // Imported type
-                        return LoadTypeForGenericInstance(seqp, currentMethod, type.Module.TypeSystem.Object, typeHelperType, typeSystem, typeConversion);
+                        return LoadTypeForGenericInstance(seqp, currentMethod, type.Module.TypeSystem.Object, compiler, typeHelperType, typeSystem, typeConversion);
                     }
                     gi = LoadMethodGenericInstance(seqp, typeSystem);
                 }
@@ -271,16 +273,8 @@ namespace Dot42.CompilerLib.Ast.Converters
                 else
                     return loadExpr;
             }
-            
-            if (type is XTypeSpecification)
-            {
-                // Just use the element type
-                var typeSpec = (XTypeSpecification)type;
-                var git = type as XGenericInstanceType;
-                return LoadTypeForGenericInstance(seqp, currentMethod, typeSpec.ElementType, typeHelperType, typeSystem, typeConversion, git);
-            }
-            
-            if (typeConversion == TypeConversion.NullableTypeOf && type.GetElementType().IsNullableT())
+
+            if (typeConversion == TypeConversion.EnsureTrueOrMarkerType && type.GetElementType().IsNullableT())
             {
                 if (typeGenericArguments != null)
                 {
@@ -288,8 +282,22 @@ namespace Dot42.CompilerLib.Ast.Converters
                     var code = underlying.IsPrimitive ? AstCode.BoxedTypeOf : AstCode.NullableTypeOf;
                     return new AstExpression(seqp, code, underlying) { ExpectedType = typeSystem.Type };
                 }
-                // should not happen...
-                throw new Exception("unable to infer generic arguments: " + currentMethod + ": " + type);
+                // if typeGenericArguments is null, this is a generic definition, e.g. typeof(Nullable<>).
+            }
+
+            if (type is XTypeSpecification)
+            {
+                var typeSpec = (XTypeSpecification)type;
+                var git = type as XGenericInstanceType;
+                var baseType = LoadTypeForGenericInstance(seqp, currentMethod, typeSpec.ElementType, compiler, typeHelperType, typeSystem, typeConversion, git);
+
+                if (typeConversion != TypeConversion.EnsureTrueOrMarkerType)
+                    return baseType;
+
+                // Use the element type and make a generic proxy with the generic arguments.
+                var parameters = CreateGenericInstance(seqp, git, currentMethod, compiler);
+                var method = typeHelperType.Methods.First(m => m.Name == "GetGenericInstanceType");
+                return new AstExpression(seqp, AstCode.Call, method, baseType, parameters);
             }
 
             // Plain type reference or definition

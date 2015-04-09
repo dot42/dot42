@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Junit.Framework;
 using Android.Graphics;
 
@@ -99,8 +101,38 @@ namespace Dot42.Tests.Compiler.Sources
         {
             AssertTrue(new GenericClass<int>(42).IsInt(3));
         }
-    
 
+        public void testNestedGenerics()
+        {
+            var g = new GenericClass<List<int>>(new List<int>());
+
+            AssertTrue(g.GetTypeofT().IsGenericType);
+            AssertFalse(g.GetTypeofT().IsGenericTypeDefinition);
+            AssertEquals(typeof(int), g.GetTypeofT().GetGenericArguments()[0]);
+        }
+
+        public void testNestedGenericInterface()
+        {
+            var type = typeof (List<int>);
+            Console.WriteLine(type.FullName);
+            
+            Type collectionInterface = null;
+
+            foreach (var i in type.GetInterfaces())
+            {
+                Console.WriteLine(i.FullName);
+
+                if (i.FullName.Contains("Collection`1"))
+                    collectionInterface = i;
+            }
+            
+            AssertNotNull(collectionInterface);
+            
+            var arg0 = collectionInterface.GetGenericArguments()[0];
+            Console.WriteLine(arg0.FullName);
+
+            AssertEquals(typeof(int), arg0);
+        }
         
         public class Base
         {
