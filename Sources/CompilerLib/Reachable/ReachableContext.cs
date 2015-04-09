@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Dot42.CompilerLib.Ast.Extensions;
@@ -203,10 +204,15 @@ namespace Dot42.CompilerLib.Reachable
 
                 // Make sure all implementations of reachable interface methods are included
                 var reachableInterfaceMethods = reachableTypes.Where(x => x.IsInterface).SelectMany(x => x.Methods).Where(x => x.IsReachable).ToList();
+                var reachableInterfaces = reachableInterfaceMethods.Select(m => m.DeclaringType.GetElementType())
+                                                                   .Distinct();
+                var reachableTypesByInterfaces = reachableInterfaces.SelectMany(iface => reachableTypes.Where(x => x.Implements(iface)), Tuple.Create)
+                                                                    .ToLookup(e => e.Item1,  e=>e.Item2);
+                                                                    
                 foreach (var method in reachableInterfaceMethods)
                 {
                     var interfaceType = method.DeclaringType.GetElementType();
-                    var implementedBy = reachableTypes.Where(x => x.Implements(interfaceType)).ToList();
+                    var implementedBy = reachableTypesByInterfaces[interfaceType];
                     foreach (var type in implementedBy)
                     {
                         var implementation = method.GetImplementation(type);
