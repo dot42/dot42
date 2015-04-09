@@ -47,12 +47,6 @@ namespace Dot42.CompilerLib.Ast.Converters
             {
                 ConvertRet(compiler, node, typeSystem, currentMethod);
             }
-
-            foreach (var node in ast.GetSelfAndChildrenRecursive<AstExpression>(x => x.Code == AstCode.Call))
-            {
-                ConvertCallIsAssignableFrom(compiler, node, typeSystem);
-            }
-
         }
 
         /// <summary>
@@ -94,6 +88,11 @@ namespace Dot42.CompilerLib.Ast.Converters
 
             if (castMethod != null)
             {
+                // make sure we don't evaluate the expression twice.
+                var tempVar = new AstGeneratedVariable("temp$$", "") { Type = compiler.Module.TypeSystem.Object };
+                var storeTempVar = new AstExpression(node.SourceLocation, AstCode.Stloc, tempVar, node.Arguments[0]) { ExpectedType =compiler.Module.TypeSystem.Object} ;
+                var loadTempVar = new AstExpression(node.SourceLocation, AstCode.Ldloc, tempVar).SetType(compiler.Module.TypeSystem.Object);
+
                 // Call cast method
                 var arrayHelper = compiler.GetDot42InternalType(InternalConstants.CompilerHelperName).Resolve();
                 var castToArray = arrayHelper.Methods.First(x => x.Name == castMethod);
@@ -101,13 +100,13 @@ namespace Dot42.CompilerLib.Ast.Converters
                 // Call "(x instanceof T) ? (T)x : asMethod(x)"
 
                 // "instanceof x"
-                var instanceofExpr = new AstExpression(node.SourceLocation, AstCode.SimpleInstanceOf, type, node.Arguments[0]).SetType(typeSystem.Bool);
+                var instanceofExpr = new AstExpression(node.SourceLocation, AstCode.SimpleInstanceOf, type, storeTempVar).SetType(typeSystem.Bool);
 
                 // CastX(x)
-                var castXExpr = new AstExpression(node.SourceLocation, AstCode.Call, castToArray, node.Arguments[0]).SetType(typeSystem.Object);
+                var castXExpr = new AstExpression(node.SourceLocation, AstCode.Call, castToArray, loadTempVar).SetType(typeSystem.Object);
 
                 // T(x)
-                var txExpr = new AstExpression(node.SourceLocation, AstCode.SimpleCastclass, type, node.Arguments[0]).SetType(type);
+                var txExpr = new AstExpression(node.SourceLocation, AstCode.SimpleCastclass, type, loadTempVar).SetType(type);
 
                 // Combine
                 var conditional = new AstExpression(node.SourceLocation, AstCode.Conditional, type, instanceofExpr, txExpr, castXExpr).SetType(type);
@@ -157,6 +156,12 @@ namespace Dot42.CompilerLib.Ast.Converters
                 asMethod = "AsFormattable";
             }
 
+            // make sure we don't evaluate the expression twice.
+            var tempVar = new AstGeneratedVariable("temp$$", "") { Type = compiler.Module.TypeSystem.Object };
+            var storeTempVar = new AstExpression(node.SourceLocation, AstCode.Stloc, tempVar, node.Arguments[0]) { ExpectedType = compiler.Module.TypeSystem.Object };
+            var loadTempVar = new AstExpression(node.SourceLocation, AstCode.Ldloc, tempVar).SetType(compiler.Module.TypeSystem.Object);
+
+
             if (asMethod != null)
             {
                 // Call "(x instanceof T) ? (T)x : asMethod(x)"
@@ -164,13 +169,13 @@ namespace Dot42.CompilerLib.Ast.Converters
                 var asArray = arrayHelper.Methods.First(x => x.Name == asMethod);
 
                 // "instanceof x"
-                var instanceofExpr = new AstExpression(node.SourceLocation, AstCode.SimpleInstanceOf, type, node.Arguments[0]).SetType(typeSystem.Bool);
+                var instanceofExpr = new AstExpression(node.SourceLocation, AstCode.SimpleInstanceOf, type, storeTempVar).SetType(typeSystem.Bool);
 
                 // AsX(x)
-                var asXExpr = new AstExpression(node.SourceLocation, AstCode.Call, asArray, node.Arguments[0]).SetType(typeSystem.Object);
+                var asXExpr = new AstExpression(node.SourceLocation, AstCode.Call, asArray, loadTempVar).SetType(typeSystem.Object);
 
                 // T(x)
-                var txExpr = new AstExpression(node.SourceLocation, AstCode.SimpleCastclass, type, node.Arguments[0]).SetType(type);
+                var txExpr = new AstExpression(node.SourceLocation, AstCode.SimpleCastclass, type, loadTempVar).SetType(type);
 
                 // Combine
                 var conditional = new AstExpression(node.SourceLocation, AstCode.Conditional, type, instanceofExpr, txExpr, asXExpr).SetType(type);
@@ -182,10 +187,10 @@ namespace Dot42.CompilerLib.Ast.Converters
             // Normal "as": Convert to (x instanceof T) ? T(x) : null
             {
                 // "instanceof x"
-                var instanceofExpr = new AstExpression(node.SourceLocation, AstCode.SimpleInstanceOf, type, node.Arguments[0]).SetType(typeSystem.Bool);
+                var instanceofExpr = new AstExpression(node.SourceLocation, AstCode.SimpleInstanceOf, type, storeTempVar).SetType(typeSystem.Bool);
 
                 // T(x)
-                var txExpr = new AstExpression(node.SourceLocation, AstCode.SimpleCastclass, type, node.Arguments[0]).SetType(type);
+                var txExpr = new AstExpression(node.SourceLocation, AstCode.SimpleCastclass, type, loadTempVar).SetType(type);
 
                 // null
                 var nullExpr = new AstExpression(node.SourceLocation, AstCode.Ldnull, null).SetType(typeSystem.Object);
@@ -294,6 +299,11 @@ namespace Dot42.CompilerLib.Ast.Converters
                 return;
             }
 
+            // make sure we don't evaluate the expression twice.
+            var tempVar = new AstGeneratedVariable("temp$$", "") { Type = compiler.Module.TypeSystem.Object };
+            var storeTempVar = new AstExpression(node.SourceLocation, AstCode.Stloc, tempVar, node.Arguments[0]) { ExpectedType = compiler.Module.TypeSystem.Object };
+            var loadTempVar = new AstExpression(node.SourceLocation, AstCode.Ldloc, tempVar).SetType(compiler.Module.TypeSystem.Object);
+
             if (type.IsSystemCollectionsIEnumerable() ||
                 type.IsSystemCollectionsICollection() ||
                 type.IsSystemCollectionsIList())
@@ -303,10 +313,10 @@ namespace Dot42.CompilerLib.Ast.Converters
                 var isArray = arrayHelper.Methods.First(x => x.Name == "IsArray" && x.Parameters.Count == 1);
 
                 // "is" 
-                var isExpr = new AstExpression(node).SetCode(AstCode.SimpleInstanceOf);
+                var isExpr = new AstExpression(node).SetArguments(storeTempVar).SetCode(AstCode.SimpleInstanceOf);
 
                 // Call IsArray
-                var isArrayExpr = new AstExpression(node.SourceLocation, AstCode.Call, isArray, node.Arguments).SetType(typeSystem.Bool);
+                var isArrayExpr = new AstExpression(node.SourceLocation, AstCode.Call, isArray, loadTempVar).SetType(typeSystem.Bool);
 
                 // Combined
                 var combined = new AstExpression(node.SourceLocation, AstCode.Or, null, isExpr, isArrayExpr).SetType(typeSystem.Bool);
@@ -329,10 +339,10 @@ namespace Dot42.CompilerLib.Ast.Converters
                 var isFormattable = formattable.Methods.First(x => x.Name == "IsVirtualFormattable");
 
                 // "is" 
-                var isExpr = new AstExpression(node).SetCode(AstCode.SimpleInstanceOf);
+                var isExpr = new AstExpression(node).SetArguments(storeTempVar).SetCode(AstCode.SimpleInstanceOf);
 
                 // Call IsFormattable
-                var isFormattableExpr = new AstExpression(node.SourceLocation, AstCode.Call, isFormattable, node.Arguments).SetType(typeSystem.Bool);
+                var isFormattableExpr = new AstExpression(node.SourceLocation, AstCode.Call, isFormattable, loadTempVar).SetType(typeSystem.Bool);
 
                 // Combined
                 var combined = new AstExpression(node.SourceLocation, AstCode.Or, null, isExpr, isFormattableExpr).SetType(typeSystem.Bool);
@@ -342,55 +352,6 @@ namespace Dot42.CompilerLib.Ast.Converters
 
             // Normal instanceof
             node.Code = AstCode.SimpleInstanceOf;            
-        }
-
-        /// <summary>
-        /// Convert node with code IsAssignableFrom 
-        /// 
-        /// Only works if the this parameter is a constant type (typeof(IEnumerable), etc)
-        /// [ that is, it doesn't work if an intermediate method is called to check for
-        ///   IsAssignableFrom ]
-        /// </summary>
-        private static void ConvertCallIsAssignableFrom(AssemblyCompiler compiler, AstExpression node, XTypeSystem typeSystem)
-        {
-            var targetMethodRef = ((XMethodReference)node.Operand);
-            if (!targetMethodRef.DeclaringType.IsSystemType()) 
-                return;
-            if (targetMethodRef.Name != "IsAssignableFrom")
-                return;
-            if (node.Arguments.Count != 2) 
-                return;
-
-            var firstArg = node.Arguments[0];
-            if (firstArg.Code != AstCode.TypeOf)
-                return;
-
-            var type = (XTypeReference)firstArg.Operand;
-
-            if (type.IsSystemCollectionsIEnumerable() ||
-                type.IsSystemCollectionsICollection() ||
-                type.IsSystemCollectionsIList())
-            {
-                // Call "IsAssignableFrom(x) || x.GetIsArray()"
-                var isArray = targetMethodRef.DeclaringType.Resolve().Methods.First(x => x.Name == "get_IsArray" && x.Parameters.Count == 0 && !x.IsStatic);
-
-                // originalExpression
-                var isExpr = new AstExpression(node);
-
-                // Call IsArray
-                var isArrayExpr = new AstExpression(node.SourceLocation, AstCode.Call, isArray, node.Arguments[1])
-                                            .SetType(typeSystem.Bool);
-
-                // Combined
-                var combined = new AstExpression(node.SourceLocation, AstCode.Or, null, isExpr, isArrayExpr)
-                                            .SetType(typeSystem.Bool);
-                node.CopyFrom(combined);
-
-                return;
-            }
-
-            // TODO: make this work with the generic collections as well.
-            
         }
     }
 }
