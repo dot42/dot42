@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
@@ -405,6 +406,21 @@ namespace Dot42.Tests.System.Threading.Tasks
             }
 
             Assert.IsTrue(exceptionThrown, "No exception was thrown");
+        }
+
+        [Test]
+        public void TestTaskRun()
+        {
+            long taskThreadId = Thread.CurrentThread.Id;
+            long mainThreadId = Thread.CurrentThread.Id;
+
+            Action a = () => taskThreadId = Thread.CurrentThread.Id;
+
+            Task.Run(a).Wait();
+
+            Console.WriteLine("MainThreadId: {0}; Task.Run ThreadId: {1}", mainThreadId, taskThreadId);
+
+            Assert.AreNotEqual(mainThreadId, taskThreadId);
         }
     }
 }
