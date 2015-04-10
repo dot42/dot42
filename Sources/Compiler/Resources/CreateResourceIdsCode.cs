@@ -100,7 +100,7 @@ namespace Dot42.Compiler.Resources
 
                 if (styleableDeclarations.Any())
                 {
-                    var styleableTypeDef = new CodeTypeDeclaration("Styleables");
+                    var styleableTypeDef = new CodeTypeDeclaration("Styleable");
                     styleableTypeDef.IsClass = true;
                     styleableTypeDef.TypeAttributes = TypeAttributes.AnsiClass | TypeAttributes.Class | TypeAttributes.Sealed | TypeAttributes.NestedPublic;
                     rType.Members.Add(styleableTypeDef);
@@ -115,7 +115,7 @@ namespace Dot42.Compiler.Resources
 
                         // Array
                         var list = string.Join(", ", declaration.AttributeNames.Select(x => FormatAttributeName(x, null)));
-                        var arrayField = new CodeSnippetTypeMember("public static readonly int[] AllIds = new[] { " + list + " };");
+                        var arrayField = new CodeSnippetTypeMember("                public static readonly int[] AllIds = new[] { " + list + " };");
                         typeDef.Members.Add(arrayField);                        
 
                         foreach (var attr in declaration.AttributeNames)
@@ -140,7 +140,7 @@ namespace Dot42.Compiler.Resources
                 x = x.Substring(0, 1).ToUpper() + x.Substring(1);
                 return string.Format("Android.R.Attr.{0}", x); // Never a mask
             }
-            result = string.Format("R.Attrs.{0}", x);
+            result = string.Format("R.Attr.{0}", x);
             if (mask.HasValue)
             {
                 result += string.Format(" & 0x{0:x}", mask.Value);
@@ -151,8 +151,8 @@ namespace Dot42.Compiler.Resources
         private static string CreateTypeSpecName(Table.TypeSpec typeSpec)
         {
             var name = Utility.NameConverter.UpperCamelCase(typeSpec.Name);
-            if (!name.EndsWith("s"))
-                name += "s";
+            //if (!name.EndsWith("s"))
+            //    name += "s";
             return name;
         }
 
