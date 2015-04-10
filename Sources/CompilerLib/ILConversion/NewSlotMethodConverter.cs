@@ -89,7 +89,7 @@ namespace Dot42.CompilerLib.ILConversion
                     {
                         var iMethodIsJavaWithGenericParams = iMethod.IsJavaMethodWithGenericParams();
                         var explicitName = methodNames.GetUniqueName(method.DeclaringType.Name + "_" + iMethod.Name);
-                        var stub = InterfaceHelper.CreateExplicitStub(method, explicitName, iMethod, iMethodIsJavaWithGenericParams);
+                        var stub = InterfaceHelper.CreateExplicitStub(method.DeclaringType, method, explicitName, iMethod, iMethodIsJavaWithGenericParams);
                         stub.IsPrivate = true;
                         stub.IsFinal = false;
                         stub.IsVirtual = true;

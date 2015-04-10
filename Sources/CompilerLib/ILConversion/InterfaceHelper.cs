@@ -10,7 +10,7 @@ namespace Dot42.CompilerLib.ILConversion
         /// Create a new method in the declaring type of the given implicit implementation with the given name.
         /// This method will call the implicit implementation.
         /// </summary>
-        internal static MethodDefinition CreateExplicitStub(MethodDefinition implicitImpl, string name, MethodDefinition iMethod, bool avoidGenericParam)
+        internal static MethodDefinition CreateExplicitStub(TypeDefinition targetType, MethodDefinition implicitImpl, string name, MethodDefinition iMethod, bool avoidGenericParam)
         {
             MethodReference implicitImplRef = implicitImpl;
             GenericInstanceMethod implicitGenericInstanceMethod=null;
@@ -43,7 +43,6 @@ namespace Dot42.CompilerLib.ILConversion
             }
 
             // Add the method
-            var targetType = implicitImpl.DeclaringType;
             targetType.Methods.Add(newMethod);
 
 

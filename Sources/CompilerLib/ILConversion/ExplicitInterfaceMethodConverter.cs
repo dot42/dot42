@@ -129,7 +129,7 @@ namespace Dot42.CompilerLib.ILConversion
                 var implementations = GetImplementations(iMethod);
                 var iMethodIsJavaWithGenericParams = iMethod.IsJavaMethodWithGenericParams();
                 var iMethodContainsGenericParams = iMethod.ContainsGenericParameter;
-                if (!iMethodIsJavaWithGenericParams && !iMethodContainsGenericParams && (!implementations.Any(x => x.IsExplicitImplementation())))
+                if (!iMethodIsJavaWithGenericParams && !iMethodContainsGenericParams && (!implementations.Any(x => x.Item2.IsExplicitImplementation())))
                 {
                     // There are no explicit implementation.
                     // No need to convert
@@ -165,8 +165,11 @@ namespace Dot42.CompilerLib.ILConversion
 
               
                 // Update implementations
-                foreach (var impl in implementations)
+                foreach (var typeAndImpl in implementations)
                 {
+                    var type = typeAndImpl.Item1;
+                    var impl = typeAndImpl.Item2;
+
                     if (impl.IsExplicitImplementation())
                     {
                         // Convert to implicit
@@ -185,20 +188,21 @@ namespace Dot42.CompilerLib.ILConversion
                         // Add stub redirecting explicit implementation to implicit implementation
                         if (createExplicitStubs)
                         {
-                            CreateExplicitStub(impl, newName, oldName, iMethod, iMethodIsJavaWithGenericParams /*|| iMethodContainsGenericParams*/);
+                            CreateExplicitStub(type, impl, newName, oldName, iMethod, iMethodIsJavaWithGenericParams /*|| iMethodContainsGenericParams*/);
                         }
                     }
                 }
             }
 
             /// <summary>
-            /// Create a new method in the declaring type of the given implicit implementation with the given new name.
+            /// Create a new method in the targetType which implements or inherits the implicit implementation 
+            /// with the given new name.
             /// This method will call the implicit implementation.
             /// </summary>
-            private void CreateExplicitStub(MethodDefinition implicitImpl, string newName, string oldName, MethodDefinition iMethod, bool avoidGenericParam)
+            private void CreateExplicitStub(TypeDefinition targetType, MethodDefinition implicitImpl, string newName, string oldName, MethodDefinition iMethod, bool avoidGenericParam)
             {
                 // Create method
-                var newMethod = InterfaceHelper.CreateExplicitStub(implicitImpl, newName, iMethod, avoidGenericParam);
+                var newMethod = InterfaceHelper.CreateExplicitStub(targetType, implicitImpl, newName, iMethod, avoidGenericParam);
 
                 // Record 
                 addedStubs.Add(Tuple.Create(newMethod, oldName));
@@ -246,12 +250,14 @@ namespace Dot42.CompilerLib.ILConversion
             /// <summary>
             /// Gets all implementations of the given interface method.
             /// </summary>
-            private List<MethodDefinition> GetImplementations(MethodDefinition iMethod)
+            private List<Tuple<TypeDefinition,MethodDefinition>> GetImplementations(MethodDefinition iMethod)
             {
                 var iType = iMethod.DeclaringType;
                 var typesThatImplement = reachableContext.ReachableTypes.Where(x => x.Implements(iType)).ToList();
 
-                return typesThatImplement.Select(x => iMethod.GetImplementation(x)).Where(x => x != null).ToList();
+                return typesThatImplement.Select(x => Tuple.Create(x, iMethod.GetImplementation(x)))
+                                         .Where(x => x.Item2 != null)
+                                         .ToList();
             }
         }
     }
