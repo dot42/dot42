@@ -26,7 +26,7 @@ namespace Dot42.CompilerLib.ILConversion
         /// </summary>
         public int Priority
         {
-            get { return int.MaxValue; } // Do this at the very latest.
+            get { return 500; } // Do this at the at a late stage.
         }
 
         /// <summary>

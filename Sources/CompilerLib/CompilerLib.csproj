@@ -148,6 +148,7 @@
     <Compile Include="IL2Ast\AstILVariable.cs" />
     <Compile Include="ILConversion\AsyncStateMachineConverter.cs" />
     <Compile Include="ILConversion\MethodGenericClassOverrideConverter.cs" />
+    <Compile Include="ILConversion\MethodInterfaceImportedlmpementationsConverter.cs" />
     <Compile Include="ILConversion\MethodUniqueSignatureConverter.cs" />
     <Compile Include="ILConversion\SystemEnumRedirectionConverter.cs" />
     <Compile Include="ILConversion\StructSemanticsMethods.cs" />
