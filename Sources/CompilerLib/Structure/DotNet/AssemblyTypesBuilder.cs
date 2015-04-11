@@ -21,8 +21,16 @@ namespace Dot42.CompilerLib.Structure.DotNet
             foreach (var type in reachableTypes)
             {
                 var assemblyName = type.module.Assembly.Name.Name;
-                if(assemblyName == "dot42") 
-                    continue;
+                if (assemblyName == "dot42")
+                {
+                    // group all android types into virtual "android" assembly,
+                    // so that MvvmCross can find all view-types.
+                    // -- is this a hack?
+                    if (type.Namespace.StartsWith("Android"))
+                        assemblyName = "android";
+                    else // ignore other types.
+                        continue;
+                }
                 var a = new Annotation(iAssemblyType, AnnotationVisibility.Runtime,
                     new AnnotationArgument("AssemblyName", assemblyName),
                     new AnnotationArgument("Type", type.GetReference(targetPackage, compiler.Module)));
