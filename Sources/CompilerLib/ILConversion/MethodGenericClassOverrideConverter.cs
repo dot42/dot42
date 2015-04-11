@@ -11,7 +11,7 @@ using Mono.Cecil.Cil;
 namespace Dot42.CompilerLib.ILConversion
 {
     [Export(typeof (ILConverterFactory))]
-    internal class GenericClassMethodOverrideConverter : ILConverterFactory
+    internal class MethodGenericClassOverrideConverter : ILConverterFactory
     {
         /// <summary>
         /// Low values come first

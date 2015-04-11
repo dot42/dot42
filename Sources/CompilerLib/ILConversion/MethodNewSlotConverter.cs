@@ -11,7 +11,7 @@ using Mono.Cecil;
 namespace Dot42.CompilerLib.ILConversion
 {
     [Export(typeof (ILConverterFactory))]
-    internal class NewSlotMethodConverter : ILConverterFactory
+    internal class MethodNewSlotConverter : ILConverterFactory
     {
         /// <summary>
         /// Low values come first
@@ -66,6 +66,14 @@ namespace Dot42.CompilerLib.ILConversion
                 reachableMethods = reachableContext.ReachableTypes.SelectMany(x => x.Methods).Where(m => m.IsReachable).OrderBy(x => x.FullName).ToList();
                 methodNames = new NameSet(reachableMethods.Select(m => m.Name));
 
+                var reachableMethodReferences = InterfaceHelper.GetReachableMethodReferences(reachableMethods);
+
+                var baseMethodToImplementation = reachableMethods.Except(methodsToRename)
+                                                                 .SelectMany(m => m.GetBaseMethods(),
+                                                                             (e, m) => new { Impl = e, Base = m })
+                                                                 .ToLookup(p => p.Base, p => p.Impl);
+
+
                 // Rename methods that need renaming
                 foreach (var method in methodsToRename)
                 {
@@ -74,16 +82,13 @@ namespace Dot42.CompilerLib.ILConversion
 
                     // Find all methods that derive from method
                     var groupMethods = new HashSet<MethodDefinition> { method };
-                    foreach (var otherMethod in reachableMethods.Except(methodsToRename))
-                    {
-                        var renamedBaseMethod = otherMethod.GetBaseMethods().FirstOrDefault(methodsToRename.Contains);
-                        if (renamedBaseMethod == method)
-                        {
-                            // Rename this other method as well
-                            groupMethods.Add(otherMethod);
-                        }
-                    }
 
+                    foreach (var otherMethod in baseMethodToImplementation[method])
+                    {
+                        // Rename this other method as well
+                        groupMethods.Add(otherMethod);
+                    }
+                    
                     // Add explicit implementations for interface methods 
                     foreach (var iMethod in method.GetBaseInterfaceMethods())
                     {
@@ -98,32 +103,12 @@ namespace Dot42.CompilerLib.ILConversion
                     // Rename all methods in the group
                     foreach (var m in groupMethods)
                     {
-                        Rename(m, newName);
+                        InterfaceHelper.Rename(m, newName, reachableMethodReferences);
                     }
                 }
             }
 
-            /// <summary>
-            /// Rename the given method and all references to it from code.
-            /// </summary>
-            private void Rename(MethodDefinition method, string newName)
-            {
-                // Rename reference to method
-                foreach (var body in reachableMethods.Select(x => x.Body).Where(x => x != null))
-                {
-                    var resolver = new GenericsResolver(method.DeclaringType);
-                    foreach (var ins in body.Instructions.Where(x => x.Operand is MethodReference))
-                    {
-                        var methodRef = ((MethodReference) ins.Operand).GetElementMethod();
-                        if (!ReferenceEquals(methodRef, method) && methodRef.AreSameIncludingDeclaringType(method, resolver.Resolve))
-                        {
-                            methodRef.Name = newName;
-                        }
-                    }
-                }
-                // Rename method itself
-                method.Name = newName;
-            }
+           
         }
     }
 }

@@ -19,7 +19,7 @@ namespace Dot42.CompilerLib.ILConversion
     /// this class makes sure all methods have a unique name in the target namespace.
     /// </summary>
     [Export(typeof (ILConverterFactory))]
-    internal class UniqueSignatureMethodConverter : ILConverterFactory
+    internal class MethodUniqueSignatureConverter : ILConverterFactory
     {
         /// <summary>
         /// Low values come first
@@ -93,19 +93,14 @@ namespace Dot42.CompilerLib.ILConversion
 
                 var methodNames = new NameSet(reachableMethods.Select(m => m.Name));
 
-                var baseMethodsToImplementationOrOverride = reachableMethods.Except(methodsToRename.Keys)
-                                                                            .SelectMany(m=> m.GetBaseMethods()
+                var baseMethodToImplementationOrOverride = reachableMethods.Except(methodsToRename.Keys)
+                                                                           .SelectMany(m=> m.GetBaseMethods()
                                                                                     .Concat(m.GetBaseInterfaceMethods())
                                                                                     .Concat(m.Overrides), 
                                                                                         (e,m)=>new { Impl=e, Base=m})
-                                                                            .ToLookup(p=>p.Base, p=>p.Impl);
+                                                                           .ToLookup(p=>p.Base, p=>p.Impl);
 
-                var reachableMethodReferences =  reachableMethods.Select(x => x.Body)
-                                                                 .Where(x => x != null)
-                                                                 .SelectMany(x=> x.Instructions)
-                                                                 .Where(i => i.Operand is MethodReference)
-                                                                 .Select(i=> ((MethodReference) i.Operand).GetElementMethod())
-                                                                 .ToList();
+                var reachableMethodReferences = InterfaceHelper.GetReachableMethodReferences(reachableMethods);
                                                                                   
 
                 // Rename methods that need renaming
@@ -122,7 +117,7 @@ namespace Dot42.CompilerLib.ILConversion
 
                     if (method.IsVirtual && !method.IsFinal)
                     {
-                        foreach (var otherMethod in baseMethodsToImplementationOrOverride[method])
+                        foreach (var otherMethod in baseMethodToImplementationOrOverride[method])
                         {
                             // Rename this other method as well
                             groupMethods.Add(otherMethod);
@@ -132,29 +127,12 @@ namespace Dot42.CompilerLib.ILConversion
                     // Rename all methods in the group
                     foreach (var m in groupMethods)
                     {
-                        Rename(m, newName, reachableMethodReferences);
+                        InterfaceHelper.Rename(m, newName, reachableMethodReferences);
                     }
                 }
             }
 
-            /// <summary>
-            /// Rename the given method and all references to it from code.
-            /// </summary>
-            private void Rename(MethodDefinition method, string newName, IEnumerable<MethodReference> reachableMethodReferences)
-            {
-                var resolver = new GenericsResolver(method.DeclaringType);
-
-                // Rename reference to method
-                foreach (var methodRef in reachableMethodReferences)
-                {
-                    if (!ReferenceEquals(methodRef, method) && methodRef.AreSameIncludingDeclaringType(method, resolver.Resolve))
-                    {
-                        methodRef.Name = newName;
-                    }
-                }
-                // Rename method itself
-                method.Name = newName;
-            }
+           
         }
 
         /// <summary>
@@ -194,9 +172,11 @@ namespace Dot42.CompilerLib.ILConversion
 
             List<ParameterDefinition> types = new List<ParameterDefinition>(method.Parameters);
 
-            if (ReturnTypeSegregatesOverloads(methodDef) // Note that for CLR, the return type always segregates overloads.
-             || methodDef.IsHideBySig)                   // It doesn't for C# (and most high level languages), 
-                                                         // and that's what we are aiming at at the moment.
+            if (ReturnTypeSegregatesOverloads(methodDef) 
+             || (methodDef.IsHideBySig && !method.ReturnType.IsVoid())) // TODO: check if it is ok to exlude Void here.
+                                                        // Note that for CLR, the return type always segregates overloads.
+                                                        // It doesn't for C# (and most high level languages), 
+                                                        // and that's what we are aiming at at the moment.
                                                           
                 types.Add(new ParameterDefinition(method.ReturnType));
 

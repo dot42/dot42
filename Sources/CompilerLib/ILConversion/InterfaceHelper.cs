@@ -1,4 +1,7 @@
-﻿using Dot42.CompilerLib.Extensions;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Dot42.CecilExtensions;
+using Dot42.CompilerLib.Extensions;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
@@ -76,6 +79,36 @@ namespace Dot42.CompilerLib.ILConversion
             }
 
             return newMethod;
+        }
+
+        public static List<MethodReference> GetReachableMethodReferences(IEnumerable<MethodDefinition> reachableMethods)
+        {
+            var reachableMethodReferences = reachableMethods.Select(x => x.Body)
+                                                            .Where(x => x != null)
+                                                            .SelectMany(x => x.Instructions)
+                                                            .Where(i => i.Operand is MethodReference)
+                                                            .Select(i => ((MethodReference)i.Operand).GetElementMethod())
+                                                            .ToList();
+            return reachableMethodReferences;
+        }
+
+        /// <summary>
+        /// Rename the given method and all references to it from code.
+        /// </summary>
+        public static void Rename(MethodDefinition method, string newName, IEnumerable<MethodReference> reachableMethodReferences)
+        {
+            var resolver = new GenericsResolver(method.DeclaringType);
+
+            // Rename reference to method
+            foreach (var methodRef in reachableMethodReferences)
+            {
+                if (!ReferenceEquals(methodRef, method) && methodRef.AreSameIncludingDeclaringType(method, resolver.Resolve))
+                {
+                    methodRef.Name = newName;
+                }
+            }
+            // Rename method itself
+            method.Name = newName;
         }
     }
 }

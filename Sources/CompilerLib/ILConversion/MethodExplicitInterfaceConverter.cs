@@ -16,7 +16,7 @@ using Mono.Cecil.Cil;
 namespace Dot42.CompilerLib.ILConversion
 {
     [Export(typeof (ILConverterFactory))]
-    internal class ExplicitInterfaceMethodConverter : ILConverterFactory
+    internal class MethodExplicitInterfaceConverter : ILConverterFactory
     {
         /// <summary>
         /// Low values come first

@@ -12,7 +12,7 @@ namespace Dot42.CompilerLib.ILConversion
     /// Replace synchronized methods with lock constructs.
     /// </summary>
     [Export(typeof (ILConverterFactory))]
-    internal class SynchronizedMethods : ILConverterFactory
+    internal class MethodSynchronizedConverter : ILConverterFactory
     {
         /// <summary>
         /// Low values come first
