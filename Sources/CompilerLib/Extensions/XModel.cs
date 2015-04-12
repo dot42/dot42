@@ -8,6 +8,8 @@ using Dot42.CompilerLib.XModel;
 using Dot42.DexLib;
 using Dot42.JvmClassLib;
 using Dot42.Utility;
+using Microsoft.CSharp;
+using Mono.Cecil.Cil;
 using ArrayType = Dot42.DexLib.ArrayType;
 using ByReferenceType = Dot42.DexLib.ByReferenceType;
 using FieldReference = Dot42.DexLib.FieldReference;
@@ -140,7 +142,14 @@ namespace Dot42.CompilerLib.Extensions
             // Handle generic parameters
             if (type.IsGenericParameter)
             {
-                return new ClassReference("java/lang/Object");
+                //var gp = (XGenericParameter) type;
+                //var constraints = gp.Constraints;
+                
+                // use the first constraint as type, if is is a class or if there is only one.
+                //if(constraints.Length == 0 || (constraints.Length > 1 && constraints[0].Resolve().IsInterface))
+                    return new ClassReference("java/lang/Object");
+                
+                //return constraints[0].GetReference(targetPackage);
             }
 
             // Handle out/ref types
@@ -168,6 +177,9 @@ namespace Dot42.CompilerLib.Extensions
 
                     
                     var typeofT = git.GenericArguments[0];
+
+                    if(typeofT.IsGenericParameter) // use object.
+                        return new ClassReference("java/lang/Object");
 
                     XTypeDefinition typeofTDef;
                     if (!typeofT.TryResolve(out typeofTDef))

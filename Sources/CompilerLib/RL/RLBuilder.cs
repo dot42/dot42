@@ -127,9 +127,7 @@ namespace Dot42.CompilerLib.RL
                 return new RLRange(first, last, rUnboxed);                
             }
 
-            bool isGeneric = type.IsGenericParameter || (type.IsByReference && type.ElementType.IsGenericParameter);
-
-            if (!isGeneric)
+            if (!type.IsGenericParameter)
             {
                 // Just cast
                 var checkCast = builder.Add(sequencePoint, RCode.Check_cast, type.GetReference(targetPackage), source);

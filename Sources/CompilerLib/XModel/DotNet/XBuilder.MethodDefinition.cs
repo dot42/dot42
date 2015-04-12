@@ -30,6 +30,7 @@ namespace Dot42.CompilerLib.XModel.DotNet
                 : base(declaringType)
             {
                 this.method = method;
+                OriginalReturnType = method.ReturnType;
             }
 
             public MethodDefinition OriginalMethod { get { return method; } }
@@ -190,6 +191,8 @@ namespace Dot42.CompilerLib.XModel.DotNet
                     return useInvokeInterface.Value;
                 }
             }
+
+            public TypeReference OriginalReturnType { get; set; }
 
             /// <summary>
             /// Should this method be called with invoke_interface?
@@ -359,6 +362,12 @@ namespace Dot42.CompilerLib.XModel.DotNet
                 }
                 attr.GetDexOrJavaImportNames(method, out methodName, out descriptor, out className);
                 return true;
+            }
+
+            public void SetInheritedReturnType(TypeReference type)
+            {
+                OriginalReturnType = method.ReturnType;
+                method.ReturnType = type;
             }
         }
     }

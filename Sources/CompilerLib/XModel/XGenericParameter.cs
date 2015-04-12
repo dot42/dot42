@@ -31,6 +31,14 @@
         public override string GetFullName(bool noGenerics)
         {
             return noGenerics ? "System.Object" : Name;
+            //if (!noGenerics) return Name;
+
+            //var c = Constraints;
+
+            //if (c.Length == 0 || (c.Length > 1 && c[0].Resolve().IsInterface))
+            //    return "System.Object";
+
+            //return c[0].GetFullName(true);
         }
 
         /// <summary>
@@ -47,6 +55,8 @@
         /// Gets the index of this generic parameter in the owners list of generic parameters.
         /// </summary>
         public abstract int Position { get; }
+
+        public virtual XTypeReference[] Constraints { get {  return new XTypeReference[0];} } 
 
         /// <summary>
         /// What kind of reference is this?

@@ -21,7 +21,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
         private readonly MethodDefinition method;
         private DexLib.MethodDefinition dmethod;
         private CompiledMethod compiledMethod;
-        private XMethodDefinition xMethod;
+        private XBuilder.ILMethodDefinition xMethod;
 
         /// <summary>
         /// Default ctor
@@ -55,7 +55,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
         public void Create(ClassDefinition declaringClass, DexTargetPackage targetPackage)
         {
             // Find xMethod
-            xMethod = XBuilder.AsMethodDefinition(compiler.Module, method);
+            xMethod = (XBuilder.ILMethodDefinition)XBuilder.AsMethodDefinition(compiler.Module, method);
 
             // Create method definition
             dmethod = new DexLib.MethodDefinition();
@@ -120,16 +120,33 @@ namespace Dot42.CompilerLib.Structure.DotNet
         public void FixUp(DexTargetPackage targetPackage)
         {
             var iMethod = method.GetBaseInterfaceMethod();
+            Mono.Cecil.TypeReference inheritedReturnType = null;
             //var iMethod = method.Overrides.Select(x => x.Resolve()).Where(x => x != null).FirstOrDefault(x => x.DeclaringType.IsInterface);
             if (iMethod != null)
             {
-                dmethod.Prototype.ReturnType = iMethod.ReturnType.GetReference(targetPackage, compiler.Module);
+                inheritedReturnType = iMethod.ReturnType;
             }
 
             var baseMethod = method.GetBaseMethod();
             if (baseMethod != null)
             {
-                dmethod.Prototype.ReturnType = baseMethod.ReturnType.GetReference(targetPackage, compiler.Module);                
+                inheritedReturnType = baseMethod.ReturnType;
+            }
+
+            
+            if (inheritedReturnType != null)
+            {
+                var inheritedTargetReturnType = inheritedReturnType.GetReference(targetPackage, compiler.Module);
+                if (inheritedTargetReturnType.Descriptor != dmethod.Prototype.ReturnType.Descriptor)
+                {
+                    dmethod.Prototype.ReturnType = inheritedTargetReturnType;
+
+                    //// update the original method's return type as well, 
+                    //// to make sure the code generation later knows what it is handling.
+                    //// TODO: this seems to be a hack. should't this have been handled 
+                    ////       during the IL-conversion phase?
+                    xMethod.SetInheritedReturnType(inheritedReturnType);
+                }
             }
         }
 
@@ -162,7 +179,15 @@ namespace Dot42.CompilerLib.Structure.DotNet
             {
                 // only add generics annotation for getters or setters.
                 if (method.IsGetter)
-                    dmethod.AddGenericDefinitionAnnotationIfGeneric(xMethod.ReturnType, compiler, targetPackage);
+                {
+                    // Note that the return type might has been 
+                    // changed above, to compensate for interface 
+                    // inheritance and generic specialization.
+                    // We need to use the original declaration.
+                    var returnType = xMethod.OriginalReturnType;
+                    var xType = XBuilder.AsTypeReference(compiler.Module, returnType);
+                    dmethod.AddGenericDefinitionAnnotationIfGeneric(xType, compiler, targetPackage);
+                }
                 else if (method.IsSetter)
                     for (int i = 0; i < xMethod.Parameters.Count; ++i)
                     {

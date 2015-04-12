@@ -410,8 +410,10 @@
         SimpleCastclass,
         SimpleInstanceOf,
 
-        // Unox the argument from a generic value.
+        // Unbox the argument from a generic value.
         UnboxFromGeneric,
+        // Box the argument to a generic value.
+        BoxToGeneric,
 
         // Class the ctor of the base class. (int)Operand is the number of parameters.
         CallBaseCtor,

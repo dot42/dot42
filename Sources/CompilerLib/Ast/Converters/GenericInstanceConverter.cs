@@ -170,6 +170,9 @@ namespace Dot42.CompilerLib.Ast.Converters
 
         /// <summary>
         /// Build expression that creates an instance of GenericInstance with arguments from the given .NET generic instance.
+        /// 
+        /// (basically creates an array with the type parameters)
+        /// TODO: optimize the common case where an existing array is only cloned, and use that instead.
         /// </summary>
         private static AstExpression CreateGenericInstance(ISourceLocation seqp, XReference member, MethodSource currentMethod, AssemblyCompiler compiler)
         {

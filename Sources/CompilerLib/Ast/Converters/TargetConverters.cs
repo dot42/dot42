@@ -50,7 +50,7 @@ namespace Dot42.CompilerLib.Ast.Converters
             ConvertBeforeStoreConversionConverter.Convert(ast);
             CleanupConverter.Convert(ast);
 
-            GenericsConverter.Convert(ast);
+            GenericsConverter.Convert(ast, currentMethod);
 
             // Expand cast expressions
             CastConverter.Convert(ast, currentMethod, compiler);

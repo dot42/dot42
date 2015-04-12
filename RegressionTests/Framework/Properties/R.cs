@@ -10,7 +10,7 @@ namespace Dot42.Tests
     public sealed class R
     {
         
-        public sealed class Ids
+        public sealed class Id
         {
         }
     }

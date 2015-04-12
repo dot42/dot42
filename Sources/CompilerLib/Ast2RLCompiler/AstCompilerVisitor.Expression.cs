@@ -1188,6 +1188,7 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                         if (elementType.IsGenericParameter)
                         {
                             var returnType = node.GetResultType();
+
                             var tmp = this.Unbox(node.SourceLocation, r, returnType, compiler, targetPackage, frame);
                             last = tmp.Last;
                             r = tmp.Result;
@@ -1204,6 +1205,42 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                             else
                             {
                                 var tmp = this.Unbox(node.SourceLocation, r, returnType, compiler, targetPackage, frame);
+                                last = tmp.Last;
+                                r = tmp.Result;
+                            }
+                        }
+                        return new RLRange(start, last, r);
+                    }
+
+                case AstCode.BoxToGeneric:
+                    {
+                        // Get result
+                        var elementType = (XTypeReference)node.Operand;
+                        var r = args[0].Result;
+                        var start = this.Add(node.SourceLocation, RCode.Nop);
+                        var last = start;
+
+                        // Convert result when needed
+                        if (elementType.IsGenericParameter)
+                        {
+                            var returnType = node.GetResultType();
+
+                            var tmp = this.Box(node.SourceLocation, r, returnType, targetPackage, frame);
+                            last = tmp.Last;
+                            r = tmp.Result;
+                        }
+                        else if (elementType.IsGenericParameterArray())
+                        {
+                            var returnType = node.GetResultType();
+                            if (returnType.IsPrimitiveArray())
+                            {
+                                var tmp = this.BoxGenericArray(node.SourceLocation, r, returnType, targetPackage, frame, compiler);
+                                last = tmp.Last;
+                                r = tmp.Result;
+                            }
+                            else
+                            {
+                                var tmp = this.Box(node.SourceLocation, r, returnType, targetPackage, frame);
                                 last = tmp.Last;
                                 r = tmp.Result;
                             }

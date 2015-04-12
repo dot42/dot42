@@ -1,4 +1,6 @@
-﻿using Mono.Cecil;
+﻿using System;
+using System.Linq;
+using Mono.Cecil;
 
 namespace Dot42.CompilerLib.XModel.DotNet
 {
@@ -11,6 +13,7 @@ namespace Dot42.CompilerLib.XModel.DotNet
         {
             private readonly GenericParameter p;
             private IXGenericParameterProvider owner;
+            private readonly Lazy<XTypeReference[]> constraints;
 
             /// <summary>
             /// Default ctor
@@ -19,6 +22,8 @@ namespace Dot42.CompilerLib.XModel.DotNet
                 base(module)
             {
                 this.p = p;
+                constraints = new Lazy<XTypeReference[]>(()=>
+                    p.Constraints.Select(k=>AsTypeReference(module, k)).ToArray());
             }
 
             /// <summary>
@@ -41,6 +46,8 @@ namespace Dot42.CompilerLib.XModel.DotNet
             {
                 get { return p.Position; }
             }
+
+            public override XTypeReference[] Constraints { get { return constraints.Value; } }
         }
     }
 }
