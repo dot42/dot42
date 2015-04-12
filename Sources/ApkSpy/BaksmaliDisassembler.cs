@@ -44,7 +44,7 @@ namespace Dot42.ApkSpy
                 dex.Write(dexFileName);
 
                 // run baksmali
-                string cmd = string.Format(@"{0} {1} {2} -o {3}", _settings.BaksmaliCommand, _settings.BaksmaliParameters, dexFileName, tempPath);
+                var cmd = GetBacksmaliCommand(_settings, dexFileName, tempPath);
 
                 ret.AppendLine("# processed with: " + cmd);
                 ret.AppendLine("#");
@@ -85,5 +85,9 @@ namespace Dot42.ApkSpy
 
         }
 
+        public static string GetBacksmaliCommand(ISpySettings settings, string dexFileName, string outputPath)
+        {
+            return string.Format(@"{0} {1} {2} -o {3}", settings.BaksmaliCommand, settings.BaksmaliParameters, dexFileName, outputPath);
+        }
     }
 }

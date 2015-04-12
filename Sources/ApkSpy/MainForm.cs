@@ -1,9 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using Dot42.ApkSpy.IPC;
 using Dot42.ApkSpy.Tree;
+using Ookii.Dialogs;
 using TallComponents.Common.Util;
 using Node = Dot42.ApkSpy.Tree.Node;
 
@@ -343,6 +347,41 @@ namespace Dot42.ApkSpy
                     SettingsPersitor.BaksmaliCommand = dlg.BaksmaliCommand;
                     SettingsPersitor.BaksmaliParameters = dlg.BaksmaliParameter;
                 }
+            }
+        }
+
+        private void miFileExportCode_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(BaksmaliCommand))
+                miConfigureBaksmali_Click(sender, e);
+            if (string.IsNullOrEmpty(BaksmaliCommand))
+                return;
+            
+            VistaFolderBrowserDialog dlg= new VistaFolderBrowserDialog();
+            if (dlg.ShowDialog(this) != DialogResult.OK)
+                return;
+
+            var cmd = BaksmaliDisassembler.GetBacksmaliCommand(this, originalPath, dlg.SelectedPath);
+            List<string> output = new List<string>();
+            int ret = Run.System(output, cmd);
+
+            if (ret != 0 || output.Any())
+            {
+                StringBuilder msg = new StringBuilder();
+                if (ret != 0)
+                {
+                    msg.Append("Return value was: ");
+                    msg.Append(ret);
+                    msg.AppendLine();
+                    msg.AppendLine();
+                }
+                msg.Append(string.Join("\n", output));
+
+                MessageBox.Show(this, msg.ToString(), "Results", MessageBoxButtons.OK);
+            }
+            else
+            {
+                Process.Start(dlg.SelectedPath);
             }
         }
     }

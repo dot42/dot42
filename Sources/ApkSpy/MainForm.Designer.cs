@@ -44,6 +44,8 @@ namespace Dot42.ApkSpy
             this.miConfigureBaksmali = new System.Windows.Forms.ToolStripMenuItem();
             this.miDebug = new System.Windows.Forms.ToolStripMenuItem();
             this.miShowAst = new System.Windows.Forms.ToolStripMenuItem();
+            this.miFileExportCode = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             ((System.ComponentModel.ISupportInitialize)(this.mainContainer)).BeginInit();
             this.mainContainer.Panel1.SuspendLayout();
             this.mainContainer.SuspendLayout();
@@ -110,6 +112,8 @@ namespace Dot42.ApkSpy
             // 
             this.miFile.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.miFileOpen,
+            this.miFileExportCode,
+            this.toolStripSeparator2,
             this.miFileRecent});
             this.miFile.Name = "miFile";
             this.miFile.Size = new System.Drawing.Size(37, 20);
@@ -120,14 +124,14 @@ namespace Dot42.ApkSpy
             // 
             this.miFileOpen.Name = "miFileOpen";
             this.miFileOpen.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
-            this.miFileOpen.Size = new System.Drawing.Size(148, 22);
-            this.miFileOpen.Text = "Open";
+            this.miFileOpen.Size = new System.Drawing.Size(192, 22);
+            this.miFileOpen.Text = "&Open";
             this.miFileOpen.Click += new System.EventHandler(this.miFileOpen_Click);
             // 
             // miFileRecent
             // 
             this.miFileRecent.Name = "miFileRecent";
-            this.miFileRecent.Size = new System.Drawing.Size(148, 22);
+            this.miFileRecent.Size = new System.Drawing.Size(192, 22);
             this.miFileRecent.Text = "Recently used";
             // 
             // optionsToolStripMenuItem
@@ -144,19 +148,19 @@ namespace Dot42.ApkSpy
             // 
             this.miEnableBaksmali.CheckOnClick = true;
             this.miEnableBaksmali.Name = "miEnableBaksmali";
-            this.miEnableBaksmali.Size = new System.Drawing.Size(254, 22);
+            this.miEnableBaksmali.Size = new System.Drawing.Size(248, 22);
             this.miEnableBaksmali.Text = "&Use Baksmali to show dex classes";
             this.miEnableBaksmali.Click += new System.EventHandler(this.miEnableBaksmali_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(251, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(245, 6);
             // 
             // miConfigureBaksmali
             // 
             this.miConfigureBaksmali.Name = "miConfigureBaksmali";
-            this.miConfigureBaksmali.Size = new System.Drawing.Size(254, 22);
+            this.miConfigureBaksmali.Size = new System.Drawing.Size(248, 22);
             this.miConfigureBaksmali.Text = "&Configure Baksmali...";
             this.miConfigureBaksmali.Click += new System.EventHandler(this.miConfigureBaksmali_Click);
             // 
@@ -172,8 +176,20 @@ namespace Dot42.ApkSpy
             // 
             this.miShowAst.CheckOnClick = true;
             this.miShowAst.Name = "miShowAst";
-            this.miShowAst.Size = new System.Drawing.Size(123, 22);
+            this.miShowAst.Size = new System.Drawing.Size(152, 22);
             this.miShowAst.Text = "Show Ast";
+            // 
+            // miFileExportCode
+            // 
+            this.miFileExportCode.Name = "miFileExportCode";
+            this.miFileExportCode.Size = new System.Drawing.Size(192, 22);
+            this.miFileExportCode.Text = "&Export with baksmali...";
+            this.miFileExportCode.Click += new System.EventHandler(this.miFileExportCode_Click);
+            // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(189, 6);
             // 
             // MainForm
             // 
@@ -211,5 +227,7 @@ namespace Dot42.ApkSpy
         private System.Windows.Forms.ToolStripMenuItem miEnableBaksmali;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem miConfigureBaksmali;
+        private System.Windows.Forms.ToolStripMenuItem miFileExportCode;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
     }
 }

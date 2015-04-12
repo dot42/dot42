@@ -42,6 +42,9 @@
     <Reference Include="ICSharpCode.TextEditor">
       <HintPath>..\..\SharpDevelop\src\AddIns\Misc\PackageManagement\Packages\ICSharpCode.TextEditor\lib\Net20\ICSharpCode.TextEditor.dll</HintPath>
     </Reference>
+    <Reference Include="Ookii.Dialogs">
+      <HintPath>..\..\Common\Ookii.Dialogs\Ookii.Dialogs.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
