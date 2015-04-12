@@ -224,6 +224,27 @@ namespace Dot42.CompilerLib.RL
                 }
             }
 
+            if (sourceType.IsGenericParameter && !destinationType.IsSystemObject())
+            {
+                var gp = (XGenericParameter) sourceType;
+                if (gp.Constraints.Length > 0)
+                {
+                    // we could find the best matching constraint here, and check if we actually
+                    // need to cast. This would probably allow us to skip some unneccesary casts.
+                    // We would need some sort of IsAssignableFrom though, and I'm not sure we have
+                    // this logic with XTypeDefinition implemented yet.
+                    // Therefore, we just assume that the original compiler has done its job well,
+                    // and always cast to the destination type.
+                    // Apparently dex seems not to need a cast when destinationType is an interface. 
+                    // Since i'm not to sure about this, we nevertheless insert the cast here. 
+                    // [TODO: check if this is needed]
+                    var tmp = builder.EnsureTemp(sequencePoint, source, frame);
+                    var cast = builder.Add(sequencePoint, RCode.Check_cast, destinationType.GetReference(targetPackage), tmp.Result);
+                    converted = true;
+                    return new RLRange(tmp, cast, tmp.Result);
+                }
+            }
+
             // Do not convert
             return new RLRange(source);
         }

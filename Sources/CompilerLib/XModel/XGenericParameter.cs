@@ -30,15 +30,12 @@
         /// </summary>
         public override string GetFullName(bool noGenerics)
         {
-            return noGenerics ? "System.Object" : Name;
-            //if (!noGenerics) return Name;
+            if (!noGenerics) return Name;
 
-            //var c = Constraints;
+            if(!this.AllowConstraintAsTypeReference())
+                return "System.Object";
 
-            //if (c.Length == 0 || (c.Length > 1 && c[0].Resolve().IsInterface))
-            //    return "System.Object";
-
-            //return c[0].GetFullName(true);
+            return Constraints[0].GetFullName(true);
         }
 
         /// <summary>

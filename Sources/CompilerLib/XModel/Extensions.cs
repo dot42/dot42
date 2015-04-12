@@ -426,6 +426,30 @@ namespace Dot42.CompilerLib.XModel
             return type.TryResolve(out typeDef) && typeDef.IsStruct;
         }
 
+        public static bool AllowConstraintAsTypeReference(this XGenericParameter gp)
+        {
+            return false;
+
+            // TODO: to allow type contraints to replace System.Object seems to be quite
+            //       a good idea, especially when one wants to decompile or convert to
+            //       java. I couldn't get it to work in some corner cases (see compiler tests)
+            //       so I'm leaving it disabled for now.
+            //var constraints = gp.Constraints;
+            //// use the first constraint as type, if is is a class or if there is only one.
+            //if (constraints.Length == 0)
+            //    return false;
+            //// primitive types are no value types.
+            //if (constraints[0].IsValueType || constraints[0].FullName == "System.ValueType")
+            //    return false;
+            
+
+            //// don't prefer one interface over others.
+            //if (constraints.Length > 1 && constraints[0].Resolve().IsInterface)
+            //    return false;
+
+            //return true;
+        }
+
         /// <summary>
         /// Is the given type a base class of the given child?
         /// </summary>

@@ -69,5 +69,23 @@ namespace Dot42.Tests.Compiler.Sources
 #endif
         }
 
+        public void testCreateInstanceCallWithoutCast()
+        {
+            var dict = Activator.CreateInstance<Dictionary<string, int>>();
+            dict.Add("Test1", 1);
+            AssertEquals(1, dict["Test1"]);
+        }
+
+        public void testCreateInstanceCallWithoutCast2()
+        {
+            createInstanceCallWithoutCast2<Dictionary<string, int>>();
+        }
+
+        private void createInstanceCallWithoutCast2<T>() where T : IDictionary<string, int>
+        {
+            var dict = Activator.CreateInstance<T>();
+            dict.Add("Test1", 1);
+            AssertEquals(1, dict["Test1"]);
+        }
     }
 }

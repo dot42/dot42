@@ -140,16 +140,16 @@ namespace Dot42.CompilerLib.Extensions
             }
 
             // Handle generic parameters
-            if (type.IsGenericParameter)
+            if (type.IsGenericParameter || (type.IsByReference && type.ElementType.IsGenericParameter))
             {
-                //var gp = (XGenericParameter) type;
-                //var constraints = gp.Constraints;
-                
-                // use the first constraint as type, if is is a class or if there is only one.
-                //if(constraints.Length == 0 || (constraints.Length > 1 && constraints[0].Resolve().IsInterface))
-                    return new ClassReference("java/lang/Object");
-                
-                //return constraints[0].GetReference(targetPackage);
+                if (type.IsByReference) // this should be possible as well, but would need some more code at some other places.
+                    return new ByReferenceType(new ClassReference("java/lang/Object"));
+
+                var gp = (XGenericParameter) type;
+                if (gp.AllowConstraintAsTypeReference())
+                    return gp.Constraints[0].GetReference(targetPackage);
+
+                return new ClassReference("java/lang/Object");
             }
 
             // Handle out/ref types
