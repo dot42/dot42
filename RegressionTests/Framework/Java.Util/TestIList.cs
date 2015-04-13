@@ -11,7 +11,7 @@ namespace Dot42.Tests.Java.Util
             IList<string> list = new ArrayList<string>();
             list.Add("hoi");
             list.Add("noot");
-            AssertEquals(2, list.Count);
+            AssertEquals(2, list.Size());
         }
 
         public void testGetItem()

@@ -33,7 +33,7 @@ namespace Dot42.Tests.System.Net
             if (wifiManager == null) throw new global::Java.Lang.Exception("Cannot get WifiManager");
 
             var networks = wifiManager.ConfiguredNetworks;
-            if ((networks == null) || (networks.Count == 0))
+            if ((networks == null) || (networks.Size() == 0))
             {
                 Log.D("dot42", "No configured WIFI networks.");
                 // don't hang if no network is available, e.g. in emulator.

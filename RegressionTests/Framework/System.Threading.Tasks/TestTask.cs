@@ -381,6 +381,13 @@ namespace Dot42.Tests.System.Threading.Tasks
         }
 
         [Test]
+        public void TestFromResult()
+        {
+            var task = Task.FromResult(0);
+            Assert.AreEqual(TaskStatus.RanToCompletion, task.Status);
+        }
+
+        [Test]
         public void ExceptionTest()
         {
             bool exceptionThrown = false;

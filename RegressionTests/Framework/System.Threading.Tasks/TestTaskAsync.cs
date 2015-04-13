@@ -223,6 +223,32 @@ namespace Dot42.Tests.System.Threading.Tasks
         }
 
         [Test]
+        public async void TestWaitAll()
+        {
+            var startTime = global::Java.Lang.System.CurrentTimeMillis();
+            var task1 = Task.Delay(500);
+            var task2 = Task.Delay(50);
+            var task3 = Task.FromResult(0);
+            await Task.WhenAll(new[] {task1, task2, task3});
+            var endTime = global::Java.Lang.System.CurrentTimeMillis();
+            Assert.IsTrue((endTime - startTime) >= 500);
+        }
+
+        [Test]
+        public async void TestWaitAny()
+        {
+            var startTime = global::Java.Lang.System.CurrentTimeMillis();
+            var task1 = Task.Delay(500);
+            var task2 = Task.Delay(50);
+
+            await Task.WhenAny(new[] { task1, task2});
+
+            var endTime = global::Java.Lang.System.CurrentTimeMillis();
+            var duration = (endTime - startTime);
+            Assert.IsTrue(duration < 500 && duration >= 50);
+        }
+
+        [Test]
         public async void ExceptionTest()
         {
             bool exceptionThrown = false;
