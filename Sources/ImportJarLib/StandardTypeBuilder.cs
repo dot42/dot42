@@ -23,11 +23,18 @@ namespace Dot42.ImportJarLib
 
         private static readonly string[][] FixedNamespacePrefixRenames =
         {
+            new[] {"android.accessibilityservice", "Android.AccessibilityServices"},
+            new[] {"android.content.pm", "Android.Content.PM"},
+            new[] {"android.gesture", "Android.Gestures"},
+            new[] {"android.graphics.drawable", "Android.Graphics.Drawables"},
+            new[] {"android.inputmethodservice", "Android.InputMethodServices"},
+            new[] {"android.location", "Android.Locations"},
             new[] {"android.os", "Android.OS"},
+            new[] {"android.preference", "Android.Preferences"},
+            new[] {"android.renderscript", "Android.Renderscripts"},
             new[] {"android.view.animation", "Android.Views.Animations"},
             new[] {"android.view", "Android.Views"},
-            new[] {"android.graphics.drawable", "Android.Graphics.Drawables"},
-            
+            new[] {"java.io", "java.IO"},
         };
 
         /// <summary>

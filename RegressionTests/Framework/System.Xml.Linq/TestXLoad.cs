@@ -4,7 +4,7 @@ using System.Text;
 using System.Threading;
 using System.Xml.Linq;
 using Junit.Framework;
-using JFile = Java.Io.File;
+using JFile = Java.IO.File;
 
 namespace Dot42.Tests.System.Xml.Linq
 {
