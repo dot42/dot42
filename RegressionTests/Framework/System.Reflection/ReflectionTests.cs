@@ -21,6 +21,23 @@ namespace Dot42.Tests.System.Reflection
             Assert.AreEqual(typeof(ReflectionTests).Assembly, Assembly.GetExecutingAssembly());
         }
 
+        // these tests won't work, since on instrumentation, we might not be running on the main thread
+        // at all!
+        //[Test]
+        //public void TestGetEntryAssembly()
+        //{
+        //    Assert.AreEqual(typeof(ReflectionTests).Assembly, Assembly.GetEntryAssembly());
+        //}
+
+        //[Test]
+        //public void TestGetEntryAssemblyFromDifferentThread()
+        //{
+        //    global::System.Threading.Tasks.Task.Run(() =>
+        //    {
+        //        Assert.AreEqual(typeof (ReflectionTests).Assembly, Assembly.GetEntryAssembly());
+        //    }).Wait();
+        //}
+
         [Test]
         public void TestAssemblyGetTypes()
         {
