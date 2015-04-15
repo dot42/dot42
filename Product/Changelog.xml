@@ -4,6 +4,11 @@
   <latest>
   </latest>
   <release>
+    <version>1.0.1.82</version>
+    <date>Januari 15, 2015</date>
+    <change>GitHub release. Removed third party libraries and License checking.</change>
+  </release>
+  <release>
     <version>1.0.1.81</version>
     <date>March 28, 2014</date>
     <feature>ApkSpy reads JAR or APK archive to open, from command line.</feature>
