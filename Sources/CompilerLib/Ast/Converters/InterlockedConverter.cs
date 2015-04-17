@@ -8,9 +8,9 @@ namespace Dot42.CompilerLib.Ast.Converters
 {
     /// <summary>
     /// Will surround all calls to System.Interlocked with a lock.
-    /// Important is to also sourround the parameter reference conversion
-    /// performed by dot42.
-    /// for instance-field references this lock will be held on the
+    /// It is important keep in mind to also surround the parameter 
+    /// reference conversion performed by dot42.
+    /// For instance-field references this lock will be held on the
     /// containing class, for static fields on the classes type.
     /// This is only an intermediate solution. See my comments on the
     /// System.Interlocked class for details.
@@ -60,7 +60,8 @@ namespace Dot42.CompilerLib.Ast.Converters
                             if (field.Resolve().IsStatic)
                             {
                                 // lock on the field's class typedef.
-                                loadLockTarget = new AstExpression(expr.SourceLocation, AstCode.LdClass, field.DeclaringType);
+                                loadLockTarget = new AstExpression(expr.SourceLocation, AstCode.LdClass, field.DeclaringType)
+                                                        .SetType(compiler.Module.TypeSystem.Type);
                             }
                             else
                             {
@@ -72,14 +73,15 @@ namespace Dot42.CompilerLib.Ast.Converters
 
                     if (loadLockTarget == null)
                     {
-                        // somethin went wrong. use a global lock.
+                        // something went wrong. use a global lock.
                         DLog.Warning(DContext.CompilerCodeGenerator, "unable to infer target of Interlocked call. using global lock.");
-                        loadLockTarget = new AstExpression(expr.SourceLocation, AstCode.LdClass, monitorType);    
+                        loadLockTarget = new AstExpression(expr.SourceLocation, AstCode.LdClass, monitorType)
+                                                        .SetType(compiler.Module.TypeSystem.Type);    
                     }
 
                     var lockVar = new AstGeneratedVariable("lockTarget$", "") {Type = compiler.Module.TypeSystem.Object};
                     var storeLockVar = new AstExpression(expr.SourceLocation, AstCode.Stloc, lockVar, loadLockTarget);
-                    var loadLockVar  = new AstExpression(expr.SourceLocation, AstCode.Ldloc, lockVar);
+                    var loadLockVar = new AstExpression(expr.SourceLocation, AstCode.Ldloc, lockVar);
                     var enterCall = new AstExpression(expr.SourceLocation, AstCode.Call, enterMethod, storeLockVar);
 
                     var replacementBlock = new AstBlock(expr.SourceLocation);
