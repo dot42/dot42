@@ -206,6 +206,8 @@ namespace Dot42.CompilerLib.Structure.DotNet
             else
             {
                 // Add to dex if it is a root class
+                // TODO: here we could simplify the names, e.g. remove the scope, as long as no
+                //       clashing does occur.
                 targetPackage.DexFile.AddClass(classDef);
             }
         }
@@ -650,6 +652,11 @@ namespace Dot42.CompilerLib.Structure.DotNet
         private class PropertyAnnotationProvider : IAnnotationProvider
         {
             public List<Annotation> Annotations { get; set; }
+        }
+
+        public override string ToString()
+        {
+            return Type.ToString();
         }
     }
 }

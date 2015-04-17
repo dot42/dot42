@@ -30,6 +30,7 @@ namespace Dot42.CompilerLib.XModel.DotNet
             private int? priority;
             private bool? isStruct;
             private bool? isGenericClass;
+            private string @namespace;
 
             /// <summary>
             /// Default ctor
@@ -88,9 +89,14 @@ namespace Dot42.CompilerLib.XModel.DotNet
             /// </summary>
             public override string Namespace
             {
-                get { return type.Namespace; }
+                get
+                {
+                    if (@namespace == null)
+                        @namespace = GetScopePrefix(type) + type.Namespace;
+                    return @namespace;
+                }
             }
-
+            
             /// <summary>
             /// Gets the type this type extends (null if System.Object)
             /// </summary>

@@ -6,6 +6,7 @@ using System.Text;
 using Dot42.CecilExtensions;
 using Dot42.CompilerLib.Ast.Extensions;
 using Dot42.FrameworkDefinitions;
+using Dot42.LoaderLib.Extensions;
 using Dot42.Utility;
 using Mono.Cecil;
 using Mono.Cecil.Rocks;
@@ -189,10 +190,12 @@ namespace Dot42.CompilerLib.XModel.DotNet
                 throw new NotImplementedException("Unknown type " + type);
             }
 
+            string scopePrefix = GetScopePrefix(type);
+
             if (type.IsDefinition)
             {
                 XTypeDefinition typeDef;
-                if (module.TryGetType(type.FullName, out typeDef))
+                if (module.TryGetType(scopePrefix + type.FullName, out typeDef))
                 {
                     return typeDef; // Add extra resolve since some type definitions resolve to others.
                 }
@@ -201,7 +204,7 @@ namespace Dot42.CompilerLib.XModel.DotNet
             {
                 var declaringType = (type.DeclaringType != null) ? AsTypeReference(module, type.DeclaringType) : null;
                 var genericParameterNames = type.GenericParameters.Select(x => x.Name);
-                return new XTypeReference.SimpleXTypeReference(module, type.Namespace, type.Name, declaringType, type.IsValueType, genericParameterNames);
+                return new XTypeReference.SimpleXTypeReference(module, scopePrefix + type.Namespace, type.Name, declaringType, type.IsValueType, genericParameterNames);
             }
         }
 
@@ -255,6 +258,32 @@ namespace Dot42.CompilerLib.XModel.DotNet
             }
             XTypeDefinition typeDef;
             return type.TryResolve(out typeDef) ? typeDef.GetFullName(true) : type.GetFullName(true);
+        }
+
+
+        private static string GetScopePrefix(TypeReference typeRef)
+        {
+            // always resolve, to fix forwared types.
+            var type = typeRef.Resolve();
+
+            if (type == null)
+                return "";
+
+            var scope = type.Scope.Name;
+            if (scope.ToLowerInvariant().EndsWith(".dll"))
+                scope = scope.Substring(0, scope.Length - 4);
+
+            if (scope.ToLowerInvariant() == "dot42")
+                return "";
+
+            var ns = type.Namespace;
+            if (ns.StartsWith("Dot42.Internal"))
+                return "";
+
+            if (type.GetDexOrJavaImportAttribute() != null)
+                return "";
+
+            return scope.Replace(".", "_") + ((type.Namespace.Length == 0)? "" : ".");
         }
 
         private class TypeReferenceCache : Dictionary<TypeReference, XTypeReference> { }
