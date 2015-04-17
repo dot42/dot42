@@ -10,6 +10,7 @@ using Dot42.CompilerLib.XModel;
 using Dot42.FrameworkDefinitions;
 using Dot42.LoaderLib.Java;
 using Dot42.Mapping;
+using Dot42.Utility;
 using Mono.Cecil;
 
 namespace Dot42.CompilerLib
@@ -97,11 +98,11 @@ namespace Dot42.CompilerLib
 
             // Convert all types
             var classBuilders = reachableContext.ClassBuilders.OrderBy(x => x.SortPriority).ThenBy(x => x.FullName).ToList();
-            classBuilders.ForEach(x => x.Create(targetPackage));
-            classBuilders.ForEach(x => x.Implement(targetPackage));
-            classBuilders.ForEach(x => x.FixUp(targetPackage));
-            classBuilders.ForEach(x => x.GenerateCode(targetPackage));
-            classBuilders.ForEach(x => x.CreateAnnotations(targetPackage));
+            classBuilders.ForEachWithExceptionMessage(x => x.Create(targetPackage));
+            classBuilders.ForEachWithExceptionMessage(x => x.Implement(targetPackage));
+            classBuilders.ForEachWithExceptionMessage(x => x.FixUp(targetPackage));
+            classBuilders.ForEachWithExceptionMessage(x => x.GenerateCode(targetPackage));
+            classBuilders.ForEachWithExceptionMessage(x => x.CreateAnnotations(targetPackage));
 
             if (AddAssemblyTypesAnnotations())
                 AssemblyTypesBuilder.CreateAssemblyTypesAnnotations(this, (Target.Dex.DexTargetPackage)targetPackage, reachableContext.ReachableTypes);
@@ -117,7 +118,7 @@ namespace Dot42.CompilerLib
             targetPackage.VerifyBeforeSave(freeAppsKey);
 
             // Optimize map file
-            classBuilders.ForEach(x => x.RecordMapping(mapFile));
+            classBuilders.ForEachWithExceptionMessage(x => x.RecordMapping(mapFile));
             mapFile.Optimize();
         }
 
