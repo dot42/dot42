@@ -140,6 +140,42 @@ namespace Dot42.Tests.Compiler.Sources
             AssertFalse(outerThrown);
         }
 
+        public void testNestedTryCatchRethrow()
+        {
+            var outerThrown = false;
+            var middleThrown = false;
+            var innerThrown = false;
+
+            try
+            {
+                try
+                {
+                    throw new NullReferenceException();
+                }
+                catch
+                {
+                    innerThrown = true;
+                    try
+                    {
+                        throw new ArgumentException();
+                    }
+                    catch (Exception)
+                    {
+                        middleThrown = true;
+                    }
+                    throw;
+                }
+            }
+            catch (NullReferenceException)
+            {
+                outerThrown = true;
+            }
+
+            AssertTrue(innerThrown);
+            AssertTrue(middleThrown);
+            AssertTrue(outerThrown);
+        }
+
         public void testEmptyTryCatch()
         {
             try

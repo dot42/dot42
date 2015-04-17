@@ -276,10 +276,6 @@ namespace Dot42.CompilerLib.XModel.DotNet
             if (scope.ToLowerInvariant() == "dot42")
                 return "";
 
-            var ns = type.Namespace;
-            if (ns.StartsWith("Dot42.Internal"))
-                return "";
-
             if (type.GetDexOrJavaImportAttribute() != null)
                 return "";
 

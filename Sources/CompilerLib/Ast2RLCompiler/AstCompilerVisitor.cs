@@ -333,6 +333,8 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
             var r = frame.AllocateTemp(node.ExceptionType.GetReference(targetPackage));
             var first = this.Add(node.SourceLocation, RCode.Move_exception, r);
             var last = first;
+
+            var previousExceptionRegister = currentExceptionRegister;
             currentExceptionRegister = r;
 
             // Store exception in exception variable (if any)
@@ -350,7 +352,7 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
             }
 
             // Combine result
-            currentExceptionRegister = null;
+            currentExceptionRegister = previousExceptionRegister;
             return new RLRange(first, last, null);
         }
 
