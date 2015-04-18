@@ -56,6 +56,8 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 return new IClassBuilder[] {new DexImportClassBuilder(context, compiler, typeDef) };
             if (typeDef.HasJavaImportAttribute())
                 return new IClassBuilder[] {CreateJavaImportBuilder(context, compiler, typeDef)};
+            if (typeDef.BaseType != null && typeDef.BaseType.FullName == "Android.App.Application")
+                return new IClassBuilder[] { new AndroidAppApplicationDerivedBuilder(context,compiler,typeDef) };
             if (typeDef.IsEnum)
             {
                 if (typeDef.UsedInNullableT)
