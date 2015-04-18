@@ -16,6 +16,8 @@ namespace Dot42.CompilerLib.Ast.Converters
         /// </summary>
         public static void Convert(AstNode ast, AssemblyCompiler compiler)
         {
+            var typeSystem = compiler.Module.TypeSystem;
+
             foreach (var node in ast.GetExpressions().Reverse())
             {
                 if ((node.Code == AstCode.Ldc_I4) || (node.Code == AstCode.Ldc_I8))
@@ -82,7 +84,6 @@ namespace Dot42.CompilerLib.Ast.Converters
                     if ((typeRef != null) && typeRef.TryResolve(out typeDef) && typeDef.IsEnum)
                     {
                         var isWide = typeDef.GetEnumUnderlyingType().IsWide();
-                        var typeSystem = compiler.Module.TypeSystem;
                         var enumValue = new AstExpression(node.Arguments[0]);
                         var numericValue = new AstExpression(node.SourceLocation,
                                                              isWide ? AstCode.Enum_to_long : AstCode.Enum_to_int, null);
@@ -100,7 +101,6 @@ namespace Dot42.CompilerLib.Ast.Converters
                     if ((typeRef != null) && typeRef.TryResolve(out typeDef) && typeDef.IsEnum)
                     {
                         var isWide = typeDef.GetEnumUnderlyingType().IsWide();
-                        var typeSystem = compiler.Module.TypeSystem;
                         var enumValue = new AstExpression(node.Arguments[0]);
                         var numericValue = new AstExpression(node.SourceLocation,
                                                              isWide ? AstCode.Enum_to_long : AstCode.Enum_to_int, null);
@@ -136,7 +136,7 @@ namespace Dot42.CompilerLib.Ast.Converters
                                 node.Code = isWide ? AstCode.Enum_to_long : AstCode.Enum_to_int;
                                 node.SetArguments(toPrimitive);
                                 node.Operand = null;
-                                node.SetType(underlyingType);
+                                node.SetType(isWide ? typeSystem.Long : typeSystem.Int);
                             }
                             else if (inferredType.IsPrimitive)
                             {
@@ -163,15 +163,19 @@ namespace Dot42.CompilerLib.Ast.Converters
                             XTypeDefinition inferredTypeDef;
                             if (inferredType.TryResolve(out inferredTypeDef) && inferredTypeDef.IsEnum)
                             {
-                                // Enum found, non-enum or different enum expected
-                                var underlyingType = inferredTypeDef.GetEnumUnderlyingType();
-                                var isWide = underlyingType.IsWide();
+                                if (!expectedType.IsSystemObject())
+                                {
+                                    // Enum found, non-enum expected
+                                    var underlyingType = inferredTypeDef.GetEnumUnderlyingType();
+                                    var isWide = underlyingType.IsWide();
 
-                                var actualValue = new AstExpression(node) {ExpectedType = null};
-                                node.Code = isWide ? AstCode.Enum_to_long : AstCode.Enum_to_int;
-                                node.Operand = null;
-                                node.SetArguments(actualValue);
-                                node.SetType(underlyingType);
+                                    var actualValue = new AstExpression(node) {ExpectedType = null};
+                                    node.Code = isWide ? AstCode.Enum_to_long : AstCode.Enum_to_int;
+                                    node.Operand = null;
+                                    node.SetArguments(actualValue);
+                                    node.SetType(isWide ? typeSystem.Long : typeSystem.Int);
+                                    ConvertIfNeeded(node, underlyingType);
+                                }
                             }
                         }
                     }
@@ -186,7 +190,6 @@ namespace Dot42.CompilerLib.Ast.Converters
                 if ((typeRef != null) && typeRef.TryResolve(out typeDef) && typeDef.IsEnum)
                 {
                     var isWide = typeDef.GetEnumUnderlyingType().IsWide();
-                    var typeSystem = compiler.Module.TypeSystem;
                     var toValue = new AstExpression(node.Condition.SourceLocation, isWide ? AstCode.Enum_to_long : AstCode.Enum_to_int, null);
                     toValue.InferredType = isWide ? typeSystem.Long : typeSystem.Int;
                     toValue.Arguments.Add(node.Condition);
@@ -266,6 +269,43 @@ namespace Dot42.CompilerLib.Ast.Converters
             var enumValue = new AstExpression(node);
             node.SetCode(enumNumericType.IsWide() ? AstCode.Long_to_enum : AstCode.Int_to_enum).SetArguments(enumValue).SetType(enumType);
             node.Operand = null;
+        }
+
+
+        private static void ConvertIfNeeded(AstExpression arg, XTypeReference targetType)
+        {
+            var argType = arg.GetResultType();
+            if (!targetType.IsSame(argType))
+            {
+                if (targetType.IsByte())
+                {
+                    Convert(arg, AstCode.Int_to_ubyte, targetType);
+                }
+                else if (targetType.IsSByte())
+                {
+                    Convert(arg, AstCode.Conv_I1, targetType);
+                }
+                else if (targetType.IsUInt16())
+                {
+                    Convert(arg, AstCode.Conv_U2, targetType);
+                }
+                else if (targetType.IsInt16())
+                {
+                    Convert(arg, AstCode.Conv_I2, targetType);
+                }
+            }
+        }
+
+        private static void Convert(AstExpression node, AstCode convertCode, XTypeReference expectedType)
+        {
+            // Copy load expression
+            var clone = new AstExpression(node);
+
+            // Convert node
+            node.Code = convertCode;
+            node.SetArguments(clone);
+            node.Operand = null;
+            node.SetType(expectedType);
         }
     }
 }

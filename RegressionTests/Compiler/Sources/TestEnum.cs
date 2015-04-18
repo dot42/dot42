@@ -573,6 +573,19 @@ namespace Dot42.Tests.Compiler.Sources
             Assert.AssertEquals(2, GetValues(typeof(E)).Count);
         }
 
+        public void testEnumToObjectConversion()
+        {
+            new EnumConversionFromVariableTests().ConvertToObject();
+            new EnumConversionFromVariableTests().SetInObjectArray();
+            new EnumConversionFromVariableTests().CallVarArg();
+        }
+
+        public void testEnumToSbyteConversion()
+        {
+            new EnumConversionFromVariableTests().TestCallSByteMethod();
+            new EnumConversionFromVariableTests().TestCallSByteMethod1();
+        }
+
         public static IList<object> GetValues(Type enumType)
         {
             if (!enumType.IsEnum)
@@ -603,6 +616,51 @@ namespace Dot42.Tests.Compiler.Sources
             public static string CalledMethodD(Enum e)
             {
                 return e.ToString("D");
+            }
+
+        }
+
+        class EnumConversionFromVariableTests
+        {
+            public void ConvertToObject()
+            {
+                var obj = TwoFields.Noot;
+                AssertEquals(TwoFields.Noot, obj);
+            }
+
+            public void SetInObjectArray()
+            {
+                object[] objs = new object[1];
+                TwoFields twoFields = TwoFields.Noot;
+                objs[0] = twoFields;
+                AssertEquals(TwoFields.Noot, objs[0]);
+            }
+
+            public void CallVarArg()
+            {
+                TwoFields twoFields = TwoFields.Noot;
+                AssertEquals(TwoFields.Noot, WithVarArg(twoFields));
+            }
+
+            public void TestCallSByteMethod()
+            {
+                EnumSByte e = EnumSByte.V1;
+                SByteMethod((sbyte)e);
+            }
+
+            public void TestCallSByteMethod1()
+            {
+                int i = 0x44;
+                SByteMethod((sbyte)i);
+            }
+
+            private void SByteMethod(sbyte b)
+            {
+            }
+
+            public static object WithVarArg(params object[] args)
+            {
+                return args[0];
             }
 
         }
