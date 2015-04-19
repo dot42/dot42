@@ -5,6 +5,7 @@ using Dot42.CompilerLib.Extensions;
 using Dot42.JvmClassLib;
 using Dot42.JvmClassLib.Attributes;
 using Dot42.JvmClassLib.Structures;
+using Dot42.Utility;
 
 namespace Dot42.CompilerLib.Reachable.Java
 {

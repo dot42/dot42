@@ -7,6 +7,7 @@ using Dot42.CompilerLib.XModel;
 using Dot42.CompilerLib.XModel.Synthetic;
 using Dot42.DexLib;
 using Dot42.CecilExtensions;
+using Dot42.Utility;
 using Mono.Cecil;
 
 namespace Dot42.CompilerLib.Structure.DotNet

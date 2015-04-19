@@ -1,5 +1,7 @@
-﻿using Dot42.Cecil;
+﻿using System.Linq;
+using Dot42.Cecil;
 using Dot42.CompilerLib.Reachable;
+using Dot42.FrameworkDefinitions;
 using Mono.Cecil;
 
 namespace Dot42.CompilerLib.Extensions
@@ -12,11 +14,11 @@ namespace Dot42.CompilerLib.Extensions
         /// <summary>
         /// Mark the given reference reachable
         /// </summary>
-        internal static void MarkReachable(this MemberReference memberRef, IReachableContext context)
+        internal static void MarkReachable(this MemberReference memberRef, IReachableContext context, bool useInSerialization = false)
         {
-            if ((memberRef != null) && (!memberRef.IsReachable))
+            if (memberRef != null)
             {
-                memberRef.SetReachable(context);
+                memberRef.SetReachable(context, useInSerialization);
             }
         }
         /// <summary>

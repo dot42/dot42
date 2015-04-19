@@ -4,6 +4,7 @@ using Dot42.ApkLib.Resources;
 using Dot42.CompilerLib.Extensions;
 using Dot42.CompilerLib.Reachable;
 using Dot42.FrameworkDefinitions;
+using Dot42.Utility;
 using MethodReference = Mono.Cecil.MethodReference;
 using TypeReference = Mono.Cecil.TypeReference;
 

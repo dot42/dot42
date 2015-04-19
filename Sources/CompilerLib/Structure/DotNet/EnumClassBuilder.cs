@@ -9,6 +9,7 @@ using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel;
 using Dot42.CompilerLib.XModel.Synthetic;
 using Dot42.DexLib;
+using Dot42.Utility;
 using Mono.Cecil;
 using ILFieldDefinition = Mono.Cecil.FieldDefinition;
 

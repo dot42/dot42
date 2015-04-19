@@ -43,8 +43,15 @@ namespace Dot42.CompilerLib.Extensions
             return provider.GetIncludeAttributes().Any();
         }
 
+        internal static bool HasSerializationMethodAttribute(this MethodDefinition method)
+        {
+            return method.CustomAttributes
+                .Any(a => a.AttributeType.Namespace == AttributeConstants.Dot42AttributeNamespace
+                       && a.AttributeType.Name == AttributeConstants.SerializationMethodAttributeName);
+        }
+
         /// <summary>
-        /// Is there any Include attribute attached to the given provider?
+        /// Is there any EventHandler attached to the given provider?
         /// </summary>
         internal static bool HasEventHandlerAttribute(this ICustomAttributeProvider provider)
         {

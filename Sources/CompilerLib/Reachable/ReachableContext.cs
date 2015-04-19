@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -10,6 +11,7 @@ using Dot42.FrameworkDefinitions;
 using Dot42.JvmClassLib;
 using Dot42.LoaderLib.Extensions;
 using Dot42.LoaderLib.Java;
+using Dot42.Utility;
 using Mono.Cecil;
 using FieldDefinition = Mono.Cecil.FieldDefinition;
 using IReachableContext = Dot42.Cecil.IReachableContext;
@@ -31,6 +33,7 @@ namespace Dot42.CompilerLib.Reachable
         private bool newReachablesDetected;
         private readonly List<AssemblyNameDefinition> assemblyNames;
         private readonly HashSet<string> rootClassNames;
+        private readonly ConcurrentDictionary<MethodDefinition, bool> hasSerializationMethodAttribute = new ConcurrentDictionary<MethodDefinition, bool>();
 
         private static readonly IEnumerable<IIncludeFieldTester> IncludeFieldTesters = CompositionRoot.CompositionContainer.GetExportedValues<IIncludeFieldTester>();
         private static readonly IEnumerable<IIncludeMethodTester> IncludeMethodTesters = CompositionRoot.CompositionContainer.GetExportedValues<IIncludeMethodTester>();
@@ -82,7 +85,9 @@ namespace Dot42.CompilerLib.Reachable
             // Mark all includes types (via Dot42.IncludeAttribute)
             foreach (var attr in assembly.GetIncludeAttributes())
             {
-                var arg = attr.Properties.Where(x => x.Name == AttributeConstants.IncludeAttributeTypeName).Select(x => (TypeReference) x.Argument.Value).FirstOrDefault();
+                var arg = attr.Properties.Where(x => x.Name == AttributeConstants.IncludeAttributeTypeName)
+                                         .Select(x => (TypeReference) x.Argument.Value)
+                                         .FirstOrDefault();
                 if (arg != null)
                 {
                     arg.MarkReachable(this);
@@ -275,7 +280,8 @@ namespace Dot42.CompilerLib.Reachable
         /// </summary>
         private bool IsApplicationRoot(TypeDefinition type)
         {
-            if (type.HasCustomAttributes && type.CustomAttributes.Select(x => x.AttributeType).Any(IsApplicationRootAttribute))
+            if (type.HasCustomAttributes && type.CustomAttributes.Select(x => x.AttributeType)
+                                                                 .Any(IsApplicationRootAttribute))
                 return true;
 
             // Ceck base type for application root attribute with "IncludeDerivedTypes" set to true.
@@ -620,6 +626,28 @@ namespace Dot42.CompilerLib.Reachable
                     throw new CompilerException("Unknown compilation mode " + (int)compiler.CompilationMode);
             }
             return IncludeMethodTesters.Any(x => x.Include(method, this));
+        }
+
+        internal bool IsUsedInSerialization(MethodReference @ref)
+        {
+            if (@ref.IsUsedInSerialization)
+                return true;
+            
+            var method = @ref.Resolve();
+            if (method == null)
+                return false;
+
+            if (method.IsUsedInSerialization)
+                return true;
+
+            bool hasAttribute;
+            if (!hasSerializationMethodAttribute.TryGetValue(method, out hasAttribute))
+            {
+                hasAttribute = method.HasSerializationMethodAttribute();
+                hasSerializationMethodAttribute.TryAdd(method, hasAttribute);
+            }
+
+            return hasAttribute;
         }
 
         /// <summary>

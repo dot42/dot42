@@ -22,6 +22,7 @@
         public const string IgnoreAttributeName = "IgnoreAttribute";
         public const string IncludeAttributeName = "IncludeAttribute";
         public const string IncludeTypeAttributeName = "IncludeTypeAttribute";
+        public const string SerializationMethodAttributeName = "SerializationMethodAttribute";
         public const string InlineAttributeName = "InlineAttribute";
         public const string JavaCodeAttributeName = "JavaCodeAttribute";
         public const string JavaImportAttributeName = "JavaImportAttribute";

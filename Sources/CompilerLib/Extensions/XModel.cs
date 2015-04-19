@@ -1,15 +1,10 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Linq;
 using Dot42.CompilerLib.Structure.DotNet;
-using Dot42.CompilerLib.Target;
 using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel;
 using Dot42.DexLib;
 using Dot42.JvmClassLib;
-using Dot42.Utility;
-using Microsoft.CSharp;
-using Mono.Cecil.Cil;
 using ArrayType = Dot42.DexLib.ArrayType;
 using ByReferenceType = Dot42.DexLib.ByReferenceType;
 using FieldReference = Dot42.DexLib.FieldReference;

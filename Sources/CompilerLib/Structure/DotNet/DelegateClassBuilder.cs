@@ -8,6 +8,7 @@ using Dot42.CompilerLib.XModel;
 using Dot42.CompilerLib.XModel.Synthetic;
 using Dot42.DexLib;
 using Dot42.DexLib.Instructions;
+using Dot42.Utility;
 using Mono.Cecil;
 using MethodDefinition = Dot42.DexLib.MethodDefinition;
 

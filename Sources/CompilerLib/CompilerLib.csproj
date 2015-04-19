@@ -126,7 +126,6 @@
     <Compile Include="Extensions\DexAnnotations.cs" />
     <Compile Include="Extensions\DexImport.cs" />
     <Compile Include="Extensions\DotNet.cs" />
-    <Compile Include="Extensions\Extensions.cs" />
     <Compile Include="Extensions\FieldDefinition.cs" />
     <Compile Include="Extensions\Java.cs" />
     <Compile Include="Extensions\JavaImport.cs" />
@@ -182,7 +181,6 @@
     <Compile Include="Java2Ast\AstBuilder.ByteCodeBlock.cs" />
     <Compile Include="Java2Ast\AstBuilder.Category.cs" />
     <Compile Include="Java2Ast\SourceLocation.cs" />
-    <Compile Include="Reachable\Testers\AnonymousTypeMethodTester.cs" />
     <Compile Include="RL\Transformations\EliminateDeadCodeTransformation.cs" />
     <Compile Include="RL\Transformations\RemoveEmptySwitchAndGotosTransformation.cs" />
     <Compile Include="Structure\DotNet\AssemblyTypesBuilder.cs" />
