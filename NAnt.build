@@ -8,8 +8,10 @@
 	<include buildfile="${basedir}\Common\Build\Common-Release.build"/>
 	<property name="vs10comntools" value="${environment::get-variable('VS100COMNTOOLS')}"/>
 	<property name="vs11comntools" value="${environment::get-variable('VS110COMNTOOLS')}"/>
+	<property name="vs12comntools" value="${environment::get-variable('VS120COMNTOOLS')}"/>
 	<property name="devenvdir" value="${path::get-full-path(path::combine(vs10comntools, '..\ide'))}"/>
 	<property name="devenv11dir" value="${path::get-full-path(path::combine(vs11comntools, '..\ide'))}"/>
+	<property name="devenv12dir" value="${path::get-full-path(path::combine(vs12comntools, '..\ide'))}"/>
 	<property name="devenv" value="${devenvdir}\devenv.com"/>
 	<property name="devenv11" value="${devenv11dir}\devenv.com"/>
 	<property name="adb" value="${basedir}\Binaries\Platform-tools\adb.exe"/>
@@ -58,6 +60,16 @@
 		<!-- Remove the installed product -->
 		<delete verbose="true">
 			<fileset basedir="${devenvdir}\Extensions">
+				<include name="dot42/**" />
+			</fileset>
+		</delete>
+		<delete verbose="true">
+			<fileset basedir="${devenv11dir}\Extensions">
+				<include name="dot42/**" />
+			</fileset>
+		</delete>
+		<delete verbose="true">
+			<fileset basedir="${devenv12dir}\Extensions">
 				<include name="dot42/**" />
 			</fileset>
 		</delete>
