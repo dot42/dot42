@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using Dot42.CecilExtensions;
 using Dot42.CompilerLib.Extensions;
+using Dot42.CompilerLib.ILConversion;
 using Dot42.CompilerLib.XModel.Synthetic;
 using Dot42.LoaderLib.Extensions;
 using Mono.Cecil;
@@ -29,6 +30,7 @@ namespace Dot42.CompilerLib.XModel.DotNet
             private XTypeReference javaImportType;
             private int? priority;
             private bool? isStruct;
+            private bool? isImmutableStruct;
             private bool? isGenericClass;
             private string @namespace;
 
@@ -285,6 +287,18 @@ namespace Dot42.CompilerLib.XModel.DotNet
                         isStruct = type.IsValueType && !type.IsPrimitive && !type.IsEnum && !type.IsNullableT() && !type.IsVoid();
                     }
                     return isStruct.Value;
+                }
+            }
+
+            public override bool IsImmutableStruct
+            {
+                get
+                {
+                    if (!isImmutableStruct.HasValue)
+                    {
+                        isImmutableStruct = IsStruct && StructFields.IsImmutableStruct(type);
+                    }
+                    return isImmutableStruct.Value;
                 }
             }
 

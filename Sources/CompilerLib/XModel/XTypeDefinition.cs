@@ -116,6 +116,12 @@ namespace Dot42.CompilerLib.XModel
         public abstract bool IsStruct { get; }
 
         /// <summary>
+        /// Is this type a struct, and is it to be treated as immutable?
+        /// TODO: think about storing this information somewhere else.
+        /// </summary>
+        public abstract bool IsImmutableStruct { get; }
+
+        /// <summary>
         /// Gets the type of the enum value field.
         /// </summary>
         public abstract XTypeReference GetEnumUnderlyingType();

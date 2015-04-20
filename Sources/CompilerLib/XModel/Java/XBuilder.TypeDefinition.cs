@@ -190,6 +190,8 @@ namespace Dot42.CompilerLib.XModel.Java
                 get { return false; }
             }
 
+            public override bool IsImmutableStruct { get { return false; } }
+
             /// <summary>
             /// Gets the type of the enum value field.
             /// </summary>

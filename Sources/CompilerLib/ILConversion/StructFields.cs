@@ -39,6 +39,41 @@ namespace Dot42.CompilerLib.ILConversion
         }
 
         /// <summary>
+        /// Do we need to add CopyFrom/Clone methods to the given type?
+        /// </summary>
+        public static bool IsNonNullableStruct(TypeDefinition type)
+        {
+            if (!type.IsValueType || type.IsPrimitive || type.IsEnum)
+                return false;
+            if (type.IsNullableT() || type.IsVoid())
+                return false;
+            return true;
+        }
+
+        /// <summary>
+        /// Return true if all instance fields are readonly, and if they are structs,
+        /// are themselfs immutable structs.
+        /// </summary>
+        public static bool IsImmutableStruct(TypeDefinition type)
+        {
+             if (!IsNonNullableStruct(type))
+                 return false;
+
+            if (!type.HasFields) 
+                return true;
+
+            foreach (var field in type.Fields.Where(f=>!f.IsStatic && !f.IsLiteral))
+            {
+                if (!field.IsInitOnly)
+                    return false;
+                var fieldType = field.FieldType.Resolve();
+                if (IsNonNullableStruct(fieldType) && !IsImmutableStruct(fieldType))
+                    return false;
+            }
+            return true;
+        }
+
+        /// <summary>
         /// Ensure there is a class ctor.
         /// </summary>
         internal static ILSequence CreateInitializationCode(IEnumerable<FieldDefinition> structFields, bool isStatic)
@@ -54,22 +89,46 @@ namespace Dot42.CompilerLib.ILConversion
                 {
                     throw new CompilerException(string.Format("Cannot resolve field type of field {0}", field.MemberFullName()));
                 }
-                var ctor = fieldType.Methods.FirstOrDefault(x => x.IsConstructor && !x.IsStatic && (x.Parameters.Count == 0));
-                if (ctor == null)
+
+                if (field.DeclaringType != fieldType && IsImmutableStruct(fieldType))
                 {
-                    throw new CompilerException(string.Format("Cannot find default ctor for type {0}", field.DeclaringType.FullName));
-                }
-                var ctorRef = field.FieldType.CreateReference(ctor);
-                if (isStatic)
-                {
-                    seq.Emit(OpCodes.Newobj, ctorRef);
-                    seq.Emit(OpCodes.Stsfld, field);
+                    var defaultField = fieldType.Fields.SingleOrDefault(f => f.Name == NameConstants.Struct.DefaultFieldName);
+                    if (defaultField != null)
+                    {
+                        if (isStatic)
+                        {
+                            seq.Emit(OpCodes.Ldsfld, defaultField);
+                            seq.Emit(OpCodes.Stsfld, field);
+                        }
+                        else
+                        {
+                            seq.Emit(OpCodes.Ldarg_0); // this
+                            seq.Emit(OpCodes.Ldsfld, defaultField);
+                            seq.Emit(OpCodes.Stfld, field);
+                        }
+                    }
                 }
                 else
                 {
-                    seq.Emit(OpCodes.Ldarg_0); // this
-                    seq.Emit(OpCodes.Newobj, ctorRef);
-                    seq.Emit(OpCodes.Stfld, field);
+                    var ctor = fieldType.Methods.FirstOrDefault(x => x.IsConstructor && !x.IsStatic && (x.Parameters.Count == 0));
+                    if (ctor == null)
+                    {
+                        throw new CompilerException(string.Format("Cannot find default ctor for type {0}",
+                                                    field.DeclaringType.FullName));
+                    }
+
+                    var ctorRef = field.FieldType.CreateReference(ctor);
+                    if (isStatic)
+                    {
+                        seq.Emit(OpCodes.Newobj, ctorRef);
+                        seq.Emit(OpCodes.Stsfld, field);
+                    }
+                    else
+                    {
+                        seq.Emit(OpCodes.Ldarg_0); // this
+                        seq.Emit(OpCodes.Newobj, ctorRef);
+                        seq.Emit(OpCodes.Stfld, field);
+                    }
                 }
             }
 

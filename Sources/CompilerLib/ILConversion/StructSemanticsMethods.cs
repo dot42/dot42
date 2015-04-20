@@ -38,30 +38,24 @@ namespace Dot42.CompilerLib.ILConversion
             public void Convert(ReachableContext reachableContext)
             {
                 // Collect all type
-                var todoTypes = reachableContext.ReachableTypes.Where(NeedsSemanticMethods).ToList();
+                var todoTypes = reachableContext.ReachableTypes.Where(StructFields.IsNonNullableStruct).ToList();
                 if (todoTypes.Count == 0)
                     return;
 
                 foreach (var type in todoTypes)
                 {
-                    // Create methods
-                    var copyFromMethod = CreateCopyFromMethod(reachableContext, type);
-                    CreateCloneMethod(reachableContext, type, copyFromMethod);
+                    bool isImmutable = false;// StructFields.IsImmutableStruct(type);
 
-                    // TODO: create Equals and GetHashCode methods, if they don't exist.
+                    if (!isImmutable)
+                    {
+                        // Create methods
+                        var copyFromMethod = CreateCopyFromMethod(reachableContext, type);
+                        CreateCloneMethod(reachableContext, type, copyFromMethod);
+                    }
+                    
+                    // TODO: create Equals and GetHashCode methods, if they are not overwritten from object.
+                    //       Or, alternatively, implement these method based on reflection in ValueType.
                 }
-            }
-
-            /// <summary>
-            /// Do we need to add CopyFrom/Clone methods to the given type?
-            /// </summary>
-            private static bool NeedsSemanticMethods(TypeDefinition type)
-            {
-                if (!type.IsValueType || type.IsPrimitive || type.IsEnum)
-                    return false;
-                if (type.IsNullableT() || type.IsVoid())
-                    return false;
-                return true;
             }
 
             /// <summary>

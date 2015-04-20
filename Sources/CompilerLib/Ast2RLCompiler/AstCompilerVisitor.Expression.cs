@@ -780,23 +780,45 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                     }
                 case AstCode.InitStructArray:
                     {
-                        var defaultCtor = (XMethodReference) node.Operand;
-                        var dDefaultCtor = defaultCtor.GetReference(targetPackage);
+                        var defaultCtor = node.Operand as XMethodReference;
+                        var staticField = node.Operand as XFieldReference;
+                        MethodReference dDefaultCtor = null;
+
+                        RegisterSpec elementR;
+
+                        if (defaultCtor != null)
+                        {
+                            dDefaultCtor = defaultCtor.GetReference(targetPackage);
+                            elementR = frame.AllocateTemp(dDefaultCtor.Owner);
+                        }
+                        else
+                        {
+                            var dStaticField = staticField.GetReference(targetPackage);
+                            elementR = frame.AllocateTemp(dStaticField.Owner);
+                            this.Add(node.SourceLocation, RCode.Sget_object, dStaticField, elementR);
+                        }
+
                         var arrayR = args[0].Result;
                         var indexR = frame.AllocateTemp(PrimitiveType.Int);
                         var oneR = frame.AllocateTemp(PrimitiveType.Int);
-                        var elementR = frame.AllocateTemp(dDefaultCtor.Owner);
                         var first = this.Add(node.SourceLocation, RCode.Array_length, indexR, arrayR);
+
                         this.Add(node.SourceLocation, RCode.Const, 1, oneR);
                         var ifZero = this.Add(node.SourceLocation, RCode.If_eqz, indexR);
-                            // if (index == 0) goto end;  (Operand set later)
+                        // if (index == 0) goto end;  (Operand set later)
                         this.Add(node.SourceLocation, RCode.Sub_int_2addr, indexR, oneR); // index--;
-                        this.Add(node.SourceLocation, RCode.New_instance, dDefaultCtor.Owner, elementR);
+
+                        if (dDefaultCtor != null)
+                        {
+                            this.Add(node.SourceLocation, RCode.New_instance, dDefaultCtor.Owner, elementR);
                             // element = new Struct;
-                        this.Add(node.SourceLocation, RCode.Invoke_direct, dDefaultCtor, elementR);
+                            this.Add(node.SourceLocation, RCode.Invoke_direct, dDefaultCtor, elementR);
                             // invoke element.ctor()
+                        }
+
                         this.Add(node.SourceLocation, RCode.Aput_object, elementR, arrayR, indexR);
-                            // Store element in array
+                        // Store element in array
+
                         this.Add(node.SourceLocation, RCode.Goto, ifZero); // End of loop
                         var end = this.Add(node.SourceLocation, RCode.Nop);
                         ifZero.Operand = end;

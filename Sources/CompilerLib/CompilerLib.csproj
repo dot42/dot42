@@ -158,7 +158,7 @@
     <Compile Include="ILConversion\DllImportLoadLibraryConverter.cs" />
     <Compile Include="ILConversion\InitializeStaticStructFields.cs" />
     <Compile Include="ILConversion\InlineMethods.cs" />
-    <Compile Include="ILConversion\StructDefaultCtors.cs" />
+    <Compile Include="ILConversion\StructDefaultCtorsAndDefaultField.cs" />
     <Compile Include="ILConversion\MethodExplicitInterfaceConverter.cs" />
     <Compile Include="ILConversion\ILConverter.cs" />
     <Compile Include="ILConversion\ILConverterFactory.cs" />

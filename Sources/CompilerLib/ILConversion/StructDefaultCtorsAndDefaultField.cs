@@ -11,7 +11,7 @@ namespace Dot42.CompilerLib.ILConversion
     /// Create default ctors for reachable struct types.
     /// </summary>
     [Export(typeof (ILConverterFactory))]
-    internal class StructDefaultCtors : ILConverterFactory
+    internal class StructDefaultCtorsAndDefaultField : ILConverterFactory
     {
         /// <summary>
         /// Low values come first
@@ -37,13 +37,17 @@ namespace Dot42.CompilerLib.ILConversion
             public void Convert(ReachableContext reachableContext)
             {
                 // Collect all type
-                var todoTypes = reachableContext.ReachableTypes.Where(x => x.IsValueType && !x.IsPrimitive && !x.IsEnum & !HasDefaultCtor(x)).ToList();
+                var todoTypes = reachableContext.ReachableTypes.Where(x => x.IsValueType && !x.IsPrimitive && !x.IsEnum).ToList();
                 if (todoTypes.Count == 0)
                     return;
 
                 foreach (var type in todoTypes)
                 {
-                    CreateDefaultCtor(reachableContext, type);
+                    if(!HasDefaultCtor(type))
+                        CreateDefaultCtor(reachableContext, type);
+
+                    if (StructFields.IsImmutableStruct(type) && !type.HasGenericParameters)
+                        CreateDefaultField(reachableContext, type);
                 }
             }
 
@@ -56,7 +60,7 @@ namespace Dot42.CompilerLib.ILConversion
             }
 
             /// <summary>
-            /// Convert all synchronized methods.
+            /// Create the Ctor
             /// </summary>
             private static void CreateDefaultCtor(ReachableContext reachableContext, TypeDefinition type)
             {
@@ -82,6 +86,14 @@ namespace Dot42.CompilerLib.ILConversion
                 // Add ctor
                 type.Methods.Add(ctor);
                 ctor.SetReachable(reachableContext);
+            }
+
+            private void CreateDefaultField(ReachableContext reachableContext, TypeDefinition type)
+            {
+                // create the field
+                var field = new FieldDefinition(NameConstants.Struct.DefaultFieldName, FieldAttributes.InitOnly | FieldAttributes.Static | FieldAttributes.Public, type);
+                type.Fields.Add(field);
+                field.SetReachable(reachableContext, true);
             }
         }
     }    

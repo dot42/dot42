@@ -169,13 +169,14 @@ namespace Dot42.CompilerLib.Ast.Converters
                                 .SetType(resultType);
 
             // new T()
+            var defaultT = new AstExpression(node.SourceLocation, AstCode.DefaultValue, resultType)
+                                   .SetType(resultType);
             var constructor = StructCallConverter.GetDefaultValueCtor(resultType.Resolve());
-            var newExpr = new AstExpression(node.SourceLocation, AstCode.Newobj, constructor)
-                                .SetType(resultType);
+            StructCallConverter.ConvertDefaultValue(defaultT, constructor);
 
             // Combine
             var conditional = new AstExpression(node.SourceLocation, AstCode.Conditional, resultType,
-                                                storeTempVar, loadTempVar, newExpr)
+                                                storeTempVar, loadTempVar, defaultT)
                                 .SetType(resultType);
 
             node.CopyFrom(conditional);

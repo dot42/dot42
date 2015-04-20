@@ -20,6 +20,7 @@
         {
             internal const string CopyFromMethodName = "$CopyFrom";
             internal const string CloneMethodName = "$Clone";
+            internal const string DefaultFieldName = "default$";
         }
     }
 }
