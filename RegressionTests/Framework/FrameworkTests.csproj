@@ -102,6 +102,7 @@
     <Compile Include="System.Xml.Linq\TestXDocument.cs" />
     <Compile Include="System\BufferTest_Mono.cs" />
     <None Include="System\ConvertTest_Mono.cs" />
+    <Compile Include="System\TestByte.cs" />
     <Compile Include="System\TestException.cs" />
     <Compile Include="System\RandomTest.cs" />
     <Compile Include="System\TestBoolean_Mono.cs" />
@@ -120,6 +121,7 @@
     <Compile Include="System\TestIDisposable.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="System\TestUint16.cs" />
     <Compile Include="System\TestInt32_Mono.cs" />
     <Compile Include="System\TestString.cs">
       <SubType>Code</SubType>

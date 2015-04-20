@@ -82,7 +82,7 @@ namespace Dot42.CompilerLib.Ast.Converters
                             {
                                 var stloc = new AstExpression(node.SourceLocation, AstCode.Stloc, node.Operand) { InferredType = variable.Type };
                                 stloc.Arguments.Add(GetValueOutOfByRefArray(node, variable.Type, argIsGenByRefParam, assembly));
-                                ConvertToByRefArray(node, variable.Type, ldloc, stloc, argIsOut, argIsGenByRefParam, assembly);
+                                ConvertToByRefArray(node, variable.Type, ldloc, stloc, argIsOut, argIsGenByRefParam, argType.ElementType, assembly);
                             }
                             else
                             {
@@ -110,7 +110,7 @@ namespace Dot42.CompilerLib.Ast.Converters
                             var stExpr = new AstExpression(node.SourceLocation, AstCode.Nop, null);
                             var elementType = variable.Type;
                             if (elementType.IsByReference) elementType = elementType.ElementType;
-                            ConvertToByRefArray(node, elementType, ldclone, stExpr, argIsOut, argIsGenByRefParam, assembly);
+                            ConvertToByRefArray(node, elementType, ldclone, stExpr, argIsOut, argIsGenByRefParam, argType.ElementType, assembly);
                         }
                     }
                     break;
@@ -149,7 +149,7 @@ namespace Dot42.CompilerLib.Ast.Converters
                                 var stfld = new AstExpression(node.SourceLocation, stfldCode, node.Operand) { InferredType = field.FieldType };
                                 stfld.Arguments.AddRange(node.Arguments); // instance
                                 stfld.Arguments.Add(GetValueOutOfByRefArray(node, field.FieldType, argIsGenByRefParam, assembly)); // value
-                                ConvertToByRefArray(node, field.FieldType, ldfld, stfld, argIsOut, argIsGenByRefParam, assembly);
+                                ConvertToByRefArray(node, field.FieldType, ldfld, stfld, argIsOut, argIsGenByRefParam, argType.ElementType, assembly);
                             }
                             else
                             {
@@ -175,7 +175,7 @@ namespace Dot42.CompilerLib.Ast.Converters
                                 var stelem = new AstExpression(node.SourceLocation, stelemCode, node.Operand) { InferredType = type };
                                 stelem.Arguments.AddRange(node.Arguments);
                                 stelem.Arguments.Add(GetValueOutOfByRefArray(node, type, argIsGenByRefParam, assembly));
-                                ConvertToByRefArray(node, type, ldelem, stelem, argIsOut, argIsGenByRefParam, assembly);
+                                ConvertToByRefArray(node, type, ldelem, stelem, argIsOut, argIsGenByRefParam, argType.ElementType, assembly);
                             }
                             else
                             {
@@ -203,7 +203,7 @@ namespace Dot42.CompilerLib.Ast.Converters
         /// <summary>
         /// Convert the given node to a array creation operation with given element type and argument.
         /// </summary>
-        private static void ConvertToByRefArray(AstExpression node, XTypeReference elementType, AstExpression argument, AstExpression storeArgument, bool isOut, bool argIsGenParam, XModule assembly)
+        private static void ConvertToByRefArray(AstExpression node, XTypeReference elementType, AstExpression argument, AstExpression storeArgument, bool isOut, bool argIsGenParam, XTypeReference sourceType, XModule assembly)
         {
             var arrayElementType = argIsGenParam ? assembly.TypeSystem.Object : elementType;
 
@@ -218,6 +218,7 @@ namespace Dot42.CompilerLib.Ast.Converters
             node.ExpectedType = new XByReferenceType(arrayElementType);
             node.Arguments.Clear();
             node.Arguments.Add(argument);
+            node.Arguments.Add(new AstExpression(node.SourceLocation, AstCode.Nop, sourceType)); // how else can be keep this information?
             node.StoreByRefExpression = storeArgument;
         }
 

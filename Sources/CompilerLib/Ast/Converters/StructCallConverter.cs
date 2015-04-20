@@ -68,11 +68,13 @@ namespace Dot42.CompilerLib.Ast.Converters
                         {
                             var typeRef = (XTypeReference) node.Operand;
                             XTypeDefinition type;
-                            if (typeRef.TryResolve(out type) && type.IsValueType && !type.IsPrimitive && !type.IsEnum &&
-                                !type.IsSystemNullable())
+                            if (typeRef.TryResolve(out type))
                             {
-                                var defaultCtor = GetDefaultValueCtor(type);
-                                ConvertDefaultValue(node, defaultCtor);
+                                if (type.IsStruct)
+                                {
+                                    var defaultCtor = GetDefaultValueCtor(type);
+                                    ConvertDefaultValue(node, defaultCtor);
+                                }
                             }
                         }
                         break;

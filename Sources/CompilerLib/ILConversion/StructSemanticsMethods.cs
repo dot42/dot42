@@ -47,6 +47,8 @@ namespace Dot42.CompilerLib.ILConversion
                     // Create methods
                     var copyFromMethod = CreateCopyFromMethod(reachableContext, type);
                     CreateCloneMethod(reachableContext, type, copyFromMethod);
+
+                    // TODO: create Equals and GetHashCode methods, if they don't exist.
                 }
             }
 
