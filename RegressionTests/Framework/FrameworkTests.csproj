@@ -94,6 +94,7 @@
     <Compile Include="System.Threading.Tasks\TestCancellationToken.cs" />
     <Compile Include="System.Threading.Tasks\TestTaskAsync.cs" />
     <Compile Include="System.Threading.Tasks\TestTask.cs" />
+    <Compile Include="System.Threading\InterlockedTest_Mono.cs" />
     <Compile Include="System.Threading\TestThread.cs" />
     <Compile Include="System.Xml.Linq\TestXElement.cs" />
     <Compile Include="System.Xml.Linq\TestXLoad.cs" />

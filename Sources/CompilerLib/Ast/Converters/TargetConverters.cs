@@ -28,7 +28,7 @@ namespace Dot42.CompilerLib.Ast.Converters
             BranchOptimizer.Convert(ast);
             CompoundAssignmentConverter.Convert(ast);
             // keep this order
-            InterlockedConverter.Convert(ast,compiler);
+            InterlockedConverter.Convert(ast, currentMethod, compiler);
             ByReferenceParamConverter.Convert(context, ast, compiler);
             // end
             CompareUnorderedConverter.Convert(ast);

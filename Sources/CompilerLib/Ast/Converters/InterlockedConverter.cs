@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
+using Dot42.CompilerLib.Extensions;
 using Dot42.CompilerLib.XModel;
 using Dot42.Utility;
 
@@ -17,7 +18,7 @@ namespace Dot42.CompilerLib.Ast.Converters
     /// </summary>
     internal static class InterlockedConverter 
     {
-        public static void Convert(AstNode ast, AssemblyCompiler compiler)
+        public static void Convert(AstNode ast, MethodSource currentMethod, AssemblyCompiler compiler)
         {
             foreach (var block in ast.GetSelfAndChildrenRecursive<AstBlock>())
             {
@@ -34,76 +35,161 @@ namespace Dot42.CompilerLib.Ast.Converters
                     if(interlockedCall == null) 
                         continue;
 
-                    // replace with:
-                    //    Monitor.Enter();
-                    //    try { <original expression> } finally { Monitor.Exit(); } 
-                    //   
-                    // note that the lock is larger than it has to be, since it also sourrounds
-                    // the parameter evaluation.
-                    // It must sourround the storing and loading of the reference parameters though.
-
                     // first parameter should be a reference to a field,
                     // (but be lenient if we don't find what we expect)
-                    var monitorType = compiler.GetDot42InternalType("System.Threading", "Monitor");
-                    var enterMethod = monitorType.Resolve().Methods.Single(p => p.Name == "Enter");
-                    var exitMethod = monitorType.Resolve().Methods.Single(p => p.Name == "Exit");
-
                     
-                    var target = interlockedCall.Arguments[0];
-                    AstExpression loadLockTarget = null;
+                    var targetExpr = interlockedCall.Arguments[0];
 
-                    if (target.InferredType.IsByReference)
+                    XFieldReference field = null;
+
+                    if (targetExpr.InferredType.IsByReference)
                     {
-                        var field = target.Operand as XFieldReference;
+                        field = targetExpr.Operand as XFieldReference;
+
                         if (field != null)
                         {
-                            if (field.Resolve().IsStatic)
+                            // check if we have an atomic updater 
+                            var updater = field.DeclaringType.Resolve().Fields
+                                                             .FirstOrDefault(f => f.Name == field.Name + NameConstants.Atomic.FieldUpdaterPostfix);
+                            if (updater != null)
                             {
-                                // lock on the field's class typedef.
-                                loadLockTarget = new AstExpression(expr.SourceLocation, AstCode.LdClass, field.DeclaringType)
-                                                        .SetType(compiler.Module.TypeSystem.Type);
-                            }
-                            else
-                            {
-                                // lock on the fields object
-                                loadLockTarget = target.Arguments[0];
+                                if (InterlockedUsingUpdater(interlockedCall, field, updater, targetExpr, compiler))
+                                    continue;
                             }
                         }
                     }
-
-                    if (loadLockTarget == null)
-                    {
-                        // something went wrong. use a global lock.
-                        DLog.Warning(DContext.CompilerCodeGenerator, "unable to infer target of Interlocked call. using global lock.");
-                        loadLockTarget = new AstExpression(expr.SourceLocation, AstCode.LdClass, monitorType)
-                                                        .SetType(compiler.Module.TypeSystem.Type);    
-                    }
-
-                    var lockVar = new AstGeneratedVariable("lockTarget$", "") {Type = compiler.Module.TypeSystem.Object};
-                    var storeLockVar = new AstExpression(expr.SourceLocation, AstCode.Stloc, lockVar, loadLockTarget);
-                    var loadLockVar = new AstExpression(expr.SourceLocation, AstCode.Ldloc, lockVar);
-                    var enterCall = new AstExpression(expr.SourceLocation, AstCode.Call, enterMethod, storeLockVar);
-
-                    var replacementBlock = new AstBlock(expr.SourceLocation);
-                    replacementBlock.Body.Add(enterCall);
-
-                    var tryCatch = new AstTryCatchBlock(expr.SourceLocation)
-                    {
-                        TryBlock = new AstBlock(expr.SourceLocation, expr),
-                        FinallyBlock = new AstBlock(expr.SourceLocation,
-                            new AstExpression(block.SourceLocation, AstCode.Call, exitMethod, loadLockVar))
-                    };
-
-                    replacementBlock.Body.Add(tryCatch);
-
-                    if (block.EntryGoto == expr)
-                        block.EntryGoto = enterCall;
-
-                    block.Body[i] = replacementBlock;
-
+                    bool isStatic = field != null && field.Resolve().IsStatic;
+                    DLog.Warning(DContext.CompilerCodeGenerator, "Emulating Interlocked call using failsafe locking mechanism in {0}{1}. Consider using AtomicXXX classes instead.", 
+                        currentMethod.Method.FullName, !isStatic?"": " because a static field is referenced");
+                    FailsafeInterlockedUsingLocking(field, expr, targetExpr, block, i, compiler);
                 }
 
             }
+        }
+
+        private static bool InterlockedUsingUpdater(AstExpression interlockedCall, XFieldReference field, XFieldDefinition updater, AstExpression targetExpr, AssemblyCompiler compiler)
+        {
+            var method = (XMethodReference) interlockedCall.Operand;
+
+            bool isStatic = field.Resolve().IsStatic;
+
+            var methodName = method.Name.Split('$')[0]; // retrieve original name.
+            
+            string replacementMethod = null;
+            if (methodName == "Increment")
+                replacementMethod = "IncrementAndGet";
+            else if (methodName == "Decrement")
+                replacementMethod = "DecrementAndGet";
+            else if (methodName == "Add")
+                replacementMethod = "AddAndGet";
+            else if (methodName == "Read")
+                replacementMethod = "Get";
+            else if (methodName.StartsWith("Exchange"))
+                replacementMethod = "GetAndSet";
+            else if (methodName.StartsWith("CompareExchange"))
+            {
+                // the semantics here are slighlty different. Java returns a 'true' on 
+                // success, while BCL return the old value. We have crafted a replacement 
+                // method with the BCL semantics though.
+                replacementMethod = "CompareExchange";
+            }
+            else
+            {
+                return false;
+            }
+
+            var updaterType = updater.FieldType.Resolve();
+            var methodRef = updaterType.Methods.FirstOrDefault(f => f.Name == replacementMethod);
+
+            if (methodRef == null && methodName=="CompareExchange") 
+                methodRef = updaterType.Methods.FirstOrDefault(f => f.Name.StartsWith(replacementMethod));
+
+            if (methodRef == null)
+                return false;
+
+            interlockedCall.Operand = methodRef;
+
+            if (isStatic)
+                interlockedCall.Arguments[0] = new AstExpression(interlockedCall.SourceLocation, AstCode.Ldnull, null)
+                                                    .SetType(field.DeclaringType);
+            else
+                interlockedCall.Arguments[0] = targetExpr.Arguments[0];
+
+            // add field updater instance argument.
+            var ldUpdater = new AstExpression(interlockedCall.SourceLocation, AstCode.Ldsfld, updater)
+                                    .SetType(updaterType);
+
+            interlockedCall.Arguments.Insert(0, ldUpdater);
+
+            return true;
+
+        }
+
+        private static void FailsafeInterlockedUsingLocking(XFieldReference field, AstExpression expr, 
+                                                            AstExpression targetExpr, AstBlock block, int idx, 
+                                                            AssemblyCompiler compiler)
+        {
+            // replace with:
+            //    Monitor.Enter();
+            //    try { <original expression> } finally { Monitor.Exit(); } 
+            //   
+            // note that the lock is larger than it has to be, since it also sourrounds
+            // the parameter evaluation.
+            // It must sourround the storing and loading of the reference parameters though.
+            var typeSystem = compiler.Module.TypeSystem;
+
+            var monitorType = compiler.GetDot42InternalType("System.Threading", "Monitor");
+            var enterMethod = monitorType.Resolve().Methods.Single(p => p.Name == "Enter");
+            var exitMethod = monitorType.Resolve().Methods.Single(p => p.Name == "Exit");
+
+            AstExpression loadLockTarget = null;
+            
+            if (field != null)
+            {
+                if (field.Resolve().IsStatic)
+                {
+                    // lock on the field's class typedef.
+                    // but always the element type, not on a generic instance (until Dot42 implements proper generic static field handling)
+                    loadLockTarget = new AstExpression(expr.SourceLocation, AstCode.LdClass, field.DeclaringType.GetElementType())
+                        .SetType(typeSystem.Type);
+                }
+                else
+                {
+                    // lock on the fields object
+                    loadLockTarget = targetExpr.Arguments[0];
+                }
+            }
+
+            if (loadLockTarget == null)
+            {
+                // something went wrong. use a global lock.
+                DLog.Warning(DContext.CompilerCodeGenerator, "unable to infer target of Interlocked call. using global lock.");
+                var interlockedType = compiler.GetDot42InternalType("System.Threading", "Interlocked");
+                loadLockTarget = new AstExpression(expr.SourceLocation, AstCode.LdClass, interlockedType)
+                                        .SetType(typeSystem.Type);
+            }
+
+            var lockVar = new AstGeneratedVariable("lockTarget$", "") {Type = typeSystem.Object};
+            var storeLockVar = new AstExpression(expr.SourceLocation, AstCode.Stloc, lockVar, loadLockTarget);
+            var loadLockVar = new AstExpression(expr.SourceLocation, AstCode.Ldloc, lockVar);
+            var enterCall = new AstExpression(expr.SourceLocation, AstCode.Call, enterMethod, storeLockVar);
+
+            var replacementBlock = new AstBlock(expr.SourceLocation);
+            replacementBlock.Body.Add(enterCall);
+
+            var tryCatch = new AstTryCatchBlock(expr.SourceLocation)
+            {
+                TryBlock = new AstBlock(expr.SourceLocation, expr),
+                FinallyBlock = new AstBlock(expr.SourceLocation,
+                    new AstExpression(block.SourceLocation, AstCode.Call, exitMethod, loadLockVar))
+            };
+
+            replacementBlock.Body.Add(tryCatch);
+
+            if (block.EntryGoto == expr)
+                block.EntryGoto = enterCall;
+
+            block.Body[idx] = replacementBlock;
         }
     }
 }

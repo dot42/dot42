@@ -44,13 +44,14 @@ namespace Dot42.CompilerLib.ILConversion
             }
 
             /// <summary>
-            /// Does the given type have any static field that is an enum?
+            /// Does the given type have any static field that is an enum, or struct,
+            /// or are any fields used in interlocked calls?
             /// </summary>
             private static bool NeedsClassCtor(TypeDefinition type)
             {
                 if (type.IsEnum) // Class ctor is already created automatically for enums
                     return false;
-                return type.Fields.Any(x => x.IsStatic && IsEnumOrStruct(x.FieldType));
+                return type.Fields.Any(x => (x.IsStatic && IsEnumOrStruct(x.FieldType)) || x.IsUsedInInterlocked);
             }
 
             /// <summary>

@@ -2,6 +2,7 @@
 using System.Linq;
 using Dot42.CecilExtensions;
 using Dot42.CompilerLib.Ast.Extensions;
+using Dot42.CompilerLib.Ast2RLCompiler.Extensions;
 using Dot42.CompilerLib.Extensions;
 using Dot42.FrameworkDefinitions;
 using Dot42.JvmClassLib;
@@ -483,6 +484,29 @@ namespace Dot42.CompilerLib.Reachable.DotNet
                                     var boxingType = GetDot42InternalType(context, "Boxing");
                                     boxingType.Methods.Where(x => x.Name.StartsWith("Unbox") && (x.Parameters.Count == 1)).ForEach(x => x.MarkReachable(context));                                    
                                 }
+
+                                if (methodRef.DeclaringType.IsSystemThreadingInterlocked())
+                                {
+                                    var ilseq = new ILSequence();
+                                    foreach (var i in body.Instructions)
+                                    {
+                                        ilseq.Append(i);
+                                        if (i == ins)
+                                            break;
+                                    }
+                                    Instruction[] args = ins.GetCallArguments(ilseq, false);
+                                    var field = args[0].Operand as FieldReference;
+                                    if (field != null)
+                                    {
+                                        field.Resolve().IsUsedInInterlocked = true;
+                                        //var ai = GetDot42InternalType(context, "Java.Util.Concurrent.Atomic", "AtomicIntegerFieldUpdater`1");
+                                        //ai.MarkReachable(context);ai.Methods.ForEach(m=>m.MarkReachable(context));
+                                        //var al = GetDot42InternalType(context, "Java.Util.Concurrent.Atomic", "AtomicLongFieldUpdater`1");
+                                        //al.MarkReachable(context); al.Methods.ForEach(m => m.MarkReachable(context));
+                                        //var ar = GetDot42InternalType(context, "Java.Util.Concurrent.Atomic", "AtomicReferenceFieldUpdater`2");
+                                        //ar.MarkReachable(context); ar.Methods.ForEach(m => m.MarkReachable(context));
+                                    }
+                                }
                             }
                         }
 
@@ -737,6 +761,12 @@ namespace Dot42.CompilerLib.Reachable.DotNet
         {
             var typeRef = context.Compiler.GetDot42InternalType(typeName);
             return (TypeDefinition) typeRef.Resolve().OriginalTypeDefinition;
+        }
+
+        private static TypeDefinition GetDot42InternalType(ReachableContext context, string @namespace, string typeName)
+        {
+            var typeRef = context.Compiler.GetDot42InternalType(@namespace, typeName);
+            return (TypeDefinition)typeRef.Resolve().OriginalTypeDefinition;
         }
     }
 }

@@ -22,5 +22,10 @@
             internal const string CloneMethodName = "$Clone";
             internal const string DefaultFieldName = "default$";
         }
+
+        public static class Atomic
+        {
+            internal const string FieldUpdaterPostfix = "$atomicUpdater";
+        }
     }
 }

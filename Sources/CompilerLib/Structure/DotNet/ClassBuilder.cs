@@ -378,7 +378,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
         protected virtual void CreateMembers(DexTargetPackage targetPackage)
         {
             // Build fields
-            fieldBuilders = typeDef.Fields.Where(ShouldImplementField).Select(x => FieldBuilder.Create(compiler, x)).ToList();
+            fieldBuilders = typeDef.Fields.Where(ShouldImplementField).SelectMany(x => FieldBuilder.Create(compiler, x)).ToList();
             fieldBuilders.ForEach(x => x.Create(classDef, XType, targetPackage));
 
             // Build GenericInstance field (if generic)

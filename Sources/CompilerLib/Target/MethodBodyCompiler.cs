@@ -4,6 +4,7 @@ using System.Linq;
 using Dot42.CompilerLib.Ast;
 using Dot42.CompilerLib.Ast.Converters;
 using Dot42.CompilerLib.Ast.Optimizer;
+using Dot42.CompilerLib.Extensions;
 using Dot42.CompilerLib.XModel;
 
 namespace Dot42.CompilerLib.Target
@@ -27,10 +28,10 @@ namespace Dot42.CompilerLib.Target
                 var astBuilder = new IL2Ast.AstBuilder(source.ILMethod, true, context);
                 var children = astBuilder.Build();
                 ast = new AstBlock(children.Select(x => x.SourceLocation).FirstOrDefault(), children);
-                if ((source.ILMethod.IsConstructor) && (source.Method.DeclaringType.Fields.Any(x => x.FieldType.IsEnum())))
+                if ((source.ILMethod.IsConstructor) && (source.Method.DeclaringType.Fields.Any(x => x.FieldType.IsEnum() || x.Name.EndsWith(NameConstants.Atomic.FieldUpdaterPostfix))))
                 {
                     // Ensure all fields are initialized
-                    AddFieldInitializationCode(source, ast);
+                    AddFieldInitializationCode(compiler, source, ast);
                 }
                 if (source.Method.NeedsGenericInstanceTypeParameter && (source.Name == ".ctor"))
                 {
@@ -68,7 +69,7 @@ namespace Dot42.CompilerLib.Target
         /// <summary>
         /// Add initialization code to the given constructor for non-initialized struct fields.
         /// </summary>
-        private static void AddFieldInitializationCode(MethodSource ctor, AstBlock ast)
+        private static void AddFieldInitializationCode(AssemblyCompiler compiler, MethodSource ctor, AstBlock ast)
         {
             List<XFieldDefinition> fieldsToInitialize;
             var declaringType = ctor.Method.DeclaringType;
@@ -76,6 +77,42 @@ namespace Dot42.CompilerLib.Target
             var index = 0;
             if (ctor.Method.IsStatic)
             {
+                var atomicUpdaters = declaringType.Fields.Where(x => x.Name.EndsWith(NameConstants.Atomic.FieldUpdaterPostfix));
+                foreach (var field in atomicUpdaters)
+                {
+                    var type = field.FieldType.Resolve();
+                    var factory = type.Methods.First(m => m.Name == "NewUpdater" && m.IsStatic 
+                                                      && (m.Parameters.Count==2 || m.Parameters.Count==3));
+                    var baseFieldName = field.Name.Substring(0, field.Name.Length - NameConstants.Atomic.FieldUpdaterPostfix.Length);
+
+                    var declaringTypeExpr = new AstExpression(ast.SourceLocation, AstCode.TypeOf, field.DeclaringType);
+                    var ldBaseFieldNameExpr = new AstExpression(ast.SourceLocation, AstCode.Ldstr, baseFieldName);
+
+                    AstExpression createExpr;
+                    if (factory.Parameters.Count == 2)
+                    {
+                        // doesn't need the original field type.
+                        createExpr = new AstExpression(ast.SourceLocation, AstCode.Call, factory,
+                                                            declaringTypeExpr, ldBaseFieldNameExpr)
+                                                .SetType(factory.ReturnType);
+                    }
+                    else
+                    {
+                        // needs the original field type; use the element type for generics.
+                        var originalField = declaringType.Fields.Single(f => f.Name==baseFieldName);
+                        var originalFieldType = originalField.FieldType;
+                        if (!originalFieldType.IsArray)
+                            originalFieldType = originalFieldType.GetElementType();
+
+                        var fieldTypeExpr = new AstExpression(ast.SourceLocation, AstCode.TypeOf, originalFieldType);
+                        createExpr = new AstExpression(ast.SourceLocation, AstCode.Call, factory,
+                                                            declaringTypeExpr, fieldTypeExpr, ldBaseFieldNameExpr)
+                                                .SetType(factory.ReturnType);
+                    }
+                    var initExpr = new AstExpression(ast.SourceLocation, AstCode.Stsfld, field, createExpr);
+                    ast.Body.Insert(index++, initExpr);
+                }
+
                 fieldsToInitialize = fieldsThatMayNeedInitialization.Where(x => x.IsStatic && !IsInitialized(ast, x)).ToList();
                 foreach (var field in fieldsToInitialize)
                 {
@@ -83,6 +120,7 @@ namespace Dot42.CompilerLib.Target
                     var initExpr = new AstExpression(ast.SourceLocation, AstCode.Stsfld, field, defaultExpr);
                     ast.Body.Insert(index++, initExpr);
                 }
+
             }
             else
             {

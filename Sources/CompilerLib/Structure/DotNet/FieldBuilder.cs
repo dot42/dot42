@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Dot42.CecilExtensions;
 using Dot42.CompilerLib.Ast.Extensions;
 using Dot42.CompilerLib.Extensions;
@@ -6,6 +7,7 @@ using Dot42.CompilerLib.Target;
 using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel;
 using Dot42.CompilerLib.XModel.DotNet;
+using Dot42.CompilerLib.XModel.Synthetic;
 using Dot42.DexLib;
 using Dot42.Mapping;
 using Dot42.Utility;
@@ -17,24 +19,28 @@ namespace Dot42.CompilerLib.Structure.DotNet
     internal class FieldBuilder
     {
         private readonly AssemblyCompiler compiler;
-        private readonly FieldDefinition field;
-        private Dot42.DexLib.FieldDefinition dfield;
-        private XFieldDefinition xField;
-
+        protected readonly FieldDefinition field;
+        protected internal Dot42.DexLib.FieldDefinition dfield;
+        protected internal XFieldDefinition xField;
         /// <summary>
         /// Default ctor
         /// </summary>
-        public static FieldBuilder Create(AssemblyCompiler compiler, FieldDefinition field)
+        public static IEnumerable<FieldBuilder> Create(AssemblyCompiler compiler, FieldDefinition field)
         {
             if (field.IsAndroidExtension())
-                return new DexImportFieldBuilder(compiler, field);
+                return new[] {new DexImportFieldBuilder(compiler, field)};
             if (field.DeclaringType.IsEnum)
             {
                 if (!field.IsStatic)
                     throw new ArgumentException("value field should not be implemented this way");
-                return new EnumFieldBuilder(compiler, field);
+                return new[] {new EnumFieldBuilder(compiler, field)};
             }
-            return new FieldBuilder(compiler, field);
+
+            var fieldBuilder = new FieldBuilder(compiler, field);
+            if (!field.IsUsedInInterlocked)
+                return new[] { fieldBuilder };
+
+            return new[] { fieldBuilder, new FieldInterlockedBuilder(compiler, field, fieldBuilder) };
         }
 
         /// <summary>
@@ -57,7 +63,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// <summary>
         /// Create the current type as class definition.
         /// </summary>
-        public void Create(ClassDefinition declaringClass, XTypeDefinition declaringType, DexTargetPackage targetPackage)
+        public virtual void Create(ClassDefinition declaringClass, XTypeDefinition declaringType, DexTargetPackage targetPackage)
         {
             // Find xfield
             xField = XBuilder.AsFieldDefinition(compiler.Module, field);
@@ -108,13 +114,13 @@ namespace Dot42.CompilerLib.Structure.DotNet
             if (field.IsCompilerGenerated())
                 dfield.IsSynthetic = true;
 
-            dfield.IsVolatile = IsVolatile(field); ;
+            dfield.IsVolatile = field.IsUsedInInterlocked || IsVolatile(field); ;
         }
 
         /// <summary>
         /// Implement the class now that all classes have been created
         /// </summary>
-        public void Implement(ClassDefinition declaringClass, DexTargetPackage targetPackage)
+        public virtual void Implement(ClassDefinition declaringClass, DexTargetPackage targetPackage)
         {
             if (dfield == null)
                 return;
@@ -122,7 +128,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
             SetFieldType(dfield, field, targetPackage);
             SetFieldValue(dfield, field);
         }
-
+        
         /// <summary>
         /// Create all annotations for this field
         /// </summary>
@@ -137,7 +143,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// <summary>
         /// Record the mapping from .NET to Dex
         /// </summary>
-        public void RecordMapping(TypeEntry typeEntry)
+        public virtual void RecordMapping(TypeEntry typeEntry)
         {
             var entry = new FieldEntry(field.Name, field.FieldType.FullName, dfield.Name, dfield.Type.ToString());
             typeEntry.Fields.Add(entry);
