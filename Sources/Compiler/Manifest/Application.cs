@@ -50,7 +50,7 @@ namespace Dot42.Compiler.Manifest
             {
                 // use Dot42.Internal.Application
                 // FIXME: there should be a better way to specify the type...
-                application.AddAttr("name", "dot42.Internal", "Application");
+                application.AddAttr("name", Namespace, "dot42.Internal.Application");
             }
             application.AddAttrIfNotEmpty("icon", Namespace, icon, FormatDrawable);
             application.AddAttrIfNotEmpty("theme", Namespace, attr.GetValue<string>("Theme"), FormatStyle);
