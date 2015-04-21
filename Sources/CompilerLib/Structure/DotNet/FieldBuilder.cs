@@ -9,6 +9,7 @@ using Dot42.CompilerLib.XModel.DotNet;
 using Dot42.DexLib;
 using Dot42.Mapping;
 using Dot42.Utility;
+using Mono.Cecil;
 using FieldDefinition = Mono.Cecil.FieldDefinition;
 
 namespace Dot42.CompilerLib.Structure.DotNet
@@ -106,6 +107,8 @@ namespace Dot42.CompilerLib.Structure.DotNet
 
             if (field.IsCompilerGenerated())
                 dfield.IsSynthetic = true;
+
+            dfield.IsVolatile = IsVolatile(field); ;
         }
 
         /// <summary>
@@ -128,9 +131,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
             // Build field annotations
             AnnotationBuilder.Create(compiler, field, dfield, targetPackage);
 
-            if(!dfield.IsSynthetic && !dfield.Owner.IsSynthetic)
-                dfield.AddGenericDefinitionAnnotationIfGeneric(xField.FieldType, compiler, targetPackage);
-
+            dfield.AddGenericDefinitionAnnotationIfGeneric(xField.FieldType, compiler, targetPackage);
         }
 
         /// <summary>
@@ -177,6 +178,26 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 }
             }
             dfield.Value = constant;
+        }
+
+        private static bool IsVolatile(FieldDefinition field)
+        {
+            bool isVolatile = false;
+            TypeSpecification modtype = field.FieldType as TypeSpecification;
+            while (modtype != null)
+            {
+                if (modtype.IsRequiredModifier)
+                {
+                    var req = (RequiredModifierType)modtype;
+                    if (req.ModifierType.Name == "IsVolatile")
+                    {
+                        isVolatile = true;
+                        break;
+                    }
+                }
+                modtype = modtype.ElementType as TypeSpecification;
+            }
+            return isVolatile;
         }
     }
 }

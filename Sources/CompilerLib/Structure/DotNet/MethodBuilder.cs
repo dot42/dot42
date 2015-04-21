@@ -175,27 +175,35 @@ namespace Dot42.CompilerLib.Structure.DotNet
             // Build method annotations
             AnnotationBuilder.Create(compiler, method, dmethod, targetPackage);
             
-            if (!dmethod.IsSynthetic && !dmethod.Owner.IsSynthetic)
+            // only add generics annotation for getters or setters or constructors
+            if (method.IsGetter)
             {
-                // only add generics annotation for getters or setters.
-                if (method.IsGetter)
-                {
-                    // Note that the return type might has been 
-                    // changed above, to compensate for interface 
-                    // inheritance and generic specialization.
-                    // We need to use the original declaration.
-                    var returnType = xMethod.OriginalReturnType;
-                    var xType = XBuilder.AsTypeReference(compiler.Module, returnType);
-                    dmethod.AddGenericDefinitionAnnotationIfGeneric(xType, compiler, targetPackage);
-                }
-                else if (method.IsSetter)
-                    for (int i = 0; i < xMethod.Parameters.Count; ++i)
-                    {
-                        var dp = dmethod.Prototype.Parameters[i];
-                        dp.AddGenericDefinitionAnnotationIfGeneric(xMethod.Parameters[i].ParameterType, compiler,
-                            targetPackage);
-                    }
+                // Note that the return type might has been 
+                // changed above, to compensate for interface 
+                // inheritance and generic specialization.
+                // We need to use the original declaration.
+                var returnType = xMethod.OriginalReturnType;
+                var xType = XBuilder.AsTypeReference(compiler.Module, returnType);
+                dmethod.AddGenericDefinitionAnnotationIfGeneric(xType, compiler, targetPackage);
             }
+            else if (method.IsSetter)
+            {
+                for (int i = 0; i < xMethod.Parameters.Count; ++i)
+                {
+                    var dp = dmethod.Prototype.Parameters[i];
+                    dp.AddGenericDefinitionAnnotationIfGeneric(xMethod.Parameters[i].ParameterType, compiler,
+                        targetPackage);
+                }
+            }
+            //else if (method.IsConstructor)
+            //{
+            //    for (int i = 0; i < xMethod.Parameters.Count; ++i)
+            //    {
+            //        var dp = dmethod.Prototype.Parameters[i];
+            //        dp.AddGenericDefinitionAnnotationIfGeneric(xMethod.Parameters[i].ParameterType, compiler,
+            //            targetPackage);
+            //    }
+            //}
         }
 
         /// <summary>
