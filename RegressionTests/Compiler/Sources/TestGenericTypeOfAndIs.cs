@@ -22,7 +22,7 @@ namespace Dot42.Tests.Compiler.Sources
 
             public Type GetTypeofVal()
             {
-                return _val.GetType();
+                return _val.GetTypeReflectionSafe();
             }
 
             public bool IsT(object o)

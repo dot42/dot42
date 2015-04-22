@@ -105,7 +105,7 @@ namespace Dot42.Tests.Compiler.Sources
             public GenericClass(T val)
             {
                 Assert.AssertTrue(val is int);
-                Assert.AssertTrue(val.GetType() == typeof(T));
+                Assert.AssertTrue(val.GetTypeReflectionSafe() == typeof(T));
                 this.val = val;
             }
 

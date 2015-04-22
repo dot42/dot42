@@ -54,8 +54,8 @@ namespace Dot42.Tests.Compiler.Sources
 
             intval = 30;
 
-            Assert.AreEqual(typeof(int), intval.GetType());
-            Assert.IsNull(Nullable.GetUnderlyingType(intval.GetType()));
+            Assert.AreEqual(typeof(int), intval.GetTypeReflectionSafe());
+            Assert.IsNull(Nullable.GetUnderlyingType(intval.GetTypeReflectionSafe()));
             Assert.AreEqual(30, intval);
             Assert.AreEqual(30, intval.GetValueOrDefault());
             Assert.AreEqual(30, intval.GetValueOrDefault(40));

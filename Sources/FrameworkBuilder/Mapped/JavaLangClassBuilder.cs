@@ -124,6 +124,10 @@ namespace Dot42.FrameworkBuilder.Mapped
                     renamer.Rename(method, "JavaIsAssignableFrom");
                     method.EditorBrowsableState = EditorBrowsableState.Never;
                     break;
+                case "IsInterface":
+                    renamer.Rename(method, "JavaIsInterface");
+                    method.EditorBrowsableState = EditorBrowsableState.Never;
+                    break;
                 case "IsInstance":
                     renamer.Rename(method, "JavaIsInstance");
                     method.EditorBrowsableState = EditorBrowsableState.Never;
