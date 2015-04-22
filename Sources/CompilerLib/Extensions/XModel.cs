@@ -120,6 +120,8 @@ namespace Dot42.CompilerLib.Extensions
             if (type == null)
                 throw new ArgumentNullException("type");
 
+            type = type.GetWithoutModifiers();
+
             // Handle array's
             if (type.IsArray)
             {
@@ -303,6 +305,7 @@ namespace Dot42.CompilerLib.Extensions
                 case XTypeReferenceKind.UIntPtr:
                     return PrimitiveType.Int; // Is this correct?
             }
+
             return null;
         }
     }

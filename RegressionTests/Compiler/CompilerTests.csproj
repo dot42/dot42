@@ -63,6 +63,7 @@
     <Compile Include="Sources\TestDelegateToGeneric.cs" />
     <Compile Include="Sources\AssemblyInfo.cs" />
     <Compile Include="Sources\TestGenericsCreateGenericInstance.cs" />
+    <Compile Include="Sources\TestPrimitiveVolatiles.cs" />
     <Compile Include="Sources\TestWhile.cs" />
     <Compile Include="Sources\TestEnumPerformance.cs" />
     <Compile Include="Sources\TestGenerics.cs" />
