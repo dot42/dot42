@@ -44,14 +44,9 @@ namespace Dot42.CompilerLib.ILConversion
 
                 foreach (var type in todoTypes)
                 {
-                    bool isImmutable = false;// StructFields.IsImmutableStruct(type);
-
-                    if (!isImmutable)
-                    {
-                        // Create methods
-                        var copyFromMethod = CreateCopyFromMethod(reachableContext, type);
-                        CreateCloneMethod(reachableContext, type, copyFromMethod);
-                    }
+                    // Create methods
+                    var copyFromMethod = CreateCopyFromMethod(reachableContext, type);
+                    CreateCloneMethod(reachableContext, type, copyFromMethod);
                     
                     // TODO: create Equals and GetHashCode methods, if they are not overwritten from object.
                     //       Or, alternatively, implement these method based on reflection in ValueType.
@@ -91,7 +86,7 @@ namespace Dot42.CompilerLib.ILConversion
                 foreach (var field in type.Fields.Where(x => !x.IsStatic))
                 {
                     TypeDefinition fieldTypeDef;
-                    var isStructField = StructFields.IsStructField(field, out fieldTypeDef);
+                    var fieldTreatAsStruct = StructFields.IsStructField(field, out fieldTypeDef) && !StructFields.IsImmutableStruct(fieldTypeDef);
 
                     // Prepare for stfld
                     seq.Emit(OpCodes.Ldarg, body.ThisParameter);
@@ -101,7 +96,7 @@ namespace Dot42.CompilerLib.ILConversion
                     seq.Emit(OpCodes.Ldfld, field);
 
                     // If struct, create clone
-                    if (isStructField)
+                    if (fieldTreatAsStruct)
                     {
                         var cloneMethod = new MethodReference(NameConstants.Struct.CloneMethodName, fieldTypeDef, fieldTypeDef) { HasThis = true };
                         seq.Emit(OpCodes.Call, cloneMethod);

@@ -22,6 +22,17 @@ namespace Dot42.Tests.System
         }
 
         [Test]
+        public void TestMinValueParseRoundtrip()
+        {
+            const string pattern = "yyyyMMdd'T'HHmm'Z'";
+            
+            var minValueString = DateTime.MinValue.ToString(pattern, CultureInfo.InvariantCulture);
+
+            Assert.AreEqual("00010101T0000Z",minValueString);
+            Assert.AreEqual(DateTime.MinValue, DateTime.ParseExact(minValueString, pattern, CultureInfo.InvariantCulture));
+        }
+
+        [Test]
         public void Test()
         {
             var time = DateTime.Now;

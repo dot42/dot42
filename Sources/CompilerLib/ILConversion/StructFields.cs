@@ -62,13 +62,21 @@ namespace Dot42.CompilerLib.ILConversion
             if (!type.HasFields) 
                 return true;
 
-            foreach (var field in type.Fields.Where(f=>!f.IsStatic && !f.IsLiteral))
+            while (true)
             {
-                if (!field.IsInitOnly)
-                    return false;
-                var fieldType = field.FieldType.Resolve();
-                if (IsNonNullableStruct(fieldType) && !IsImmutableStruct(fieldType))
-                    return false;
+                foreach (var field in type.Fields.Where(f => !f.IsStatic && !f.IsLiteral))
+                {
+                    if (!field.IsInitOnly)
+                        return false;
+                    var fieldType = field.FieldType.Resolve();
+                    if (IsNonNullableStruct(fieldType) && !IsImmutableStruct(fieldType))
+                        return false;
+                }
+
+                if (type.BaseType == null)
+                    break;
+
+                type = type.BaseType.Resolve();
             }
             return true;
         }

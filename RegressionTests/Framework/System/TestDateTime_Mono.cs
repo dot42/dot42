@@ -560,7 +560,7 @@ namespace MonoTests.System
 			}
 		}
 
-
+#endif
         [Test]
 		public void TestParseExact3 ()
 		{
@@ -572,7 +572,7 @@ namespace MonoTests.System
 			Assert.AreEqual (25, t1.Minute, "#5");
 			Assert.AreEqual (13, t1.Second, "#6");
 		}
-
+#if NOT_IMPLEMENTED
 		[Test]
 		public void TestParseExact4 ()
 		{
@@ -712,7 +712,7 @@ namespace MonoTests.System
             t2 = new DateTime(2002, 2, 1);
             t1 = DateTime.ParseExact("2002 February", "Y", CultureInfo.InvariantCulture);
             Assert.AreEqual(t2.Ticks, t1.Ticks, "#E5");
-#if NOT_IMPLEMENTED // NOTE: toe of those shouldwork, but I haven't figured out which.
+#if NOT_IMPLEMENTED // NOTE: some of those shouldwork, but I haven't figured out which.
             // Custom patterns
             t2 = new DateTime(DateTime.Now.Year, 1, 25);
             t1 = DateTime.ParseExact("25", "%d", CultureInfo.InvariantCulture);
@@ -2302,15 +2302,15 @@ namespace MonoTests.System
 
 #endif
 
-#if NOT_IMPLEMENTED
+
 
         [Test]
 		public void TestMin ()
 		{
 			// This should never throw.
 			DateTime.MinValue.ToLocalTime ();
-		}
-
+        }
+#if NOT_IMPLEMENTED
 		[Test]
 		public void OmittedSecondsFraction ()
 		{
