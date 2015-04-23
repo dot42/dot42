@@ -92,8 +92,10 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 else
                     dmethod.IsPrivate = true;
             }
-            else if (method.IsFamily) dmethod.IsProtected = true;
-            else dmethod.IsPublic = true;
+            else if (method.IsFamily) 
+                dmethod.IsProtected = true;
+            else 
+                dmethod.IsPublic = true;
 
             if (method.DeclaringType.IsInterface)
             {
@@ -102,7 +104,17 @@ namespace Dot42.CompilerLib.Structure.DotNet
             }
             else
             {
-                if (method.IsConstructor) dmethod.IsConstructor = true;
+                if (method.IsConstructor)
+                {
+                    dmethod.IsConstructor = true;
+                    dmethod.IsStatic = method.IsStatic;
+                    if (method.IsStatic)
+                    {
+                        // reset access modifiers for static constructors.
+                        dmethod.IsPrivate = false;
+                        dmethod.IsProtected = false;
+                    }
+                }
                 else if (method.IsAbstract) dmethod.IsAbstract = true;
                 else if (method.IsVirtual) dmethod.IsVirtual = true;
                 else if (method.IsStatic) dmethod.IsStatic = true;
