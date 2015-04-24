@@ -729,6 +729,11 @@ namespace Dot42.ImportJarLib
         public abstract void FillLayoutXml(JarFile jf, XElement parent);
 
         /// <summary>
+        /// Add this type to the typemap.xml file if needed.
+        /// </summary>
+        public abstract void FillTypemapXml(JarFile jf, XElement parent);
+
+        /// <summary>
         /// Improve the type name for the given class.
         /// </summary>
         protected virtual string CreateTypeName(NetTypeDefinition declaringType, ClassFile classFile, string name, string @namespace)

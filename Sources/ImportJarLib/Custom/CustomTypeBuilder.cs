@@ -132,5 +132,9 @@ namespace Dot42.ImportJarLib.Custom
         {
             // Do nothing
         }
+
+        public override void FillTypemapXml(JarFile jf, XElement parent)
+        {
+        }
     }
 }

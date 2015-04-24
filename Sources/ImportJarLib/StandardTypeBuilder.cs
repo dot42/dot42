@@ -302,6 +302,14 @@ namespace Dot42.ImportJarLib
             parent.Add(element);
         }
 
+        public override void FillTypemapXml(JarFile jf, XElement parent)
+        {
+            var element = new XElement("type");
+            element.Add(new XAttribute("fullname", TypeDefinition.FullName));
+            element.Add(new XAttribute("classname", TypeDefinition.OriginalJavaClassName));
+            parent.Add(element);
+        }
+
         /// <summary>
         /// Create a short name for the given classname.
         /// </summary>

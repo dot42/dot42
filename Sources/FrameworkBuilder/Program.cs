@@ -4,6 +4,7 @@ using System.ComponentModel.Composition.Hosting;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Xml.Linq;
 using Dot42.FrameworkDefinitions;
 using Dot42.ImportJarLib;
@@ -108,7 +109,7 @@ namespace Dot42.FrameworkBuilder
                     {
                         // Load Doxygen model
                         var xmlModel = new DocModel();
-                        using (Profiler.Profile(x => Console.WriteLine("Load XML took {0}ms", x.TotalMilliseconds)))
+                        using (Profiler.Profile(x => Console.WriteLine("{0:####} ms for loading Doxygen", x.TotalMilliseconds)))
                         {
                             xmlModel.Load(options.DoxygenXmlFolder);
                         }
@@ -218,7 +219,7 @@ namespace Dot42.FrameworkBuilder
             var target = new TargetFramework(null, classLoader, xmlModel, LogMissingParamNamesType, true, false, Enumerable.Empty<string>());
 
             List<TypeBuilder> typeBuilders;
-            using (Profiler.Profile(x => Console.WriteLine("{0:####} ms for Create", x.TotalMilliseconds)))
+            using (Profiler.Profile(x => Console.WriteLine("{0:####} ms for Create()", x.TotalMilliseconds)))
             {
                 var classTypeBuilders = jf.ClassNames.SelectMany(n => StandardTypeBuilder.Create(jf.LoadClass(n), target));
                 var customTypeBuilder = CompositionContainer.GetExportedValues<ICustomTypeBuilder>()
@@ -238,13 +239,13 @@ namespace Dot42.FrameworkBuilder
             //JavaRefAttributeBuilder.Build(asm.MainModule);
 
             // Implement and finalize types
-            using (Profiler.Profile(x => Console.WriteLine("{0:####} ms for Implement", x.TotalMilliseconds)))
+            using (Profiler.Profile(x => Console.WriteLine("{0:####} ms for Implement()", x.TotalMilliseconds)))
             {
                 JarImporter.Implement(typeBuilders, target);
             }
 
             // Save
-            using (Profiler.Profile(x => Console.WriteLine("{0:####} ms for generate", x.TotalMilliseconds)))
+            using (Profiler.Profile(x => Console.WriteLine("{0:####} ms for Generate()", x.TotalMilliseconds)))
             {
                 CodeGenerator.Generate(folder, module.Types, new List<NetCustomAttribute>(), target, new FrameworkCodeGeneratorContext(), target);
             }
@@ -253,6 +254,13 @@ namespace Dot42.FrameworkBuilder
             var doc = new XDocument(new XElement("layout"));
             typeBuilders.ForEach(x => x.FillLayoutXml(jf, doc.Root));
             doc.Save(Path.Combine(folder, "layout.xml"));
+
+            // create dot42.typemap
+            doc = new XDocument(new XElement("typemap"));
+            typeBuilders.ForEach(x => x.FillTypemapXml(jf, doc.Root));
+                doc.Save(Path.Combine(folder, "dot42.typemap"));
+            //using (var s = new FileStream(Path.Combine(folder, "dot42.typemap"), FileMode.Create))
+            //    CompressedXml.WriteTo(doc, s, Encoding.UTF8);
         }
 
         /// <summary>

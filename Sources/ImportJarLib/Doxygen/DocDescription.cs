@@ -168,7 +168,7 @@ namespace Dot42.ImportJarLib.Doxygen
 
             if (tag != null)
             {
-                section.Write("<{0}>", tag);
+                section.Write(" <{0}>", tag);
             }
 
             foreach (var child in element.Nodes())
