@@ -10,3 +10,4 @@ Thumbs.db
 /RegressionTests/Test.log
 *.DotSettings
 /Sources/Android/LocalDocs
+/Version.cs

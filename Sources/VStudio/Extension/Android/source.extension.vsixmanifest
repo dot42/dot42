@@ -3,14 +3,14 @@
   <Identifier Id="7137EACA-1DD6-41EE-AB8B-35065C077644">
     <Name>dot42 C# for Android</Name>
     <Author>dot42</Author>
-    <Version>1.0</Version>
+    <Version>1.1</Version>
     <Description xml:space="preserve">dot42 C# for Android Visual Studio Integration</Description>
     <Locale>1033</Locale>
-    <License>Product\eula.txt</License>
+    <!--License>Product\eula.txt</License-->
     <Icon>..\Graphics\Icons\App.ico</Icon>
     <InstalledByMsi>true</InstalledByMsi>
     <SupportedProducts>
-      <VisualStudio Version="10.0">
+      <!--VisualStudio Version="10.0">
         <Edition>Ultimate</Edition>
         <Edition>Premium</Edition>
         <Edition>Pro</Edition>
@@ -23,7 +23,14 @@
         <Edition>Pro</Edition>
         <Edition>VSTS</Edition>
         <Edition>VSTD</Edition>
-      </VisualStudio>
+      </VisualStudio-->
+      <VisualStudio Version="12.0">
+        <Edition>Ultimate</Edition>
+        <Edition>Premium</Edition>
+        <Edition>Pro</Edition>
+        <Edition>VSTS</Edition>
+        <Edition>VSTD</Edition>
+      </VisualStudio>      
     </SupportedProducts>
     <SupportedFrameworkRuntimeEdition MinVersion="4.0" MaxVersion="4.5" />
   </Identifier>
@@ -37,8 +44,8 @@
     <VsPackage>|VStudio.Project.Android;PkgdefProjectOutputGroup|</VsPackage>
     <Assembly AssemblyName="|VStudio.Project.Android;AssemblyName|">|VStudio.Project.Android|</Assembly>
     <MefComponent>|VStudio.Project.Android|</MefComponent>
-    <MefComponent>dot42.VStudio.Xml.vs10.dll</MefComponent>
-    <MefComponent>dot42.VStudio.Xml.vs11.dll</MefComponent>
+    <!--MefComponent>dot42.VStudio.Xml.vs10.dll<MefComponent>
+    <MefComponent>dot42.VStudio.Xml.vs11.dll</MefComponent-->
     <MefComponent>dot42.VStudio.Xml.vs12.dll</MefComponent>
     <ProjectTemplate>ProjectTemplates</ProjectTemplate>
     <ItemTemplate>ItemTemplates</ItemTemplate>
