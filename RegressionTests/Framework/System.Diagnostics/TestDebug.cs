@@ -11,10 +11,10 @@ namespace Dot42.Tests.System.Diagnostics
             Debug.Write("test1");
         }
 
-        public void testWrite2()
-        {
-            Debug.Write("test {0}", "MyCategory");
-        }
+        //public void testWrite2()
+        //{
+        //    Debug.Write("test {0}", "MyCategory");
+        //}
 
         public void testWriteLine1()
         {
