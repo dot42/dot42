@@ -85,16 +85,12 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// </summary>
         protected virtual void SetAccessFlags(DexLib.MethodDefinition dmethod, MethodDefinition method)
         {
+            // subclass accesses have already been fixed on an actual use basis.
             if (method.IsPrivate)
-            {
-                if (method.DeclaringType.HasNestedTypes)
-                    dmethod.IsProtected = true;
-                else
-                    dmethod.IsPrivate = true;
-            }
+                dmethod.IsPrivate = true;
             else if (method.IsFamily) 
                 dmethod.IsProtected = true;
-            else 
+            else
                 dmethod.IsPublic = true;
 
             if (method.DeclaringType.IsInterface)
@@ -127,7 +123,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
         }
         
         /// <summary>
-        /// Implement make minor fixes after the implementation phase.
+        /// Make minor fixes after the implementation phase.
         /// </summary>
         public void FixUp(DexTargetPackage targetPackage)
         {

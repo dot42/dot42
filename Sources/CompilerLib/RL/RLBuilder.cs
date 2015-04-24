@@ -46,10 +46,27 @@ namespace Dot42.CompilerLib.RL
 
         /// <summary>
         /// Create and add an instruction.
+        /// 
+        /// This seems to be a dangerous overload, since it may hide the one below if operand is null.
+        /// We can't remove it without checking all ~170 usages though...
+        /// </summary>
+        public static Instruction Add(this IRLBuilder builder, ISourceLocation sequencePoint, RCode opcode)
+        {
+            return builder.Add(sequencePoint, opcode, (object)null, new Register[0]);
+        }
+
+        /// <summary>
+        /// Create and add an instruction.
+        /// 
+        /// This seems to be a dangerous overload, since it may hide the one below if operand is null.
+        /// We can't remove it without checking all ~170 usages though...
         /// </summary>
         public static Instruction Add(this IRLBuilder builder, ISourceLocation sequencePoint, RCode opcode, params Register[] registers)
         {
-            return builder.Add(sequencePoint, opcode, null, registers);
+            if(registers.Any(r=> r == null))
+                throw new InvalidOperationException("Register must not be null. Wrong overload?");
+
+            return builder.Add(sequencePoint, opcode, (object)null, registers);
         }
 
         /// <summary>
@@ -57,6 +74,9 @@ namespace Dot42.CompilerLib.RL
         /// </summary>
         public static Instruction Add(this IRLBuilder builder, ISourceLocation sequencePoint, RCode opcode, object operand, params Register[] registers)
         {
+            if(operand is Register)
+                throw new InvalidOperationException("Wrong overload. Please fix me..."); // see above.
+
             return builder.Add(sequencePoint, opcode, operand, registers);
         }
 

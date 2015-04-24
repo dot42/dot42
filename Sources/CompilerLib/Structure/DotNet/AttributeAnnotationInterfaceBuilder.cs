@@ -199,7 +199,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 
                 Register[] valueRegs = CreateLoadValueSequence(seqp, body, xFieldType, annotationReg, getter, compiler, targetPackage, out branchIfNotSet);
               
-                var put = body.Instructions.Add(seqp, xFieldType.IPut(), null, valueRegs[0], attributeReg);
+                var put = body.Instructions.Add(seqp, xFieldType.IPut(), valueRegs[0], attributeReg);
                 
                 mapping.FixOperands.Add(Tuple.Create(put, (MemberReference)field));
 

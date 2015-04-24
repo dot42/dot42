@@ -380,12 +380,12 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                         if (move2 == RCode.Move_object) move = move2;
 
                         // condition
-                        var gotoArg2 = this.Add(node.SourceLocation, RCode.If_eqz, null, args[0].Result.Registers);
+                        var gotoArg2 = this.Add(node.SourceLocation, RCode.If_eqz, (object)null, args[0].Result.Registers);
 
                         // Generate code for arg[1]
                         var arg1 = node.Arguments[1].Accept(this, node);
                         this.Add(node.SourceLocation, move, result, arg1.Result);
-                        var gotoEnd = this.Add(node.SourceLocation, RCode.Goto, null);
+                        var gotoEnd = this.Add(node.SourceLocation, RCode.Goto, (object)null);
 
                         // Generate code for arg[2]
                         var arg2Start = this.Add(node.SourceLocation, RCode.Nop);
@@ -607,7 +607,7 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                                             args[1].Result);
                         }
                         this.Add(node.SourceLocation, RCode.Const, 1, r);
-                        var end = this.Add(node.SourceLocation, RCode.Nop, null);
+                        var end = this.Add(node.SourceLocation, RCode.Nop);
                         test.Operand = end;
                         return new RLRange(args, start, end, r);
                     }
@@ -627,7 +627,7 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                         var start = this.Add(node.SourceLocation, RCode.Const, 0, r);
                         var test = this.Add(node.SourceLocation, node.Code.Reverse().ToIfTestZ(), args[0].Result);
                         this.Add(node.SourceLocation, RCode.Const, 1, r);
-                        var end = this.Add(node.SourceLocation, RCode.Nop, null);
+                        var end = this.Add(node.SourceLocation, RCode.Nop);
                         test.Operand = end;
                         return new RLRange(args, start, end, r);
                     }
@@ -666,14 +666,14 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                 case AstCode.Br:
                     {
                         var label = (AstLabel) node.Operand;
-                        var branch = this.Add(node.SourceLocation, RCode.Goto, null);
+                        var branch = this.Add(node.SourceLocation, RCode.Goto);
                         labelManager.AddResolveAction(label, x => branch.Operand = x);
                         return new RLRange(branch, null);
                     }
                 case AstCode.Leave:
                     {
                         var label = (AstLabel) node.Operand;
-                        var branch = this.Add(node.SourceLocation, RCode.Leave, null);
+                        var branch = this.Add(node.SourceLocation, RCode.Leave);
                         labelManager.AddResolveAction(label, x => branch.Operand = x);
                         return new RLRange(branch, null);
                     }
@@ -1702,7 +1702,7 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                             var start = this.Add(node.SourceLocation, RCode.Const, 0, r);
                             var test = this.Add(node.SourceLocation, AstCode.Ceq.Reverse().ToIfTest(), args[0].Result, args[1].Result);
                             this.Add(node.SourceLocation, RCode.Const, 1, r);
-                            var end = this.Add(node.SourceLocation, RCode.Nop, null);
+                            var end = this.Add(node.SourceLocation, RCode.Nop);
                             test.Operand = end;
                             return new RLRange(args, start, end, r);                           
                         }

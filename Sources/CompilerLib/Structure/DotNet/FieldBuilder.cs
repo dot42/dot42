@@ -98,15 +98,13 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// </summary>
         protected virtual void SetAccessFlags(DexLib.FieldDefinition dfield, FieldDefinition field)
         {
+            // subclass accesses have already been fixed on an actual use basis.
             if (field.IsPrivate)
-            {
-                if (field.DeclaringType.HasNestedTypes)
-                    dfield.IsProtected = true;
-                else
-                    dfield.IsPrivate = true;
-            }
-            else if (field.IsFamily) dfield.IsProtected = true;
-            else dfield.IsPublic = true;
+                dfield.IsPrivate = true;
+            else if (field.IsFamily)
+                dfield.IsProtected = true;
+            else
+                dfield.IsPublic = true;
 
             if (field.IsInitOnly) dfield.IsFinal = true;
             if (field.IsStatic) dfield.IsStatic = true;
