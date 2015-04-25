@@ -533,7 +533,6 @@
     <ProjectReference Include="VStudio.Xml.csproj">
       <Project>{33f2a9db-6bb1-49a2-9901-65e6a129a6eb}</Project>
       <Name>VStudio.Xml</Name>
-      <IncludeOutputGroupsInVSIX>BuildProjectOutputGroup</IncludeOutputGroupsInVSIX>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

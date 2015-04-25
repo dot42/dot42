@@ -168,7 +168,7 @@ namespace Dot42.DebuggerLib
         private void ReadLoop()
         {
             var myThread = Thread.CurrentThread;
-            var readBuffer = new byte[1024 * 1024];
+            var readBuffer = new byte[1024 * 4024];
             var readBufferOffset = 0;
 
             while (readThread == myThread)
@@ -177,9 +177,9 @@ namespace Dot42.DebuggerLib
                 if ((!tcpClient.Connected) || (readThread != myThread))
                     return; 
 
-                // Read all available data
+                // Read all available data, at least if we are processing the input fast enough
                 var available = tcpClient.Available;
-                if (available > 0)
+                if (available > 0 && readBufferOffset + available < readBuffer.Length)
                 {
                     Read(readBuffer, readBufferOffset, available);
                     readBufferOffset += available;

@@ -52,7 +52,7 @@
     <DefineConstants>TRACE;ANDROID</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CreateVsixContainer>False</CreateVsixContainer>
+    <CreateVsixContainer>True</CreateVsixContainer>
     <DeployExtension>False</DeployExtension>
   </PropertyGroup>
   <ItemGroup>
@@ -184,6 +184,6 @@
   <!--Import Project="..\..\Common\Build\BuildTools.MSBuildTasks.targets" />
   <Import Project="$(VsSDKInstall)\SdkEnv.targets" /-->
   <PropertyGroup>
-    <PostBuildEvent>xcopy /Y /C $(TargetDir)*.* $(SolutionDir)\Build\Application</PostBuildEvent>
+    <!--PostBuildEvent>xcopy /Y /C $(TargetDir)*.* $(SolutionDir)\Build\Application</PostBuildEvent-->
   </PropertyGroup>
 </Project>

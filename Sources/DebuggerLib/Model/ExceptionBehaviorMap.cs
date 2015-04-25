@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace Dot42.DebuggerLib.Model
 {
@@ -52,6 +53,15 @@ namespace Dot42.DebuggerLib.Model
             }
         }
 
+        public IEnumerable<ExceptionBehavior> Behaviors
+        {
+            get
+            {
+                lock (mapLock)
+                    return map.Values.ToList();
+            }
+        }
+
         /// <summary>
         /// Set to default values to the initial state.
         /// </summary>
@@ -75,18 +85,34 @@ namespace Dot42.DebuggerLib.Model
 
         /// <summary>
         /// Copy the state of the given object to me.
+        /// 
+        /// returns all values that have changed.
         /// </summary>
-        public void CopyFrom(ExceptionBehaviorMap source)
+        public IEnumerable<ExceptionBehavior> CopyFrom(ExceptionBehaviorMap source)
         {
+            List<string> changed = new List<string>();
             lock (mapLock)
             {
-                DefaultStopOnThrow = source.DefaultStopOnThrow;
-                DefaultStopUncaught = source.DefaultStopUncaught;
+                // find changed values
+                foreach (var entry in source.map)
+                {
+                    if (!Equals(this[entry.Key], entry.Value))
+                        changed.Add(entry.Key);
+                }
+
+                changed.AddRange(map.Keys.ToList()
+                                         .Where(key => !source.map.ContainsKey(key)));
+
                 map.Clear();
                 foreach (var entry in source.map)
                 {
                     map[entry.Key] = entry.Value;
                 }
+
+                DefaultStopOnThrow = source.DefaultStopOnThrow;
+                DefaultStopUncaught = source.DefaultStopUncaught;
+
+                return changed.Select(x => this[x]).ToList();
             }
         }
     }

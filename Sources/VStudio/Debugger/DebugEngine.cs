@@ -143,7 +143,7 @@ namespace Dot42.VStudio.Debugger
             var currentProgram = program;
             if (currentProgram != null)
             {
-                currentProgram.ExceptionManager.ExceptionBehaviorMap.CopyFrom(exceptionBehaviorMap);
+                currentProgram.ExceptionManager.SetExceptionBehavior(exceptionBehaviorMap);
             }            
         }
 

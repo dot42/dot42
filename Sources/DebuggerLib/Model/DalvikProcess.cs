@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Dot42.Mapping;
+using Dot42.Utility;
 using TallComponents.Common.Extensions;
 
 namespace Dot42.DebuggerLib.Model
@@ -13,10 +14,10 @@ namespace Dot42.DebuggerLib.Model
 	{
 		public static int VmTimeout = 15 * 1000;
 		private readonly Debugger debugger;
-		private DalvikBreakpointManager breakpointManager;
-		private DalvikExceptionManager exceptionManager;
-		private DalvikReferenceTypeManager referenceTypeManager;
-		private DalvikThreadManager threadManager;
+	    private Lazy<DalvikBreakpointManager> breakpointManager;
+	    private Lazy<DalvikExceptionManager> exceptionManager;
+	    private Lazy<DalvikReferenceTypeManager> referenceTypeManager;
+	    private Lazy<DalvikThreadManager> threadManager;
 		private readonly DalvikStepManager stepManager = new DalvikStepManager();
 		private readonly MapFile mapFile;
 		private StepRequest lastStepRequest;
@@ -36,6 +37,10 @@ namespace Dot42.DebuggerLib.Model
 			debugger.Process = this;
 			this.mapFile = mapFile;
 			debugger.ConnectedChanged += OnDebuggerConnectionChanged;
+            breakpointManager  = new Lazy<DalvikBreakpointManager>(CreateBreakpointManager);
+            exceptionManager = new Lazy<DalvikExceptionManager>(CreateExceptionManager);
+            referenceTypeManager = new Lazy<DalvikReferenceTypeManager>(CreateReferenceTypeManager);
+            threadManager = new Lazy<DalvikThreadManager>(CreateThreadManager);
 		}
 
 		/// <summary>
@@ -137,7 +142,7 @@ namespace Dot42.DebuggerLib.Model
 			isSuspended = true;
 			IsSuspendedChanged.Fire(this);
 			return true;
-		}
+        }
 		
 		/// <summary>
 		/// Process has resumed
@@ -152,7 +157,7 @@ namespace Dot42.DebuggerLib.Model
 		/// </summary>
 		public DalvikBreakpointManager BreakpointManager
 		{
-			get { return breakpointManager ?? (breakpointManager = CreateBreakpointManager()); }
+			get { return breakpointManager.Value; }
 		}
 
 		/// <summary>
@@ -160,7 +165,7 @@ namespace Dot42.DebuggerLib.Model
 		/// </summary>
 		public DalvikExceptionManager ExceptionManager
 		{
-			get { return exceptionManager ?? (exceptionManager = CreateExceptionManager()); }
+			get { return exceptionManager.Value; }
 		}
 
 		/// <summary>
@@ -168,7 +173,7 @@ namespace Dot42.DebuggerLib.Model
 		/// </summary>
 		public DalvikReferenceTypeManager ReferenceTypeManager
 		{
-			get { return referenceTypeManager ?? (referenceTypeManager = CreateReferenceTypeManager()); }
+			get { return referenceTypeManager.Value; }
 		}
 
 		/// <summary>
@@ -176,7 +181,7 @@ namespace Dot42.DebuggerLib.Model
 		/// </summary>
 		public DalvikThreadManager ThreadManager
 		{
-			get { return threadManager ?? (threadManager = CreateThreadManager()); }
+			get { return threadManager.Value; }
 		}
 
 		/// <summary>

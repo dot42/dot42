@@ -104,7 +104,7 @@ namespace Dot42.DebuggerLib
             }
 
             /// <summary>
-            /// Suspend the execution of the application running in the target VM.
+            /// Resume the execution of the application running in the target VM.
             /// </summary>
             public Task ResumeAsync()
             {

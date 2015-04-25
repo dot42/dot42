@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace TallComponents.Common.Extensions
@@ -33,9 +34,10 @@ namespace TallComponents.Common.Extensions
         /// Exceptions are thrown if there was an exception in the task.
         /// </summary>
         /// <param name="millisecondsTimeout">Timeout in milliseconds. Use -1 to wait without timeout.</param>
-        public static T Await<T>(this Task<T> t, int millisecondsTimeout)
+        public static T Await<T>(this Task<T> t, int millisecondsTimeout, CancellationToken cancel=default(CancellationToken))
         {
-            t.Wait(millisecondsTimeout);
+            if(!t.Wait(millisecondsTimeout, cancel))
+                throw new OperationCanceledException("timeout");
             return t.Result;
         }
 

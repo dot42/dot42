@@ -74,7 +74,7 @@ namespace Dot42.DebuggerLib
             {
                 DalvikThread thread;
                 debugger.process.ThreadManager.TryGet(e.ThreadId, out thread);
-                HandleSuspendPolicy(Jdwp.SuspendPolicy.All, SuspendReason.Exception, thread);
+                //HandleSuspendPolicy(Jdwp.SuspendPolicy.All, SuspendReason.Exception, thread);
                 debugger.Process.ExceptionManager.OnExceptionEvent(e, thread);
                 return true;
             }

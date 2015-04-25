@@ -7,9 +7,9 @@ using Dot42.Utility;
 namespace Dot42.Mapping
 {
     /// <summary>
-    /// Make Android type names to .NET type names.
+    /// Map Android type names to .NET type names.
     /// </summary>
-    public sealed class FrameworkTypeMap : IEnumerable<FrameworkTypeMap.TypeEntry>
+    public sealed class FrameworkTypeMap
     {
         private readonly Dictionary<string, TypeEntry> typeMap = new Dictionary<string, TypeEntry>();
 
@@ -62,17 +62,6 @@ namespace Dot42.Mapping
         /// <summary>
         /// Gets all type entries.
         /// </summary>
-        public IEnumerator<TypeEntry> GetEnumerator()
-        {
-            return typeMap.Values.GetEnumerator();
-        }
-
-        /// <summary>
-        /// Gets all type entries.
-        /// </summary>
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+        public IEnumerable<TypeEntry> Values { get { return typeMap.Values; } }
     }
 }
