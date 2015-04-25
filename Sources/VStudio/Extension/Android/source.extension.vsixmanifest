@@ -8,7 +8,7 @@
     <Locale>1033</Locale>
     <!--License>Product\eula.txt</License-->
     <Icon>..\Graphics\Icons\App.ico</Icon>
-    <InstalledByMsi>true</InstalledByMsi>
+    <InstalledByMsi>false</InstalledByMsi>
     <SupportedProducts>
       <!--VisualStudio Version="10.0">
         <Edition>Ultimate</Edition>
