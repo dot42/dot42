@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 
 namespace Dot42.DebuggerLib
 {
@@ -89,6 +90,11 @@ namespace Dot42.DebuggerLib
             if (classId is InterfaceId) return Jdwp.TypeTag.Interface;
             if (classId is ArrayTypeId) return Jdwp.TypeTag.Array;
             throw new ArgumentException("Unknown classid " + classId);
+        }
+
+        public bool IsSameMethod(Location location)
+        {
+            return location.Class.Equals(Class) && location.Method.Equals(Method);
         }
     }
 }

@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading;
-using Dot42.DebuggerLib;
+using Dot42.DebuggerLib.Events.Jdwp;
 using Dot42.DebuggerLib.Model;
-using Dot42.Mapping;
 using Dot42.Utility;
 using Microsoft.VisualStudio.Debugger.Interop;
 using TallComponents.Common.Extensions;
@@ -17,7 +14,7 @@ namespace Dot42.VStudio.Debugger
         private readonly EngineEventCallback eventCallback;
 
         private int isProcessingExceptions;
-        private DebuggerLib.Events.Jdwp.Exception handlingEx;
+        private Exception handlingEx;
         private DalvikThread handlingThread;
         private CancellationTokenSource cancelProcessing;
 
@@ -42,13 +39,13 @@ namespace Dot42.VStudio.Debugger
         /// <summary>
         /// Process the given exception event.
         /// </summary>
-        protected override void OnExceptionEvent(DebuggerLib.Events.Jdwp.Exception @event, DalvikThread thread)
+        protected override void OnExceptionEvent(Exception @event, DalvikThread thread)
         {
             var processingCount = Interlocked.Increment(ref isProcessingExceptions);
             if (processingCount > 1)
             {
                 Interlocked.Decrement(ref isProcessingExceptions);
-                DLog.Warning(DContext.VSDebuggerEvent, "Exception ({0}) in debuggee while retrieving exception information. involved thread: {0}; exception.object={2}; original thread: {3}; original exception object: {4}", processingCount - 1, GetThreadId(thread), @event.ExceptionObject.Object, GetThreadId(handlingThread), handlingEx == null ? "(null)" : handlingEx.ExceptionObject.Object.ToString());
+                DLog.Error(DContext.VSDebuggerEvent, "Exception ({0}) in debuggee while retrieving exception information. involved thread: {0}; exception.object={2}; original thread: {3}; original exception object: {4}", processingCount - 1, GetThreadId(thread), @event.ExceptionObject.Object, GetThreadId(handlingThread), handlingEx == null ? "(null)" : handlingEx.ExceptionObject.Object.ToString());
                 Debugger.Process.ResumeAsync();
                 // I have no idea why we have to resume twice, but if we dont, 
                 // the debuggee will hang.
@@ -84,9 +81,10 @@ namespace Dot42.VStudio.Debugger
                     return;
                 }
 
-                if (thread != null && caught)
+                if (caught)
                 {
-                    callStackTypeName = thread.GetCallStack().First().GetReferenceType().GetNameAsync().Await(DalvikProcess.VmTimeout, cancelToken);
+                    callStackTypeName = thread.GetCallStack().First().GetReferenceType()
+                                              .GetNameAsync().Await(DalvikProcess.VmTimeout, cancelToken);
 
                     // don't handle internal caught exceptions.
                     if (IsInternalName(callStackTypeName))
@@ -95,14 +93,13 @@ namespace Dot42.VStudio.Debugger
                         return;
                     }
                 }
-
+                
                 base.OnExceptionEvent(@event, thread);
 
             }
-            catch(Exception ex)
+            catch(System.Exception ex)
             {
-                DLog.Warning(DContext.VSDebuggerEvent, "Exception in debugger while processing exception: {0}. involved thread: {1}; exception.object={2}; exception type: {3}; callstack pos: {4}", ex.Message, GetThreadId(thread), @event.ExceptionObject.Object, exceptionName, callStackTypeName);
-
+                DLog.Error(DContext.VSDebuggerEvent, "Exception in debugger while processing exception: {0}. involved thread: {1}; exception.object={2}; exception type: {3}; callstack pos: {4}", ex.Message, GetThreadId(thread), @event.ExceptionObject.Object, exceptionName, callStackTypeName);
                 Debugger.VirtualMachine.ResumeAsync();
                 return;
             }
@@ -124,16 +121,19 @@ namespace Dot42.VStudio.Debugger
             info.guidType = GuidList.Guids.guidDot42DebuggerId;
 
             string description = info.bstrExceptionName;
+            
+            if (caught)
+                description += " (first chance, caught by debuggee)";
+            else
+                description += " (not caught by debugee)";
 
-            // Send VS event
             if (thread == null)
             {
-                DLog.Warning(DContext.VSDebuggerEvent, "Exception without a thread: {0}; original thread id: {1}. Firing on first thread.", exceptionName, @event.ThreadId);
-                description += "\n\nNOTE: This exception's thread has already died. The call stack has no meaning. Its thread id was: " + @event.ThreadId;
-                var replacementThread = (DebugThread)Debugger.Process.ThreadManager.Threads.First();
-                thread = replacementThread;
+                DLog.Error(DContext.VSDebuggerEvent, "Exception without a thread: {0}; original thread id: {1}.", exceptionName, @event.ThreadId);
+                description += "\n  The exceptions thread has already died, the VS call stack window has no meaning. The exception was raised on thread "+ @event.ThreadId;
             }
 
+            // Send VS event
             var vsEvent = new ExceptionEvent(info, description, false);
             Send((DebugThread)thread, vsEvent);
         }
