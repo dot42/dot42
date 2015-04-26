@@ -1,12 +1,13 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Dot42.DebuggerLib
 {
     /// <summary>
     /// Some type of object reference.
     /// </summary>
-    public abstract class Id<T> : IEquatable<Id<T>>
-        where T : Id<T>
+    public abstract class Id<T> : IEquatable<Id<T>>, IComparable<Id<T>>  where T : Id<T>
     {
         private readonly int idSize;
         private readonly long id;
@@ -97,6 +98,12 @@ namespace Dot42.DebuggerLib
         public bool Equals(Id<T> other)
         {
             return (other != null) && (other.id == id);
+        }
+
+        public int CompareTo(Id<T> other)
+        {
+            if (other == null) return -1;
+            return Comparer<long>.Default.Compare(id, other.id);
         }
 
         /// <summary>

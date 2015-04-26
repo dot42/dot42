@@ -40,14 +40,28 @@ namespace Dot42.DebuggerLib.Model
         {
             get
             {
-                var className = (typeEntry != null)
-                   ? typeEntry.Name
-                   : (ReferenceType != null) ? ReferenceType.GetNameAsync().Await(DalvikProcess.VmTimeout) : "?";
-
-                var methodName = (MethodEntry != null) ? MethodEntry.Name : (Method != null) ? Method.Name : "?";
-                return className + "." + methodName;
+                return ClassName + "." + MethodName;
             }
         }
+
+        private string ClassName 
+        { 
+            get
+            {
+                return (typeEntry != null)
+                    ? typeEntry.Name
+                    : (ReferenceType != null) ? ReferenceType.GetNameAsync().Await(DalvikProcess.VmTimeout) : "?";
+            }
+        }
+
+        public string MethodName 
+        { 
+            get
+            {
+                return (MethodEntry != null) ? MethodEntry.Name : (Method != null) ? Method.Name : "?";
+            }
+        }
+
 
         public MethodEntry MethodEntry
         {

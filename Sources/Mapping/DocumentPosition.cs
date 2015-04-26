@@ -136,5 +136,13 @@ namespace Dot42.Mapping
                    (TypeId == other.TypeId) &&
                    (MethodId == other.MethodId);
         }
+
+        /// <summary>
+        /// true Is this is a valid position, false of no sourcecode is available
+        /// </summary>
+        public bool IsValid
+        {
+            get { return Start.Line != 0xfeefee; }
+        }
     }
 }

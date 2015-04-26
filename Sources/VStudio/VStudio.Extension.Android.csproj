@@ -71,7 +71,7 @@
     <ProjectReference Include="ItemTemplates\Activity\ActivityTemplate.Android.csproj">
       <Project>{796925C9-ED3B-4000-12FE-89AA3464374D}</Project>
       <Name>ActivityTemplate.Android</Name>
-      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup;</IncludeOutputGroupsInVSIX>
       <TemplateType>Item</TemplateType>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <VSIXSubPath>ItemTemplates</VSIXSubPath>
@@ -79,7 +79,7 @@
     <ProjectReference Include="ItemTemplates\AppWidget\AppWidget.Android.csproj">
       <Project>{796925C9-ED3B-4000-1DFE-89AA312AD44D}</Project>
       <Name>AppWidget.Android</Name>
-      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup;</IncludeOutputGroupsInVSIX>
       <TemplateType>Item</TemplateType>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <VSIXSubPath>ItemTemplates</VSIXSubPath>
@@ -87,7 +87,7 @@
     <ProjectReference Include="ItemTemplates\Layout\LayoutTemplate.Android.csproj">
       <Project>{796925C9-ED3B-4000-9567-89AB3A64374D}</Project>
       <Name>LayoutTemplate.Android</Name>
-      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup;</IncludeOutputGroupsInVSIX>
       <TemplateType>Item</TemplateType>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <VSIXSubPath>ItemTemplates</VSIXSubPath>
@@ -95,7 +95,7 @@
     <ProjectReference Include="ItemTemplates\Manifest\ManifestTemplate.Android.csproj">
       <Project>{ED297359-84A4-40BF-84B3-3E5932C45DC2}</Project>
       <Name>ManifestTemplate.Android</Name>
-      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup;</IncludeOutputGroupsInVSIX>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <TemplateType>Item</TemplateType>
       <VSIXSubPath>ItemTemplates</VSIXSubPath>
@@ -103,7 +103,7 @@
     <ProjectReference Include="ItemTemplates\Menu\MenuTemplate.Android.csproj">
       <Project>{796925C9-ED3B-4000-9567-720000000000}</Project>
       <Name>MenuTemplate.Android</Name>
-      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup;</IncludeOutputGroupsInVSIX>
       <TemplateType>Item</TemplateType>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <VSIXSubPath>ItemTemplates</VSIXSubPath>
@@ -111,7 +111,7 @@
     <ProjectReference Include="ItemTemplates\Plurals\PluralsTemplate.Android.csproj">
       <Project>{796925C9-ED3B-4000-9567-72E43A64374D}</Project>
       <Name>PluralsTemplate.Android</Name>
-      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup;</IncludeOutputGroupsInVSIX>
       <TemplateType>Item</TemplateType>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <VSIXSubPath>ItemTemplates</VSIXSubPath>
@@ -119,7 +119,7 @@
     <ProjectReference Include="ItemTemplates\Shape\ShapeTemplate.Android.csproj">
       <Project>{796925C9-ED3B-4000-955A-67E56A64B24D}</Project>
       <Name>ShapeTemplate.Android</Name>
-      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup;</IncludeOutputGroupsInVSIX>
       <TemplateType>Item</TemplateType>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <VSIXSubPath>ItemTemplates</VSIXSubPath>
@@ -127,7 +127,7 @@
     <ProjectReference Include="ItemTemplates\StringArrays\StringArraysTemplate.Android.csproj">
       <Project>{796925C9-ED3B-4000-9567-67E43A64374D}</Project>
       <Name>StringArraysTemplate.Android</Name>
-      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup;</IncludeOutputGroupsInVSIX>
       <TemplateType>Item</TemplateType>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <VSIXSubPath>ItemTemplates</VSIXSubPath>
@@ -135,7 +135,7 @@
     <ProjectReference Include="ItemTemplates\Strings\StringsTemplate.Android.csproj">
       <Project>{796925C9-ED3B-4000-955A-67E43A64374D}</Project>
       <Name>StringsTemplate.Android</Name>
-      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup;</IncludeOutputGroupsInVSIX>
       <TemplateType>Item</TemplateType>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <VSIXSubPath>ItemTemplates</VSIXSubPath>
@@ -143,7 +143,7 @@
     <ProjectReference Include="ItemTemplates\Style\StyleTemplate.Android.csproj">
       <Project>{796925C9-ED3B-4000-955A-672BEA64774D}</Project>
       <Name>StyleTemplate.Android</Name>
-      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup;</IncludeOutputGroupsInVSIX>
       <TemplateType>Item</TemplateType>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <VSIXSubPath>ItemTemplates</VSIXSubPath>
@@ -151,7 +151,7 @@
     <ProjectReference Include="ItemTemplates\ViewAnimation\ViewAnimationTemplate.Android.csproj">
       <Project>{839C0A91-FDEB-4D99-B1BF-7DE6DFEA2B32}</Project>
       <Name>ViewAnimationTemplate.Android</Name>
-      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup;</IncludeOutputGroupsInVSIX>
       <TemplateType>Item</TemplateType>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <VSIXSubPath>ItemTemplates</VSIXSubPath>
@@ -159,7 +159,7 @@
     <ProjectReference Include="ProjectTemplates\ApplicationProject\ApplicationProjectTemplate.Android.csproj">
       <Project>{3774013F-2399-48DC-ABD1-4D5BA1519033}</Project>
       <Name>ApplicationProjectTemplate.Android</Name>
-      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup;</IncludeOutputGroupsInVSIX>
       <TemplateType>Project</TemplateType>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <VSIXSubPath>ProjectTemplates</VSIXSubPath>
@@ -167,7 +167,7 @@
     <ProjectReference Include="ProjectTemplates\ClassLibraryProject\ClassLibraryTemplate.Android.csproj">
       <Project>{3774013F-12AD-48DC-A4A1-4D5BA1519033}</Project>
       <Name>ClassLibraryTemplate.Android</Name>
-      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup;</IncludeOutputGroupsInVSIX>
       <TemplateType>Project</TemplateType>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <VSIXSubPath>ProjectTemplates</VSIXSubPath>
@@ -175,7 +175,7 @@
     <ProjectReference Include="VStudio.Project.Android.csproj">
       <Project>{3E651A4C-97F4-41FC-9E0C-7D65A86BD794}</Project>
       <Name>VStudio.Project.Android</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bPkgdefProjectOutputGroup%3bSatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;BuiltProjectOutputGroupDependencies;GetCopyToOutputDirectoryItems;PkgdefProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
   </ItemGroup>

@@ -103,12 +103,21 @@ namespace Dot42.VStudio.Debugger
         /// A source range is the entire range of source code, from the current statement back to just after the previous s
         /// statement that contributed code. The source range is typically used for mixing source statements, including 
         /// comments, with code in the disassembly window.
-        /// Since this engine does not support the disassembly window, this is not implemented.
         /// </summary>
         public int GetSourceRange(TEXT_POSITION[] pBegPosition, TEXT_POSITION[] pEndPosition)
         {
             DLog.Debug(DContext.VSDebuggerComCall, "DebugDocumentContext.GetSourceRange");
-            return VSConstants.E_NOTIMPL;
+            
+            var position = DocumentLocation.Position;
+            if (position == null)
+                return VSConstants.E_FAIL;
+
+            // TEXT_POSITION starts counting at 0
+            pBegPosition[0].dwLine = (uint)(position.Start.Line - 1);
+            pBegPosition[0].dwColumn = (uint)(position.Start.Column - 1);
+            pEndPosition[0].dwLine = (uint)(position.End.Line - 1);
+            pEndPosition[0].dwColumn = (uint)(position.End.Column - 1);
+            return VSConstants.S_OK;
         }
 
         /// <summary>

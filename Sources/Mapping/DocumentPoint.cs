@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using System.Diagnostics;
 
 namespace Dot42.Mapping
@@ -87,12 +88,14 @@ namespace Dot42.Mapping
 
         public override int GetHashCode()
         {
-            return base.GetHashCode();
+            return Line.GetHashCode() ^ Column.GetHashCode();
         }
 
         public override bool Equals(object obj)
         {
-            return base.Equals(obj);
+            if (obj.GetType() != typeof (DocumentPoint)) 
+                return false;
+            return CompareTo((DocumentPoint) obj) == 0;
         }
     }
 }

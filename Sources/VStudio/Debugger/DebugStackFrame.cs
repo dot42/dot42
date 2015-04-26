@@ -165,6 +165,10 @@ namespace Dot42.VStudio.Debugger
             {
                 AddParameterProperties(list);
             }
+            else if (guidFilter == AD7Guids.guidFilterRegisters)
+            {
+                pcelt = 0;
+            }
             else
             {
                 pcelt = 0;

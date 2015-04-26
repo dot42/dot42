@@ -69,12 +69,12 @@ namespace Dot42.DebuggerLib.Model
 		/// <summary>
 		/// Perform a single step on the given thread.
 		/// </summary>
-		public Task StepAsync(StepRequest request)
+		public Task StepAsync(StepRequest request, bool stepMinimum=false)
 		{
 			// Set event
 			lastStepRequest = request;
 			var thread = request.Thread;
-			var setTask = debugger.EventRequest.SetAsync(Jdwp.EventKind.SingleStep, Jdwp.SuspendPolicy.All, new EventStepModifier(thread.Id, Jdwp.StepSize.Line, request.StepDepth));
+            var setTask = debugger.EventRequest.SetAsync(Jdwp.EventKind.SingleStep, Jdwp.SuspendPolicy.All, new EventStepModifier(thread.Id, stepMinimum?Jdwp.StepSize.Minimum : Jdwp.StepSize.Line, request.StepDepth));
 			return setTask.ContinueWith(t => {
 			                            	t.ForwardException();
 			                            	// Record step

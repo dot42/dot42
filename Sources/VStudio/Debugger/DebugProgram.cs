@@ -241,7 +241,7 @@ namespace Dot42.VStudio.Debugger
                 default:
                     return VSConstants.E_INVALIDARG;
             }
-            StepAsync(new StepRequest((DalvikThread) pThread, stepDepth));
+            StepAsync(new StepRequest((DalvikThread) pThread, stepDepth), stepUnit == enum_STEPUNIT.STEP_INSTRUCTION);
             return VSConstants.S_OK;
         }
 
@@ -382,7 +382,7 @@ namespace Dot42.VStudio.Debugger
         public int GetDisassemblyStream(enum_DISASSEMBLY_STREAM_SCOPE dwScope, IDebugCodeContext2 pCodeContext, out IDebugDisassemblyStream2 ppDisassemblyStream)
         {
             DLog.Debug(DContext.VSDebuggerComCall, "IDebugProgram2.GetDisassemblyStream");
-            ppDisassemblyStream = new DebugDisassemblyStream(this, ((DebugCodeContext)pCodeContext), dex.Value);
+            ppDisassemblyStream = new DebugDisassemblyStream(this, ((DebugCodeContext)pCodeContext), dex.Value, MapFile);
             return VSConstants.S_OK;
         }
 

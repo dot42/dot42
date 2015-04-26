@@ -5,7 +5,7 @@ namespace Dot42.DebuggerLib
     /// <summary>
     /// An executable location
     /// </summary>
-    public sealed class Location : IEquatable<Location>
+    public sealed class Location : IEquatable<Location>, IComparable<Location>
     {
         public readonly ReferenceTypeId Class;
         public readonly MethodId Method;
@@ -57,6 +57,17 @@ namespace Dot42.DebuggerLib
         public bool Equals(Location other)
         {
             return (other != null) && Class.Equals(other.Class) && Method.Equals(other.Method) && (Index == other.Index);
+        }
+
+        public int CompareTo(Location other)
+        {
+            int @class = Class.CompareTo(other.Class);
+            if (@class != 0) return @class;
+
+            int method = Method.CompareTo(other.Method);
+            if(method != 0) return method;
+
+            return Index.CompareTo(other.Index);
         }
 
         public override string ToString()
