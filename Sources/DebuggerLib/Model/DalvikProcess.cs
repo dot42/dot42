@@ -12,7 +12,8 @@ namespace Dot42.DebuggerLib.Model
 	/// </summary>
 	public class DalvikProcess
 	{
-		public static int VmTimeout = 15 * 1000;
+	    public string ApkPath { get; set; }
+	    public static int VmTimeout = 15 * 1000;
 		private readonly Debugger debugger;
 	    private Lazy<DalvikBreakpointManager> breakpointManager;
 	    private Lazy<DalvikExceptionManager> exceptionManager;
@@ -31,9 +32,10 @@ namespace Dot42.DebuggerLib.Model
 		/// <summary>
 		/// Default ctor
 		/// </summary>
-		public DalvikProcess(Debugger debugger, MapFile mapFile)
+		public DalvikProcess(Debugger debugger, MapFile mapFile, string apkPath)
 		{
-			this.debugger = debugger;
+		    ApkPath = apkPath;
+		    this.debugger = debugger;
 			debugger.Process = this;
 			this.mapFile = mapFile;
 			debugger.ConnectedChanged += OnDebuggerConnectionChanged;

@@ -68,7 +68,7 @@ namespace Dot42.VStudio
             AutoSelectPriority = 4,
             CallStackBP = true,
             Exceptions = true,
-            Disassembly = false,            
+            Disassembly = true,
             //RemoteDebugging = true
             SuspendThread = true
             ),

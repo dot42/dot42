@@ -169,7 +169,7 @@ namespace Dot42.Ide.Debugger
                 var debugger = new XDebugger(ide.GetFrameworkTypeMap(apiLevel));
                 debuggers.Add(debugger);
                 debugger.JdwpEvent += OnDebuggerDalvikEvent;
-                debugger.Connect(device, pid, new MapFile());
+                debugger.Connect(device, pid, new MapFile(), apkPath);
                 ide.CurrentDevice = device;
                 ide.CurrentProcessId = pid;
             }

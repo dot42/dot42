@@ -41,8 +41,9 @@ namespace Dot42.DebuggerLib.Model
             get
             {
                 var className = (typeEntry != null)
-                                    ? typeEntry.Name
-                                    : (ReferenceType != null) ? ReferenceType.GetNameAsync().Await(DalvikProcess.VmTimeout) : "?";
+                   ? typeEntry.Name
+                   : (ReferenceType != null) ? ReferenceType.GetNameAsync().Await(DalvikProcess.VmTimeout) : "?";
+
                 var methodName = (MethodEntry != null) ? MethodEntry.Name : (Method != null) ? Method.Name : "?";
                 return className + "." + methodName;
             }
@@ -52,5 +53,7 @@ namespace Dot42.DebuggerLib.Model
         {
             get { return methodEntry; }
         }
+
+        public TypeEntry TypeEntry { get { return typeEntry; } }
     }
 }

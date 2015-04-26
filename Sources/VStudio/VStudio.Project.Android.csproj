@@ -196,6 +196,7 @@
     <Compile Include="..\Version.cs" />
     <Compile Include="AssemblyInfo\Project.cs" />
     <Compile Include="Debugger\AD7Guids.cs" />
+    <Compile Include="Debugger\DebugDisassemblyStream.cs" />
     <Compile Include="Debugger\DebugExceptionManager.cs" />
     <Compile Include="Debugger\DebugArrayLengthProperty.cs" />
     <Compile Include="Debugger\DebugBaseClassProperty.cs" />

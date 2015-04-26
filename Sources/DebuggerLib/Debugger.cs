@@ -30,6 +30,7 @@ namespace Dot42.DebuggerLib
         private MapFile mapFile;
         private JdwpMonitor jdwpMonitor;
         private int pid = -1;
+        private string apkFile;
 
         /// <summary>
         /// Connected state has changed.
@@ -65,7 +66,7 @@ namespace Dot42.DebuggerLib
         /// <summary>
         /// Connect to the VM in the given process id on the given device.
         /// </summary>
-        public void Connect(IDevice device, int pid, MapFile mapFile)
+        public void Connect(IDevice device, int pid, MapFile mapFile, string apkPath)
         {
             // Disconnect any pending connections
             Disconnect();
@@ -74,6 +75,7 @@ namespace Dot42.DebuggerLib
             process = null;
             this.mapFile = mapFile;
             this.pid = pid;
+            this.apkFile = apkPath;
 
             // Setup forward
             var port = GetFreePort();
@@ -197,7 +199,7 @@ namespace Dot42.DebuggerLib
         /// </summary>
         protected virtual DalvikProcess CreateProcess()
         {
-            return new DalvikProcess(this, mapFile);
+            return new DalvikProcess(this, mapFile, apkFile);
         }
 
         /// <summary>

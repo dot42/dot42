@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Dot42.ApkLib;
 using Dot42.DebuggerLib;
 using Dot42.DebuggerLib.Model;
+using Dot42.DexLib;
 using Dot42.Mapping;
 using Dot42.Utility;
 using Microsoft.VisualStudio;
@@ -20,6 +22,8 @@ namespace Dot42.VStudio.Debugger
         private readonly EngineEventCallback eventCallback;
         private readonly Guid programGuid;
         private readonly List<DebugModule> modules = new List<DebugModule>();
+        private readonly Lazy<Dex> dex;
+
 
         /// <summary>
         /// Fired when this program has been terminated.
@@ -30,13 +34,14 @@ namespace Dot42.VStudio.Debugger
         /// Default ctor
         /// </summary>
         internal DebugProgram(DebugProcess process, DebuggerLib.Debugger debugger, string apkPath, MapFile mapFile, EngineEventCallback eventCallback)
-            : base(debugger, mapFile)
+            : base(debugger, mapFile, apkPath)
         {
             this.process = process;
             this.apkPath = apkPath;
             this.eventCallback = eventCallback;
             programGuid = Guid.NewGuid();
             modules.Add(new DebugModule());
+            dex = new Lazy<Dex>(LoadDex);
         }
 
         /// <summary>
@@ -377,7 +382,8 @@ namespace Dot42.VStudio.Debugger
         public int GetDisassemblyStream(enum_DISASSEMBLY_STREAM_SCOPE dwScope, IDebugCodeContext2 pCodeContext, out IDebugDisassemblyStream2 ppDisassemblyStream)
         {
             DLog.Debug(DContext.VSDebuggerComCall, "IDebugProgram2.GetDisassemblyStream");
-            throw new NotImplementedException();
+            ppDisassemblyStream = new DebugDisassemblyStream(this, ((DebugCodeContext)pCodeContext), dex.Value);
+            return VSConstants.S_OK;
         }
 
         public int EnumModules(out IEnumDebugModules2 ppEnum)
@@ -439,6 +445,13 @@ namespace Dot42.VStudio.Debugger
         {
             DLog.Debug(DContext.VSDebuggerComCall, "DebugProgram.OnAttach");
             throw new NotImplementedException();
+        }
+
+        private Dex LoadDex()
+        {
+            var apk = new ApkFile(apkPath);
+            var dex = apk.Load("classes.dex");
+            return Dex.Read(new MemoryStream(dex));
         }
     }
 }

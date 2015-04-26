@@ -46,6 +46,8 @@ namespace Dot42.DebuggerLib.Model
         /// </summary>
         public bool IsNative { get { return (AccessFlags.HasFlag(AccessFlags.Native)); } }
 
+        public DalvikReferenceType DeclaringType { get { return declaringType; } }
+
         /// <summary>
         /// Gets the list of local variables and arguments
         /// </summary>
