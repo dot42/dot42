@@ -1,20 +1,18 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel.Composition;
+﻿using System.ComponentModel.Composition;
 using System.Linq;
-using System.Net;
-using Dot42.CecilExtensions;
-using Dot42.CompilerLib.Ast.Extensions;
 using Dot42.CompilerLib.Extensions;
 using Dot42.CompilerLib.Reachable;
-using Dot42.LoaderLib.Extensions;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
 namespace Dot42.CompilerLib.ILConversion
 {
     /// <summary>
-    /// Will make fields and methods public when they are private or protected and
+    /// Will make fields and methods public when they are private or family and
     /// accessed from a subclass.
+    /// 
+    /// uses the marker "IsFamilyOrAssembly" to mark members that can be protected
+    /// because they reside in the same namespace, and "IsPublic" otherwise.
     /// </summary>
     [Export(typeof(ILConverterFactory))]
     internal class FixMemberAccess : ILConverterFactory
@@ -83,15 +81,17 @@ namespace Dot42.CompilerLib.ILConversion
                         if (field == null) continue;
                         if (field.IsPublic) continue;
 
-                        if (field.IsFamily && IsSubclass(memberDeclaringType, methodDeclaringType))
+                        if ((field.IsFamily || field.IsFamilyOrAssembly)
+                            && IsSubclass(memberDeclaringType, methodDeclaringType))
                             continue;
 
                         bool isSameNamespace = IsSameNamespace(isMethodInDexImport, isMemberInDexImport, memberDeclaringType, methodDeclaringType);
 
-                        field.IsPrivate = false;
+                        // reset member access mask
+                        field.Attributes &= ~FieldAttributes.FieldAccessMask;
+                        if (isSameNamespace) field.IsFamilyOrAssembly  = true;
+                        else                 field.IsPublic = true;
 
-                        field.IsPublic = !isSameNamespace;
-                        field.IsFamily = isSameNamespace;
                        
                     }
                     else if (methodRef != null)
@@ -100,21 +100,16 @@ namespace Dot42.CompilerLib.ILConversion
                         if (method == null) continue;
                         if (method.IsPublic) continue;
 
-                        if (method.IsFamily && IsSubclass(methodDeclaringType, memberDeclaringType))
+                        if ((method.IsFamily || method.IsFamilyOrAssembly) 
+                            && IsSubclass(methodDeclaringType, memberDeclaringType))
                             continue;
 
                         bool isSameNamespace = IsSameNamespace(isMethodInDexImport, isMemberInDexImport, memberDeclaringType, methodDeclaringType);
 
-                        method.IsPrivate = false;
-
-                        method.IsPublic = !isSameNamespace;
-                        method.IsFamily = isSameNamespace;
-
-                        if (true)
-                        {
-
-                        }
-
+                        // reset member access mask
+                        method.Attributes &= ~MethodAttributes.MemberAccessMask;
+                        if (isSameNamespace) method.IsFamilyOrAssembly = true;
+                        else                 method.IsPublic = true;
                     }
                 }
             }

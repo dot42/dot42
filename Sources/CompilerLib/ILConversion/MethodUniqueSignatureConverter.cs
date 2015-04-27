@@ -50,7 +50,6 @@ namespace Dot42.CompilerLib.ILConversion
                 //   - are not event-adders or removers
                 //   - do not generics-rename Nullable<T>, as it is used heavily by the compiler.
                 //   - don't belong to Dot42.Internal namespace (as these are compiler-used)
-                //   - [think about this: ] don't belong to interfaces in the System.* namespace (to reduce clutter; we know there are no clashes there)
 
                 // TODO: either check here or in CreateSignaturePostfix, but not at both places...
                 var consideredMethods = reachableContext.ReachableTypes.SelectMany(x => x.Methods)

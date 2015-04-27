@@ -89,7 +89,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
             // subclass accesses have already been fixed on an actual use basis.
             if (method.IsPrivate)
                 dmethod.IsPrivate = true;
-            else if (method.IsFamily) 
+            else if (method.IsFamily || method.IsFamilyOrAssembly) 
                 dmethod.IsProtected = true;
             else
                 dmethod.IsPublic = true;

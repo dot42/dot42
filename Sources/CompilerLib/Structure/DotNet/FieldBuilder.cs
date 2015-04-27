@@ -101,7 +101,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
             // subclass accesses have already been fixed on an actual use basis.
             if (field.IsPrivate)
                 dfield.IsPrivate = true;
-            else if (field.IsFamily)
+            else if (field.IsFamily || field.IsFamilyOrAssembly) 
                 dfield.IsProtected = true;
             else
                 dfield.IsPublic = true;

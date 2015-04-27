@@ -223,22 +223,6 @@ namespace Dot42.LoaderLib.DotNet
             if (assembly.MainModule.GetType("System", "Object") != null)
                 return true;
 
-            // Contains classes in the System namespace.
-            foreach (ModuleDefinition m in assembly.Modules)
-            {
-                foreach (TypeDefinition t in m.GetTypes())
-                {
-                    if (t.Namespace.StartsWith("System"))
-                    {
-                        DLog.Warning(DContext.CompilerAssemblyResolver, "warning, contains types in Sytem.* namespace: {0}", t.FullName);
-                        // TODO: check if there is a real reason why the assembly should not contain
-                        //       types in the system namespace.
-                        return false;
-                        //return true;
-                    }
-                }
-            }
-
             return false;
         }
 
