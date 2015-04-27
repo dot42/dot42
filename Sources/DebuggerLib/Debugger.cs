@@ -340,7 +340,12 @@ namespace Dot42.DebuggerLib
         /// </summary>
         private void OnEventAsync(JdwpEvent @event)
         {
-            Task.Factory.StartNew(() => JdwpEvent.Fire(this, @event));
+            Task.Factory.StartNew(() => JdwpEvent.Fire(this, @event))
+                .ContinueWith(task =>
+                {
+                    DLog.Error(DContext.DebuggerLibJdwpConnection, "OnEventAsync: Internal failure on event processing. IsCancelled={0}. Exception={1}", task.IsCanceled, task.Exception);
+                }, 
+                TaskContinuationOptions.NotOnRanToCompletion);
         }
 
         /// <summary>
