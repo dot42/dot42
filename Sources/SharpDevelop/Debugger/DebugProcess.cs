@@ -21,7 +21,7 @@ namespace Dot42.SharpDevelop.Debugger
 		/// <summary>
 		/// Default ctor
 		/// </summary>
-		public DebugProcess(Dot42.DebuggerLib.Debugger debugger, MapFile mapFile) : base(debugger, mapFile)
+		public DebugProcess(Dot42.DebuggerLib.Debugger debugger, MapFile mapFile) : base(debugger, mapFile, null)
 		{
 		}
 		

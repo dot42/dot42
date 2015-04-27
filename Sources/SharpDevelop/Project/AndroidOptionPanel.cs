@@ -90,7 +90,20 @@ namespace Dot42.SharpDevelop.Project
 				get { return project.GetUnevalatedProperty(Dot42Constants.PropApkFilename); }
 				set { project.SetProperty(Dot42Constants.PropApkFilename, value); }
 			}
-            public bool ApkOutputs
+
+            public string RootNamespace
+            {
+                get { return project.GetUnevalatedProperty(Dot42Constants.RootNamespace); }
+                set { project.SetProperty(Dot42Constants.RootNamespace, value); }
+            }
+
+            public string AssemblyName
+            {
+                get { return project.GetUnevalatedProperty(Dot42Constants.AssemblyName); }
+                set { project.SetProperty(Dot42Constants.AssemblyName, value); }
+            }
+
+		    public bool ApkOutputs
             {
                 get { return project.GetUnevalatedProperty(Dot42Constants.PropApkOutputs) == "true"; }
             }
@@ -124,8 +137,14 @@ namespace Dot42.SharpDevelop.Project
 			{
 				get { return project.Items.OfType<ReferenceProjectItem>().Select(x => x.Include); }
 			}
-			
-			public void AddReferencedLibrary(string name)
+
+            public bool GenerateSetNextInstructionCode
+            {
+                get { return project.GetUnevalatedProperty(Dot42Constants.PropGenerateSetNextInstructionCode) == "true"; }
+                set { project.SetProperty(Dot42Constants.PropGenerateSetNextInstructionCode, value ? "true" : "false"); }
+            }
+
+		    public void AddReferencedLibrary(string name)
 			{
 				project.PerformUpdateOnProjectFile(() => { project.MSBuildProjectFile.AddItem(ItemType.Reference.ItemName, name); });
 			}
