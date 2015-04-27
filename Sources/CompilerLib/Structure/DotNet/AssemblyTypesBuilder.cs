@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Dot42.CompilerLib.Extensions;
 using Dot42.CompilerLib.Target;
 using Dot42.CompilerLib.Target.Dex;
@@ -28,7 +29,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
                     // -- is this a hack?
                     if (type.Namespace.StartsWith("Android"))
                         assemblyName = "android";
-                    else // ignore other types.
+                    else // ignore other types, these will get the "default" assembly.
                         continue;
                 }
                 var a = new Annotation(iAssemblyType, AnnotationVisibility.Runtime,
@@ -38,6 +39,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
             }
 
             var anno = new Annotation(iAssemblyTypes, AnnotationVisibility.Runtime,
+                                      new AnnotationArgument("EntryAssemblyName", compiler.Assemblies.First().Name.Name),
                                       new AnnotationArgument("Types", types.ToArray()));
 
             ((IAnnotationProvider)assemblyTypes).Annotations.Add(anno);
