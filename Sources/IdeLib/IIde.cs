@@ -24,6 +24,11 @@ namespace Dot42.Ide
         void LaunchDebugEngine(string apkPath, DebuggerLib.Debugger debugger, Guid debuggerGuid, int launchFlags, Action<LauncherStates, string> stateUpdate);
 
         /// <summary>
+        /// Open or create an output pane for Dot42 specific messages
+        /// </summary>
+        IIdeOutputPane CreateDot42OutputPane();
+
+        /// <summary>
         /// Open or create an output pane for the debug engine.
         /// </summary>
         IIdeOutputPane CreateDebugOutputPane();

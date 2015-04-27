@@ -32,7 +32,7 @@ namespace Dot42.Ide.Debugger
             this.debuggable = debuggable;
             this.launchFlags = launchFlags;
             cancellationTokenSource = new CancellationTokenSource();
-            outputPane = ide.CreateDebugOutputPane();
+            outputPane = ide.CreateDot42OutputPane();
 
             // Load package
             /*try

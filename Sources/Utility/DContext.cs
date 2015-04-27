@@ -30,5 +30,13 @@
         VSDebuggerEvent = VSDebuggerStart + 1,
         VSDebuggerComCall = VSDebuggerStart + 2,
         VSDebuggerLauncher = VSDebuggerStart + 3,
+        /// <summary>
+        /// use this to send output to Visual Studios Debug output pane.
+        /// </summary>
+        VSDebuggerMessage = VSDebuggerStart + 4,
+        /// <summary>
+        /// use this to send output to Visual Studios Status bar.
+        /// </summary>
+        VSDebuggerStatusBarMessage = VSDebuggerStart + 5,
     }
 }

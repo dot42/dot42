@@ -96,9 +96,17 @@ namespace Dot42.VStudio.Services
         /// <summary>
         /// Open or create an output pane for the debug engine.
         /// </summary>
-        public IIdeOutputPane CreateDebugOutputPane()
+        public IIdeOutputPane CreateDot42OutputPane()
         {
             return new IdeOutputPane();
+        }
+
+        /// <summary>
+        /// Open or create an output pane for the debug engine.
+        /// </summary>
+        public IIdeOutputPane CreateDebugOutputPane()
+        {
+            return new IdeOutputPane(VSConstants.OutputWindowPaneGuid.DebugPane_guid, "Debugging");
         }
 
         /// <summary>

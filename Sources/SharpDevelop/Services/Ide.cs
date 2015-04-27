@@ -59,8 +59,13 @@ namespace Dot42.SharpDevelop.Services
 			}
 			sdDebugger.Attach(apkPath, debugger, debuggerGuid);
 		}
-		
-		public IIdeOutputPane CreateDebugOutputPane()
+
+	    public IIdeOutputPane CreateDot42OutputPane()
+	    {
+            return new IdeOutputPane();
+	    }
+
+	    public IIdeOutputPane CreateDebugOutputPane()
 		{
 			return new IdeOutputPane();
 		}

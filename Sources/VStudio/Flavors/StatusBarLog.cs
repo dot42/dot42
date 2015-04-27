@@ -1,36 +1,36 @@
 ﻿using System;
+using Dot42.Ide;
 using Dot42.Utility;
+using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Dot42.Ide.Debugger
+namespace Dot42.VStudio.Flavors
 {
     /// <summary>
     /// Plugin for DLog that outputs in the IDE output pane.
     /// </summary>
-    internal class OutputPaneLog : DLog
+    internal class StatusBarLog : DLog
     {
-        private readonly bool _selectVsDebugPane;
+        private readonly IVsStatusbar _statusBar;
         private static readonly object logLock = new object();
-        private static OutputPaneLog log;
-        private readonly IIdeOutputPane outputPane;
-        private readonly Levels minLevel;
-        private readonly DContext? _limitToContext;
-
+        private static DLog log;
+        private string lastMessageText;
+        private DateTime lastTime;
         /// <summary>
         /// Make sure this log is registered.
         /// </summary>
-        internal static void EnsureLoaded(IIde ide, bool vsDebugPane)
+        internal static void EnsureLoaded()
         {
             if (log != null)
                 return;
 
-            var outputPane = !vsDebugPane ? ide.CreateDot42OutputPane() : ide.CreateDebugOutputPane();
+            var status = (IVsStatusbar)VSUtilities.ServiceProvider().GetService(typeof (SVsStatusbar));
 
             var add = false;
             lock (logLock)
             {
                 if (log == null)
                 {
-                    log = new OutputPaneLog(outputPane, vsDebugPane?Levels.Info : Levels.Error, vsDebugPane?DContext.VSDebuggerMessage:(DContext?) null);
+                    log = new StatusBarLog(status);
                     add = true;
                 }
             }
@@ -43,11 +43,9 @@ namespace Dot42.Ide.Debugger
         /// <summary>
         /// Default ctor
         /// </summary>
-        private OutputPaneLog(IIdeOutputPane outputPane, Levels minLevel,DContext? limitToContext)
+        private StatusBarLog(IVsStatusbar statusBar)
         {
-            this.outputPane = outputPane;
-            this.minLevel = minLevel;
-            _limitToContext = limitToContext;
+            _statusBar = statusBar;
         }
 
         /// <summary>
@@ -56,17 +54,18 @@ namespace Dot42.Ide.Debugger
         protected override void Write(Levels level, DContext context, string url, int column, int lineNr, string msg, Exception exception,
                                       object[] args)
         {
-            if (level < minLevel)
-                return;
-            if (_limitToContext != null && context != _limitToContext.Value)
+            if (context != DContext.VSDebuggerStatusBarMessage)
                 return;
 
             if ((msg == null) && (exception != null)) msg = exception.Message;
             if (msg == null)
                 return;
+            if (!Show(level, context))
+                return;
 
-            outputPane.EnsureLoaded();
-            outputPane.LogLine(FormatLevel(level) + FormatContext(context) + string.Format(msg, args));
+            string text = string.Format(msg, args);
+
+            SetText(level, text);
         }
 
         /// <summary>
@@ -74,10 +73,23 @@ namespace Dot42.Ide.Debugger
         /// </summary>
         protected override void Write(Levels level, DContext context, string url, int column, int lineNr, Func<string> messageBuilder)
         {
-            if (level < Levels.Error)
+            if (context != DContext.VSDebuggerStatusBarMessage)
                 return;
-            outputPane.EnsureLoaded();
-            outputPane.LogLine(FormatLevel(level) + messageBuilder());
+            SetText(level, messageBuilder());
+        }
+
+        private void SetText(Levels level, string text)
+        {
+            if (level != Levels.Info)
+                text = FormatLevel(level) + text;
+
+            int frozen;
+            _statusBar.IsFrozen(out frozen);
+
+            if (frozen != 0)
+                return;
+
+            _statusBar.SetText(text);
         }
     }
 }

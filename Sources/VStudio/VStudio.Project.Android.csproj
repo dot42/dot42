@@ -274,6 +274,7 @@
     <Compile Include="ProjectBase\ProjectNode.cs" />
     <Compile Include="Flavors\VSUtilities.cs" />
     <Compile Include="Shared\Extensions.cs" />
+    <Compile Include="Flavors\StatusBarLog.cs" />
     <Compile Include="VStudioIntegration\10.0\Project\AssemblyReferenceNode.cs" />
     <Compile Include="VStudioIntegration\10.0\Project\Attributes.cs" />
     <Compile Include="VStudioIntegration\10.0\Project\Automation\AutomationScope.cs" />
