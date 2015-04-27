@@ -44,7 +44,9 @@ namespace Dot42.Ide.WizardForms
             {
                 if ((dep.Index >= 0) && (dep.Checked != this.Checked))
                 {
-                    dep.Checked = this.Checked;
+                    if(dep.Checked != this.Checked)
+                        dep.Checked = this.Checked;
+
                     dep.CheckDependencies();
                 }
             }

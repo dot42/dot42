@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -85,17 +86,19 @@ namespace Dot42.Debugger.Forms
         private void Attach(int pid)
         {
             MapFile mapFile;
+            string mapFileName;
             using (var dialog = new OpenFileDialog())
             {
                 dialog.Title = "Select map file";
                 dialog.DefaultExt = ".d42map";
                 if (dialog.ShowDialog(this) != DialogResult.OK)
                     return;
-                mapFile = new MapFile(dialog.FileName);
+                mapFileName = dialog.FileName;
+                mapFile = new MapFile(mapFileName);
             }
 
             var device = lvDevices.SelectedDevice.Device;
-            var connectTask = Task.Factory.StartNew(() => debugger.Connect(device, pid, mapFile));
+            var connectTask = Task.Factory.StartNew(() => debugger.Connect(device, pid, mapFile, Path.ChangeExtension(mapFileName, "apk")));
             connectTask.ContinueWith(t => debugger.PrepareAsync());
         }
 

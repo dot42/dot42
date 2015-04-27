@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Linq;
+using Dot42.CecilExtensions;
 using Dot42.CompilerLib.Ast.Extensions;
 using Dot42.CompilerLib.Extensions;
 using Dot42.CompilerLib.Target;
@@ -171,7 +172,10 @@ namespace Dot42.CompilerLib.Structure.DotNet
             {
                 ExpandSequencePoints(method.Body);
                 var source = new MethodSource(xMethod, method);
-                DexMethodBodyCompiler.TranslateToRL(compiler, targetPackage, source, dmethod, out compiledMethod);
+
+                bool generateSetNextInstructionCode = compiler.GenerateSetNextInstructionCode && method.DeclaringType.IsInDebugBuildAssembly();
+
+                DexMethodBodyCompiler.TranslateToRL(compiler, targetPackage, source, dmethod, generateSetNextInstructionCode, out compiledMethod);
             }
         }
 

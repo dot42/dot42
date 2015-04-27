@@ -30,6 +30,7 @@ namespace Dot42.Compiler
             References = new List<string>();
             ExcludedPackages = new List<string>();
             UseAutoExcludedPackages = true;
+            GenerateSetNextInstructionCode = false;
             WcfProxyInputAssemblies = new List<string>();
             options = new OptionSet {
                 { ToolOptions.Help, "Show usage", v => ShowHelp = true },
@@ -42,6 +43,7 @@ namespace Dot42.Compiler
                 { ToolOptions.RootNamespace, "Specify root namespace", v => RootNamespace = v },
                 { ToolOptions.InputAssembly, "Specify input assembly", v => Assemblies.Add(v) },
                 { ToolOptions.DebugInfo, "Generate debug info", v => DebugInfo = true },
+                { ToolOptions.GenerateSetNextInstructionCode, "Generate set next instruction code", v => GenerateSetNextInstructionCode = true },
                 { ToolOptions.InputResources, "Specify input resources", v => InputResources = v },
                 { ToolOptions.CreateManifest, "Create AndroidManifest.xml", v => CreateManifest = true },
                 { ToolOptions.CompileResources, "Compile given resources", v => CompileResources = true },
@@ -150,6 +152,7 @@ namespace Dot42.Compiler
         public List<string> AppWidgetProviders { get; private set; }
         public string TargetSdkVersion { get; private set; }
         public string ResourceTypeUsageInformationPath { get; private set; }
+        public bool GenerateSetNextInstructionCode { get; private set; }
 
         // APK Builder
         public string ManifestFile { get; private set; }

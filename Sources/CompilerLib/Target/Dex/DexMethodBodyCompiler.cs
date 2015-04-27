@@ -3,6 +3,7 @@ using System.Linq;
 using Dot42.CompilerLib.Ast2RLCompiler;
 using Dot42.CompilerLib.RL;
 using Dot42.CompilerLib.Target.Dex;
+using Dot42.DexLib;
 
 namespace Dot42.CompilerLib.Target
 {
@@ -14,7 +15,7 @@ namespace Dot42.CompilerLib.Target
         /// <summary>
         /// Create a method body for the given method.
         /// </summary>
-        internal static MethodBody TranslateToRL(AssemblyCompiler compiler, DexTargetPackage targetPackage, MethodSource source, DexLib.MethodDefinition dmethod, out CompiledMethod compiledMethod)
+        internal static MethodBody TranslateToRL(AssemblyCompiler compiler, DexTargetPackage targetPackage, MethodSource source, MethodDefinition dmethod, bool generateSetNextInstructionCode, out CompiledMethod compiledMethod)
         {
             try
             {

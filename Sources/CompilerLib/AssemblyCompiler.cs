@@ -18,6 +18,7 @@ namespace Dot42.CompilerLib
     public class AssemblyCompiler
     {
         private readonly XModule module;
+        private readonly bool generateSetNextInstructionCode;
         private readonly AssemblyClassLoader assemblyClassLoader;
         private readonly HashSet<string> rootClassNames;
         private readonly CompilationMode mode;
@@ -38,8 +39,7 @@ namespace Dot42.CompilerLib
         /// <summary>
         /// Default ctor
         /// </summary>
-        public AssemblyCompiler(CompilationMode mode, List<AssemblyDefinition> assemblies, List<AssemblyDefinition> references, Table resources, NameConverter nameConverter, bool generateDebugInfo, AssemblyClassLoader assemblyClassLoader,
-            HashSet<string> rootClassNames, XModule module)
+        public AssemblyCompiler(CompilationMode mode, List<AssemblyDefinition> assemblies, List<AssemblyDefinition> references, Table resources, NameConverter nameConverter, bool generateDebugInfo, AssemblyClassLoader assemblyClassLoader, HashSet<string> rootClassNames, XModule module, bool generateSetNextInstructionCode)
         {
             this.mode = mode;
             this.assemblies = assemblies;
@@ -49,6 +49,7 @@ namespace Dot42.CompilerLib
             this.assemblyClassLoader = assemblyClassLoader;
             this.rootClassNames = rootClassNames;
             this.module = module;
+            this.generateSetNextInstructionCode = generateDebugInfo && generateSetNextInstructionCode;
             targetPackage = new Target.Dex.DexTargetPackage(nameConverter, this);
         }
 
@@ -57,6 +58,7 @@ namespace Dot42.CompilerLib
         public List<AssemblyDefinition> Assemblies { get { return assemblies; } }
         public Table ResourceTable { get { return resources; } }
         public MapFile MapFile { get { return mapFile; } }
+        public bool GenerateSetNextInstructionCode { get { return generateSetNextInstructionCode; } }
 
         /// <summary>
         /// Gets the classloader used by this compiler.
@@ -65,6 +67,8 @@ namespace Dot42.CompilerLib
         {
             get { return assemblyClassLoader; }
         }
+
+        
 
         /// <summary>
         /// Compile all types and members

@@ -269,7 +269,7 @@ namespace Dot42.Compiler
             }
 
             // Create compiler
-            var compiler = new AssemblyCompiler(options.CompilationMode, assemblies, references, table, nsConverter, options.DebugInfo, classLoader, usedTypeNames, module);
+            var compiler = new AssemblyCompiler(options.CompilationMode, assemblies, references, table, nsConverter, options.DebugInfo, classLoader, usedTypeNames, module,options.GenerateSetNextInstructionCode);
             compiler.Compile();
             compiler.Save(options.OutputFolder, options.FreeAppsKeyPath);
         }

@@ -107,7 +107,7 @@ namespace Dot42.CompilerLib.Structure.Java
             {
                 //ExpandSequencePoints(method.Body);
                 var source = new MethodSource(xMethod, method);
-                DexMethodBodyCompiler.TranslateToRL(compiler, targetPackage, source, dmethod, out compiledMethod);
+                DexMethodBodyCompiler.TranslateToRL(compiler, targetPackage, source, dmethod, false, out compiledMethod);
             }
         }
 

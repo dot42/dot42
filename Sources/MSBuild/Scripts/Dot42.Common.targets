@@ -623,6 +623,7 @@ Copyright (C) TallComponents BV. All rights reserved.
         PackageName="$(PackageName)"
         RootNamespace="$(RootNamespace)"
         GenerateDebugInfo="$(DebugSymbols)"
+        GenerateSetNextInstructionCode="$(GenerateSetNextInstructionCode)"
         FreeAppsKeyPath="$(IntermediateFreeAppsKey)"
 			    >
     </CompileAssembly>

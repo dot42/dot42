@@ -62,7 +62,7 @@ namespace Dot42.CompilerLib.XModel.Synthetic
                 throw new ArgumentException("dexMethod expected");
             CompiledMethod compiledMethod;
             var source = new MethodSource(this, Body);
-            DexMethodBodyCompiler.TranslateToRL(compiler, targetPackage, source, dexMethod, out compiledMethod);
+            DexMethodBodyCompiler.TranslateToRL(compiler, targetPackage, source, dexMethod, false, out compiledMethod);
             compiledMethod.DexMethod = dexMethod;
         }
 

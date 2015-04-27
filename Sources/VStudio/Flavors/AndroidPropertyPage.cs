@@ -69,7 +69,8 @@ namespace Dot42.VStudio.Flavors
         /// </summary>
         public override void LoadSettings()
         {
-            control.LoadFrom(new ProjectProperties(this));
+            var props = new ProjectProperties(this);
+            control.LoadFrom(props);
             IsDirty = false;
             control.Enabled = true;
         }
@@ -211,6 +212,19 @@ namespace Dot42.VStudio.Flavors
                 get { return page.GetProjectProperty(Dot42Constants.PropApkFilename); }
                 set { page.SetProjectProperty(Dot42Constants.PropApkFilename, value); }
             }
+
+            public string RootNamespace
+            {
+                get { return page.GetProjectProperty(Dot42Constants.RootNamespace); }
+                set { page.SetProjectProperty(Dot42Constants.RootNamespace, value); }
+            }
+
+            public string AssemblyName
+            {
+                get { return page.GetProjectProperty(Dot42Constants.AssemblyName); }
+                set { page.SetProjectProperty(Dot42Constants.AssemblyName, value); }
+            }
+
             public bool ApkOutputs
             {
                 get { return page.GetProjectProperty(Dot42Constants.PropApkOutputs) == "true"; }
@@ -242,6 +256,13 @@ namespace Dot42.VStudio.Flavors
             }
 
             public IEnumerable<string> ReferencedLibraryNames { get { return page.ReferencedLibraryNames; } }
+
+            public bool GenerateSetNextInstructionCode
+            {
+                get { return page.GetProjectProperty(Dot42Constants.PropGenerateSetNextInstructionCode) == "true"; }
+                set { page.SetProjectProperty(Dot42Constants.PropGenerateSetNextInstructionCode, value ? "true" : "false"); }
+            }
+
             public void AddReferencedLibrary(string name)
             {
                 page.AddReferencedLibrary(name);

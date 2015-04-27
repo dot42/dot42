@@ -51,6 +51,12 @@
         public static readonly ToolOption DebugInfo = new ToolOption("d|debug");
 
         /// <summary>
+        /// Generate set next instruction code. This can be only used for debug builds,
+        /// an will only generate code for debg assemblies.
+        /// </summary>
+        public static readonly ToolOption GenerateSetNextInstructionCode = new ToolOption("gensetnextinstr");
+
+        /// <summary>
         /// Input resources.arsc path
         /// </summary>
         public static readonly ToolOption InputResources = new ToolOption("resources=");
