@@ -6,6 +6,7 @@ namespace Dot42.CompilerLib.Ast
     {
         public string Name;
         public bool IsGenerated;
+        public bool PreventOptimizations;
         public XTypeReference Type;
 
         /// <summary>
@@ -60,6 +61,8 @@ namespace Dot42.CompilerLib.Ast
         /// Can be null
         /// </summary>
         string IVariable.Name { get { return Name; } }
+
+        bool IVariable.PreventOptimization { get { return PreventOptimizations; } }
 
         /// <summary>
         /// Gets the type of this variable.

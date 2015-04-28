@@ -51,6 +51,7 @@ namespace Dot42.Ide.Debugger
         {
             OutputPaneLog.EnsureLoaded(ide, true);
             OutputPaneLog.EnsureLoaded(ide, false);
+            
             var newMonitor = new LaunchMonitor(ide, device, apkPath, packageName, apiLevel, launchFlags, stateUpdate, token);
             monitor = newMonitor;
             newMonitor.Start();

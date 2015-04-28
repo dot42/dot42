@@ -36,7 +36,8 @@ namespace Dot42.VStudio.Flavors
             }
             if (add)
             {
-                DLog.AddAdditionalLogger(log);                
+                AddAdditionalLogger(log);
+                AddToContext(DContext.VSStatusBar, log);
             }
         }
 
@@ -54,7 +55,7 @@ namespace Dot42.VStudio.Flavors
         protected override void Write(Levels level, DContext context, string url, int column, int lineNr, string msg, Exception exception,
                                       object[] args)
         {
-            if (context != DContext.VSDebuggerStatusBarMessage)
+            if (context != DContext.VSStatusBar)
                 return;
 
             if ((msg == null) && (exception != null)) msg = exception.Message;
@@ -73,7 +74,7 @@ namespace Dot42.VStudio.Flavors
         /// </summary>
         protected override void Write(Levels level, DContext context, string url, int column, int lineNr, Func<string> messageBuilder)
         {
-            if (context != DContext.VSDebuggerStatusBarMessage)
+            if (context != DContext.VSStatusBar)
                 return;
             SetText(level, messageBuilder());
         }

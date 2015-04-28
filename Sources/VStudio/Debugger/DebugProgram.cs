@@ -2,11 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
-using Dot42.ApkLib;
 using Dot42.DebuggerLib;
 using Dot42.DebuggerLib.Model;
-using Dot42.DexLib;
 using Dot42.Mapping;
 using Dot42.Utility;
 using Microsoft.VisualStudio;
@@ -22,8 +19,6 @@ namespace Dot42.VStudio.Debugger
         private readonly EngineEventCallback eventCallback;
         private readonly Guid programGuid;
         private readonly List<DebugModule> modules = new List<DebugModule>();
-        private readonly Lazy<Dex> dex;
-
 
         /// <summary>
         /// Fired when this program has been terminated.
@@ -41,7 +36,6 @@ namespace Dot42.VStudio.Debugger
             this.eventCallback = eventCallback;
             programGuid = Guid.NewGuid();
             modules.Add(new DebugModule());
-            dex = new Lazy<Dex>(LoadDex);
         }
 
         /// <summary>
@@ -241,7 +235,7 @@ namespace Dot42.VStudio.Debugger
                 default:
                     return VSConstants.E_INVALIDARG;
             }
-            StepAsync(new StepRequest((DalvikThread) pThread, stepDepth), stepUnit == enum_STEPUNIT.STEP_INSTRUCTION);
+            StepAsync(new StepRequest((DalvikThread) pThread, stepDepth, stepUnit == enum_STEPUNIT.STEP_INSTRUCTION));
             return VSConstants.S_OK;
         }
 
@@ -370,19 +364,75 @@ namespace Dot42.VStudio.Debugger
         public int EnumCodeContexts(IDebugDocumentPosition2 pDocPos, out IEnumDebugCodeContexts2 ppEnum)
         {
             DLog.Debug(DContext.VSDebuggerComCall, "IDebugProgram2.EnumCodeContexts");
-            throw new NotImplementedException();
+
+            ppEnum = null;
+            
+            string fileName;
+            if (ErrorHandler.Failed(pDocPos.GetFileName(out fileName)))
+                return VSConstants.E_INVALIDARG;
+            var beginPosition = new TEXT_POSITION[1];
+            var endPosition = new TEXT_POSITION[1];
+            if (ErrorHandler.Failed(pDocPos.GetRange(beginPosition, endPosition)))
+                return VSConstants.E_INVALIDARG;
+
+            // Search matching document
+            var doc = MapFile.GetOrCreateDocument(fileName, false);
+            if (doc == null)
+                throw new ArgumentException("Unknown document " + fileName);
+
+            DLog.Debug(DContext.VSDebuggerComCall, "document {0} positions {1}/{2} - {3}/{4}", fileName, (int)beginPosition[0].dwLine, (int)beginPosition[0].dwColumn, (int)endPosition[0].dwLine, (int)endPosition[0].dwColumn);
+
+            // Search positions
+            var documentPositions = doc.FindAll((int)beginPosition[0].dwLine + 1, (int)beginPosition[0].dwColumn + 1, (int)endPosition[0].dwLine + 1, (int)endPosition[0].dwColumn + 1)
+                                       .ToList();
+
+            if (documentPositions.Count == 0)
+            {
+                DLog.Debug(DContext.VSDebuggerComCall, "found nothing.");
+                return VSConstants.E_FAIL;
+            }
+
+            List<DebugCodeContext> list = new List<DebugCodeContext>();
+
+            foreach (var pos in documentPositions)
+            {
+                var loc = GetLocationFromPositionAsync(doc, pos).Await(VmTimeout);
+                if (loc == null)
+                    continue;
+
+                // only find one location per method.
+                if(list.Any(c=>c.Location.IsSameMethod(loc.Location)))
+                    continue;
+                
+                var ctx = new DebugCodeContext(loc.Location);
+                
+                // ReSharper disable once ObjectCreationAsStatement
+                new DebugDocumentContext(loc, ctx);
+
+                DLog.Debug(DContext.VSDebuggerComCall, "found {0}: {1}", loc.Description, loc.Location);
+                list.Add(ctx);
+            }
+
+            DLog.Debug(DContext.VSDebuggerComCall, "done.");
+            if (list.Count == 0)
+                return VSConstants.E_FAIL;
+
+            ppEnum = new CodeContextEnum(list);
+            return VSConstants.S_OK;
         }
+
 
         public int GetMemoryBytes(out IDebugMemoryBytes2 ppMemoryBytes)
         {
             DLog.Debug(DContext.VSDebuggerComCall, "IDebugProgram2.GetMemoryBytes");
-            throw new NotImplementedException();
+            ppMemoryBytes = null;
+            return VSConstants.E_NOTIMPL;
         }
 
         public int GetDisassemblyStream(enum_DISASSEMBLY_STREAM_SCOPE dwScope, IDebugCodeContext2 pCodeContext, out IDebugDisassemblyStream2 ppDisassemblyStream)
         {
             DLog.Debug(DContext.VSDebuggerComCall, "IDebugProgram2.GetDisassemblyStream");
-            ppDisassemblyStream = new DebugDisassemblyStream(this, ((DebugCodeContext)pCodeContext), dex.Value, MapFile);
+            ppDisassemblyStream = new DebugDisassemblyStream(this, ((DebugCodeContext)pCodeContext));
             return VSConstants.S_OK;
         }
 
@@ -403,7 +453,9 @@ namespace Dot42.VStudio.Debugger
         public int EnumCodePaths(string pszHint, IDebugCodeContext2 pStart, IDebugStackFrame2 pFrame, int fSource, out IEnumCodePaths2 ppEnum, out IDebugCodeContext2 ppSafety)
         {
             DLog.Debug(DContext.VSDebuggerComCall, "IDebugProgram2.EnumCodePaths");
-            throw new NotImplementedException();
+            ppEnum = null;
+            ppSafety = null;
+            return VSConstants.E_NOTIMPL;
         }
 
         public int WriteDump(enum_DUMPTYPE dumptype, string pszDumpUrl)
@@ -445,13 +497,6 @@ namespace Dot42.VStudio.Debugger
         {
             DLog.Debug(DContext.VSDebuggerComCall, "DebugProgram.OnAttach");
             throw new NotImplementedException();
-        }
-
-        private Dex LoadDex()
-        {
-            var apk = new ApkFile(apkPath);
-            var dex = apk.Load("classes.dex");
-            return Dex.Read(new MemoryStream(dex));
         }
     }
 }

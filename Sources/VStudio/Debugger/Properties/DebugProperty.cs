@@ -23,8 +23,9 @@ namespace Dot42.VStudio.Debugger
         /// Construct a DEBUG_PROPERTY_INFO representing this local or parameter.
         /// </summary>
         /// <param name="dwFields"></param>
+        /// <param name="dwRadix"></param>
         /// <returns></returns>
-        internal abstract DEBUG_PROPERTY_INFO ConstructDebugPropertyInfo(enum_DEBUGPROP_INFO_FLAGS dwFields);
+        internal abstract DEBUG_PROPERTY_INFO ConstructDebugPropertyInfo(enum_DEBUGPROP_INFO_FLAGS dwFields, uint dwRadix);
 
         /// <summary>
         /// Does this property have children
@@ -38,16 +39,16 @@ namespace Dot42.VStudio.Debugger
 
         public int GetPropertyInfo(enum_DEBUGPROP_INFO_FLAGS dwFields, uint dwRadix, uint dwTimeout, IDebugReference2[] rgpArgs, uint dwArgCount, DEBUG_PROPERTY_INFO[] pPropertyInfo)
         {
-            pPropertyInfo[0] = ConstructDebugPropertyInfo(dwFields);
+            pPropertyInfo[0] = ConstructDebugPropertyInfo(dwFields, dwRadix);
             return VSConstants.S_OK;
         }
 
-        public int SetValueAsString(string pszValue, uint dwRadix, uint dwTimeout)
+        public virtual int SetValueAsString(string pszValue, uint dwRadix, uint dwTimeout)
         {
             return VSConstants.E_NOTIMPL;
         }
 
-        public int SetValueAsReference(IDebugReference2[] rgpArgs, uint dwArgCount, IDebugReference2 pValue, uint dwTimeout)
+        public virtual int SetValueAsReference(IDebugReference2[] rgpArgs, uint dwArgCount, IDebugReference2 pValue, uint dwTimeout)
         {
             return VSConstants.E_NOTIMPL;
         }
@@ -63,7 +64,7 @@ namespace Dot42.VStudio.Debugger
                 children = CreateChildren();
             }
 
-            ppEnum = new PropertyInfoEnum(children.Select(x => x.ConstructDebugPropertyInfo(dwFields)));
+            ppEnum = new PropertyInfoEnum(children.Select(x => x.ConstructDebugPropertyInfo(dwFields, dwRadix)));
             return VSConstants.S_OK;
         }
 

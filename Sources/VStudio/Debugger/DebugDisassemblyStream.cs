@@ -1,71 +1,36 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Dot42.DebuggerLib;
 using Dot42.DebuggerLib.Model;
-using Dot42.DexLib;
-using Dot42.DexLib.Instructions;
-using Dot42.JvmClassLib;
 using Dot42.Mapping;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Debugger.Interop;
-using Microsoft.VisualStudio.Text.Editor;
-using NinjaTools.Collections;
-using TallComponents.Common.Extensions;
-using MethodDefinition = Dot42.DexLib.MethodDefinition;
 
 namespace Dot42.VStudio.Debugger
 {
     class DebugDisassemblyStream : IDebugDisassemblyStream2
     {
-        private readonly DebugProgram _program;
-        private readonly DebugCodeContext _documentContext;
         private readonly DocumentLocation _loc;
-        
-        private readonly Dex _dexFile;
-        private readonly MapFile _mapFile;
-
-        private MethodDefinition _methodDef;
-        private ClassDefinition  _classDef;
-        private string _methodName;
-        private string _className;
-        private readonly List<Tuple<Document,DocumentPosition>> _positions;
-        
+        private readonly MethodDisassembly _method;
 
         private int _instructionPointer;
-        private TypeEntry _typeEntry;
-        private MethodEntry _methodEntry;
 
         Tuple<Document, DocumentPosition> _prevSource = null;
         int _prevSourceInstructionOffset = -1;
 
-        public DebugDisassemblyStream(DebugProgram program, DebugCodeContext documentContext, Dex dexFile, MapFile mapFile)
+        public DebugDisassemblyStream(DebugProgram program, DebugCodeContext documentContext)
         {
-            _program = program;
-            _documentContext = documentContext;
-            _dexFile = dexFile;
-            _mapFile = mapFile;
-
             _loc = documentContext.DocumentContext.DocumentLocation;
-
-            LoadMethod(_loc);
-
-            if (_typeEntry != null && _methodEntry != null)
-            {
-                _positions = _mapFile.GetLocations(_typeEntry, _methodEntry)
-                                     .OrderBy(p=>p.Item2.MethodOffset)
-                                     .ToList();
-            }
+            _method = program.DisassemblyProvider.GetFromLocation(_loc);
         }
 
         public int Read(uint dwInstructions, enum_DISASSEMBLY_STREAM_FIELDS dwFields, out uint pdwInstructionsRead, DisassemblyData[] prgDisassembly)
         {
             pdwInstructionsRead = 0;
-            
-            var method = _methodDef;
-            if (method == null)
-                return VSConstants.DISP_E_MEMBERNOTFOUND;
+
+            if (_method == null)
+                return HResults.E_DISASM_NOTAVAILABLE;
+
+            var method = _method.Method;
 
             var insCount = method.Body.Instructions.Count;
 
@@ -81,7 +46,7 @@ namespace Dot42.VStudio.Debugger
 
                 if ((dwFields & enum_DISASSEMBLY_STREAM_FIELDS.DSF_ADDRESS) != 0)
                 {
-                    insd.bstrAddress = ins.Offset.ToString("X3").PadLeft(4);
+                    insd.bstrAddress = _method.FormatAddress(ins);
                     insd.dwFields |= enum_DISASSEMBLY_STREAM_FIELDS.DSF_ADDRESS;
                 }
 
@@ -89,9 +54,9 @@ namespace Dot42.VStudio.Debugger
                               | enum_DISASSEMBLY_STREAM_FIELDS.DSF_OPERANDS 
                               | enum_DISASSEMBLY_STREAM_FIELDS.DSF_CODELOCATIONID
                               | enum_DISASSEMBLY_STREAM_FIELDS.DSF_FLAGS;
-                
-                insd.bstrOpcode = ins.OpCode.ToString().PadLeft(20) + " ";
-                insd.bstrOperands = FormatOperands(ins, ip, method.Body);
+
+                insd.bstrOpcode = _method.FormatOpCode(ins);
+                insd.bstrOperands = _method.FormatOperands(ins);
                 insd.uCodeLocationId = (ulong)ins.Offset;
 
                 //if (ins.Operand is IMemberReference && (dwFields & enum_DISASSEMBLY_STREAM_FIELDS.DSF_OPERANDS_SYMBOLS) != 0)
@@ -109,9 +74,9 @@ namespace Dot42.VStudio.Debugger
 
                 if (wantsDocumentUrl || wantsPosition || wantsByteOffset)
                 {
-                    Tuple<Document, DocumentPosition> source = GetSourceFromOffset(ins.Offset);
+                    Tuple<Document, DocumentPosition> source = _method.GetSourceFromOffset(ins.Offset);
 
-                    if(source != null && source.Item2.IsValid)
+                    if(source != null && !source.Item2.IsSpecial)
                     {
                         bool isSameDocAsPrevious = _prevSource != null && _prevSource.Item1.Path == source.Item1.Path;
 
@@ -121,9 +86,9 @@ namespace Dot42.VStudio.Debugger
                             insd.dwFlags |= enum_DISASSEMBLY_FLAGS.DF_DOCUMENTCHANGE;
                         }
 
-                        if (wantsDocumentUrl)
+                        if (wantsDocumentUrl || wantsPosition)
                         {
-                            insd.bstrDocumentUrl = "file:// " + source.Item1.Path;
+                            insd.bstrDocumentUrl = "file://" + source.Item1.Path;
                             insd.dwFields |= enum_DISASSEMBLY_STREAM_FIELDS.DSF_DOCUMENTURL;
                         }
 
@@ -134,14 +99,16 @@ namespace Dot42.VStudio.Debugger
 
                         if (_prevSource == null || !_prevSource.Item2.Start.Equals(source.Item2.Start) || !_prevSource.Item2.End.Equals(source.Item2.End))
                         {
-                            // this does not work for unknown reasons.
-                            // in DebugDocumentContext::GetSourceRange it works without problems.
                             if (wantsPosition)
                             {
                                 insd.posBeg.dwLine = (uint)(source.Item2.Start.Line - 1);
-                                insd.posBeg.dwColumn = (uint)source.Item2.Start.Column;
                                 insd.posEnd.dwLine = (uint)(source.Item2.End.Line - 1);
-                                insd.posEnd.dwColumn = (uint)source.Item2.End.Column;
+                                if (insd.posEnd.dwLine - insd.posBeg.dwLine > 3) // never show more then 3 lines.
+                                    insd.posEnd.dwLine = insd.posBeg.dwLine + 3;
+                                //insd.posBeg.dwLine = (uint)(source.Item2.Start.Line - 1);
+                                //insd.posBeg.dwColumn = (uint)source.Item2.Start.Column - 1;
+                                //insd.posEnd.dwLine = (uint)(source.Item2.End.Line - 1);
+                                //insd.posEnd.dwColumn = (uint)source.Item2.End.Column - 1;
 
                                 insd.dwFields |= enum_DISASSEMBLY_STREAM_FIELDS.DSF_POSITION;
                             }
@@ -168,10 +135,19 @@ namespace Dot42.VStudio.Debugger
                         // no valid source
                         if (_prevSource != null)
                         {
-                            _prevSource = null;
+                            _prevSource = source;
                             insd.dwFlags |= enum_DISASSEMBLY_FLAGS.DF_DOCUMENTCHANGE;
+
+                            if (source != null)
+                            {
+                                if ((dwFields & enum_DISASSEMBLY_STREAM_FIELDS.DSF_OPERANDS_SYMBOLS) != 0)
+                                {
+                                    insd.dwFields |= enum_DISASSEMBLY_STREAM_FIELDS.DSF_OPERANDS_SYMBOLS;
+                                    insd.bstrSymbol = "(special instruction(s))";
+                                }
+                            }
                         }
-                        
+
                         _prevSourceInstructionOffset = ins.Offset;
                     }
                 }
@@ -184,9 +160,10 @@ namespace Dot42.VStudio.Debugger
 
         public int Seek(enum_SEEK_START dwSeekStart, IDebugCodeContext2 pCodeContext, ulong uCodeLocationId, long iInstructions)
         {
-            var method = _methodDef;
-            if (method == null)
-                return VSConstants.DISP_E_MEMBERNOTFOUND;
+            if (_method == null)
+                return HResults.E_DISASM_NOTAVAILABLE;
+
+            var method = _method.Method;
 
             var insCount = method.Body.Instructions.Count;
             int newPos;
@@ -227,24 +204,21 @@ namespace Dot42.VStudio.Debugger
 
         public int GetCodeContext(ulong uCodeLocationId, out IDebugCodeContext2 ppCodeContext)
         {
-            Tuple<Document, DocumentPosition> source = GetSourceFromOffset((int) uCodeLocationId);
-            if(source == null)
-            {
-                ppCodeContext = null;
-                return VSConstants.E_FAIL;
-            }
+            ppCodeContext = null;
 
-            if (!source.Item2.IsValid) // what is this marker!?
-            {
-                ppCodeContext = null;
-                return VSConstants.E_FAIL;
-            }
+            if (_method == null)
+                return HResults.E_DISASM_NOTAVAILABLE;
 
             var location = new Location(_loc.Location.Class, _loc.Location.Method, uCodeLocationId);
-            var docLoc = new DocumentLocation(location, source.Item1, source.Item2, _loc.ReferenceType, _loc.Method, _typeEntry, _methodEntry);
-
             var ctx = new DebugCodeContext(location);
-            ctx.DocumentContext = new DebugDocumentContext(docLoc, ctx);
+
+            // try to set source code.
+            Tuple<Document, DocumentPosition> source = _method.GetSourceFromOffset((int)uCodeLocationId);
+            if(source != null)
+            { 
+                var docLoc = new DocumentLocation(location, source.Item1, source.Item2, _loc.ReferenceType, _loc.Method, _method.TypeEntry, _method.MethodEntry);
+                ctx.DocumentContext = new DebugDocumentContext(docLoc, ctx);
+            }
 
             ppCodeContext = ctx;
             return VSConstants.S_OK;
@@ -272,152 +246,13 @@ namespace Dot42.VStudio.Debugger
         {
             pnSize = 0;
 
-            var method = _methodDef;
-            if (method == null)
-                return VSConstants.DISP_E_MEMBERNOTFOUND;
+            if (_method == null)
+                return HResults.E_DISASM_NOTAVAILABLE;
 
-            pnSize = (ulong)method.Body.Instructions.Count;
+            pnSize = (ulong)_method.Method.Body.Instructions.Count;
             return VSConstants.S_OK;
         }
 
-        private static string FormatOperands(Instruction ins, int ip, MethodBody method)
-        {
-            StringBuilder ops = new StringBuilder();
-
-            foreach (var r in ins.Registers)
-            {
-                if (ops.Length > 0)
-                {
-                    ops.Append(",");
-                    Align(ops, 4);
-                }
-                ops.Append(r);
-            }
-            if (ops.Length == 0)
-                ops.Append(" ");
-
-            if (ins.Operand != null)
-            {
-                AlignWithSpace(ops, 12);
-
-                if (ins.Operand is string)
-                {
-                    ops.Append("\"");
-                    ops.Append(ins.Operand);
-                    ops.Append("\"");
-                }
-                else if (ins.Operand is int)
-                {
-                    var i = (int) ins.Operand;
-                    ops.Append(i);
-
-                    if (i > 8|| i < -8)
-                    {
-                        ops.Append(" (0x");
-                        ops.Append(i.ToString("X4"));
-                        ops.Append(")");
-                    }
-                }
-                else if (ins.Operand is long)
-                {
-                    var l = (long)ins.Operand;
-                    ops.Append(l);
-                    
-                    ops.Append(" (0x");
-                    ops.Append(l.ToString("X8"));
-                    ops.Append(")");
-                }
-                else if (ins.Operand is Instruction)
-                {
-                    var target = (Instruction) ins.Operand;
-                    ops.Append("-> ");
-                    ops.Append(target.Offset.ToString("X3"));
-
-                    int idx = method.Instructions.IndexOf(target);
-                    ops.Append(" ; ");
-
-                    int offset = (idx - ip);                   
-                    ops.Append(offset.ToString("+0;-0;+0"));
-                    //insd.bstrAddressOffset = offset.ToString("+0;-0;+0");
-
-                }
-                else if (ins.Operand is IMemberReference)
-                {
-                    ops.Append(ins.Operand);
-                }
-                else
-                {
-                    ops.Append(ins.Operand);
-                }
-            }
-
-            var bstrOperands = ops.ToString();
-            return bstrOperands;
-        }
-
-        private static void AlignWithSpace(StringBuilder b, int tabSize)
-        {
-            if (b.Length > 0 && b[b.Length - 1] != ' ')
-                b.Append(' ');
-            Align(b, tabSize);
-        }
-
-        private static void Align(StringBuilder b, int tabSize)
-        {
-            int add = (tabSize - b.Length%tabSize) % tabSize;
-            b.Append(' ', add);
-        }
-
-        private Tuple<Document, DocumentPosition> GetSourceFromOffset(int offset)
-        {
-            if (_positions != null)
-            {
-                int idx = _positions.FindLastIndexSmallerThanOrEqualTo(offset, p => p.Item2.MethodOffset);
-                if (idx != -1)
-                {
-                    return _positions[idx];
-                }
-            }
-            return null;
-        }
-
-        private bool LoadMethod(DocumentLocation loc)
-        {
-            if (loc.TypeEntry != null)
-                _className = loc.TypeEntry.DexName;
-
-            if (loc.Method != null)
-            {
-                if (_className == null)
-                {
-                    var type = loc.Method.DeclaringType.GetSignatureAsync().Await(DalvikProcess.VmTimeout);
-                    var typeDef = Descriptors.ParseClassType(type);
-                    _className = typeDef.ClassName.Replace("/", ".");
-                }
-                _methodName = loc.Method.Name;
-            }
-
-            if (_methodName == null && loc.MethodEntry != null)
-            {
-                _methodName = loc.MethodEntry.DexName;
-            }
-
-            if (_methodName == null || _className == null)
-                return false;
-
-            _classDef = _dexFile.GetClass(_className);
-            if (_classDef == null)
-                return false;
-
-            _methodDef = _classDef.GetMethod(_methodName);
-
-            if (_methodDef == null)
-                return false;
-
-            _typeEntry = loc.TypeEntry ?? _mapFile.GetTypeById(_classDef.MapFileId);
-            _methodEntry = loc.MethodEntry ?? (_typeEntry == null?  null : _typeEntry.GetMethodById(_methodDef.MapFileId));
-
-            return true;
-        }
+       
     }
 }

@@ -64,6 +64,7 @@
     <Compile Include="Ast\AstTryCatchBlock.cs" />
     <Compile Include="Ast\AstVariable.cs" />
     <Compile Include="Ast\AstLabelKeyPair.cs" />
+    <Compile Include="Ast\Converters\SetNextInstructionGenerator.cs" />
     <Compile Include="Ast\Converters\InitializeStructVariablesConverter.cs" />
     <Compile Include="Ast\Converters\GenericsConverter.cs" />
     <Compile Include="Ast\Converters\EnumOptimizer.cs" />

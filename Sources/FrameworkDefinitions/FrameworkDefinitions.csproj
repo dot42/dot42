@@ -38,12 +38,14 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="System" />
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\Version.cs" />
     <Compile Include="AssemblyConstants.cs" />
     <Compile Include="AttributeConstants.cs" />
+    <Compile Include="DebuggerConstants.cs" />
     <Compile Include="Generated\SystemIdConstants.cs" />
     <Compile Include="InternalConstants.cs" />
     <Compile Include="FrameworkInfo.cs" />

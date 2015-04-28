@@ -54,6 +54,7 @@
     <Compile Include="Events\Jdwp\VmDeath.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="IJdwpServerInfo.cs" />
+    <Compile Include="Model\DalvikDisassemblyProvider.cs" />
     <Compile Include="Model\DalvikExceptionValue.cs" />
     <Compile Include="Model\ExceptionBehaviorMap.cs" />
     <Compile Include="Model\DalvikExceptionManager.cs" />
@@ -72,8 +73,10 @@
     <Compile Include="Model\DalvikStackFrameValue.cs" />
     <Compile Include="Model\DocumentLocation.cs" />
     <Compile Include="Model\ExceptionBehavior.cs" />
+    <Compile Include="Model\MethodDisassembly.cs" />
     <Compile Include="Model\StepRequest.cs" />
     <Compile Include="Model\SuspendReason.cs" />
+    <Compile Include="SlotValue.cs" />
     <Compile Include="SlotRequest.cs" />
     <Compile Include="Value.cs" />
     <Compile Include="Events\Jdwp\ClassPrepare.cs" />
@@ -148,6 +151,10 @@
     <ProjectReference Include="..\AdbLib\AdbLib.csproj">
       <Project>{13F1BB11-B71A-AA59-44DE-7AD5C0B4BB22}</Project>
       <Name>AdbLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ApkLib\ApkLib.csproj">
+      <Project>{13F1BB11-ABB6-B755-CC77-7AD5C0B4BB22}</Project>
+      <Name>ApkLib</Name>
     </ProjectReference>
     <ProjectReference Include="..\DeviceLib\DeviceLib.csproj">
       <Project>{13F1BB11-B71A-A349-4BEE-7AD5C023BB22}</Project>

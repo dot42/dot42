@@ -140,7 +140,8 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
             VariableRegisterSpec r;
             if (!variables.TryGetValue(variable, out r))
             {
-                r = (VariableRegisterSpec) Allocate(variable.Type.GetReference(targetPackage), false, RCategory.Variable, variable);
+                var category = variable.PreventOptimizations ? RCategory.VariablePreventOptimization : RCategory.Variable;
+                r = (VariableRegisterSpec) Allocate(variable.Type.GetReference(targetPackage), false, category, variable);
                 variables.Add(variable, r);
             }
             return r;
@@ -160,6 +161,7 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                     case RCategory.Temp:
                         return new RegisterSpec(pair.Item1, pair.Item2, type);
                     case RCategory.Variable:
+                    case RCategory.VariablePreventOptimization:
                         return new VariableRegisterSpec(pair.Item1, pair.Item2, type, (AstVariable)parameter);
                     case RCategory.Argument:
                         return new ArgumentRegisterSpec(pair.Item1, pair.Item2, type, ParameterWrapper.Wrap(parameter));
@@ -174,6 +176,7 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                 case RCategory.Temp:
                     return new RegisterSpec(register, null, type);
                 case RCategory.Variable:
+                case RCategory.VariablePreventOptimization:
                     return new VariableRegisterSpec(register, null, type, (AstVariable) parameter);
                 case RCategory.Argument:
                     return new ArgumentRegisterSpec(register, null, type, ParameterWrapper.Wrap(parameter));

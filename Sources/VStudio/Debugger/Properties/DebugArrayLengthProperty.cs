@@ -1,24 +1,19 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using Dot42.DebuggerLib.Model;
 using Microsoft.VisualStudio.Debugger.Interop;
-using TallComponents.Common.Extensions;
 
 namespace Dot42.VStudio.Debugger
 {
-    internal sealed class DebugBaseClassProperty : DebugProperty
+    internal sealed class DebugArrayLengthProperty : DebugProperty
     {
-        private readonly DalvikObjectReference objectReference;
-        private readonly DalvikReferenceType superClass;
+        private readonly int length;
 
         /// <summary>
         /// Default ctor
         /// </summary>
-        public DebugBaseClassProperty(DalvikObjectReference objectReference, DalvikReferenceType superClass, DebugProperty parent)
+        public DebugArrayLengthProperty(int length, DebugProperty parent)
             : base(parent)
         {
-            this.objectReference = objectReference;
-            this.superClass = superClass;
+            this.length = length;
         }
 
         /// <summary>
@@ -26,7 +21,7 @@ namespace Dot42.VStudio.Debugger
         /// </summary>
         protected override bool HasChildren
         {
-            get { return true; }
+            get { return false; }
         }
 
         /// <summary>
@@ -34,27 +29,16 @@ namespace Dot42.VStudio.Debugger
         /// </summary>
         protected override List<DebugProperty> CreateChildren()
         {
-            var fieldValues = superClass.GetInstanceFieldValuesAsync(objectReference).Await(DalvikProcess.VmTimeout);
-            var list = fieldValues.Select(x => new DebugValueProperty(x, this)).Cast<DebugProperty>().ToList();
-
-            // Get base class
-            if (superClass.GetNameAsync().Await(DalvikProcess.VmTimeout) != "java.lang.Object")
-            {
-                var superSuperClass = superClass.GetSuperClassAsync().Await(DalvikProcess.VmTimeout);
-                if (superSuperClass != null)
-                {
-                    list.Insert(0, new DebugBaseClassProperty(objectReference, superSuperClass, this));
-                }
-            }
-            return list;
+            return new List<DebugProperty>();
         }
 
         /// <summary>
         /// Construct a DEBUG_PROPERTY_INFO representing this local or parameter.
         /// </summary>
         /// <param name="dwFields"></param>
+        /// <param name="dwRadix"></param>
         /// <returns></returns>
-        internal override DEBUG_PROPERTY_INFO ConstructDebugPropertyInfo(enum_DEBUGPROP_INFO_FLAGS dwFields)
+        internal override DEBUG_PROPERTY_INFO ConstructDebugPropertyInfo(enum_DEBUGPROP_INFO_FLAGS dwFields, uint dwRadix)
         {
             var info = new DEBUG_PROPERTY_INFO();
 
@@ -67,7 +51,7 @@ namespace Dot42.VStudio.Debugger
 
             if (dwFields.HasFlag(enum_DEBUGPROP_INFO_FLAGS.DEBUGPROP_INFO_NAME))
             {
-                info.bstrName = "[" + superClass.GetNameAsync().Await(DalvikProcess.VmTimeout) + "]";
+                info.bstrName = "Length";
                 info.dwFields |= enum_DEBUGPROP_INFO_FLAGS.DEBUGPROP_INFO_NAME;
             }
 
@@ -80,14 +64,14 @@ namespace Dot42.VStudio.Debugger
 
             if (dwFields.HasFlag(enum_DEBUGPROP_INFO_FLAGS.DEBUGPROP_INFO_VALUE))
             {
-                //info.bstrValue = value.Value.ToString();
-                //info.dwFields |= enum_DEBUGPROP_INFO_FLAGS.DEBUGPROP_INFO_VALUE;
+                info.bstrValue = length.ToString();
+                info.dwFields |= enum_DEBUGPROP_INFO_FLAGS.DEBUGPROP_INFO_VALUE;
             }
 
             if (dwFields.HasFlag(enum_DEBUGPROP_INFO_FLAGS.DEBUGPROP_INFO_ATTRIB))
             {
                 // The sample does not support writing of values displayed in the debugger, so mark them all as read-only.
-                info.dwAttrib = enum_DBG_ATTRIB_FLAGS.DBG_ATTRIB_VALUE_READONLY | enum_DBG_ATTRIB_FLAGS.DBG_ATTRIB_OBJ_IS_EXPANDABLE;
+                info.dwAttrib = enum_DBG_ATTRIB_FLAGS.DBG_ATTRIB_VALUE_READONLY;
                 info.dwFields |= enum_DEBUGPROP_INFO_FLAGS.DEBUGPROP_INFO_ATTRIB;
             }
 

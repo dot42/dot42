@@ -29,6 +29,27 @@ namespace Dot42.CompilerLib.Ast
         {
             return (sequencePoint != null) ? new SequencePointWrapper(sequencePoint) : null;
         }
+
+        #region Equality
+        protected bool Equals(SequencePointWrapper other)
+        {
+            return Equals(sequencePoint.Document, other.sequencePoint.Document)
+                   && Equals(sequencePoint.StartLine, other.sequencePoint.StartLine)
+                   && Equals(sequencePoint.StartColumn, other.sequencePoint.StartColumn)
+                   && Equals(sequencePoint.EndLine, other.sequencePoint.EndLine)
+                   && Equals(sequencePoint.EndColumn, other.sequencePoint.EndColumn);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((SequencePointWrapper) obj);
+        }
+
+       
+        #endregion
     }
 
     public static class SequencePointExtensions

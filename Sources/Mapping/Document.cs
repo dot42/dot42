@@ -63,9 +63,16 @@ namespace Dot42.Mapping
         /// <returns>Null if not found</returns>
         public DocumentPosition Find(int startLine, int startCol, int endLine, int endCol)
         {
-        	var array = positions.ToArray();
-        	var count = positions.Count;
       		return positions.FirstOrDefault(x => x.Intersects(startLine, startCol, endLine, endCol));
+        }
+
+        /// <summary>
+        /// Finds all position that has match with the given parameters.
+        /// </summary>
+        /// <returns>Null if not found</returns>
+        public IEnumerable<DocumentPosition> FindAll(int startLine, int startCol, int endLine, int endCol)
+        {
+            return positions.Where(x => x.Intersects(startLine, startCol, endLine, endCol));
         }
 
         /// <summary>

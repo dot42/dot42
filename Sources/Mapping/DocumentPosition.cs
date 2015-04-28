@@ -138,11 +138,13 @@ namespace Dot42.Mapping
         }
 
         /// <summary>
-        /// true Is this is a valid position, false of no sourcecode is available
+        /// return True if this is a compiler generated instruction
+        /// with no sourc code attached. Debugger should step through
+        /// the instruction.
         /// </summary>
-        public bool IsValid
+        public bool IsSpecial
         {
-            get { return Start.Line != 0xfeefee; }
+            get { return Start.Line == 0xfeefee; }
         }
     }
 }

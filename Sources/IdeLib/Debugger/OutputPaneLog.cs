@@ -8,7 +8,6 @@ namespace Dot42.Ide.Debugger
     /// </summary>
     internal class OutputPaneLog : DLog
     {
-        private readonly bool _selectVsDebugPane;
         private static readonly object logLock = new object();
         private static OutputPaneLog log;
         private readonly IIdeOutputPane outputPane;
@@ -36,7 +35,9 @@ namespace Dot42.Ide.Debugger
             }
             if (add)
             {
-                DLog.AddAdditionalLogger(log);                
+                AddAdditionalLogger(log);
+                if(vsDebugPane)
+                    AddToContext(DContext.VSDebuggerMessage, log);
             }
         }
 

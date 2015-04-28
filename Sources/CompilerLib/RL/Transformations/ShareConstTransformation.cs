@@ -35,7 +35,9 @@ namespace Dot42.CompilerLib.RL.Transformations
                 var isLargeBlock = list.Count > LargeBlockSize;
                 if (isLargeBlock)
                     continue;
-                var constInstructionKeys = list.Where(x => allConstInstructions.ContainsKey(x)).Select(x => allConstInstructions[x]).ToList();
+                var constInstructionKeys = list.Where(x => allConstInstructions.ContainsKey(x))
+                                                                               .Select(x => allConstInstructions[x])
+                                                                               .ToList();
 
                 // Select all const instructions where the next instruction is a move.
                 while (constInstructionKeys.Count > 0)
@@ -81,7 +83,9 @@ namespace Dot42.CompilerLib.RL.Transformations
         private static void CollectReadOnlyConstInstructions(MethodBody body, out Dictionary<Instruction, ConstantKey> constInstructions)
         {
             // Find all const instructions
-            constInstructions = body.Instructions.Where(ins => ins.Code.IsConst()).ToDictionary(ins => ins, ins => new ConstantKey(ins));
+            constInstructions = body.Instructions
+                                    .Where(ins => ins.Code.IsConst() && !ins.Registers[0].PreventOptimization)
+                                    .ToDictionary(ins => ins, ins => new ConstantKey(ins));
             if (constInstructions.Count == 0)
                 return;
 

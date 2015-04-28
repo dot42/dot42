@@ -315,7 +315,8 @@ namespace Dot42.DebuggerLib
         public class DataReaderWriter
         {
             protected readonly JdwpPacket packet;
-            protected int Offset;
+            protected int _offset;
+            public int Offset { get { return _offset; } }
 
             /// <summary>
             /// Default ctor
@@ -323,7 +324,7 @@ namespace Dot42.DebuggerLib
             internal DataReaderWriter(JdwpPacket packet, int offset)
             {
                 this.packet = packet;
-                this.Offset = offset;
+                this._offset = offset;
             }
 
             /// <summary>
@@ -331,13 +332,15 @@ namespace Dot42.DebuggerLib
             /// </summary>
             public IdSizeInfo IdSizeInfo { get { return packet.serverInfo.IdSizeInfo; } }
 
+            
+
             /// <summary>
             /// Gets a byte from the current offset relative to the start of the data part.
             /// </summary>
             public byte GetByte()
             {
-                var x = Offset;
-                Offset += 1;
+                var x = _offset;
+                _offset += 1;
                 return packet.GetByte(x);
             }
 
@@ -346,8 +349,8 @@ namespace Dot42.DebuggerLib
             /// </summary>
             public void SetByte(byte value)
             {
-                packet.SetByte(Offset, value);
-                Offset += 1;
+                packet.SetByte(_offset, value);
+                _offset += 1;
             }
 
             /// <summary>
@@ -371,8 +374,8 @@ namespace Dot42.DebuggerLib
             /// </summary>
             public int GetInt16()
             {
-                var x = Offset;
-                Offset += 2;
+                var x = _offset;
+                _offset += 2;
                 return packet.GetInt16(x);
             }
 
@@ -381,8 +384,8 @@ namespace Dot42.DebuggerLib
             /// </summary>
             public void SetInt16(int value)
             {
-                packet.SetInt16(Offset, value);
-                Offset += 2;
+                packet.SetInt16(_offset, value);
+                _offset += 2;
             }
 
             /// <summary>
@@ -390,8 +393,8 @@ namespace Dot42.DebuggerLib
             /// </summary>
             public int GetInt()
             {
-                var x = Offset;
-                Offset += 4;
+                var x = _offset;
+                _offset += 4;
                 return packet.GetInt32(x);
             }
 
@@ -400,8 +403,8 @@ namespace Dot42.DebuggerLib
             /// </summary>
             public void SetInt(int value)
             {
-                packet.SetInt32(Offset, value);
-                Offset += 4;
+                packet.SetInt32(_offset, value);
+                _offset += 4;
             }
 
             /// <summary>
@@ -409,8 +412,8 @@ namespace Dot42.DebuggerLib
             /// </summary>
             public float GetFloat()
             {
-                var x = Offset;
-                Offset += 4;
+                var x = _offset;
+                _offset += 4;
                 return packet.GetFloat(x);
             }
 
@@ -419,8 +422,8 @@ namespace Dot42.DebuggerLib
             /// </summary>
             public long GetLong()
             {
-                var x = Offset;
-                Offset += 8;
+                var x = _offset;
+                _offset += 8;
                 return packet.GetInt64(x);
             }
 
@@ -429,8 +432,8 @@ namespace Dot42.DebuggerLib
             /// </summary>
             public void SetLong(long value)
             {
-                packet.SetInt64(Offset, value);
-                Offset += 8;
+                packet.SetInt64(_offset, value);
+                _offset += 8;
             }
 
             /// <summary>
@@ -438,8 +441,8 @@ namespace Dot42.DebuggerLib
             /// </summary>
             public double GetDouble()
             {
-                var x = Offset;
-                Offset += 8;
+                var x = _offset;
+                _offset += 8;
                 return packet.GetDouble(x);
             }
 
@@ -448,8 +451,8 @@ namespace Dot42.DebuggerLib
             /// </summary>
             public ulong GetULong()
             {
-                var x = Offset;
-                Offset += 8;
+                var x = _offset;
+                _offset += 8;
                 return packet.GetUInt64(x);
             }
 
@@ -458,8 +461,8 @@ namespace Dot42.DebuggerLib
             /// </summary>
             public void SetULong(ulong value)
             {
-                packet.SetUInt64(Offset, value);
-                Offset += 8;
+                packet.SetUInt64(_offset, value);
+                _offset += 8;
             }
 
             /// <summary>
@@ -470,8 +473,8 @@ namespace Dot42.DebuggerLib
                 var len = GetInt();
                 if (len == 0)
                     return string.Empty;
-                var result = Encoding.UTF8.GetString(packet.data, packet.dataOffset + Offset, len);
-                Offset += len;
+                var result = Encoding.UTF8.GetString(packet.data, packet.dataOffset + _offset, len);
+                _offset += len;
                 return result;
             }
 
@@ -482,8 +485,8 @@ namespace Dot42.DebuggerLib
             {
                 var encoded = Encoding.UTF8.GetBytes(value);
                 SetInt(encoded.Length);
-                Array.Copy(encoded, 0, packet.data, packet.dataOffset + Offset, encoded.Length);
-                Offset += encoded.Length;
+                Array.Copy(encoded, 0, packet.data, packet.dataOffset + _offset, encoded.Length);
+                _offset += encoded.Length;
             }
 
             /// <summary>
@@ -500,7 +503,7 @@ namespace Dot42.DebuggerLib
             /// </summary>
             public void Skip(int count)
             {
-                Offset += count;
+                _offset += count;
             }
         }
     }

@@ -28,7 +28,7 @@ namespace Dot42.CompilerLib.Target
 #endif
 
                 // Create Ast
-                var optimizedAst = CreateOptimizedAst(compiler, source);
+                var optimizedAst = CreateOptimizedAst(compiler, source, generateSetNextInstructionCode);
 
                 // Generate RL code
                 var rlBody = new MethodBody(source);

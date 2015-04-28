@@ -37,6 +37,6 @@
         /// <summary>
         /// use this to send output to Visual Studios Status bar.
         /// </summary>
-        VSDebuggerStatusBarMessage = VSDebuggerStart + 5,
+        VSStatusBar = VSDebuggerStart + 5,
     }
 }

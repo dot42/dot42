@@ -45,6 +45,17 @@ namespace TallComponents.Common.Extensions
         /// Wait for the given task to complete and return it's result.
         /// Exceptions are thrown if there was an exception in the task.
         /// </summary>
+        /// <param name="millisecondsTimeout">Timeout in milliseconds. Use -1 to wait without timeout.</param>
+        public static void Await(this Task t, int millisecondsTimeout, CancellationToken cancel = default(CancellationToken))
+        {
+            if (!t.Wait(millisecondsTimeout, cancel))
+                throw new OperationCanceledException("timeout");
+        }
+
+        /// <summary>
+        /// Wait for the given task to complete and return it's result.
+        /// Exceptions are thrown if there was an exception in the task.
+        /// </summary>
         public static Task<T> SaveAndReturn<T>(this Task<T> t, Action<T> saveAction)
         {
             return t.ContinueWith(x => {

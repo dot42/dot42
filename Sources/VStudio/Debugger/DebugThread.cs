@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Dot42.DebuggerLib;
 using Dot42.DebuggerLib.Model;
+using Dot42.DexLib.Instructions;
+using Dot42.FrameworkDefinitions;
 using Dot42.Utility;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Debugger.Interop;
@@ -85,14 +89,114 @@ namespace Dot42.VStudio.Debugger
         public int CanSetNextStatement(IDebugStackFrame2 pStackFrame, IDebugCodeContext2 pCodeContext)
         {
             DLog.Debug(DContext.VSDebuggerComCall, "IDebugThread2.CanSetNextStatement");
-            return VSConstants.E_FAIL;
+            
+            var stack = (DebugStackFrame)pStackFrame;
+            var ctx = (DebugCodeContext)pCodeContext;
+
+            if (stack == null || ctx == null)
+                return VSConstants.E_FAIL;
+
+            if (ctx.Location.Equals(stack.Location))
+                return VSConstants.S_OK;
+
+            if (!ctx.Location.IsSameMethod(stack.Location))
+                return HResults.E_CANNOT_SETIP_TO_DIFFERENT_FUNCTION;
+
+            // for now, only allow to set the position above the current position.
+            if(ctx.Location.Index >= stack.Location.Index)
+                return VSConstants.E_FAIL;
+
+            // don't check existence of special code, so that we can produce a warning 
+            // below.
+
+            //var loc = stack.GetDocumentLocationAsync().Await(DalvikProcess.VmTimeout);
+            //if (loc.Document == null)
+            //    return VSConstants.E_FAIL;
+
+            return VSConstants.S_OK;
         }
 
         public int SetNextStatement(IDebugStackFrame2 pStackFrame, IDebugCodeContext2 pCodeContext)
         {
             DLog.Debug(DContext.VSDebuggerComCall, "IDebugThread2.SetNextStatement");
-            return VSConstants.E_NOTIMPL;
+            
+            var stack = (DebugStackFrame)pStackFrame;
+            var ctx = (DebugCodeContext)pCodeContext;
+
+            // nothing to do.
+            if (ctx.Location.Equals(stack.Location))
+                return VSConstants.S_OK;
+
+            if (!ctx.Location.IsSameMethod(stack.Location))
+                return HResults.E_CANNOT_SETIP_TO_DIFFERENT_FUNCTION;
+
+            var loc = stack.GetDocumentLocationAsync().Await(DalvikProcess.VmTimeout);
+            if (loc.Document == null)
+            {
+                DLog.Info(DContext.VSDebuggerMessage, "Can not set next instruction: Debug info not available."); 
+                return HResults.E_CANNOT_SET_NEXT_STATEMENT_GENERAL;
+            }  
+
+            var nextInstrVar = loc.MethodEntry.Variables.FirstOrDefault(v => v.Name == DebuggerConstants.SetNextInstructionVariableName);
+            
+            if (nextInstrVar == null)
+            {
+                DLog.Info(DContext.VSDebuggerMessage, "Can not set next instruction: missing compiler setting or method optimized.");
+                return HResults.E_CANNOT_SET_NEXT_STATEMENT_GENERAL;
+            }
+
+            // make sure we are at the beginning of an instruction
+            var disassembly = Program.DisassemblyProvider.GetFromLocation(loc);
+            if (disassembly == null)
+                return HResults.E_CANNOT_SET_NEXT_STATEMENT_GENERAL;
+
+            var ins = disassembly.Method.Body.Instructions.FirstOrDefault(i => (ulong)i.Offset == loc.Location.Index);
+            if(ins == null)
+                return HResults.E_CANNOT_SET_NEXT_STATEMENT_GENERAL;
+
+            if (ins.OpCode != OpCodes.If_nez || ins.Registers.Count != 1 || ins.Registers[0].Index != nextInstrVar.Register)
+            {
+                DLog.Info(DContext.VSDebuggerMessage, "Can not set next instruction: not on start of valid expression.");
+                return HResults.E_CANNOT_SET_NEXT_STATEMENT_GENERAL;
+            }
+
+            DLog.Info(DContext.VSStatusBar, "Setting next instruction to beginning of block.");
+
+            // set the special variable.
+            var newSlotVal = new SlotValue(nextInstrVar.Register, Jdwp.Tag.Int, 1);
+            Debugger.StackFrame.SetValuesAsync(stack.Thread.Id, stack.Id, newSlotVal)
+                               .Await(DalvikProcess.VmTimeout);
+
+            //var onSuspended = GetOnSuspendedTask();
+
+            // perform one step.
+            Debugger.Process.StepAsync(new StepRequest(stack.Thread, Jdwp.StepDepth.Over))
+                            .Await(DalvikProcess.VmTimeout);
+            
+            // wait until the step is finally done.
+            //onSuspended.Await(DalvikProcess.VmTimeout);
+
+            // we must not return until we reached our final destination.
+            // be the out-commeted code does not work. just wait for a short time for now.
+            Task.Delay(500).Wait();
+            
+            return VSConstants.S_OK;
         }
+
+        ///// <summary>
+        ///// Returns a task object, that will be completed when the process is suspended
+        ///// again. Will not be completed if the process is currently suspended.
+        ///// </summary>
+        ///// <returns></returns>
+        //private Task<object> GetOnSuspendedTask()
+        //{
+        //    // This code looks kind of messy. Any ideas?
+        //    TaskCompletionSource<object> task = new TaskCompletionSource<object>();
+        //    EventHandler sup = (sender, e) => { if (!Debugger.Process.IsSuspended) task.SetResult(null); };
+        //    Debugger.Process.IsSuspendedChanged += sup;
+        //    task.Task.ContinueWith(t => Debugger.Process.IsSuspendedChanged -= sup);
+        //    return task.Task;
+        //}
 
         public int GetThreadId(out uint pdwThreadId)
         {
@@ -159,5 +263,17 @@ namespace Dot42.VStudio.Debugger
         {
             return new DebugStackFrame(frameId, location, this);
         }
+
+        //private DalvikStackFrame GetUnwindStackFrame(DalvikThread thread, DebugCodeContext context)
+        //{
+        //    foreach (var stackFrame in thread.GetCallStack())
+        //    {
+        //        bool isSameMethodEarlierOrSame = stackFrame.Location.IsSameMethod(context.Location)
+        //                                      && stackFrame.Location.Index >= context.Location.Index;
+        //        if (isSameMethodEarlierOrSame)
+        //            return stackFrame;
+        //    }
+        //    return null;
+        //}
     }
 }

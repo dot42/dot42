@@ -69,6 +69,7 @@ namespace Dot42.VStudio
             CallStackBP = true,
             Exceptions = true,
             Disassembly = true,
+            SetNextStatement = true,
             //RemoteDebugging = true
             SuspendThread = true
             ),

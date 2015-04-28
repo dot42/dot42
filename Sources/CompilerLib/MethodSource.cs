@@ -163,5 +163,13 @@ namespace Dot42.CompilerLib
         {
             get { return (ilMethod != null) ? ilMethod.IsClassCtor() : (javaMethod != null) ? (javaMethod.Name == "<clinit>") : (method.IsConstructor && method.IsStatic); }
         }
+
+        /// <summary>
+        /// Is this a ctor (non-class)?
+        /// </summary>
+        public bool IsCtor
+        {
+            get { return (ilMethod != null) ? ilMethod.IsConstructor && !ILMethod.IsStatic : (javaMethod != null) ? (javaMethod.Name == "<init>") : (method.IsConstructor && method.IsStatic); }
+        }
     }
 }

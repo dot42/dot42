@@ -2,6 +2,8 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
+using System.Threading;
 using Microsoft.Win32;
 using TallComponents.Common.Util;
 
@@ -246,6 +248,12 @@ namespace Dot42.Utility
             additionalLoggers.TryRemove(log, out tmp);
         }
 
+        protected static void AddToContext(DContext ctx, DLog log)
+        {
+            GetContext(ctx).AddLogger(log);
+            additionalLoggers.TryAdd(log, log);
+        }
+
         public class DebugLog : DLog
         {
             /// <summary>
@@ -304,12 +312,24 @@ namespace Dot42.Utility
         private sealed class LogContext
         {
             public readonly DContext Context;
-            public readonly DLog[] Loggers;
+            private List<DLog> loggers;
 
             private LogContext(DContext context, DLog[] loggers)
             {
                 Context = context;
-                Loggers = ((loggers != null) && (loggers.Length > 0)) ? loggers : null;
+                var dLogs = ((loggers != null) && (loggers.Length > 0)) ? loggers : null;
+                if(dLogs != null)
+                    this.loggers = dLogs.ToList();
+            }
+
+            internal void AddLogger(DLog logger)
+            {
+                lock (this)
+                {
+                    if (loggers == null)
+                        loggers = new List<DLog>();
+                    loggers.Add(logger);
+                }
             }
 
             /// <summary>
@@ -318,9 +338,9 @@ namespace Dot42.Utility
             internal void Write(Levels level, DContext context, string url, int column, int lineNr, string msg, Exception exception, object[] args)
             {
                 //Console.WriteLine("LOGWRITE_A: " + (int)level);
-                if (Loggers != null)
+                if (loggers != null)
                 {
-                    foreach (var log in Loggers)
+                    foreach (var log in loggers)
                     {
                         log.Write(level, context, url, column, lineNr, msg, exception, args);
                     }
@@ -337,9 +357,9 @@ namespace Dot42.Utility
             internal void Write(Levels level, DContext context, string url, int column, int lineNr, Func<string> messageBuilder)
             {
                 //Console.WriteLine("LOGWRITE_B: " + (int)level);
-                if (Loggers != null)
+                if (loggers != null)
                 {
-                    foreach (var log in Loggers)
+                    foreach (var log in loggers)
                     {
                         log.Write(level, context, url, column, lineNr, messageBuilder);
                     }

@@ -57,6 +57,40 @@ namespace Dot42.DebuggerLib
                     return list;
                 });
             }
+
+            /// <summary>
+            // Sets the value of one or more local variables. Each variable must be visible at the current frame code index. 
+            // For primitive values, the value's type must match the variable's type exactly. For object values, there must
+            // be a widening reference conversion from the value's type to the variable's type and the variable's type must 
+            // be loaded. 
+            // Even if local variable information is not available, values can be set, if the front-end is able to determine 
+            // the correct local variable index. (Typically, this index can be determined for method arguments from the
+            // method signature without access to the local variable table information.) 
+            /// </summary>
+            public Task SetValuesAsync(ThreadId threadId, FrameId frameId, params SlotValue[] slotValues)
+            {
+                var conn = ConnectionOrError;
+                DLog.Debug(DContext.DebuggerLibCommands, () => string.Format("StackFrame.SetValues {0}", string.Join(", ", slotValues.Select(x => x.ToString()))));
+                var t = conn.SendAsync(JdwpPacket.CreateCommand(conn, Nr, 2, 4000 /* we don't know how long the packet is going to be... */,
+                    x =>
+                    {
+                        var data = x.Data;
+                        threadId.WriteTo(data);
+                        frameId.WriteTo(data);
+                        data.SetInt(slotValues.Length);
+                        foreach (var value in slotValues)
+                        {
+                            value.Write(data);
+                        }
+                        x.Length = data.Offset;
+                    }));
+                return t.ContinueWith(x =>
+                {
+                    x.ForwardException();
+                    var result = x.Result;
+                    result.ThrowOnError();
+                });
+            }
         }
     }
 }

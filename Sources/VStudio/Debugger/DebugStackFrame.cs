@@ -104,9 +104,25 @@ namespace Dot42.VStudio.Debugger
             var localVariable = locals.FirstOrDefault(x => x.Name == pszCode);
             if (localVariable != null)
             {
-                ppExpr = new DebugExpression(new DebugValueProperty(localVariable, null));
+                ppExpr = new DebugExpression(new DebugStackFrameValueProperty(localVariable, null, this));
                 return VSConstants.S_OK;
             }
+
+            // special registers group?
+            if (pszCode.StartsWith("$reg", StringComparison.InvariantCultureIgnoreCase))
+            {
+                ppExpr = new DebugExpression(new DebugRegisterGroupProperty(this, false));
+                return VSConstants.S_OK;
+            }
+            
+            // try to match any of the registers.
+            var reg = GetRegistersAsync().Await(DalvikProcess.VmTimeout).FirstOrDefault(r=>r.Name == pszCode);
+            if (reg != null)
+            {
+                ppExpr = new DebugExpression(new DebugStackFrameValueProperty(reg, null, this));
+                return VSConstants.S_OK;                
+            }
+
 
             return VSConstants.E_FAIL;
         }
@@ -143,19 +159,30 @@ namespace Dot42.VStudio.Debugger
         public int GetDebugProperty(out IDebugProperty2 ppProperty)
         {
             DLog.Debug(DContext.VSDebuggerComCall, "DebugStackFrame.GetDebugProperty");
-            throw new NotImplementedException();
+            ppProperty = null;
+            return VSConstants.E_NOTIMPL;
         }
 
         public int EnumProperties(enum_DEBUGPROP_INFO_FLAGS dwFields, uint nRadix, ref Guid guidFilter, uint dwTimeout, out uint pcelt, out IEnumDebugPropertyInfo2 ppEnum)
         {
             DLog.Debug(DContext.VSDebuggerComCall, "DebugStackFrame.EnumProperties");
             var list = new List<DebugProperty>();
-            if (guidFilter == AD7Guids.guidFilterLocalsPlusArgs ||
-                    guidFilter == AD7Guids.guidFilterAllLocalsPlusArgs ||
-                    guidFilter == AD7Guids.guidFilterAllLocals)
+
+            if (guidFilter == AD7Guids.guidFilterLocalsPlusArgs)
             {
                 AddLocalProperties(list);
                 AddParameterProperties(list);
+            }
+            else if (guidFilter == AD7Guids.guidFilterAllLocalsPlusArgs)
+            {
+                AddLocalProperties(list);
+                AddParameterProperties(list);
+                AddRegisters(list, false);
+            }
+            else if(guidFilter == AD7Guids.guidFilterAllLocals)
+            {
+                AddLocalProperties(list);
+                AddRegisters(list, false);
             }
             else if (guidFilter == AD7Guids.guidFilterLocals)
             {
@@ -167,7 +194,7 @@ namespace Dot42.VStudio.Debugger
             }
             else if (guidFilter == AD7Guids.guidFilterRegisters)
             {
-                pcelt = 0;
+                AddRegisters(list, true);
             }
             else
             {
@@ -177,7 +204,7 @@ namespace Dot42.VStudio.Debugger
             }
 
             pcelt = (uint) list.Count;
-            ppEnum = new PropertyEnum(list.Select(x => x.ConstructDebugPropertyInfo(enum_DEBUGPROP_INFO_FLAGS.DEBUGPROP_INFO_STANDARD)));
+            ppEnum = new PropertyEnum(list.Select(x => x.ConstructDebugPropertyInfo(dwFields, nRadix)));
             return VSConstants.S_OK;
         }
 
@@ -193,7 +220,18 @@ namespace Dot42.VStudio.Debugger
         /// </summary>
         private void AddLocalProperties(List<DebugProperty> list)
         {
-            list.AddRange(GetValues().Select(x => new DebugValueProperty(x, null))); // TODO
+            list.AddRange(GetValues().Select(x => new DebugStackFrameValueProperty(x, null, this))); // TODO
+        }
+
+        private void AddRegisters(List<DebugProperty> list, bool forceHexDisplay)
+        {
+            var loc = GetDocumentLocationAsync().Await(DalvikProcess.VmTimeout);
+            var method = Debugger.Process.DisassemblyProvider.GetFromLocation(loc);
+
+            if (method == null)
+                return;
+
+            list.Add(new DebugRegisterGroupProperty(this, forceHexDisplay));
         }
 
         /// <summary>

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Linq;
 using Mono.Cecil;
 
@@ -19,7 +20,7 @@ namespace Dot42.CecilExtensions
             // only return true, if 
             // 1) Has DebuggableAttribute
             // 2) has one constructor argument, that is int
-            // 3) the value of the argument is 0 or 1.
+            // 3) the value matches our exprectations
 
             ret = false;
             var attr = assembly.CustomAttributes.FirstOrDefault(a => 
@@ -32,7 +33,7 @@ namespace Dot42.CecilExtensions
                     int? val = attr.ConstructorArguments[0].Value as int?;
                     if (val.HasValue)
                     {
-                        ret = val <= 1;
+                        ret = (val.Value & (int)DebuggableAttribute.DebuggingModes.DisableOptimizations) != 0;
                     }
                 }
             }
