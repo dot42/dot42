@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using Dot42.DebuggerLib;
 using Dot42.DebuggerLib.Model;
 using Dot42.DexLib.Instructions;
@@ -116,8 +117,12 @@ namespace Dot42.VStudio.Debugger
             return VSConstants.S_OK;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public int SetNextStatement(IDebugStackFrame2 pStackFrame, IDebugCodeContext2 pCodeContext)
         {
+            // TODO: move this code to DalvikThread, or to a SetNextInstructionManager
             DLog.Debug(DContext.VSDebuggerComCall, "IDebugThread2.SetNextStatement");
             
             var stack = (DebugStackFrame)pStackFrame;
@@ -133,7 +138,7 @@ namespace Dot42.VStudio.Debugger
             var loc = stack.GetDocumentLocationAsync().Await(DalvikProcess.VmTimeout);
             if (loc.Document == null)
             {
-                DLog.Info(DContext.VSDebuggerMessage, "Can not set next instruction: Debug info not available."); 
+                DLog.Info(DContext.VSStatusBar, "Can not set next instruction: Debug info not available."); 
                 return HResults.E_CANNOT_SET_NEXT_STATEMENT_GENERAL;
             }  
 
@@ -141,63 +146,101 @@ namespace Dot42.VStudio.Debugger
             
             if (nextInstrVar == null)
             {
-                DLog.Info(DContext.VSDebuggerMessage, "Can not set next instruction: missing compiler setting or method optimized.");
+                DLog.Info(DContext.VSStatusBar, "Can not set next instruction: missing compiler setting or method optimized.");
                 return HResults.E_CANNOT_SET_NEXT_STATEMENT_GENERAL;
             }
 
-            // make sure we are at the beginning of an instruction
+            // make sure there are no branch instructions 
+            // between the current instruction and our branch instruction.
+            // note that for convinence, we *do* allow assignments to
+            // fields of objects, even though these are visible to the
+            // program.
             var disassembly = Program.DisassemblyProvider.GetFromLocation(loc);
             if (disassembly == null)
                 return HResults.E_CANNOT_SET_NEXT_STATEMENT_GENERAL;
 
-            var ins = disassembly.Method.Body.Instructions.FirstOrDefault(i => (ulong)i.Offset == loc.Location.Index);
-            if(ins == null)
+            var body = disassembly.Method.Body;
+            int idx = body.Instructions.FindIndex(i => (ulong)i.Offset == loc.Location.Index);
+            if(idx == -1)
                 return HResults.E_CANNOT_SET_NEXT_STATEMENT_GENERAL;
 
-            if (ins.OpCode != OpCodes.If_nez || ins.Registers.Count != 1 || ins.Registers[0].Index != nextInstrVar.Register)
+            bool foundSetNextInstruction = false;
+
+            for (;idx < body.Instructions.Count; ++idx)
             {
-                DLog.Info(DContext.VSDebuggerMessage, "Can not set next instruction: not on start of valid expression.");
+                var ins = body.Instructions[idx];
+                foundSetNextInstruction = ins.OpCode == OpCodes.If_nez && ins.Registers.Count == 1 
+                                       && ins.Registers[0].Index == nextInstrVar.Register;
+
+                if (foundSetNextInstruction)
+                    break;
+
+                if (ins.OpCode.IsJump())
+                    break;
+            }
+
+            if (!foundSetNextInstruction)
+            {
+                DLog.Info(DContext.VSStatusBar, "Can not set next instruction from current position. Try again at a later position if any.");
                 return HResults.E_CANNOT_SET_NEXT_STATEMENT_GENERAL;
             }
 
             DLog.Info(DContext.VSStatusBar, "Setting next instruction to beginning of block.");
 
-            // set the special variable.
-            var newSlotVal = new SlotValue(nextInstrVar.Register, Jdwp.Tag.Int, 1);
-            Debugger.StackFrame.SetValuesAsync(stack.Thread.Id, stack.Id, newSlotVal)
-                               .Await(DalvikProcess.VmTimeout);
+            // find target instruction.
+            var targetIns = (Instruction)body.Instructions[idx].Operand;
+            idx = body.Instructions.FindIndex(p => p.Offset == targetIns.Offset);
+            idx = GetNextLocationWithSource(disassembly, idx) ?? idx;
+            targetIns = body.Instructions[idx];
+            var targetLoc = loc.Location.GetAtIndex(targetIns.Offset);
 
-            //var onSuspended = GetOnSuspendedTask();
+            // set a temporary breakpoint. The reset logic could get into a "DalvikTemporaryBreakpoint" class.
+            var bp = new DalvikAwaitableBreakpoint(targetLoc);
+            var waitBp = bp.WaitUntilHit();
+            var waitBound = Debugger.Process.BreakpointManager.SetBreakpoint(bp);
 
-            // perform one step.
-            Debugger.Process.StepAsync(new StepRequest(stack.Thread, Jdwp.StepDepth.Over))
-                            .Await(DalvikProcess.VmTimeout);
-            
-            // wait until the step is finally done.
-            //onSuspended.Await(DalvikProcess.VmTimeout);
+            try
+            {
+                if (!waitBound.Await(DalvikProcess.VmTimeout))
+                    return HResults.E_CANNOT_SET_NEXT_STATEMENT_GENERAL;
 
-            // we must not return until we reached our final destination.
-            // be the out-commeted code does not work. just wait for a short time for now.
-            Task.Delay(500).Wait();
-            
-            return VSConstants.S_OK;
+                // set the special variable.
+                var newSlotVal = new SlotValue(nextInstrVar.Register, Jdwp.Tag.Int, 1);
+                Debugger.StackFrame.SetValuesAsync(stack.Thread.Id, stack.Id, newSlotVal)
+                                   .Await(DalvikProcess.VmTimeout);
+
+                // resume the process.
+                Debugger.Process.ResumeAsync();
+
+                // wait for breakpoint to be hit.
+                try
+                {
+                    waitBp.Await(1000);
+                }
+                catch (Exception)
+                {
+                    // ups. something went wrong. suspend again.
+                    if (!Debugger.Process.IsSuspended)
+                        Debugger.Process.SuspendAsync();
+                    return VSConstants.E_FAIL;
+                }
+
+                return VSConstants.S_OK;
+            }
+            finally 
+            {
+                // clear the breakpoint again.
+                Debugger.Process.BreakpointManager.ResetAsync(bp)
+                                                  .Await(DalvikProcess.VmTimeout);
+                // reset the special variable, in case this was not performed automatically.
+                // (should not happen, but maybe the set value code got optimized away per
+                //  accident)
+                var newSlotVal = new SlotValue(nextInstrVar.Register, Jdwp.Tag.Int, 0);
+                Debugger.StackFrame.SetValuesAsync(stack.Thread.Id, stack.Id, newSlotVal)
+                                   .Await(DalvikProcess.VmTimeout);
+            }
         }
-
-        ///// <summary>
-        ///// Returns a task object, that will be completed when the process is suspended
-        ///// again. Will not be completed if the process is currently suspended.
-        ///// </summary>
-        ///// <returns></returns>
-        //private Task<object> GetOnSuspendedTask()
-        //{
-        //    // This code looks kind of messy. Any ideas?
-        //    TaskCompletionSource<object> task = new TaskCompletionSource<object>();
-        //    EventHandler sup = (sender, e) => { if (!Debugger.Process.IsSuspended) task.SetResult(null); };
-        //    Debugger.Process.IsSuspendedChanged += sup;
-        //    task.Task.ContinueWith(t => Debugger.Process.IsSuspendedChanged -= sup);
-        //    return task.Task;
-        //}
-
+      
         public int GetThreadId(out uint pdwThreadId)
         {
             DLog.Debug(DContext.VSDebuggerComCall, "IDebugThread2.GetThreadId");
@@ -275,5 +318,28 @@ namespace Dot42.VStudio.Debugger
         //    }
         //    return null;
         //}
+
+        /// <summary>
+        /// Finds the next location with source starting from location; will return
+        /// null if no source is found or if a jump instruction is encountered.
+        /// </summary>
+        private static int? GetNextLocationWithSource(MethodDisassembly disassembly, int idx)
+        {
+            var instructions = disassembly.Method.Body.Instructions;
+
+            // find the next instruction with source code.
+            var loc = disassembly.GetNextSourceFromOffset(instructions[idx].Offset);
+
+            if (loc == null) 
+                return null;
+
+            for (; idx < loc.Item2.MethodOffset; ++idx)
+            {
+                if (instructions[idx].OpCode.IsJump())
+                    return null;
+            }
+            return idx;
+        }
+
     }
 }

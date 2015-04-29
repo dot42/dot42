@@ -209,7 +209,7 @@ namespace Dot42.VStudio.Debugger
             if (_method == null)
                 return HResults.E_DISASM_NOTAVAILABLE;
 
-            var location = new Location(_loc.Location.Class, _loc.Location.Method, uCodeLocationId);
+            var location = _loc.Location.GetAtIndex((uint)uCodeLocationId);
             var ctx = new DebugCodeContext(location);
 
             // try to set source code.

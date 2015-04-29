@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Text;
 using Dot42.ApkLib;
 using Dot42.DexLib;
 using Dot42.JvmClassLib;

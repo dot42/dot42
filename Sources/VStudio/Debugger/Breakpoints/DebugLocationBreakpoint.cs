@@ -20,6 +20,12 @@ namespace Dot42.VStudio.Debugger
             this.boundBreakpoint = boundBreakpoint;
         }
 
+        public DebugLocationBreakpoint(Location location, DebugBoundBreakpoint<DebugLocationBreakpoint> boundBreakpoint)
+            : base(location)
+        {
+            this.boundBreakpoint = boundBreakpoint;
+        }
+
         /// <summary>
         /// This breakpoint is bound to it's target
         /// </summary>

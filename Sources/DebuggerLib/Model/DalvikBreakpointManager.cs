@@ -54,13 +54,22 @@ namespace Dot42.DebuggerLib.Model
             // Now create the breakpoint
             var bp = CreateLocationBreakpoint(pos, type, method, data);
 
+            SetBreakpoint(bp);
+
+            return bp;
+        }
+
+        /// <summary>
+        /// set the existing breakpoint.
+        /// </summary>
+        /// <param name="bp"></param>
+        public Task<bool> SetBreakpoint(DalvikBreakpoint bp)
+        {
             //  Record breakpoint
             Add(bp);
 
             // Try to bind now
-            Task.Factory.StartNew(() => bp.TryBind(process));
-
-            return bp;
+            return Task.Factory.StartNew(() => bp.TryBind(process));
         }
 
         /// <summary>

@@ -235,7 +235,9 @@ namespace Dot42.VStudio.Debugger
                 default:
                     return VSConstants.E_INVALIDARG;
             }
-            StepAsync(new StepRequest((DalvikThread) pThread, stepDepth, stepUnit == enum_STEPUNIT.STEP_INSTRUCTION));
+
+            var stepMode = stepUnit == enum_STEPUNIT.STEP_INSTRUCTION ? StepMode.SingleInstruction : StepMode.Line;
+            StepAsync(new StepRequest((DalvikThread) pThread, stepDepth, stepMode));
             return VSConstants.S_OK;
         }
 
@@ -252,9 +254,9 @@ namespace Dot42.VStudio.Debugger
         /// <summary>
         /// Notify listeners that we're suspended.
         /// </summary>
-        protected override bool OnSuspended(SuspendReason reason, DalvikThread thread)
+        protected override bool OnSuspended(SuspendReason reason, DalvikThread thread, StepRequest stepRequest)
         {
-            var rc = base.OnSuspended(reason, thread);
+            var rc = base.OnSuspended(reason, thread, stepRequest);
             if (rc)
             {
                 if (reason == SuspendReason.ProcessSuspend)

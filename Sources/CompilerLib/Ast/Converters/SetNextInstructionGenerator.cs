@@ -18,6 +18,12 @@ namespace Dot42.CompilerLib.Ast.Converters
     /// would be needed to initialize all variables correctly, if they haven't
     /// been already; depending on source and target.
     /// 
+    /// At the moment the special jump instructions are added at the beginning
+    /// of a new source-code statement, and after a call statement.
+    /// 
+    /// TODO: probalby the code should better work directly on RL to have 
+    ///       full control over when to go where, and to avoid possible breaking
+    ///       optimizations.
     /// </summary>
     internal static class SetNextInstructionGenerator 
     {
@@ -49,7 +55,7 @@ namespace Dot42.CompilerLib.Ast.Converters
                 var body = block.Body;
                 AstLabel label = null;
                 int firstValidExpression = -1;
-                //bool lastExprWasRet = false;
+                bool lastExprWasCall = false;
 
                 var startIdx = lastBaseCtorCall == -1?0:lastBaseCtorCall + 1;
                 lastBaseCtorCall = -1;
@@ -60,12 +66,15 @@ namespace Dot42.CompilerLib.Ast.Converters
                     if(expr == null)
                         continue;
 
-                    if (expr.SourceLocation == null || expr.SourceLocation.Equals(currentLoc))
+                    if (expr.SourceLocation == null)
+                        continue;
+
+                    if (expr.SourceLocation.Equals(currentLoc) && !lastExprWasCall)
                         continue;
 
                     currentLoc = expr.SourceLocation;
 
-                    //lastExprWasRet = expr.Code == AstCode.Ret;
+                    lastExprWasCall = expr.Code.IsCall();
 
                     if (firstValidExpression == -1)
                     {

@@ -22,7 +22,6 @@ namespace Dot42.DebuggerLib.Model
         private readonly Lazy<DalvikDisassemblyProvider> disassemblyProvider;
         private readonly DalvikStepManager stepManager = new DalvikStepManager();
         private readonly MapFile mapFile;
-        private StepRequest lastStepRequest;
         private bool isSuspended;
 
         /// <summary>
@@ -77,17 +76,17 @@ namespace Dot42.DebuggerLib.Model
         /// </summary>
         public Task StepAsync(StepRequest request)
         {
-            // Set event
-            lastStepRequest = request;
             var thread = request.Thread;
+            var stepSize = request.StepMode == StepMode.SingleInstruction ? Jdwp.StepSize.Minimum : Jdwp.StepSize.Line;
+
             var setTask = debugger.EventRequest.SetAsync(Jdwp.EventKind.SingleStep, Jdwp.SuspendPolicy.All,
-                new EventStepModifier(thread.Id, request.SingleInstruction ? Jdwp.StepSize.Minimum : Jdwp.StepSize.Line,
+                new EventStepModifier(thread.Id, stepSize,
                     request.StepDepth));
             return setTask.ContinueWith(t =>
             {
                 t.ForwardException();
                 // Record step
-                StepManager.Add(new DalvikStep(thread, t.Result));
+                StepManager.Add(new DalvikStep(thread, t.Result, request));
                 // Resume execution
                 return debugger.VirtualMachine.ResumeAsync().ContinueWith(x => OnResumed());
             }).Unwrap();
@@ -96,9 +95,8 @@ namespace Dot42.DebuggerLib.Model
         /// <summary>
         /// Perform the last step request again.
         /// </summary>
-        private Task StepOutLastRequestAsync()
+        private Task StepOutLastRequestAsync(StepRequest request)
         {
-            var request = lastStepRequest;
             if (request == null)
                 return null;
             return StepAsync(new StepRequest(request.Thread, Jdwp.StepDepth.Out));
@@ -129,10 +127,11 @@ namespace Dot42.DebuggerLib.Model
         /// </summary>
         /// <param name="reason">The reason the VM is suspended</param>
         /// <param name="thread">The thread involved in the suspend. This can be null depending on the reason.</param>
+        /// <param name="request">A step request, if any.</param>
         /// <returns>True if the suspend is performed, false if execution is continued.</returns>
-        protected internal virtual bool OnSuspended(SuspendReason reason, DalvikThread thread)
+        protected internal virtual bool OnSuspended(SuspendReason reason, DalvikThread thread, StepRequest request = null)
         {
-            if ((reason == SuspendReason.SingleStep) && (thread != null))
+            if (reason == SuspendReason.SingleStep && thread != null && request != null && request.Thread != null)
             {
                 // Make sure we're are a location where we have a source.
                 thread.OnProcessSuspended(reason, true);
@@ -143,23 +142,22 @@ namespace Dot42.DebuggerLib.Model
                     if (location.Document == null)
                     {
                         // Not my code
-                        StepOutLastRequestAsync();
+                        StepOutLastRequestAsync(request);
                         return false;
                     }
 
                     // check if we have a valid source code position, or if this is 
                     // compiler generated code (in which case dalvik will perform single stepping)
-                    if (lastStepRequest != null && !lastStepRequest.SingleInstruction)
+                    if (request.StepMode != StepMode.SingleInstruction)
                     {
                         if (location.Position == null || location.Position.IsSpecial ||
                             location.Location.Index < (ulong) location.Position.MethodOffset)
                         {
-                            var stepDepth = lastStepRequest.StepDepth == Jdwp.StepDepth.Out ? Jdwp.StepDepth.Over : lastStepRequest.StepDepth;
-                            StepAsync(new StepRequest(thread, stepDepth));
+                            var stepDepth = request.StepDepth == Jdwp.StepDepth.Out ? Jdwp.StepDepth.Over : request.StepDepth;
+                            StepAsync(new StepRequest(request.Thread, stepDepth, request.StepMode));
                             return false;
                         }
                     }
-
                 }
             }
             ThreadManager.OnProcessSuspended(reason, thread);

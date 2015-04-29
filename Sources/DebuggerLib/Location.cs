@@ -96,5 +96,20 @@ namespace Dot42.DebuggerLib
         {
             return location.Class.Equals(Class) && location.Method.Equals(Method);
         }
+
+        /// <summary>
+        /// will return a location in the same method, but with the specified index
+        /// </summary>
+        public Location GetAtIndex(uint index)
+        {
+            return new Location(Class, Method, index);
+        }
+        /// <summary>
+        /// will return a location in the same method, but with the specified index
+        /// </summary>
+        public Location GetAtIndex(int index)
+        {
+            return new Location(Class, Method, (uint)index);
+        }
     }
 }

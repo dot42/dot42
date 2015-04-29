@@ -54,6 +54,7 @@
     <Compile Include="Events\Jdwp\VmDeath.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="IJdwpServerInfo.cs" />
+    <Compile Include="Model\DalvikAwaitableBreakpoint.cs" />
     <Compile Include="Model\DalvikDisassemblyProvider.cs" />
     <Compile Include="Model\DalvikExceptionValue.cs" />
     <Compile Include="Model\ExceptionBehaviorMap.cs" />

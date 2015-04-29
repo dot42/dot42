@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Dot42.DebuggerLib;
+using Dot42.DebuggerLib.Model;
 using Dot42.Utility;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Debugger.Interop;
@@ -236,6 +238,11 @@ namespace Dot42.VStudio.Debugger
                 return VSConstants.E_INVALIDARG;
             var info = infoArr[0];
 
+            // Set breakpoint
+            var program = engine.Program;
+            if (program == null)
+                return VSConstants.E_INVALIDARG;
+
             // See http://msdn.microsoft.com/en-us/library/bb162191.aspx
 
             if (type == enum_BP_LOCATION_TYPE.BPLT_CODE_FILE_LINE)
@@ -250,10 +257,6 @@ namespace Dot42.VStudio.Debugger
                 if (ErrorHandler.Failed(documentPosition.GetRange(beginPosition, endPosition)))
                     return VSConstants.E_INVALIDARG;
 
-                // Set breakpoint
-                var program = engine.Program;
-                if (program == null)
-                    return VSConstants.E_INVALIDARG;
 
                 // Convert positions
                 var startLine = beginPosition[0].dwLine + 1;
@@ -262,9 +265,23 @@ namespace Dot42.VStudio.Debugger
                 var endCol = endPosition[0].dwColumn + 1;
 
                 program.BreakpointManager.SetAtLocation(fileName, (int)startLine, (int)startCol, (int)endLine, (int)endCol, this);
+                return VSConstants.S_OK;
             }
 
-            return VSConstants.S_OK;
+            if (type == enum_BP_LOCATION_TYPE.BPLT_CODE_CONTEXT)
+            {
+                var codeContext = Marshal.GetObjectForIUnknown(info.bpLocation.unionmember1) as DebugCodeContext;
+                if (codeContext != null)
+                {
+                    var boundBreakpoint = new DebugBoundBreakpoint<DebugLocationBreakpoint>(this, 
+                                                    program.BreakpointManager, enum_BP_TYPE.BPT_CODE, 
+                                                    x => new DebugLocationBreakpoint(codeContext.Location, x));
+                    program.BreakpointManager.SetBreakpoint(boundBreakpoint.Breakpoint);
+                    return VSConstants.S_OK;
+                }
+            }
+
+            return VSConstants.E_NOTIMPL;
         }
     }
 }

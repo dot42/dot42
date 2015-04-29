@@ -56,13 +56,16 @@ namespace Dot42.VStudio.Debugger
         /// </summary>
         protected override void OnReset(DalvikBreakpoint breakpoint)
         {
-            // Notify VS
-            var bp = (IDebugBreakpoint) breakpoint;
-            bp.BoundBreakpoint.OnReset();
-            eventCallback.Send(Program, new BreakpointUnboundEvent(bp.BoundBreakpoint));
-
-            // Remove from list
-            base.OnReset(breakpoint);
+            var bp = breakpoint as IDebugBreakpoint;
+            // is this one of our breakpoints?
+            if (bp != null)
+            {
+                // Notify VS
+                bp.BoundBreakpoint.OnReset();
+                eventCallback.Send(Program, new BreakpointUnboundEvent(bp.BoundBreakpoint));
+                // Remove from list
+                base.OnReset(breakpoint);
+            }
         }
 
         /// <summary>

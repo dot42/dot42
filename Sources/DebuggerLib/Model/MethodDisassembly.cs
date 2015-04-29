@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using Dot42.DexLib;
 using Dot42.DexLib.Instructions;
@@ -38,6 +39,12 @@ namespace Dot42.DebuggerLib.Model
                         .AsReadOnly());
         }
 
+        /// <summary>
+        /// Returns the source code position at the specified method offset,
+        /// or null of none.
+        /// </summary>
+        /// <param name="offset"></param>
+        /// <returns></returns>
         public Tuple<Document, DocumentPosition> GetSourceFromOffset(int offset)
         {
             var loc = Locations;
@@ -48,6 +55,27 @@ namespace Dot42.DebuggerLib.Model
 
             return null;
         }
+
+        /// <summary>
+        /// Beginning at offset, returns the next available position with source code.
+        /// Will not return positions with "IsSpecial" flag set.
+        /// </summary>
+        public Tuple<Document, DocumentPosition> GetNextSourceFromOffset(int offset)
+        {
+            var loc = Locations;
+
+            int idx = loc.FindFirstIndexGreaterThanOrEqualTo(offset, p => p.Item2.MethodOffset);
+            while (idx != -1 && idx < loc.Count)
+            {
+                var ret = loc[idx];
+                if (ret.Item2.IsSpecial)
+                    continue;
+                return ret;
+            }
+
+            return null;
+        }
+
 
         public string FormatAddress(Instruction ins)
         {
@@ -158,7 +186,5 @@ namespace Dot42.DebuggerLib.Model
             int add = (tabSize - b.Length % tabSize) % tabSize;
             b.Append(' ', add);
         }
-
-        
     }
 }
