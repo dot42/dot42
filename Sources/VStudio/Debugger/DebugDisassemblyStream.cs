@@ -101,15 +101,16 @@ namespace Dot42.VStudio.Debugger
                         {
                             if (wantsPosition)
                             {
+                                // For reasons unknown to me, this crashes sometimes VS in debug mode,
+                                // and does not work in release mode. I've come to the conclusion
+                                // that this might be a bug in visual studio.
                                 insd.posBeg.dwLine = (uint)(source.Item2.Start.Line - 1);
+                                insd.posBeg.dwColumn = 0;
                                 insd.posEnd.dwLine = (uint)(source.Item2.End.Line - 1);
+                                insd.posEnd.dwColumn = uint.MaxValue;
                                 if (insd.posEnd.dwLine - insd.posBeg.dwLine > 3) // never show more then 3 lines.
                                     insd.posEnd.dwLine = insd.posBeg.dwLine + 3;
-                                //insd.posBeg.dwLine = (uint)(source.Item2.Start.Line - 1);
-                                //insd.posBeg.dwColumn = (uint)source.Item2.Start.Column - 1;
-                                //insd.posEnd.dwLine = (uint)(source.Item2.End.Line - 1);
-                                //insd.posEnd.dwColumn = (uint)source.Item2.End.Column - 1;
-
+                                
                                 insd.dwFields |= enum_DISASSEMBLY_STREAM_FIELDS.DSF_POSITION;
                             }
 

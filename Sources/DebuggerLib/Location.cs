@@ -73,7 +73,7 @@ namespace Dot42.DebuggerLib
 
         public override string ToString()
         {
-            return Class + "." + Method + " (" + Index + ")";
+            return Class + "." + Method + " (" + Index.ToString("X3") + ")";
         }
 
         /// <summary>

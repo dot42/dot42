@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Xml.Linq;
 using Dot42.Utility;
 
@@ -8,7 +7,6 @@ namespace Dot42.Mapping
     /// <summary>
     /// Code position within a document
     /// </summary>
-    [DebuggerDisplay("{Start}-{End} {TypeId}:{MethodId}:{MethodOffset}")]
     public sealed class DocumentPosition : IComparable<DocumentPosition>
     {
         /// <summary>
@@ -145,6 +143,11 @@ namespace Dot42.Mapping
         public bool IsSpecial
         {
             get { return Start.Line == 0xfeefee; }
+        }
+
+        public override string ToString()
+        {
+            return string.Format("{0}-{1} {2}:{3}:{4:X3}", Start, End, TypeId, MethodId, MethodOffset);
         }
     }
 }
