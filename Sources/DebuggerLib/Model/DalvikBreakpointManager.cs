@@ -52,7 +52,7 @@ namespace Dot42.DebuggerLib.Model
                 throw new ArgumentException(string.Format("Inconsistent map file, missing method {0}", pos.MethodId));
 
             // Now create the breakpoint
-            var bp = CreateLocationBreakpoint(pos, type, method, data);
+            var bp = CreateLocationBreakpoint(doc, pos, type, method, data);
 
             SetBreakpoint(bp);
 
@@ -110,9 +110,9 @@ namespace Dot42.DebuggerLib.Model
         /// <summary>
         /// Create a new location breakpoint.
         /// </summary>
-        protected virtual DalvikLocationBreakpoint CreateLocationBreakpoint(DocumentPosition documentPosition, TypeEntry typeEntry, MethodEntry methodEntry, object data)
+        protected virtual DalvikLocationBreakpoint CreateLocationBreakpoint(Document document, DocumentPosition documentPosition, TypeEntry typeEntry, MethodEntry methodEntry, object data)
         {
-            return new DalvikLocationBreakpoint(Jdwp.EventKind.BreakPoint, documentPosition, typeEntry, methodEntry);
+            return new DalvikLocationBreakpoint(Jdwp.EventKind.BreakPoint, document, documentPosition, typeEntry, methodEntry);
         }
 
         /// <summary>

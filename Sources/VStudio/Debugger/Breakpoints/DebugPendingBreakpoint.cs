@@ -275,7 +275,14 @@ namespace Dot42.VStudio.Debugger
                 {
                     var boundBreakpoint = new DebugBoundBreakpoint<DebugLocationBreakpoint>(this, 
                                                     program.BreakpointManager, enum_BP_TYPE.BPT_CODE, 
-                                                    x => new DebugLocationBreakpoint(codeContext.Location, x));
+                                                    x =>
+                                                    {
+                                                        var docLocation = codeContext.DocumentContext != null
+                                                                            ? codeContext.DocumentContext.DocumentLocation
+                                                                            : null;
+                                                        return new DebugLocationBreakpoint(codeContext.Location, x, 
+                                                                                           docLocation);
+                                                    });
                     program.BreakpointManager.SetBreakpoint(boundBreakpoint.Breakpoint);
                     return VSConstants.S_OK;
                 }

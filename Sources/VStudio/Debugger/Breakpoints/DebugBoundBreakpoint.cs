@@ -28,7 +28,7 @@ namespace Dot42.VStudio.Debugger
             this.pendingBreakpoint = pendingBreakpoint;
             this.breakpointManager = breakpointManager;
             breakpoint = breakpointBuilder(this);
-            resolution = new DebugBreakpointResolution(type, breakpointManager.Program);
+            resolution = new DebugBreakpointResolution(type, breakpointManager.Program, breakpoint as DalvikLocationBreakpoint);
         }
 
         /// <summary>

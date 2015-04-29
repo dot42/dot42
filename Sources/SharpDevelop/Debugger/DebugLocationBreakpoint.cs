@@ -18,8 +18,8 @@ namespace Dot42.SharpDevelop.Debugger
 		/// <summary>
 		/// Default ctor
 		/// </summary>
-		public DebugLocationBreakpoint(Jdwp.EventKind eventKind, DocumentPosition documentPosition, TypeEntry typeEntry, MethodEntry methodEntry, BreakpointBookmark bookmark) :
-			base(eventKind, documentPosition, typeEntry, methodEntry)
+		public DebugLocationBreakpoint(Jdwp.EventKind eventKind, Document document, DocumentPosition documentPosition, TypeEntry typeEntry, MethodEntry methodEntry, BreakpointBookmark bookmark) :
+			base(eventKind, document, documentPosition, typeEntry, methodEntry)
 		{
 			this.bookmark = bookmark;
 			InvalidateBookmark();

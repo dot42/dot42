@@ -10,19 +10,30 @@ namespace Dot42.DebuggerLib.Model
     /// </summary>
     public class DalvikLocationBreakpoint : DalvikBreakpoint
     {
-        private readonly DocumentPosition documentPosition;
+        /// <summary>
+        /// Gets the document where this breakpoint was intended to be set.
+        /// </summary>
+        public readonly Document Document;
+        /// <summary>
+        /// Gets the position where this breakpoint was intended to be set.
+        /// </summary>
+        /// 
+        public readonly DocumentPosition DocumentPosition;
+
         private readonly TypeEntry typeEntry;
         private readonly MethodEntry methodEntry;
         private DalvikClassPrepareCookie classPrepareCookie;
         private Location location;
+        private DocumentLocation documentLocation;
 
         /// <summary>
         /// Default ctor
         /// </summary>
-        public DalvikLocationBreakpoint(Jdwp.EventKind eventKind, DocumentPosition documentPosition, TypeEntry typeEntry, MethodEntry methodEntry)
+        public DalvikLocationBreakpoint(Jdwp.EventKind eventKind, Document document, DocumentPosition documentPosition, TypeEntry typeEntry, MethodEntry methodEntry)
             : base(eventKind)
         {
-            this.documentPosition = documentPosition;
+            Document = document;
+            DocumentPosition = documentPosition;
             this.typeEntry = typeEntry;
             this.methodEntry = methodEntry;
         }
@@ -30,18 +41,22 @@ namespace Dot42.DebuggerLib.Model
         /// <summary>
         /// Default ctor
         /// </summary>
-        public DalvikLocationBreakpoint(Location location)
+        public DalvikLocationBreakpoint(Location location, DocumentLocation documentLocation=null)
             : base(Jdwp.EventKind.BreakPoint)
         {
             this.location = location;
+            this.documentLocation = documentLocation;
         }
 
         /// <summary>
-        /// Gets the position where this breakpoint was intended to be set.
+        /// gets the document location is available
         /// </summary>
-        public DocumentPosition DocumentPosition
+        public DocumentLocation DocumentLocation
         {
-            get { return documentPosition; }
+            get
+            {
+                return documentLocation;
+            }
         }
 
         /// <summary>
@@ -84,7 +99,7 @@ namespace Dot42.DebuggerLib.Model
                 return location;
 
             // Lookup classid & methodid
-            var pos = documentPosition;
+            var pos = DocumentPosition;
             var signature = typeEntry.DexSignature;
             var referenceTypeManager = process.ReferenceTypeManager;
 
@@ -116,7 +131,11 @@ namespace Dot42.DebuggerLib.Model
             }
 
             // return location.
-            return location = new Location(refType.Id, dmethod.Id, (ulong) pos.MethodOffset);
+            location = new Location(refType.Id, dmethod.Id, (ulong) pos.MethodOffset);
+
+            documentLocation = new DocumentLocation(location, Document, DocumentPosition, refType, dmethod, typeEntry, methodEntry);
+
+            return location;
         }
     }
 }

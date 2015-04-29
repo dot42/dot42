@@ -1,4 +1,6 @@
-﻿using Microsoft.VisualStudio;
+﻿using System.Runtime.InteropServices;
+using Dot42.DebuggerLib.Model;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Debugger.Interop;
 
 namespace Dot42.VStudio.Debugger
@@ -7,14 +9,16 @@ namespace Dot42.VStudio.Debugger
     {
         private readonly enum_BP_TYPE type;
         private readonly DebugProgram program;
+        private readonly DalvikLocationBreakpoint locationBP;
 
         /// <summary>
-        /// Default ctor
+        /// breakpoint can be null.
         /// </summary>
-        public DebugBreakpointResolution(enum_BP_TYPE type, DebugProgram program)
+        public DebugBreakpointResolution(enum_BP_TYPE type, DebugProgram program, DalvikLocationBreakpoint locationBP)
         {
             this.type = type;
             this.program = program;
+            this.locationBP = locationBP;
         }
 
         /// <summary>
@@ -38,6 +42,20 @@ namespace Dot42.VStudio.Debugger
             {
                 info.pThread = Thread;
                 info.dwFields |= enum_BPRESI_FIELDS.BPRESI_THREAD;
+            }
+
+            if ((dwFields & enum_BPRESI_FIELDS.BPRESI_BPRESLOCATION) != 0 && locationBP != null)
+            {
+                info.bpResLocation.bpType = (uint)enum_BP_TYPE.BPT_CODE;
+
+                var codeContext = new DebugCodeContext(locationBP.Location);
+                var docLoc = locationBP.DocumentLocation;
+                if(docLoc != null) codeContext.DocumentContext = new DebugDocumentContext(docLoc, codeContext);
+
+                // The debugger will not QI the IDebugCodeContex2 interface returned here. We must pass the pointer
+                // to IDebugCodeContex2 and not IUnknown.
+                info.bpResLocation.unionmember1 = Marshal.GetComInterfaceForObject(codeContext, typeof(IDebugCodeContext2));
+                info.dwFields |= enum_BPRESI_FIELDS.BPRESI_BPRESLOCATION;
             }
 
             pBPResolutionInfo[0] = info;
