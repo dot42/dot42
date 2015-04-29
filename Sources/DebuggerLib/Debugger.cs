@@ -61,6 +61,7 @@ namespace Dot42.DebuggerLib
             ArrayReference = new ArrayReferenceCommandSet(this);
             EventRequest = new EventRequestCommandSet(this);
             Ddms = new DdmsCommandSet(this);
+            ClassReference = new ClassReferenceCommandSet(this);
         }
 
         /// <summary>

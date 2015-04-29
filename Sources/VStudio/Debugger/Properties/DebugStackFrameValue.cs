@@ -39,12 +39,12 @@ namespace Dot42.VStudio.Debugger
             if (stackFrameVal == null || !Value.IsPrimitive )
                 return VSConstants.E_FAIL;
 
-            object val = ParsePrimitive(pszValue, Value.tag, (int)dwRadix);
+            object val = ParsePrimitive(pszValue, Value.Tag, (int)dwRadix);
 
             // is there as simpler way to grab the debugger?
             var debugger = _stackFrame.Thread.Program.Process.Debugger;
 
-            var slotValue = new SlotValue(stackFrameVal.Variable.Slot, Value.tag, val);
+            var slotValue = new SlotValue(stackFrameVal.Variable.Slot, Value.Tag, val);
             debugger.StackFrame.SetValuesAsync(_stackFrame.Thread.Id, _stackFrame.Id, slotValue)
                                .Await((int)dwTimeout);
             _stackFrame.InvalidateVariablesValueCache();

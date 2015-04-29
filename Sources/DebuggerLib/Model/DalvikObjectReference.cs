@@ -81,6 +81,19 @@ namespace Dot42.DebuggerLib.Model
         }
 
         /// <summary>
+        /// Gets the name of a class (assumes that the object is a ClassObject)
+        /// </summary>
+        public Task<string> GetClassObjectNameAsync()
+        {
+            return Task.Factory.StartNew(() =>
+            {
+                var refId = process.Debugger.ClassReference.ReflectedTypeAsync(Id).Await(DalvikProcess.VmTimeout);
+                var refType = process.ReferenceTypeManager[refId];
+                return refType.GetNameAsync().Await(DalvikProcess.VmTimeout);
+            });
+        }
+
+        /// <summary>
         /// Convert to string
         /// </summary>
         public override string ToString()

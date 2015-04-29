@@ -43,6 +43,7 @@
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Chunk.cs" />
     <Compile Include="ClassInfo.cs" />
+    <Compile Include="Debugger.ClassReference.cs" />
     <Compile Include="Debugger.StringReference.cs" />
     <Compile Include="Debugger.ArrayReference.cs" />
     <Compile Include="Debugger.ClassType.cs" />

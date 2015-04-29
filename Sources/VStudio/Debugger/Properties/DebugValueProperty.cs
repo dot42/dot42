@@ -134,6 +134,10 @@ namespace Dot42.VStudio.Debugger
                 {
                     info.bstrValue = "(array)";
                 }
+                else if (Value.Tag == Jdwp.Tag.ClassObject)
+                {
+                    info.bstrValue = "{" + Value.ObjectReference.GetClassObjectNameAsync().Await(DalvikProcess.VmTimeout) + "}";
+                }
                 else
                 {
                     if(!Value.IsPrimitive || Value.IsBoolean)
@@ -185,7 +189,7 @@ namespace Dot42.VStudio.Debugger
             if (dwRadix != 16)
                 return value.Value.ToString();
 
-            switch (value.tag)
+            switch (value.Tag)
             {
                 case Jdwp.Tag.Byte:
                     return "0x" + Convert.ToString((byte) value.Value, dwRadix).PadLeft(2, '0');
