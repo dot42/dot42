@@ -1,4 +1,4 @@
-﻿using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml.Linq;
@@ -11,7 +11,8 @@ namespace Dot42.Mapping
     /// </summary>
     public sealed class FrameworkTypeMap
     {
-        private readonly Dictionary<string, TypeEntry> typeMap = new Dictionary<string, TypeEntry>();
+        private readonly Dictionary<string, TypeEntry> typeMap = new Dictionary<string, TypeEntry>(StringComparer.InvariantCultureIgnoreCase);
+        private readonly Dictionary<string, TypeEntry> classMap = new Dictionary<string, TypeEntry>(StringComparer.InvariantCultureIgnoreCase);
 
         /// <summary>
         /// Empty ctor
@@ -29,17 +30,29 @@ namespace Dot42.Mapping
             foreach (var element in doc.Root.Elements("type"))
             {
                 var entry = new TypeEntry(element);
-                typeMap[entry.ClassName] = entry;
+                classMap[entry.ClassName] = entry;
+                typeMap[entry.FullName] = entry;
             }
         }
 
         /// <summary>
         /// Try to get a type from the given java class name.
+        /// Will ignore the case.
         /// </summary>
-        public bool TryGet(string javaClassName, out TypeEntry entry)
+        public bool TryGetFromClassName(string javaClassName, out TypeEntry entry)
         {
-            return typeMap.TryGetValue(javaClassName, out entry);
+            return classMap.TryGetValue(javaClassName, out entry);
         }
+
+        /// <summary>
+        /// Try to get a type from the given clr type name name.
+        /// Will ignore the case.
+        /// </summary>
+        public bool TryGetFromClrName(string clrTypeName, out TypeEntry entry)
+        {
+            return typeMap.TryGetValue(clrTypeName, out entry);
+        }
+
 
         /// <summary>
         /// Type information.
@@ -62,6 +75,6 @@ namespace Dot42.Mapping
         /// <summary>
         /// Gets all type entries.
         /// </summary>
-        public IEnumerable<TypeEntry> Values { get { return typeMap.Values; } }
+        public IEnumerable<TypeEntry> Values { get { return classMap.Values; } }
     }
 }

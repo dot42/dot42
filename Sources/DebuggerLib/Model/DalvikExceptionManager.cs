@@ -1,11 +1,11 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Dot42.DebuggerLib.Events.Jdwp;
 using Dot42.JvmClassLib;
-using Dot42.Mapping;
 using Dot42.Utility;
 using TallComponents.Common.Extensions;
 
@@ -18,8 +18,16 @@ namespace Dot42.DebuggerLib.Model
     {
         private readonly ExceptionBehaviorMap _exceptionBehaviorMap = new ExceptionBehaviorMap();
         private readonly ConcurrentDictionary<string, DalvikClassPrepareCookie> _preparers = new ConcurrentDictionary<string, DalvikClassPrepareCookie>();
-        private readonly ConcurrentDictionary<string, bool> _overridenException = new ConcurrentDictionary<string, bool>();
+        private readonly ConcurrentDictionary<ReferenceTypeId, int> _eventRequests = new ConcurrentDictionary<ReferenceTypeId, int>();
         private volatile bool _wasPrepared;
+        
+        // Do not report Dalvik/Java internal exceptions to the user. These 
+        // are be used for control flow(!) by the class libaries. They are 
+        // of no interest whatsover to the user. While these will all be 
+        // caught by the framework, they will be more than distracting if
+        // first chance exception are enabled.
+        private static readonly Regex CaughtExceptionClassExcludePattern = new Regex(@"^libcore\..*", RegexOptions.CultureInvariant|RegexOptions.IgnoreCase);
+        protected static readonly Regex CaughtExceptionLocationExcludePattern = new Regex(@"^libcore\..*", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
 
         /// <summary>
         /// Default ctor
@@ -31,17 +39,15 @@ namespace Dot42.DebuggerLib.Model
 
         /// <summary>
         /// Process the given exception event.
-        /// 
-        /// Note that Process.OnSuspended() has not been called, and needs to be called if the implementation
-        /// does not decide to continue in spite of the exception.
         /// </summary>
         protected internal virtual void OnExceptionEvent(Events.Jdwp.Exception @event, DalvikThread thread)
         {
             // Log
             DLog.Debug(DContext.VSDebuggerEvent, "OnExceptionEvent location: {0}", @event.Location);
 
+            // Note that Process.OnSuspended() has not been called yet, and needs to be called 
+            // if the implementation does not decide to continue in spite of the exception.
             Debugger.Process.OnSuspended(SuspendReason.Exception, thread);
-            
 
             // Save exception in thread
             if(thread != null)
@@ -67,93 +73,145 @@ namespace Dot42.DebuggerLib.Model
         public void SetExceptionBehavior(ExceptionBehaviorMap newMap)
         {
             var changed = _exceptionBehaviorMap.CopyFrom(newMap);
-            if (!_wasPrepared) return;
+            if (!_wasPrepared || changed.Count == 0) return;
             SetupBehaviors(changed);
         }
 
         private Task SetupBehaviors(IEnumerable<ExceptionBehavior> behaviors)
         {
-            List<Task> asyncRequests = new List<Task>();
+            // The idea is to set the default behavior, and any overriden behavior
+            // that would not be reported by the default behavior.
+            // From what I understand we can not suppress specific exceptions using
+            // Jdwp. These can be filtered out when received through ShouldHandle() 
+            // in a derived class.
 
-            var sizeInfo = Debugger.GetIdSizeInfo(); // note: synchronous call.
+            // see http://docs.oracle.com/javase/7/docs/platform/jpda/jdwp/jdwp-protocol.html
+            // and http://kingsfleet.blogspot.de/2013/10/write-auto-debugger-to-catch-exceptions.html
 
-            _wasPrepared = true;
-            
-            var modifier = new ExceptionOnlyModifier(new ClassId(sizeInfo), _exceptionBehaviorMap.DefaultStopOnThrow, _exceptionBehaviorMap.DefaultStopUncaught);
-            asyncRequests.Add(Debugger.EventRequest.SetAsync(Jdwp.EventKind.Exception, Jdwp.SuspendPolicy.All, modifier));
-            
-            // TODO: this code, even though it looks good, does not work. find out why.
-            //       since the VS plugin has a fallback mechanism in place, the user is still able
-            //       to disable specific exceptions in constrast to the defaults (at a perfomrance penalty)
-            //       but not able to enable defaults-disabled ones.
-            //       see also http://kingsfleet.blogspot.de/2013/10/write-auto-debugger-to-catch-exceptions.html
-            //var netToDex = Debugger.FrameworkTypeMap
-            //                       .Values
-            //                       .ToLookup(p => p.FullName, p => p.ClassName);
-            //var refManager = Debugger.Process.ReferenceTypeManager;
+            return Task.Factory.StartNew(() =>
+            {
+                try
+                {
+                    var refManager = Debugger.Process.ReferenceTypeManager;
+                    var defaultStopOnThrow = _exceptionBehaviorMap.DefaultStopOnThrow;
+                    var defaultStopUncaught = _exceptionBehaviorMap.DefaultStopUncaught;
 
-            //foreach (var b in behaviors)
-            //{
-            //    bool isDefault = b.StopOnThrow == _exceptionBehaviorMap.DefaultStopOnThrow && b.StopUncaught == _exceptionBehaviorMap.DefaultStopUncaught;
-                
-            //    if(isDefault && !_overridenException.ContainsKey(b.ExceptionName))
-            //        continue;
+                    if (!_wasPrepared)
+                    {
+                        // set the default.
+                        var sizeInfo = Debugger.GetIdSizeInfo();
+                        // new ClassId(sizeInfo) means Null class - all exceptions.
+                        SetupBehavior(new ClassId(sizeInfo), defaultStopOnThrow, defaultStopUncaught, "(default)");
+                    }
 
-            //    // override the exception
-            //    _overridenException.TryAdd(b.ExceptionName, true);
+                    foreach (var b in behaviors)
+                    {
+                        if (b != null)
+                        {
+                            var needsOverride = (b.StopOnThrow && !defaultStopOnThrow)
+                                                || (b.StopUncaught && !defaultStopUncaught);
 
-            //    var dexName = netToDex[b.ExceptionName].FirstOrDefault();
-            //    if (dexName != null)
-            //    {
-            //        var signature = GetSignature(dexName);
-            //        var type = refManager.FindBySignature(signature);
-            //        if (type != null)
-            //        {
-            //            asyncRequests.Add(SetBehavior(type.Id, b));
-            //        }
-            //        else if(!_preparers.ContainsKey(dexName))
-            //        {
-            //            var token = refManager.RegisterClassPrepareHandler(signature, OnExceptionClassPrepared);
-            //            _preparers.TryAdd(dexName, token);
-            //        }
-            //    }
-            //}
+                            var signature = Debugger.Process.ClrNameToSignature(b.ExceptionName);
+                            
+                            var refType = refManager.FindBySignature(signature);
 
-            var wait = Task.Factory.StartNew(()=>Task.WaitAll(asyncRequests.ToArray()));
-            return wait.ContinueWith(task => {  }, TaskContinuationOptions.OnlyOnRanToCompletion);
+                            if (!needsOverride && refType != null)
+                            {
+                                // remove event, if any.
+                                RemoveBehavior(refType.Id, signature);
+                            }
+                            else if (needsOverride)
+                            {
+                                EnsureClassPrepareListener(refManager, signature);
+
+                                refManager.RefreshClassesWithSignatureAsync(signature).Await(DalvikProcess.VmTimeout);
+                                refType = refManager.FindBySignature(signature);
+                                
+                                if (refType != null)
+                                {
+                                    SetupBehavior(refType.Id, b.StopOnThrow, b.StopUncaught, signature);
+                                }
+                            }
+                        }
+                        else 
+                        {
+                            // default behavior has changed
+                            var sizeInfo = Debugger.GetIdSizeInfo();
+                            SetupBehavior(new ClassId(sizeInfo), defaultStopOnThrow, defaultStopUncaught, "(default)");
+                        }
+                    }
+                }
+                finally
+                {
+                    _wasPrepared = true;
+                }
+            });
         }
 
-        private static string GetSignature(string dexName)
+        private void SetupBehavior(ReferenceTypeId refTypeId, bool stopOnThrow, bool stopUncaught, string signature)
         {
-            return "L" + dexName + ";";
+            // set the event
+            DLog.Info(DContext.DebuggerLibDebugger, "requesting exception event {0}: stopOnThrow: {1} stopUncaught: {2}", signature, stopOnThrow, stopUncaught);
+
+            var modifier = new ExceptionOnlyModifier(refTypeId, stopOnThrow, stopUncaught);
+            var eventId = Debugger.EventRequest.SetAsync(Jdwp.EventKind.Exception, Jdwp.SuspendPolicy.All, modifier)
+                                               .Await(DalvikProcess.VmTimeout);
+            // remove previous event, if any.
+            int? prevEventId = null;
+            _eventRequests.AddOrUpdate(refTypeId, eventId, (key, prev) =>
+            {
+                prevEventId = prev;
+                return eventId;
+            });
+
+            if (prevEventId.HasValue)
+            {
+                Debugger.EventRequest.ClearAsync(Jdwp.EventKind.Exception, prevEventId.Value)
+                                     .Await(DalvikProcess.VmTimeout);
+            }
+        }
+
+        private void RemoveBehavior(ReferenceTypeId refTypeId, string signature)
+        {
+            int prevEventId;
+            if (_eventRequests.TryRemove(refTypeId, out prevEventId))
+            {
+                DLog.Info(DContext.DebuggerLibDebugger, "clearing exception event: " + signature);
+                Debugger.EventRequest.ClearAsync(Jdwp.EventKind.Exception, prevEventId)
+                           .Await(DalvikProcess.VmTimeout);      
+            }
+        }
+
+        private void EnsureClassPrepareListener(DalvikReferenceTypeManager refManager, string signature)
+        {
+            if (_preparers.ContainsKey(signature))
+                return;            
+            var token = refManager.RegisterClassPrepareHandler(signature, OnExceptionClassPrepared);
+
+            if(!_preparers.TryAdd(signature, token))
+                refManager.Remove(token);
         }
 
         private void OnExceptionClassPrepared(ClassPrepare obj)
         {
-            var type = Descriptors.ParseClassType(obj.Signature);
-            FrameworkTypeMap.TypeEntry typeEntry;
+            // since a class can be loaded multiple times, keep listening
+            // for further prepared events.
 
-            string clrName;
-
-            if (Debugger.FrameworkTypeMap.TryGet(type.ClassName, out typeEntry))
-                clrName = typeEntry.FullName;
-            else
-                clrName = type.ClrTypeName;
-            
-            var task = SetBehavior(obj.TypeId, _exceptionBehaviorMap[clrName]);
-            task.Await(DalvikProcess.VmTimeout); 
+            // update the behavior.
+            var clrName = Debugger.Process.SignatureToClrName(obj.Signature);
+            SetupBehaviors(new[]{_exceptionBehaviorMap[clrName]});
         }
 
-        protected Task<int> SetBehavior(ReferenceTypeId typeId, ExceptionBehavior value)
+        protected bool ShouldHandle(string exceptionName, bool caught)
         {
-            return Task.Factory.StartNew(() => 0);
-            // TODO: see above.
-            //if (!_wasPrepared) 
-            //    return Task<int>.Factory.StartNew(()=>0);
-
-            //var modifier = new ExceptionOnlyModifier(typeId, value.StopOnThrow, value.StopUncaught);
-            //return Debugger.EventRequest.SetAsync(Jdwp.EventKind.Exception, Jdwp.SuspendPolicy.All,
-            //                                      modifier);
+            if (caught && CaughtExceptionClassExcludePattern.IsMatch(exceptionName))
+                return false;
+            var behavior = ExceptionBehaviorMap[exceptionName];
+            if ((caught && behavior.StopOnThrow) || (!caught && behavior.StopUncaught))
+            {
+                return true;
+            }
+            return false;
         }
     }
 }

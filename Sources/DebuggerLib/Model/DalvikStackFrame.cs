@@ -128,8 +128,12 @@ namespace Dot42.DebuggerLib.Model
                               .ToList();
 
 
-                var requests = regDefs.Select(reg => new SlotRequest(reg.Index, reg.IsBits4 ? Jdwp.Tag.Int : Jdwp.Tag.Long))
-                                      .ToList();
+                var requests = regDefs.Select(reg =>
+                {
+                    //var dataType = reg.IsBits4 ? Jdwp.Tag.Int : Jdwp.Tag.Long; // this doesn't work for unknown reasons.
+                    var dataType = Jdwp.Tag.Int;
+                    return new SlotRequest(reg.Index, dataType);
+                }).ToList();
    
                 var regValues = Debugger.StackFrame.GetValuesAsync(thread.Id, Id, requests.ToArray())
                                                    .Await(DalvikProcess.VmTimeout);

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Dot42.DebuggerLib.Model;
 using Dot42.Ide.Debugger;
@@ -29,6 +30,7 @@ namespace Dot42.VStudio.Debugger
         private Action<LauncherStates, string> stateUpdate;
         private bool destroying = false;
         private readonly ExceptionBehaviorMap exceptionBehaviorMap = new ExceptionBehaviorMap();
+        private int shouldCopyMapExceptionToProgram;
 
         /// <summary>
         /// Gets the currently running program.
@@ -73,7 +75,7 @@ namespace Dot42.VStudio.Debugger
                         exceptionBehaviorMap.DefaultStopUncaught = info.dwState.HasFlag(enum_EXCEPTION_STATE.EXCEPTION_STOP_USER_UNCAUGHT);
                         copyToProgram = true;
                     }
-                    else
+                    else /*if (info.dwCode == ExceptionConstants.ExceptionCode)*/ // the code somehow doesn't make it, so just include the namespaces for now.
                     {
                         var behavior = new ExceptionBehavior(
                             info.bstrExceptionName,
@@ -86,7 +88,7 @@ namespace Dot42.VStudio.Debugger
             }
             if (copyToProgram)
             {
-                CopyExceptionMapToProgram();
+                CopyExceptionMapToProgramDelayed();
             }
             return VSConstants.S_OK;
         }
@@ -116,7 +118,7 @@ namespace Dot42.VStudio.Debugger
             }
             if (copyToProgram)
             {
-                CopyExceptionMapToProgram();
+                CopyExceptionMapToProgramDelayed();
             }
             return VSConstants.S_OK;
         }
@@ -130,7 +132,7 @@ namespace Dot42.VStudio.Debugger
 
             // Remove all custom exception behavior
             exceptionBehaviorMap.ResetAll();
-            CopyExceptionMapToProgram();
+            CopyExceptionMapToProgramDelayed();
 
             return VSConstants.S_OK;
         }
@@ -138,13 +140,26 @@ namespace Dot42.VStudio.Debugger
         /// <summary>
         /// Copy the current state of the exception behavior map to the current program.
         /// </summary>
-        private void CopyExceptionMapToProgram()
+        private void CopyExceptionMapToProgramDelayed()
         {
-            var currentProgram = program;
-            if (currentProgram != null)
+            // let changes accumulated. 
+            Interlocked.Increment(ref shouldCopyMapExceptionToProgram);
+            Task.Delay(100).ContinueWith(task => CopyExceptionMapToProgramIfDirty() );
+        }
+
+        /// <summary>
+        /// Copy the current state of the exception behavior map to the current program.
+        /// </summary>
+        private void CopyExceptionMapToProgramIfDirty()
+        {
+            if (Interlocked.Exchange(ref shouldCopyMapExceptionToProgram, 0) != 0)
             {
-                currentProgram.ExceptionManager.SetExceptionBehavior(exceptionBehaviorMap);
-            }            
+                var currentProgram = program;
+                if (currentProgram != null)
+                {
+                    currentProgram.ExceptionManager.SetExceptionBehavior(exceptionBehaviorMap);
+                }
+            }
         }
 
         /// <summary>
@@ -281,6 +296,9 @@ namespace Dot42.VStudio.Debugger
             // Load map file
             var mapFilePath = Path.ChangeExtension(pszExe, ".d42map");
             var mapFile = File.Exists(mapFilePath) ? new MapFile(mapFilePath) : new MapFile();
+
+            // copy exception to program now, in case it was delayed
+            CopyExceptionMapToProgramIfDirty();
             
             // Create new process
             var process = new DebugProcess(this, port, debugger, Environment.TickCount, guid, pszExe, mapFile, eventCallback);
@@ -314,6 +332,9 @@ namespace Dot42.VStudio.Debugger
                 var suspend = process.Debugger.VirtualMachine.SuspendAsync();
                 var prepare = suspend.ContinueWith(t => {
                     t.ForwardException();
+                    // copy exception to program now, in case it was delayed
+                    CopyExceptionMapToProgramIfDirty();
+
                     return debugger.PrepareAsync();
                 }).Unwrap();
                 var loadThreads = prepare.ContinueWith(t => {
@@ -370,7 +391,7 @@ namespace Dot42.VStudio.Debugger
                 return VSConstants.E_INVALIDARG;
 
             // Update program state
-            CopyExceptionMapToProgram();
+            CopyExceptionMapToProgramDelayed();
 
             //eventCallback.Send(process, new ProcessCreateEvent());
             eventCallback.Send(program, new ProgramCreateEvent());

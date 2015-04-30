@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Dot42.DebuggerLib.Model;
 using Microsoft.VisualStudio.Debugger.Interop;
@@ -38,7 +39,9 @@ namespace Dot42.VStudio.Debugger
             var list = fieldValues.Select(x => new DebugValueProperty(x, this)).Cast<DebugProperty>().ToList();
 
             // Get base class
-            if (superClass.GetNameAsync().Await(DalvikProcess.VmTimeout) != "java.lang.Object")
+            var superclassName = superClass.GetNameAsync().Await(DalvikProcess.VmTimeout);
+            if (!superclassName.Equals("java.lang.Object", StringComparison.InvariantCultureIgnoreCase)
+                && !superclassName.Equals("System.Object", StringComparison.InvariantCultureIgnoreCase))
             {
                 var superSuperClass = superClass.GetSuperClassAsync().Await(DalvikProcess.VmTimeout);
                 if (superSuperClass != null)

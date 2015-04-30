@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Dot42.ApkLib.Resources;
 
 namespace Dot42.DebuggerLib.Model
 {
@@ -17,6 +18,14 @@ namespace Dot42.DebuggerLib.Model
         public ExceptionBehaviorMap()
         {
             ResetDefaults();
+        }
+
+        private ExceptionBehaviorMap(ExceptionBehaviorMap copy)
+        {
+            DefaultStopOnThrow = copy.DefaultStopOnThrow;
+            DefaultStopUncaught = copy.DefaultStopUncaught;
+            map = new Dictionary<string, ExceptionBehavior>(copy.map);
+
         }
 
         /// <summary>
@@ -83,16 +92,29 @@ namespace Dot42.DebuggerLib.Model
             }
         }
 
+        private ExceptionBehaviorMap Clone()
+        {
+            lock (mapLock)
+            {
+                return new ExceptionBehaviorMap(this);
+            }
+        }
+
         /// <summary>
         /// Copy the state of the given object to me.
         /// 
-        /// returns all values that have changed.
+        /// Returns all behaviors that have changed, with their new  values.
+        /// If the default behavior was changed, the first returned behavior
+        /// will be null.
         /// </summary>
-        public IEnumerable<ExceptionBehavior> CopyFrom(ExceptionBehaviorMap source)
+        public IList<ExceptionBehavior> CopyFrom(ExceptionBehaviorMap source)
         {
-            List<string> changed = new List<string>();
+            source = source.Clone();
+
             lock (mapLock)
             {
+                List<string> changed = new List<string>();
+
                 // find changed values
                 foreach (var entry in source.map)
                 {
@@ -100,6 +122,7 @@ namespace Dot42.DebuggerLib.Model
                         changed.Add(entry.Key);
                 }
 
+                // add all values that have been removed.
                 changed.AddRange(map.Keys.ToList()
                                          .Where(key => !source.map.ContainsKey(key)));
 
@@ -109,10 +132,17 @@ namespace Dot42.DebuggerLib.Model
                     map[entry.Key] = entry.Value;
                 }
 
+                List<ExceptionBehavior> ret = new List<ExceptionBehavior>();
+
+                if(DefaultStopUncaught != source.DefaultStopUncaught || DefaultStopOnThrow  != source.DefaultStopOnThrow)
+                    ret.Insert(0, null);
+
+                ret.AddRange(changed.Select(x => this[x]));
+
                 DefaultStopOnThrow = source.DefaultStopOnThrow;
                 DefaultStopUncaught = source.DefaultStopUncaught;
 
-                return changed.Select(x => this[x]).ToList();
+                return ret;
             }
         }
     }

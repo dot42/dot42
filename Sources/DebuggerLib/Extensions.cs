@@ -1,4 +1,7 @@
 ﻿using System;
+using Dot42.DebuggerLib.Model;
+using Dot42.JvmClassLib;
+using Dot42.Mapping;
 
 namespace Dot42.DebuggerLib
 {
@@ -33,6 +36,63 @@ namespace Dot42.DebuggerLib
                 default:
                     throw new ArgumentException("Unknown tag " + (int) tag);
             }
+        }
+
+        /// <summary>
+        /// Convert a class signature to a name.
+        /// </summary>
+        public static string SignatureToClrName(this DalvikProcess process, string signature)
+        {
+            var typeReference = Descriptors.ParseClassType(signature);
+            var typeMap = process.Debugger.FrameworkTypeMap;
+            if (typeMap!= null)
+            {
+                FrameworkTypeMap.TypeEntry entry;
+                if (typeMap.TryGetFromClassName(typeReference.ClassName, out entry))
+                {
+                    return entry.FullName;
+                }
+            }
+
+            var e = process.MapFile.GetTypeBySignature(signature);
+            if (e != null)
+                return e.Name;
+
+            return typeReference.ClrTypeName;
+        }
+
+        /// <summary>
+        /// Convert a class signature to a name.
+        /// </summary>
+        public static string ClrNameToSignature(this DalvikProcess process, string clrName)
+        {
+            string className = null;
+
+            var typeMap = process.Debugger.FrameworkTypeMap;
+            if (typeMap != null)
+            {
+                FrameworkTypeMap.TypeEntry entry;
+                if (typeMap.TryGetFromClrName(clrName, out entry))
+                {
+                    className = entry.ClassName;
+                }
+            }
+
+            if (className == null)
+            {
+                var entry = process.MapFile.GetTypeBySignature(clrName);
+                if (entry != null && entry.DexSignature != null)
+                    return entry.DexSignature;
+            }
+
+            // I'm sure this name conversion is somewhere centralized. but where?
+            if (className == null)
+            {
+                className = char.ToLower(clrName[0]) + clrName.Substring(1);
+            }
+
+            className = className.Replace("+", "$").Replace(".", "/");
+            return "L" + className + ";";
         }
     }
 }

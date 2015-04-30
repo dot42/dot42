@@ -69,6 +69,7 @@ namespace Dot42.VStudio.Debugger
                 info.bstrValue = "(local registers)";
                 info.dwFields |= enum_DEBUGPROP_INFO_FLAGS.DEBUGPROP_INFO_VALUE;
             }
+
             if (dwFields.HasFlag(enum_DEBUGPROP_INFO_FLAGS.DEBUGPROP_INFO_ATTRIB))
             {
                 info.dwAttrib |= enum_DBG_ATTRIB_FLAGS.DBG_ATTRIB_OBJ_IS_EXPANDABLE;
@@ -80,7 +81,7 @@ namespace Dot42.VStudio.Debugger
 
             if (dwFields.HasFlag(enum_DEBUGPROP_INFO_FLAGS.DEBUGPROP_INFO_TYPE))
             {
-                info.bstrType = "VM Registers";
+                info.bstrType = "(local registers)";
                 info.dwFields = enum_DEBUGPROP_INFO_FLAGS.DEBUGPROP_INFO_TYPE;
             }
 

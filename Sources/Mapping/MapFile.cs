@@ -13,15 +13,19 @@ namespace Dot42.Mapping
     /// </summary>
     public sealed class MapFile : IEnumerable<TypeEntry>
     {
-        private readonly Dictionary<string, TypeEntry> typesByDexName;
-        private readonly Dictionary<string, Document> documents = new Dictionary<string, Document>();
+        private readonly Dictionary<string, TypeEntry> typesByDexName = new Dictionary<string, TypeEntry>();
+        private readonly Dictionary<string, TypeEntry> typesByClrName = new Dictionary<string, TypeEntry>();
+        private readonly Dictionary<string, TypeEntry> typesBySignature = new Dictionary<string, TypeEntry>();
+        private readonly Dictionary<int, TypeEntry> typesById = new Dictionary<int, TypeEntry>();
+        private readonly ILookup<int, Document> documentsByTypeId; // only create on XML load.
+
+        private readonly Dictionary<string, Document> documents = new Dictionary<string, Document>(StringComparer.InvariantCultureIgnoreCase);
 
         /// <summary>
         /// Default ctor
         /// </summary>
         public MapFile()
         {
-            typesByDexName = new Dictionary<string, TypeEntry>();
         }
 
         /// <summary>
@@ -44,8 +48,11 @@ namespace Dot42.Mapping
             foreach (var element in map.Root.Elements("document"))
             {
                 var doc = new Document(element);
-                documents.Add(doc.Path.ToLowerInvariant(), doc);
+                documents.Add(doc.Path, doc);
             }
+
+            documentsByTypeId = documents.Values.SelectMany(d => d.Positions, Tuple.Create)
+                                                .ToLookup(p => p.Item2.TypeId, p => p.Item1);
         }
 
         /// <summary>
@@ -90,7 +97,20 @@ namespace Dot42.Mapping
             else if (!string.IsNullOrEmpty(entry.Name))
             {
                 typesByDexName[entry.Name] = entry;
-            }            
+            }
+
+            if (!string.IsNullOrEmpty(entry.Name))
+            {
+                typesByClrName[entry.Name] = entry;
+            }
+
+            if (!string.IsNullOrEmpty(entry.DexSignature))
+            {
+                typesBySignature[entry.DexSignature] = entry;
+            }
+
+            if(entry.Id != 0)
+                typesById[entry.Id] = entry;
         }
 
         /// <summary>
@@ -141,7 +161,31 @@ namespace Dot42.Mapping
         /// <returns>Null if not found</returns>
         public TypeEntry GetTypeById(int id)
         {
-            return typesByDexName.Values.FirstOrDefault(x => x.Id == id);
+            TypeEntry e;
+            typesById.TryGetValue(id, out e);
+            return e;
+        }
+
+        /// <summary>
+        /// Gets a type by its signature
+        /// </summary>
+        /// <returns>Null if not found</returns>
+        public TypeEntry GetTypeBySignature(string signature)
+        {
+            TypeEntry e;
+            typesBySignature.TryGetValue(signature, out e);
+            return e;
+        }
+
+        /// <summary>
+        /// Gets a type by its CLR Name
+        /// </summary>
+        /// <returns>Null if not found</returns>
+        public TypeEntry GetTypeByClrName(string clrName)
+        {
+            TypeEntry e;
+            typesByClrName.TryGetValue(clrName, out e);
+            return e;
         }
 
         /// <summary>
@@ -150,7 +194,6 @@ namespace Dot42.Mapping
         public Document GetOrCreateDocument(string path, bool create)
         {
             Document result;
-            path = path.ToLowerInvariant();
             if (documents.TryGetValue(path, out result))
                 return result;
             result = new Document(path);
@@ -174,7 +217,9 @@ namespace Dot42.Mapping
             document = null;
             position = null;
 
-            foreach (var doc in documents.Values)
+            var docs = documentsByTypeId != null ? documentsByTypeId[type.Id] : documents.Values;
+
+            foreach (var doc in docs)
             {
                 foreach (var docPos in doc.Positions)
                 {
@@ -204,7 +249,9 @@ namespace Dot42.Mapping
         /// </summary>
         public IEnumerable<Tuple<Document, DocumentPosition>> GetLocations(TypeEntry type, MethodEntry method)
         {
-            foreach (var doc in documents.Values)
+            var docs = documentsByTypeId != null ? documentsByTypeId[type.Id] : documents.Values;
+
+            foreach (var doc in docs)
             {
                 foreach (var docPos in doc.Positions)
                 {

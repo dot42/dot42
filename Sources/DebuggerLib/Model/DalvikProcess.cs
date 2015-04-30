@@ -231,8 +231,13 @@ namespace Dot42.DebuggerLib.Model
                 }).Await(VmTimeout);
             }
 
-            var typeName = (refType != null) ? refType.GetNameAsync().Await(VmTimeout) : null;
-            var typeEntry = (typeName != null) ? mapFile.GetTypeByNewName(typeName) : null;
+            var typeSignature = (refType != null) ? refType.GetSignatureAsync().Await(VmTimeout) : null;
+            var typeEntry = (typeSignature != null) ? mapFile.GetTypeBySignature(typeSignature) : null;
+            if(typeEntry == null && refType != null)
+            {
+                var typeClrName = refType.GetNameAsync().Await(VmTimeout);
+                typeEntry = mapFile.GetTypeByClrName(typeClrName);
+            }
             var methodDexName = (method != null) ? method.Name : null;
             var methodDexSignature = (method != null) ? method.Signature : null;
             var methodEntry = ((typeEntry != null) && (method != null))

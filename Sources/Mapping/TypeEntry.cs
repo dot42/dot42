@@ -92,7 +92,7 @@ namespace Dot42.Mapping
         /// <summary>
         /// Signature of the type in Dex
         /// </summary>
-        public string DexSignature { get { return "L" + dexName.Replace('.', '/') + ";"; } }
+        public string DexSignature { get { return dexName == null? null : "L" + dexName.Replace('.', '/') + ";"; } }
 
         /// <summary>
         /// Unique id of this entry in the map file.
