@@ -6,8 +6,6 @@ using System.Linq;
 namespace Dot42.Utility
 {
     // http://www.codeproject.com/Articles/869059/Topological-sorting-in-Csharp
-    // Why have multiple topological sorters? well, this one is about 1500 times faster in FramworkBuilder than TopologicalSorter; 
-    // haven't checked if Dex could use this sorter as well (the topological sorting there takes up about 15% of compile time)
     public static class TopologicalSort
     {
         private static Func<T, IEnumerable<T>> RemapDependencies<T, TKey>(IEnumerable<T> source, Func<T, IEnumerable<TKey>> getDependencies,
