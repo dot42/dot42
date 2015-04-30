@@ -21,14 +21,17 @@
     <GenerateAndroidManifest>true</GenerateAndroidManifest>
     <ApkFilename>CompilationModeAll.apk</ApkFilename>
     <PackageName>com.dot42.regressiontest.AllModeTest3</PackageName>
-    <Dot42Folder Condition=" '$(Dot42Folder)' == '' ">..\..\Build\Application</Dot42Folder>
+    <!--Dot42Folder Condition=" '$(Dot42Folder)' == '' ">..\..\Build\Application</Dot42Folder-->
+    <Dot42ExtensionsPath Condition=" '$(Dot42ExtensionsPath)' == '' ">$(Registry:HKEY_CURRENT_USER\SOFTWARE\dot42\Android@ExtensionsPath)</Dot42ExtensionsPath>
+    <Dot42ExtensionsPath Condition=" '$(Dot42ExtensionsPath)' == '' ">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\dot42\Android@ExtensionsPath)</Dot42ExtensionsPath>
     <Dot42ExtensionsPath Condition=" '$(Dot42ExtensionsPath)' == '' ">..\..\Build\Application</Dot42ExtensionsPath>
-    <Dot42ReferenceAssembliesFolder Condition=" '$(Dot42ReferenceAssembliesFolder)' == '' ">..\..\Build\Debug\Framework</Dot42ReferenceAssembliesFolder>
+    <!--Dot42ReferenceAssembliesFolder Condition=" '$(Dot42ReferenceAssembliesFolder)' == '' ">..\..\Sources\Framework\Build\Framework</Dot42ReferenceAssembliesFolder-->
     <ApkCertificatePath>..\..\Certificate.pfx</ApkCertificatePath>
     <ApkCertificateThumbprint>E459CAAA643505C4FCE6932D22C8F6681A9E1F48</ApkCertificateThumbprint>
     <TargetSdkAndroidVersion />
     <GenerateWcfProxy>false</GenerateWcfProxy>
     <AfterBuildDependsOn Condition=" '$(BuildingInsideVisualStudio)' != 'true'">Test</AfterBuildDependsOn>
+    <GenerateSetNextInstructionCode>false</GenerateSetNextInstructionCode>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>

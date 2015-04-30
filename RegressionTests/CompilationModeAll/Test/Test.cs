@@ -9,8 +9,8 @@ namespace CompilationModeAll
 			var cl = GetType().GetClassLoader();
             var type = cl.LoadClass("compilationModeAll.Unreferenced");
             AssertNotNull(type);
-            AssertEquals(1, type.GetDeclaredMethods().Length);
-            AssertEquals(2, type.GetDeclaredFields().Length);
+            AssertEquals(1, type.JavaGetDeclaredMethods().Length);
+            AssertEquals(2, type.JavaGetDeclaredFields().Length);
         }
 
         public void testLib1()
@@ -18,8 +18,8 @@ namespace CompilationModeAll
 			var cl = GetType().GetClassLoader();
             var type = cl.LoadClass("lib1.Class1");
             AssertNotNull(type);
-            AssertEquals(1, type.GetDeclaredMethods().Length);
-            AssertEquals(2, type.GetDeclaredFields().Length);
+            AssertEquals(1, type.JavaGetDeclaredMethods().Length);
+            AssertEquals(2, type.JavaGetDeclaredFields().Length);
         }
 
         public void testLib2()
