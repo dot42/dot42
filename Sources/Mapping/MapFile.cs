@@ -17,7 +17,7 @@ namespace Dot42.Mapping
         private readonly Dictionary<string, TypeEntry> typesByClrName = new Dictionary<string, TypeEntry>();
         private readonly Dictionary<string, TypeEntry> typesBySignature = new Dictionary<string, TypeEntry>();
         private readonly Dictionary<int, TypeEntry> typesById = new Dictionary<int, TypeEntry>();
-        private readonly ILookup<int, Document> documentsByTypeId; // only create on XML load.
+        private readonly IDictionary<int, List<Document>> documentsByTypeId; // only create on XML load.
 
         private readonly Dictionary<string, Document> documents = new Dictionary<string, Document>(StringComparer.InvariantCultureIgnoreCase);
 
@@ -52,7 +52,8 @@ namespace Dot42.Mapping
             }
 
             documentsByTypeId = documents.Values.SelectMany(d => d.Positions, Tuple.Create)
-                                                .ToLookup(p => p.Item2.TypeId, p => p.Item1);
+                                                .GroupBy(p => p.Item2.TypeId, p => p.Item1)
+                                                .ToDictionary(p=>p.Key, p=>new List<Document>(p.Distinct()));
         }
 
         /// <summary>
@@ -217,7 +218,8 @@ namespace Dot42.Mapping
             document = null;
             position = null;
 
-            var docs = documentsByTypeId != null ? documentsByTypeId[type.Id] : documents.Values;
+            var docs = documentsByTypeId == null ? documents.Values 
+                                                 : (IEnumerable<Document>) documentsByTypeId[type.Id];
 
             foreach (var doc in docs)
             {
@@ -249,7 +251,8 @@ namespace Dot42.Mapping
         /// </summary>
         public IEnumerable<Tuple<Document, DocumentPosition>> GetLocations(TypeEntry type, MethodEntry method)
         {
-            var docs = documentsByTypeId != null ? documentsByTypeId[type.Id] : documents.Values;
+            var docs = documentsByTypeId == null ? documents.Values
+                                                 : (IEnumerable<Document>)documentsByTypeId[type.Id];
 
             foreach (var doc in docs)
             {
