@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Dot42.CecilExtensions;
 using Dot42.CompilerLib.Extensions;
 using Mono.Cecil;
@@ -13,6 +14,8 @@ namespace Dot42.CompilerLib.Ast.Extensions
     /// </summary>
     public static partial class AssemblyCompilerExtensions
     {
+        private static readonly ConditionalWeakTable<TypeDefinition, TypeReference[]> InterfaceCache = new ConditionalWeakTable<TypeDefinition, TypeReference[]>();
+
         /// <summary>
         /// Gets the first method the given method overrides.
         /// </summary>
@@ -368,32 +371,35 @@ namespace Dot42.CompilerLib.Ast.Extensions
         /// <summary>
         /// Gets all interfaces implemented by the given type and all its parents.
         /// </summary>
-        internal static IEnumerable<TypeReference> GetImplementedInterfaces(this TypeDefinition type)
+        internal static IList<TypeReference> GetImplementedInterfaces(this TypeDefinition type)
         {
-            while (type != null)
+            return InterfaceCache.GetValue(type, currentType =>
             {
-                if (type.HasInterfaces)
+                var ret = new List<TypeReference>();
+
+                while (currentType != null)
                 {
-                    foreach (var intf in type.Interfaces)
+                    foreach (var intf in currentType.Interfaces)
                     {
-                        yield return intf.Interface;
+                        ret.Add(intf.Interface);
+
                         var intfDef = intf.Interface.GetElementType().Resolve();
+
                         if (intfDef != null)
                         {
                             if (intfDef != intf.Interface)
                             {
-                                yield return intfDef;
+                                ret.Add(intfDef);
                             }
-                            foreach (var x in GetImplementedInterfaces(intfDef))
-                            {
-                                yield return x;
-                            }
+
+                            ret.AddRange(GetImplementedInterfaces(intfDef));
                         }
                     }
-                }
 
-                type = (type.BaseType != null) ? type.BaseType.Resolve() : null;
-            }
+                    currentType = (currentType.BaseType != null) ? currentType.BaseType.Resolve() : null;
+                }
+                return ret.Distinct().ToArray();
+            });
         }
 
         /// <summary>
