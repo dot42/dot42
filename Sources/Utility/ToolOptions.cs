@@ -345,5 +345,7 @@
         /// Check forwarders in assembly
         /// </summary>
         public static readonly ToolOption CheckForwarders = new ToolOption("chkfwa=");
+
+        public static readonly ToolOption EnableCompilerCache = new ToolOption("enable-compiler-cache");
     }
 }

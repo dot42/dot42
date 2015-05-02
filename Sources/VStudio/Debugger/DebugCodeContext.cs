@@ -57,10 +57,10 @@ namespace Dot42.VStudio.Debugger
 
                 if ((dwFields & enum_CONTEXT_INFO_FIELDS.CIF_FUNCTIONOFFSET) != 0)
                 {
-                    if (loc.Position != null && !loc.Position.IsSpecial)
+                    if (loc.SourceCode != null && !loc.SourceCode.IsSpecial)
                     {
                         info.dwFields |= enum_CONTEXT_INFO_FIELDS.CIF_FUNCTIONOFFSET;
-                        info.posFunctionOffset.dwLine = (uint) loc.Position.MethodOffset;
+                        info.posFunctionOffset.dwLine = (uint) loc.SourceCode.Position.MethodOffset;
                     }
                 }
 

@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Dot42.ApkLib.Resources;
+using Dot42.CompilerLib.CompilerCache;
 using Dot42.CompilerLib.Reachable;
 using Dot42.CompilerLib.Structure.DotNet;
 using Dot42.CompilerLib.Target;
@@ -20,6 +22,7 @@ namespace Dot42.CompilerLib
         private readonly XModule module;
         private readonly bool generateSetNextInstructionCode;
         private readonly AssemblyClassLoader assemblyClassLoader;
+        private readonly Func<AssemblyDefinition, string> assemblyToFilename;
         private readonly HashSet<string> rootClassNames;
         private readonly CompilationMode mode;
         private readonly List<AssemblyDefinition> assemblies;
@@ -35,11 +38,16 @@ namespace Dot42.CompilerLib
         private bool? addPropertyAnnotations;
         private bool? addAssemblyTypesAnnotation;
         private readonly ITargetPackage targetPackage;
+        private readonly DexMethodBodyCompilerCache methodBodyCompilerCache;
 
         /// <summary>
         /// Default ctor
         /// </summary>
-        public AssemblyCompiler(CompilationMode mode, List<AssemblyDefinition> assemblies, List<AssemblyDefinition> references, Table resources, NameConverter nameConverter, bool generateDebugInfo, AssemblyClassLoader assemblyClassLoader, HashSet<string> rootClassNames, XModule module, bool generateSetNextInstructionCode)
+        public AssemblyCompiler(CompilationMode mode, List<AssemblyDefinition> assemblies, 
+                                List<AssemblyDefinition> references, Table resources, NameConverter nameConverter, 
+                                bool generateDebugInfo, AssemblyClassLoader assemblyClassLoader, 
+                                Func<AssemblyDefinition, string> assemblyToFilename, DexMethodBodyCompilerCache ccache,
+                                HashSet<string> rootClassNames, XModule module, bool generateSetNextInstructionCode)
         {
             this.mode = mode;
             this.assemblies = assemblies;
@@ -47,10 +55,12 @@ namespace Dot42.CompilerLib
             this.resources = resources;
             this.generateDebugInfo = generateDebugInfo;
             this.assemblyClassLoader = assemblyClassLoader;
+            this.assemblyToFilename = assemblyToFilename;
             this.rootClassNames = rootClassNames;
             this.module = module;
             this.generateSetNextInstructionCode = generateDebugInfo && generateSetNextInstructionCode;
             targetPackage = new Target.Dex.DexTargetPackage(nameConverter, this);
+            methodBodyCompilerCache = ccache;
         }
 
         public CompilationMode CompilationMode { get { return mode; } }
@@ -59,6 +69,7 @@ namespace Dot42.CompilerLib
         public Table ResourceTable { get { return resources; } }
         public MapFile MapFile { get { return mapFile; } }
         public bool GenerateSetNextInstructionCode { get { return generateSetNextInstructionCode; } }
+        internal DexMethodBodyCompilerCache MethodBodyCompilerCache { get { return methodBodyCompilerCache; } }
 
         /// <summary>
         /// Gets the classloader used by this compiler.
@@ -69,6 +80,7 @@ namespace Dot42.CompilerLib
         }
 
         
+
 
         /// <summary>
         /// Compile all types and members
@@ -121,8 +133,11 @@ namespace Dot42.CompilerLib
             // Verify
             targetPackage.VerifyBeforeSave(freeAppsKey);
 
-            // Optimize map file
+
+            // Create MapFile
+            RecordScopeMapping(reachableContext);
             classBuilders.ForEachWithExceptionMessage(x => x.RecordMapping(mapFile));
+
             mapFile.Optimize();
         }
 
@@ -192,7 +207,7 @@ namespace Dot42.CompilerLib
         /// </summary>
         internal int GetNextMapFileId()
         {
-            return ++lastMapFileId;
+            return Interlocked.Increment(ref lastMapFileId);
         }
 
         /// <summary>
@@ -256,6 +271,29 @@ namespace Dot42.CompilerLib
                 assembly.CustomAttributes.Any(
                     x => (x.AttributeType.Name == AttributeConstants.LibraryProjectReferenceAttributeName) &&
                          (x.AttributeType.Namespace == AttributeConstants.Dot42AttributeNamespace));
+        }
+
+        private void RecordScopeMapping(ReachableContext reachableContext)
+        {
+            foreach (var scope in reachableContext.ReachableTypes.GroupBy(g => g.Scope, g => g.Module.Assembly))
+            {
+                var assm = scope.Distinct().ToList();
+                if (assm.Count > 1)
+                {
+                    DLog.Warning(DContext.CompilerCodeGenerator, "More than one assembly for scope {0}", scope.Key.Name);
+                    // let's not risk a wrong mapping.
+                    continue;
+                }
+
+                var filename = assemblyToFilename(assm.First());
+
+                if (filename != null)
+                {
+                    var scopeEntry = new ScopeEntry(scope.Key.Name, filename, File.GetLastWriteTimeUtc(filename),
+                                                    Hash.HashFileMD5(filename));
+                    mapFile.Add(scopeEntry);
+                }
+            }
         }
     }
 }

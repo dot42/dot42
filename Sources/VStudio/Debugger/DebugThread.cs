@@ -136,14 +136,13 @@ namespace Dot42.VStudio.Debugger
                 return HResults.E_CANNOT_SETIP_TO_DIFFERENT_FUNCTION;
 
             var loc = stack.GetDocumentLocationAsync().Await(DalvikProcess.VmTimeout);
-            if (loc.Document == null)
+            if (loc.MethodEntry == null)
             {
                 DLog.Info(DContext.VSStatusBar, "Can not set next instruction: Debug info not available."); 
                 return HResults.E_CANNOT_SET_NEXT_STATEMENT_GENERAL;
             }  
 
             var nextInstrVar = loc.MethodEntry.Variables.FirstOrDefault(v => v.Name == DebuggerConstants.SetNextInstructionVariableName);
-            
             if (nextInstrVar == null)
             {
                 DLog.Info(DContext.VSStatusBar, "Can not set next instruction: missing compiler setting or method optimized.");
@@ -323,17 +322,17 @@ namespace Dot42.VStudio.Debugger
         /// Finds the next location with source starting from location; will return
         /// null if no source is found or if a jump instruction is encountered.
         /// </summary>
-        private static int? GetNextLocationWithSource(MethodDisassembly disassembly, int idx)
+        private int? GetNextLocationWithSource(MethodDisassembly disassembly, int idx)
         {
             var instructions = disassembly.Method.Body.Instructions;
 
             // find the next instruction with source code.
-            var loc = disassembly.GetNextSourceFromOffset(instructions[idx].Offset);
+            var loc = disassembly.FindNextSourceCode(instructions[idx].Offset);
 
             if (loc == null) 
                 return null;
 
-            for (; idx < loc.Item2.MethodOffset; ++idx)
+            for (; idx < loc.Position.MethodOffset; ++idx)
             {
                 if (instructions[idx].OpCode.IsJump())
                     return null;

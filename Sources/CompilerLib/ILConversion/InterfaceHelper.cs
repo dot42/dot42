@@ -108,7 +108,7 @@ namespace Dot42.CompilerLib.ILConversion
                 }
             }
             // Rename method itself
-            method.Name = newName;
+            method.SetName(newName);
         }
     }
 }

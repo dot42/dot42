@@ -120,14 +120,14 @@ namespace Dot42.ApkSpy.Tree
 
                             sb.AppendLine("Source code:");
                             Document lastDocument = null;
-                            foreach (var row in mapFile.GetLocations(typeEntry, methodEntry))
+                            foreach (var row in mapFile.GetSourceCodePositions(methodEntry))
                             {
-                                if (row.Item1 != lastDocument)
+                                if (row.Document != lastDocument)
                                 {
-                                    sb.AppendFormat("\t{0}{1}", row.Item1.Path, nl);
-                                    lastDocument = row.Item1;
+                                    sb.AppendFormat("\t{0}{1}", row.Document.Path, nl);
+                                    lastDocument = row.Document;
                                 }
-                                var pos = row.Item2;
+                                var pos = row.Position;
                                 sb.AppendFormat("\t{0:x4}\t({1},{2}) - ({3},{4}){5}", pos.MethodOffset, pos.Start.Line, pos.Start.Column, pos.End.Line, pos.End.Column, nl);
                             }
                         }

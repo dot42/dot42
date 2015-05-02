@@ -20,7 +20,7 @@ namespace Dot42.ApkSpy.Tree
         private readonly IApkFile apk;
         private readonly JarFile jar;
         private readonly ISpySettings settings;
-        private readonly MapFile mapFile;
+        private readonly MapFileLookup mapFile;
         private readonly string singleFilePath;
 
 #if DEBUG || ENABLE_SHOW_AST
@@ -30,7 +30,7 @@ namespace Dot42.ApkSpy.Tree
 #endif
         private readonly Dictionary<string, ClassFile> classFiles = new Dictionary<string, ClassFile>();
 
-        private SourceFile(IApkFile apk, JarFile jar, ISpySettings settings, MapFile mapFile, string singleFilePath = null)
+        private SourceFile(IApkFile apk, JarFile jar, ISpySettings settings, MapFileLookup mapFile, string singleFilePath = null)
         {
             this.apk = apk;
             this.jar = jar;
@@ -126,16 +126,17 @@ namespace Dot42.ApkSpy.Tree
             {
                 var mapFilePath = Path.ChangeExtension(path, ".d42map");
                 var mapFile = File.Exists(mapFilePath) ? new MapFile(mapFilePath) : null;
-                return new SourceFile(new ApkFileOpenOnAccessOnly(path), null, settings, mapFile);
+                var mapLookup = mapFile == null ? null : new MapFileLookup(mapFile);
+                return new SourceFile(new ApkFileOpenOnAccessOnly(path), null, settings, mapLookup);
             }
             if (path.EndsWith(".dex", StringComparison.OrdinalIgnoreCase))
             {
                 var mapFilePath = Path.ChangeExtension(path, ".d42map");
                 var mapFile = File.Exists(mapFilePath) ? new MapFile(mapFilePath) : null;
-
                 var tempFileName = CreateApkOnTheFly(path);
+                var mapLookup = mapFile == null ? null : new MapFileLookup(mapFile);
 
-                return new SourceFile(new ApkFile(tempFileName), null, settings, mapFile);
+                return new SourceFile(new ApkFile(tempFileName), null, settings, mapLookup);
             }
             if (path.EndsWith(".jar", StringComparison.OrdinalIgnoreCase))
                 return new SourceFile(null, new JarFile(File.OpenRead(path), path, null), settings, null);
@@ -179,7 +180,7 @@ namespace Dot42.ApkSpy.Tree
         /// Gets the map file loaded with the current file.
         /// Can return null.
         /// </summary>
-        MapFile ISpyContext.MapFile { get { return mapFile; } }
+        MapFileLookup ISpyContext.MapFile { get { return mapFile; } }
 
 #if DEBUG || ENABLE_SHOW_AST
         /// <summary>

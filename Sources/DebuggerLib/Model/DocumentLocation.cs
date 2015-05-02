@@ -10,8 +10,7 @@ namespace Dot42.DebuggerLib.Model
     public class DocumentLocation
     {
         public readonly Location Location;
-        public readonly Document Document; // Can be null
-        public readonly DocumentPosition Position; // Can be null
+        public readonly SourceCodePosition SourceCode; // Can be null
         public readonly DalvikReferenceType ReferenceType; // Can be null
         public readonly DalvikMethod Method; // Can be null
         private readonly TypeEntry typeEntry;
@@ -20,13 +19,12 @@ namespace Dot42.DebuggerLib.Model
         /// <summary>
         /// Default ctor
         /// </summary>
-        public DocumentLocation(Location location, Document document, DocumentPosition position, DalvikReferenceType referenceType, DalvikMethod method, TypeEntry typeEntry, MethodEntry methodEntry)
+        public DocumentLocation(Location location, SourceCodePosition sourceCode, DalvikReferenceType referenceType, DalvikMethod method, TypeEntry typeEntry, MethodEntry methodEntry)
         {
             if (location == null)
                 throw new ArgumentNullException("location");
             Location = location;
-            Document = document;
-            Position = position;
+            SourceCode = sourceCode;
             ReferenceType = referenceType;
             Method = method;
             this.typeEntry = typeEntry;

@@ -48,7 +48,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
         }
 
         /// <summary>
-        /// Ensure that the name of the field is unique.
+        /// Ensure that the name of the method is unique.
         /// </summary>
         private static void UpdateName(DexLib.MethodDefinition method, ClassDefinition declaringClass)
         {

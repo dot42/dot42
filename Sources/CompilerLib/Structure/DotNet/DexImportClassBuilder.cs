@@ -1,7 +1,10 @@
-﻿using Dot42.CompilerLib.Target;
+﻿using Dot42.CecilExtensions;
+using Dot42.CompilerLib.Target;
 using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel;
 using Dot42.DexLib;
+using Dot42.LoaderLib.Extensions;
+using Dot42.Mapping;
 using Dot42.Utility;
 using Mono.Cecil;
 using MethodDefinition = Mono.Cecil.MethodDefinition;
@@ -79,6 +82,16 @@ namespace Dot42.CompilerLib.Structure.DotNet
             if (method.IsPrivate && method.HasOverrides)
                 return false;
             return true;
+        }
+
+        protected override TypeEntry CreateMappingEntry()
+        {
+            // Create mapping
+            var dexName = Type.GetDexImportAttribute().ConstructorArguments[0].Value.ToString();
+            var mapFileId = 0;
+            var scopeId = Type.MetadataToken.ToScopeId();
+            var entry = new TypeEntry(Type.FullName, Type.Scope.Name, dexName, mapFileId, scopeId);
+            return entry;
         }
     }
 }

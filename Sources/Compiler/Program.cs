@@ -7,6 +7,7 @@ using Dot42.ApkLib.Resources;
 using Dot42.Compiler.Manifest;
 using Dot42.Compiler.Resources;
 using Dot42.CompilerLib;
+using Dot42.CompilerLib.CompilerCache;
 using Dot42.CompilerLib.XModel;
 using Dot42.ImportJarLib;
 using Dot42.LoaderLib.DotNet;
@@ -268,10 +269,28 @@ namespace Dot42.Compiler
                 table = new Table(stream);
             }
 
+            var ccache = new DexMethodBodyCompilerCache();
+            //if (options.EnableCompilerCache)
+            //{
+            //    ccache = new DexMethodBodyCompilerCache(options.OutputFolder, resolver.GetFileName);
+            //    foreach(var asm in assemblies)
+            //        ccache.AssemblyCache.AddAssembly(asm);
+            //    foreach (var asm in references)
+            //        ccache.AssemblyCache.AddAssembly(asm);
+            //}
+             
+
             // Create compiler
-            var compiler = new AssemblyCompiler(options.CompilationMode, assemblies, references, table, nsConverter, options.DebugInfo, classLoader, usedTypeNames, module,options.GenerateSetNextInstructionCode);
+            var compiler = new AssemblyCompiler(options.CompilationMode, assemblies, references, table, nsConverter,
+                                                options.DebugInfo, classLoader, resolver.GetFileName, ccache, 
+                                                usedTypeNames, module, options.GenerateSetNextInstructionCode);
             compiler.Compile();
+
+            ccache.PrintStatistics();
+
             compiler.Save(options.OutputFolder, options.FreeAppsKeyPath);
+
+            
         }
 
         private static HashSet<string> LoadResourceTypeUsageInformation(CommandLineOptions options)

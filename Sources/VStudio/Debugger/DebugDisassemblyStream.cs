@@ -14,7 +14,7 @@ namespace Dot42.VStudio.Debugger
 
         private int _instructionPointer;
 
-        Tuple<Document, DocumentPosition> _prevSource = null;
+        SourceCodePosition _prevSource = null;
         int _prevSourceInstructionOffset = -1;
 
         public DebugDisassemblyStream(DebugProgram program, DebugCodeContext documentContext)
@@ -74,11 +74,11 @@ namespace Dot42.VStudio.Debugger
 
                 if (wantsDocumentUrl || wantsPosition || wantsByteOffset)
                 {
-                    Tuple<Document, DocumentPosition> source = _method.GetSourceFromOffset(ins.Offset);
+                    var source = _method.FindSourceCode(ins.Offset);
 
-                    if(source != null && !source.Item2.IsSpecial)
+                    if(source != null && !source.IsSpecial)
                     {
-                        bool isSameDocAsPrevious = _prevSource != null && _prevSource.Item1.Path == source.Item1.Path;
+                        bool isSameDocAsPrevious = _prevSource != null && _prevSource.Document.Path == source.Document.Path;
 
                         if (!isSameDocAsPrevious)
                         {
@@ -88,7 +88,7 @@ namespace Dot42.VStudio.Debugger
 
                         if (wantsDocumentUrl || wantsPosition)
                         {
-                            insd.bstrDocumentUrl = "file://" + source.Item1.Path;
+                            insd.bstrDocumentUrl = "file://" + source.Document.Path;
                             insd.dwFields |= enum_DISASSEMBLY_STREAM_FIELDS.DSF_DOCUMENTURL;
                         }
 
@@ -96,17 +96,19 @@ namespace Dot42.VStudio.Debugger
 
                         if (wantsByteOffset)
                             insd.dwFields |= enum_DISASSEMBLY_STREAM_FIELDS.DSF_BYTEOFFSET;
-
-                        if (_prevSource == null || !_prevSource.Item2.Start.Equals(source.Item2.Start) || !_prevSource.Item2.End.Equals(source.Item2.End))
+                        
+                        var pos = source.Position;
+                        if (_prevSource == null || !_prevSource.Position.Start.Equals(pos.Start) || !_prevSource.Position.End.Equals(pos.End))
                         {
                             if (wantsPosition)
                             {
                                 // For reasons unknown to me, this crashes sometimes VS in debug mode,
                                 // and does not work in release mode. I've come to the conclusion
-                                // that this might be a bug in visual studio.
-                                insd.posBeg.dwLine = (uint)(source.Item2.Start.Line - 1);
+                                // that this might be a bug in visual studio; In any case I don't
+                                // think anything is wrong with these lines.
+                                insd.posBeg.dwLine = (uint)(pos.Start.Line - 1);
                                 insd.posBeg.dwColumn = 0;
-                                insd.posEnd.dwLine = (uint)(source.Item2.End.Line - 1);
+                                insd.posEnd.dwLine = (uint)(pos.End.Line - 1);
                                 insd.posEnd.dwColumn = uint.MaxValue;
                                 if (insd.posEnd.dwLine - insd.posBeg.dwLine > 3) // never show more then 3 lines.
                                     insd.posEnd.dwLine = insd.posBeg.dwLine + 3;
@@ -118,7 +120,7 @@ namespace Dot42.VStudio.Debugger
                             if ((dwFields & enum_DISASSEMBLY_STREAM_FIELDS.DSF_OPERANDS_SYMBOLS) != 0)
                             {
                                 insd.dwFields |= enum_DISASSEMBLY_STREAM_FIELDS.DSF_OPERANDS_SYMBOLS;
-                                insd.bstrSymbol = "File Position: "  + source.Item2.Start.ToString() + " - " + source.Item2.End.ToString();
+                                insd.bstrSymbol = "File Position: "  + pos.Start + " - " + pos.End;
                             }
 
                             insd.dwByteOffset = 0;
@@ -214,10 +216,10 @@ namespace Dot42.VStudio.Debugger
             var ctx = new DebugCodeContext(location);
 
             // try to set source code.
-            Tuple<Document, DocumentPosition> source = _method.GetSourceFromOffset((int)uCodeLocationId);
+            var source = _method.FindSourceCode((int)uCodeLocationId);
             if(source != null)
             { 
-                var docLoc = new DocumentLocation(location, source.Item1, source.Item2, _loc.ReferenceType, _loc.Method, _method.TypeEntry, _method.MethodEntry);
+                var docLoc = new DocumentLocation(location, source, _loc.ReferenceType, _loc.Method, _method.TypeEntry, _method.MethodEntry);
                 ctx.DocumentContext = new DebugDocumentContext(docLoc, ctx);
             }
 

@@ -14,8 +14,8 @@ namespace Dot42.VStudio.Debugger
         /// <summary>
         /// Default ctor
         /// </summary>
-        public DebugLocationBreakpoint(Jdwp.EventKind eventKind, Document document, DocumentPosition documentPosition, TypeEntry typeEntry, MethodEntry methodEntry, DebugBoundBreakpoint<DebugLocationBreakpoint> boundBreakpoint)
-            : base(eventKind, document, documentPosition, typeEntry, methodEntry)
+        public DebugLocationBreakpoint(Jdwp.EventKind eventKind, SourceCodePosition sourcePosition, TypeEntry typeEntry, MethodEntry methodEntry, DebugBoundBreakpoint<DebugLocationBreakpoint> boundBreakpoint)
+            : base(eventKind, sourcePosition, typeEntry, methodEntry)
         {
             this.boundBreakpoint = boundBreakpoint;
         }

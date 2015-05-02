@@ -136,8 +136,8 @@ namespace Dot42.Mapping
         }
 
         /// <summary>
-        /// return True if this is a compiler generated instruction
-        /// with no sourc code attached. Debugger should step through
+        /// return true if this is a compiler generated instruction
+        /// with no source code attached. Debuggers should step through
         /// the instruction.
         /// </summary>
         public bool IsSpecial

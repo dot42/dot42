@@ -21,7 +21,7 @@ namespace Dot42.DebuggerLib.Model
         private readonly Lazy<DalvikThreadManager> threadManager;
         private readonly Lazy<DalvikDisassemblyProvider> disassemblyProvider;
         private readonly DalvikStepManager stepManager = new DalvikStepManager();
-        private readonly MapFile mapFile;
+        private readonly MapFileLookup mapFile;
         private bool isSuspended;
 
         /// <summary>
@@ -37,14 +37,14 @@ namespace Dot42.DebuggerLib.Model
             ApkPath = apkPath;
             this.debugger = debugger;
             debugger.Process = this;
-            this.mapFile = mapFile;
+            this.mapFile = new MapFileLookup(mapFile);
             debugger.ConnectedChanged += OnDebuggerConnectionChanged;
             breakpointManager = new Lazy<DalvikBreakpointManager>(CreateBreakpointManager);
             exceptionManager = new Lazy<DalvikExceptionManager>(CreateExceptionManager);
             referenceTypeManager = new Lazy<DalvikReferenceTypeManager>(CreateReferenceTypeManager);
             threadManager = new Lazy<DalvikThreadManager>(CreateThreadManager);
             disassemblyProvider =
-                new Lazy<DalvikDisassemblyProvider>(() => new DalvikDisassemblyProvider(this, ApkPath, mapFile));
+                new Lazy<DalvikDisassemblyProvider>(() => new DalvikDisassemblyProvider(this, ApkPath, this.mapFile));
 
         }
 
@@ -139,7 +139,7 @@ namespace Dot42.DebuggerLib.Model
                 if (topFrame != null)
                 {
                     var location = topFrame.GetDocumentLocationAsync().Await(VmTimeout);
-                    if (location.Document == null)
+                    if (location.SourceCode == null)
                     {
                         // Not my code
                         StepOutLastRequestAsync(request);
@@ -150,8 +150,8 @@ namespace Dot42.DebuggerLib.Model
                     // compiler generated code (in which case dalvik will perform single stepping)
                     if (request.StepMode != StepMode.SingleInstruction)
                     {
-                        if (location.Position == null || location.Position.IsSpecial ||
-                            location.Location.Index < (ulong) location.Position.MethodOffset)
+                        if (location.SourceCode == null || location.SourceCode.IsSpecial ||
+                            location.Location.Index < (ulong)location.SourceCode.Position.MethodOffset)
                         {
                             var stepDepth = request.StepDepth == Jdwp.StepDepth.Out ? Jdwp.StepDepth.Over : request.StepDepth;
                             StepAsync(new StepRequest(request.Thread, stepDepth, request.StepMode));
@@ -238,36 +238,35 @@ namespace Dot42.DebuggerLib.Model
                 var typeClrName = refType.GetNameAsync().Await(VmTimeout);
                 typeEntry = mapFile.GetTypeByClrName(typeClrName);
             }
-            var methodDexName = (method != null) ? method.Name : null;
+            var methodDexName      = (method != null) ? method.Name : null;
             var methodDexSignature = (method != null) ? method.Signature : null;
-            var methodEntry = ((typeEntry != null) && (method != null))
-                ? typeEntry.FindDexMethod(methodDexName, methodDexSignature)
-                : null;
+            var methodEntry        = (method != null) 
+                                        ? typeEntry.FindDexMethod(methodDexName, methodDexSignature)
+                                        : null;
 
-            Document document = null;
-            DocumentPosition position = null;
+            SourceCodePosition position = null;
             if (methodEntry != null)
             {
-                mapFile.TryFindLocation(typeEntry, methodEntry, (int) location.Index, out document, out position);
+                position = mapFile.FindSourceCode(methodEntry, (int) location.Index);
             }
 
-            return new DocumentLocation(location, document, position, refType, method, typeEntry, methodEntry);
+            return new DocumentLocation(location, position, refType, method, typeEntry, methodEntry);
         }
 
         /// <summary>
-        /// Get a DocumentLocation from a DocumentPosition. This will only return locations
+        /// Get a DocumentLocation from a SourceCodePosition. This will only return locations
         /// for classes that have already been loaded by the VM. Delegates are typically not
         /// loaded until their first invocation.
         /// </summary>
-        public Task<DocumentLocation> GetLocationFromPositionAsync(Document doc, DocumentPosition pos)
+        public Task<DocumentLocation> GetLocationFromPositionAsync(SourceCodePosition sourcePos)
         {
             return Task.Factory.StartNew(() =>
             {
                 // Lookup class & method
-                var typeEntry = MapFile.GetTypeById(pos.TypeId);
+                var typeEntry = MapFile.GetTypeById(sourcePos.Position.TypeId);
                 if (typeEntry == null)
                     return null;
-                var methodEntry = typeEntry.GetMethodById(pos.MethodId);
+                var methodEntry = typeEntry.GetMethodById(sourcePos.Position.MethodId);
                 if (methodEntry == null)
                     return null;
 
@@ -276,14 +275,14 @@ namespace Dot42.DebuggerLib.Model
                 if (refType == null)
                     return null;
 
-                var refTypeMethods = refType.GetMethodsAsync().Await(DalvikProcess.VmTimeout);
+                var refTypeMethods = refType.GetMethodsAsync().Await(VmTimeout);
                 var dmethod = refTypeMethods.FirstOrDefault(x => x.IsMatch(methodEntry));
                 if (dmethod == null)
                     return null;
 
-                var loc = new Location(refType.Id, dmethod.Id, (ulong)pos.MethodOffset);
+                var loc = new Location(refType.Id, dmethod.Id, (ulong)sourcePos.Position.MethodOffset);
 
-                return new DocumentLocation(loc, doc, pos, refType, dmethod, typeEntry, methodEntry);
+                return new DocumentLocation(loc, sourcePos, refType, dmethod, typeEntry, methodEntry);
             });
         }
 
@@ -327,7 +326,7 @@ namespace Dot42.DebuggerLib.Model
         /// <summary>
         /// Gets access to the debug map file.
         /// </summary>
-        protected internal MapFile MapFile { get { return mapFile; } }
+        protected internal MapFileLookup MapFile { get { return mapFile; } }
 
         /// <summary>
         /// Initialize the debugger so we're ready to start debugging.

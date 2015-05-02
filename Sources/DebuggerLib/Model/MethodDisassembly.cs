@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using Dot42.DexLib;
 using Dot42.DexLib.Instructions;
 using Dot42.Mapping;
-using NinjaTools.Collections;
 
 namespace Dot42.DebuggerLib.Model
 {
@@ -16,66 +11,21 @@ namespace Dot42.DebuggerLib.Model
         private readonly MethodEntry _methodEntry;
         private readonly ClassDefinition _classDef;
         private readonly MethodDefinition _methodDef;
-        private readonly MapFile _mapFile;
-        private readonly Lazy<IList<Tuple<Document, DocumentPosition>>> _locations;
+        private readonly MapFileLookup _mapFile;
 
         public ClassDefinition Class { get { return _classDef; } }
         public MethodDefinition Method { get { return _methodDef; } }
         public MethodEntry MethodEntry { get { return _methodEntry; } }
         public TypeEntry TypeEntry { get { return _typeEntry; } }
-        public IList<Tuple<Document, DocumentPosition>> Locations { get { return _locations.Value; } }
 
-        public MethodDisassembly(TypeEntry typeEntry, ClassDefinition classDef, MethodEntry methodEntry, MethodDefinition methodDef, MapFile mapFile)
+        public MethodDisassembly(TypeEntry typeEntry, ClassDefinition classDef, MethodEntry methodEntry, MethodDefinition methodDef, MapFileLookup mapFile)
         {
             _typeEntry = typeEntry;
             _classDef = classDef;
             _methodEntry = methodEntry;
             _methodDef = methodDef;
             _mapFile = mapFile;
-            _locations = new Lazy<IList<Tuple<Document, DocumentPosition>>>(() =>
-                _mapFile.GetLocations(_typeEntry, _methodEntry)
-                        .OrderBy(p => p.Item2.MethodOffset)
-                        .ToList()
-                        .AsReadOnly());
         }
-
-        /// <summary>
-        /// Returns the source code position at the specified method offset,
-        /// or null of none.
-        /// </summary>
-        /// <param name="offset"></param>
-        /// <returns></returns>
-        public Tuple<Document, DocumentPosition> GetSourceFromOffset(int offset)
-        {
-            var loc = Locations;
-
-            int idx = loc.FindLastIndexSmallerThanOrEqualTo(offset, p => p.Item2.MethodOffset);
-            if (idx != -1)
-                return loc[idx];
-
-            return null;
-        }
-
-        /// <summary>
-        /// Beginning at offset, returns the next available position with source code.
-        /// Will not return positions with "IsSpecial" flag set.
-        /// </summary>
-        public Tuple<Document, DocumentPosition> GetNextSourceFromOffset(int offset)
-        {
-            var loc = Locations;
-
-            int idx = loc.FindFirstIndexGreaterThanOrEqualTo(offset, p => p.Item2.MethodOffset);
-            while (idx != -1 && idx < loc.Count)
-            {
-                var ret = loc[idx];
-                if (ret.Item2.IsSpecial)
-                    continue;
-                return ret;
-            }
-
-            return null;
-        }
-
 
         public string FormatAddress(Instruction ins)
         {
@@ -186,5 +136,25 @@ namespace Dot42.DebuggerLib.Model
             int add = (tabSize - b.Length % tabSize) % tabSize;
             b.Append(' ', add);
         }
+
+        /// <summary>
+        /// Try to find the source code at offset
+        /// </summary>
+        /// <returns>null, if not found</returns>
+        public SourceCodePosition FindSourceCode(int offset, bool allowSpecial=true)
+        {
+            return _mapFile.FindSourceCode(_methodEntry, offset, allowSpecial);
+        }
+
+        /// <summary>
+        /// Beginning at offset, returns the next available source code position.
+        /// Will not return positions with "IsSpecial" flag set.
+        /// </summary>
+        /// <returns>null, if not found</returns>
+        public SourceCodePosition FindNextSourceCode(int offset)
+        {
+            return _mapFile.FindNextSourceCode(_methodEntry, offset);
+        }
+
     }
 }

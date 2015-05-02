@@ -17,6 +17,7 @@ namespace Dot42.LoaderLib.DotNet
         private readonly AssemblyClassLoader classLoader;
         private readonly List<string> referenceFolders;
         private readonly Dictionary<string, AssemblyDefinition> references = new Dictionary<string, AssemblyDefinition>();
+        private readonly Dictionary<AssemblyDefinition, string> fileNames = new Dictionary<AssemblyDefinition, string>();
         private readonly Action<AssemblyDefinition> assemblyLoaded;
 
         /// <summary>
@@ -61,6 +62,7 @@ namespace Dot42.LoaderLib.DotNet
             if (references.TryGetValue(key, out existing))
                 return existing;
             references.Add(key, asm);
+            fileNames.Add(asm, fullPath);
             return asm;
         }
 
@@ -98,6 +100,9 @@ namespace Dot42.LoaderLib.DotNet
                 var reference = AssemblyDefinition.ReadAssembly(path, parameters);
                 references[name.Name] = reference;
                 VerifyFrameworkAssembly(reference, path);
+
+                fileNames.Add(reference, path);
+
                 if (assemblyLoaded != null)
                 {
                     assemblyLoaded(reference);
@@ -106,6 +111,7 @@ namespace Dot42.LoaderLib.DotNet
                 {
                     classLoader.LoadAssembly(reference);
                 }
+
                 return reference;
             }
             catch (Exception ex)
@@ -122,6 +128,16 @@ namespace Dot42.LoaderLib.DotNet
                 // Pass the error on
                 throw new AssemblyResolutionException(name);
             }
+        }
+
+        /// <summary>
+        /// returns the filename of the assembly definition, or null if none.
+        /// </summary>
+        public string GetFileName(AssemblyDefinition def)
+        {
+            if(fileNames.ContainsKey(def))
+                return fileNames[def];
+            return null;
         }
 
         /// <summary>

@@ -48,6 +48,7 @@
     <Compile Include="AnnotationVisibility.cs" />
     <Compile Include="CompositeType.cs" />
     <Compile Include="ByReferenceType.cs" />
+    <Compile Include="DexLookup.cs" />
     <Compile Include="Extensions\ResolveExtensions.cs" />
     <Compile Include="Generated\OpCodes.cs">
       <SubType>Code</SubType>

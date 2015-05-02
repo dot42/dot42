@@ -224,7 +224,7 @@ namespace Dot42.CompilerLib.ILConversion
                         methodRef.Name = newName;
                     }
                 }
-                method.Name = newName;
+                method.SetName(newName);
             }
 
             /// <summary>

@@ -28,6 +28,7 @@ namespace Dot42.DexLib
         public void AddClass(ClassDefinition classDef)
         {
             Classes.Add(classDef);
+
         }
 
         public static Dex Read(string filename, bool bufferize)

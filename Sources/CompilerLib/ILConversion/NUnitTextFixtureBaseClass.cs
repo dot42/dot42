@@ -82,7 +82,7 @@ namespace Dot42.CompilerLib.ILConversion
                 foreach (var method in testFixtureType.Methods)
                 {
                     if (new[] {"SetUp", "TearDown", "CountTestCases", "RunTest"}.Contains(method.Name))
-                        method.Name = method.Name + "Impl";
+                        method.SetName(method.Name + "Impl");
                 }
             }
 

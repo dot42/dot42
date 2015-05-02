@@ -115,6 +115,13 @@ namespace Dot42.CompilerLib.Target.Dex
         void ITargetPackage.CompileToTarget(bool generateDebugInfo, MapFile mapFile)
         {
             compiledMethods.ForEach(x => x.CompileToTarget(this, generateDebugInfo, mapFile));
+
+            if (mapFile != null && generatedCodeClass != null)
+            {
+                // Only generate the type name; the methods are generated under their respective type. 
+                var typeEntry = new TypeEntry("(generated)", "(none)", generatedCodeClass.Fullname, -1);
+                mapFile.Add(typeEntry);
+            }
         }
 
         /// <summary>

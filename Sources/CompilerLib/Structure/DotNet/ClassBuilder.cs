@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using Dot42.CecilExtensions;
 using Dot42.CompilerLib.Ast.Extensions;
@@ -281,16 +282,29 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// </summary>
         public void RecordMapping(MapFile mapFile)
         {
-            // Create mapping
-            var dexName = (classDef != null) ? classDef.Fullname : null;
-            var mapFileId = (classDef != null) ? classDef.MapFileId : 0;
-            var entry = new TypeEntry(typeDef.FullName, typeDef.Scope.Name, dexName, mapFileId);
+            var entry = CreateMappingEntry();
+
+            mapFile.Add(entry);
+
             if (fieldBuilders != null) fieldBuilders.ForEach(x => x.RecordMapping(entry));
             if (methodBuilders != null) methodBuilders.ForEach(x => x.RecordMapping(entry));
-            mapFile.Add(entry);
 
             // Create mapping of nested classes
             if (nestedBuilders != null) nestedBuilders.ForEach(x => x.RecordMapping(mapFile));
+        }
+
+        protected virtual TypeEntry CreateMappingEntry()
+        {
+            if (classDef == null)
+            {
+                DLog.Warning(DContext.CompilerCodeGenerator, "dexName not available for type {0}.", typeDef.FullName);
+            }
+            // Create mapping
+            var dexName = (classDef != null) ? classDef.Fullname : null;
+            var mapFileId = (classDef != null) ? classDef.MapFileId : 0;
+            var scopeId = typeDef.MetadataToken.ToScopeId();
+            var entry = new TypeEntry(typeDef.FullName, typeDef.Scope.Name, dexName, mapFileId, scopeId);
+            return entry;
         }
 
         /// <summary>

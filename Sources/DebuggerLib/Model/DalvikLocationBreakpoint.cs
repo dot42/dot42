@@ -11,14 +11,9 @@ namespace Dot42.DebuggerLib.Model
     public class DalvikLocationBreakpoint : DalvikBreakpoint
     {
         /// <summary>
-        /// Gets the document where this breakpoint was intended to be set.
+        /// The SourceCodePosition the breakpoint was orginially intended to be set.
         /// </summary>
-        public readonly Document Document;
-        /// <summary>
-        /// Gets the position where this breakpoint was intended to be set.
-        /// </summary>
-        /// 
-        public readonly DocumentPosition DocumentPosition;
+        public readonly SourceCodePosition SourceCodePosition;
 
         private readonly TypeEntry typeEntry;
         private readonly MethodEntry methodEntry;
@@ -29,11 +24,9 @@ namespace Dot42.DebuggerLib.Model
         /// <summary>
         /// Default ctor
         /// </summary>
-        public DalvikLocationBreakpoint(Jdwp.EventKind eventKind, Document document, DocumentPosition documentPosition, TypeEntry typeEntry, MethodEntry methodEntry)
+        public DalvikLocationBreakpoint(Jdwp.EventKind eventKind, SourceCodePosition sourcePosition, TypeEntry typeEntry, MethodEntry methodEntry)
             : base(eventKind)
         {
-            Document = document;
-            DocumentPosition = documentPosition;
             this.typeEntry = typeEntry;
             this.methodEntry = methodEntry;
         }
@@ -99,7 +92,6 @@ namespace Dot42.DebuggerLib.Model
                 return location;
 
             // Lookup classid & methodid
-            var pos = DocumentPosition;
             var signature = typeEntry.DexSignature;
             var referenceTypeManager = process.ReferenceTypeManager;
 
@@ -131,9 +123,10 @@ namespace Dot42.DebuggerLib.Model
             }
 
             // return location.
-            location = new Location(refType.Id, dmethod.Id, (ulong) pos.MethodOffset);
+            var pos = SourceCodePosition;
 
-            documentLocation = new DocumentLocation(location, Document, DocumentPosition, refType, dmethod, typeEntry, methodEntry);
+            location = new Location(refType.Id, dmethod.Id, (ulong) pos.Position.MethodOffset);
+            documentLocation = new DocumentLocation(location, pos, refType, dmethod, typeEntry, methodEntry);
 
             return location;
         }

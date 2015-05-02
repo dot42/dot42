@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using Dot42.ApkLib;
 using Dot42.DexLib;
 using Dot42.JvmClassLib;
@@ -14,10 +15,10 @@ namespace Dot42.DebuggerLib.Model
         
         private readonly string _apkPath;
         private readonly Lazy<Dex> _dex;
-        private readonly MapFile _mapFile;
+        private readonly MapFileLookup _mapFile;
 
 
-        public DalvikDisassemblyProvider(DalvikProcess process, string apkPath, MapFile mapFile)
+        public DalvikDisassemblyProvider(DalvikProcess process, string apkPath, MapFileLookup mapFile)
         {
             _process = process;
             _apkPath = apkPath;
@@ -27,7 +28,7 @@ namespace Dot42.DebuggerLib.Model
        
         public MethodDisassembly GetFromLocation(DocumentLocation loc)
         {
-            string className = null, methodName= null;
+            string className = null, methodName= null, methodSignature = null;
 
             if (loc == null)
                 return null;
@@ -44,11 +45,13 @@ namespace Dot42.DebuggerLib.Model
                     className = typeDef.ClassName.Replace("/", ".");
                 }
                 methodName = loc.Method.Name;
+                methodSignature = loc.Method.Signature;
             }
 
             if (methodName == null && loc.MethodEntry != null)
             {
                 methodName = loc.MethodEntry.DexName;
+                methodSignature = loc.MethodEntry.Signature;
             }
 
             if (methodName == null || className == null)
@@ -58,7 +61,8 @@ namespace Dot42.DebuggerLib.Model
             if (classDef == null)
                 return null;
 
-            var methodDef = classDef.GetMethod(methodName);
+            var methodDef = loc.MethodEntry != null ? classDef.Methods.FirstOrDefault(m => m.MapFileId == loc.MethodEntry.Id) 
+                                                    : classDef.GetMethods(methodName).SingleOrDefault(m=>m.Prototype.ToSignature() == methodSignature);
 
             if (methodDef == null)
                 return null;

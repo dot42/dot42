@@ -40,11 +40,11 @@ namespace Dot42.VStudio.Debugger
         /// <summary>
         /// Create a new location breakpoint.
         /// </summary>
-        protected override DalvikLocationBreakpoint CreateLocationBreakpoint(Document document, DocumentPosition documentPosition, TypeEntry typeEntry, MethodEntry methodEntry, object data)
+        protected override DalvikLocationBreakpoint CreateLocationBreakpoint(SourceCodePosition sourceCode, TypeEntry typeEntry, MethodEntry methodEntry, object data)
         {
             // Create breakpoint objects
             var pendingBreakpoint = (DebugPendingBreakpoint)data;
-            var boundBreakpoint = new DebugBoundBreakpoint<DebugLocationBreakpoint>(pendingBreakpoint, this, enum_BP_TYPE.BPT_CODE, x => new DebugLocationBreakpoint(Jdwp.EventKind.BreakPoint, document, documentPosition, typeEntry, methodEntry, x));
+            var boundBreakpoint = new DebugBoundBreakpoint<DebugLocationBreakpoint>(pendingBreakpoint, this, enum_BP_TYPE.BPT_CODE, x => new DebugLocationBreakpoint(Jdwp.EventKind.BreakPoint, sourceCode, typeEntry, methodEntry, x));
 
             // Return breakpoint
             return boundBreakpoint.Breakpoint;

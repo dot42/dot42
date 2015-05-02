@@ -243,7 +243,7 @@ namespace Dot42.ApkBuilder
             if (mapFiles.Count == 1) return mapFiles[0];
 
             var result = new MapFile();
-            foreach (var entry in mapFiles.SelectMany(mapFile => mapFile))
+            foreach (var entry in mapFiles.SelectMany(mapFile => mapFile.TypeEntries))
             {
                 result.Add(entry);
             }

@@ -62,7 +62,7 @@ namespace Dot42.Mapping
         /// Try to find the position that has the best match with the given parameters.
         /// </summary>
         /// <returns>Null if not found</returns>
-        public DocumentPosition Find(int startLine, int startCol, int endLine, int endCol)
+        public SourceCodePosition Find(int startLine, int startCol, int endLine, int endCol)
         {
             // find the intersecting position that has the smallest distance to startLine/startCol
             return FindAll(startLine,startCol, endLine, endCol).FirstOrDefault();
@@ -72,13 +72,13 @@ namespace Dot42.Mapping
         /// Finds all positions that match with the given parameters, order by best match.
         /// </summary>
         /// <returns>Null if not found</returns>
-        public IEnumerable<DocumentPosition> FindAll(int startLine, int startCol, int endLine, int endCol)
+        public IEnumerable<SourceCodePosition> FindAll(int startLine, int startCol, int endLine, int endCol)
         {
             // order by distance, but strongly prefer earlier locations.
             return positions.Where(x => x.Intersects(startLine, startCol, endLine, endCol))
                             .Select(pos=>new {pos, dist=(startLine - pos.Start.Line) * 1000 + startCol - pos.Start.Column})
                             .OrderBy(t => t.dist < 0 ? -t.dist + 1000000: t.dist)
-                            .Select(t=>t.pos);
+                            .Select(t=>new SourceCodePosition(this, t.pos));
         }
 
         /// <summary>

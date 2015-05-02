@@ -19,16 +19,18 @@ namespace Dot42.Mapping
         private readonly List<PropertyEntry> properties;
         private readonly List<EventEntry> events;
         private readonly int mapFileId;
+        private readonly string scopeId;
 
         /// <summary>
         /// Default ctor
         /// </summary>
-        public TypeEntry(string name, string scope, string dexName, int mapFileId)
+        public TypeEntry(string name, string scope, string dexName, int mapFileId, string scopeId=null)
         {
             this.name = name;
             this.scope = scope;
             this.dexName = dexName;
             this.mapFileId = mapFileId;
+            this.scopeId = scopeId;
 
             methods = new List<MethodEntry>();
             fields = new List<FieldEntry>();
@@ -51,6 +53,8 @@ namespace Dot42.Mapping
                 dexName = dexName.Substring(scope.Length + 2);
             }
 
+            scopeId = e.GetAttribute("scopeid");
+
             methods = e.Elements("method").Select(e1 => new MethodEntry(e1)).ToList();
             fields = ReadMembers(e, "field", x => new FieldEntry(x));
             properties = ReadMembers(e, "property", x => new PropertyEntry(x)); 
@@ -66,11 +70,15 @@ namespace Dot42.Mapping
                                  new XAttribute("name", name),
                                  new XAttribute("scope", scope),
                                  new XAttribute("id", mapFileId.ToString()));
+            
             if (dexName != null) e.Add(new XAttribute("dname", dexName));
+            if (scopeId != null) e.Add(new XAttribute("scopeid", scopeId));
+
             e.Add(methods.Select(x => x.ToXml("method")));
             e.Add(fields.Select(x => x.ToXml("field")));
             e.Add(properties.Select(x => x.ToXml("property")));
             e.Add(events.Select(x => x.ToXml("event")));
+
             return e;
         }
 
@@ -83,6 +91,11 @@ namespace Dot42.Mapping
         /// Scope (assembly) of the type in .NET
         /// </summary>
         public string Scope { get { return scope; } }
+
+        /// <summary>
+        /// Id of the type in its Scope (assembly)
+        /// </summary>
+        public string ScopeId { get { return scopeId; } }
 
         /// <summary>
         /// Name of the type in Dex
@@ -102,6 +115,7 @@ namespace Dot42.Mapping
         /// <summary>
         /// Find the method based on its dex name and signature.
         /// </summary>
+        [Obsolete("use MapFileLookup.FindMethodByDexSignature(), which also handles some special cases")]
         public MethodEntry FindDexMethod(string dexName, string dexSignature)
         {
             foreach (var entry in Methods)
@@ -128,6 +142,7 @@ namespace Dot42.Mapping
         /// Gets a method by its map file id.
         /// </summary>
         /// <returns>Null if not found</returns>
+        [Obsolete("use MapFileLookup which also handles some special cases")]
         public MethodEntry GetMethodById(int id)
         {
             return methods.FirstOrDefault(x => x.Id == id);

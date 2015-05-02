@@ -795,7 +795,7 @@ namespace Dot42.DexLib.IO
 
                                                                                   var mref = new MethodReference();
                                                                                   mref.Owner =
-                                                                                      (CompositeType)
+                                                                                      (ClassReference) // TODO: find out why this used to be a CompositiveType instead of ClassReference
                                                                                       typeReferences[classIndex];
                                                                                   // Clone the prototype so we can annotate & update it easily
                                                                                   mref.Prototype = prototypes[prototypeIndex].Clone();

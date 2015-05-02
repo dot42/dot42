@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
+using System.Text;
 using Dot42.CecilExtensions;
 using Dot42.CompilerLib.Ast.Extensions;
 using Dot42.CompilerLib.Extensions;
@@ -168,15 +170,22 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 return;
 
             // Create body (if any)
-            if (method.HasBody)
-            {
-                ExpandSequencePoints(method.Body);
-                var source = new MethodSource(xMethod, method);
+            if (!method.HasBody) return;
 
-                bool generateSetNextInstructionCode = compiler.GenerateSetNextInstructionCode && method.DeclaringType.IsInDebugBuildAssembly();
+            var source = new MethodSource(xMethod, method);
 
-                DexMethodBodyCompiler.TranslateToRL(compiler, targetPackage, source, dmethod, generateSetNextInstructionCode, out compiledMethod);
-            }
+            //var body = compiler.MethodBodyCompilerCache.GetFromCache(dmethod, method, compiler, targetPackage);
+            //if (body != null)
+            //{
+            //    //Trace.WriteLine("found cached body for " + method.FullName);
+            //}
+
+            ExpandSequencePoints(method.Body);
+            
+
+            bool generateSetNextInstructionCode = compiler.GenerateSetNextInstructionCode && method.DeclaringType.IsInDebugBuildAssembly();
+
+            DexMethodBodyCompiler.TranslateToRL(compiler, targetPackage, source, dmethod, generateSetNextInstructionCode, out compiledMethod);
         }
 
         /// <summary>
@@ -258,7 +267,14 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// </summary>
         public void RecordMapping(TypeEntry typeEntry)
         {
-            var entry = new MethodEntry(method.Name, "", dmethod.Name, dmethod.Prototype.ToSignature(), dmethod.MapFileId);
+            var scopeId = method.DeclaringType.Methods.IndexOf(method)
+                                .ToString(CultureInfo.InvariantCulture);
+
+            StringBuilder netSignature = new StringBuilder();
+            method.MethodSignatureFullName(netSignature);
+
+            var entry = new MethodEntry(method.OriginalName, netSignature.ToString(), dmethod.Name, dmethod.Prototype.ToSignature(), dmethod.MapFileId, scopeId);
+            
             typeEntry.Methods.Add(entry);
 
             if (compiledMethod != null)

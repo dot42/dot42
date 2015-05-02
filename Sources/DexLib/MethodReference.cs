@@ -8,14 +8,14 @@ namespace Dot42.DexLib
         {
         }
 
-        public MethodReference(CompositeType owner, string name, Prototype prototype) : this()
+        public MethodReference(ClassReference owner, string name, Prototype prototype) : this()
         {
             Owner = owner;
             Name = name;
             Prototype = prototype;
         }
 
-        public CompositeType Owner { get; set; }
+        public ClassReference Owner { get; set; }
         public Prototype Prototype { get; set; }
 
         public string Name { get; set; }

@@ -54,9 +54,9 @@ namespace Dot42.VStudio.Debugger
         /// </summary>
         public int GetName(enum_GETNAME_TYPE gnType, out string pbstrFileName)
         {
-            if (DocumentLocation.Document != null)
+            if (DocumentLocation.SourceCode != null)
             {
-                pbstrFileName = DocumentLocation.Document.Path;
+                pbstrFileName = DocumentLocation.SourceCode.Document.Path;
                 return VSConstants.S_OK;
             }
             pbstrFileName = null;
@@ -86,9 +86,13 @@ namespace Dot42.VStudio.Debugger
         public int GetStatementRange(TEXT_POSITION[] pBegPosition, TEXT_POSITION[] pEndPosition)
         {
             DLog.Debug(DContext.VSDebuggerComCall, "DebugDocumentContext.GetStatementRange");
-            var position = DocumentLocation.Position;
-            if (position == null)
+
+            var sourcePosition = DocumentLocation.SourceCode;
+            if (sourcePosition == null)
                 return VSConstants.E_FAIL;
+
+            var position = sourcePosition.Position;
+
             // TEXT_POSITION starts counting at 0
             pBegPosition[0].dwLine = (uint) (position.Start.Line - 1);
             pBegPosition[0].dwColumn = (uint) (position.Start.Column - 1);
@@ -107,10 +111,12 @@ namespace Dot42.VStudio.Debugger
         public int GetSourceRange(TEXT_POSITION[] pBegPosition, TEXT_POSITION[] pEndPosition)
         {
             DLog.Debug(DContext.VSDebuggerComCall, "DebugDocumentContext.GetSourceRange");
-            
-            var position = DocumentLocation.Position;
-            if (position == null)
+
+            var sourcePosition = DocumentLocation.SourceCode;
+            if (sourcePosition == null)
                 return VSConstants.E_FAIL;
+
+            var position = sourcePosition.Position;
 
             // TEXT_POSITION starts counting at 0
             pBegPosition[0].dwLine = (uint)(position.Start.Line - 1);

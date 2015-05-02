@@ -66,6 +66,7 @@ namespace Dot42.Compiler
                 { ToolOptions.NativeCodeLibrary, "Specify native code library", v => NativeCodeLibs.Add(v) },
                 { ToolOptions.ResourceTypeUsageInformationPath, "Resource type usage information path", v => ResourceTypeUsageInformationPath = v },
                 { ToolOptions.Target, "Set target", v => Target = v },
+                { ToolOptions.EnableCompilerCache, "Enable compiler cache", v => EnableCompilerCache = true },
                 // APK Builder
                 { ToolOptions.OutputPackage, "Set output package path", v => PackagePath = v },
                 { ToolOptions.InputCodeFile, "Add code file (*.dex)", v => DexFiles.Add(v) },
@@ -153,6 +154,7 @@ namespace Dot42.Compiler
         public string TargetSdkVersion { get; private set; }
         public string ResourceTypeUsageInformationPath { get; private set; }
         public bool GenerateSetNextInstructionCode { get; private set; }
+        public bool EnableCompilerCache { get; private set; }
 
         // APK Builder
         public string ManifestFile { get; private set; }

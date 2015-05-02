@@ -82,6 +82,8 @@ namespace Dot42.VStudio.Debugger
             return new DebugExceptionManager(this, eventCallback);
         }
 
+        internal new MapFileLookup MapFile { get { return base.MapFile; } }
+
         /// <summary>
         /// Debugger has disconnected.
         /// </summary>
@@ -378,7 +380,7 @@ namespace Dot42.VStudio.Debugger
                 return VSConstants.E_INVALIDARG;
 
             // Search matching document
-            var doc = MapFile.GetOrCreateDocument(fileName, false);
+            var doc = MapFile.FindDocument(fileName);
             if (doc == null)
                 throw new ArgumentException("Unknown document " + fileName);
 
@@ -398,7 +400,7 @@ namespace Dot42.VStudio.Debugger
 
             foreach (var pos in documentPositions)
             {
-                var loc = GetLocationFromPositionAsync(doc, pos).Await(VmTimeout);
+                var loc = GetLocationFromPositionAsync(pos).Await(VmTimeout);
                 if (loc == null)
                     continue;
 
@@ -407,9 +409,7 @@ namespace Dot42.VStudio.Debugger
                     continue;
                 
                 var ctx = new DebugCodeContext(loc.Location);
-                
-                // ReSharper disable once ObjectCreationAsStatement
-                new DebugDocumentContext(loc, ctx);
+                ctx.DocumentContext = new DebugDocumentContext(loc, ctx);
 
                 DLog.Debug(DContext.VSDebuggerComCall, "found {0}: {1}", loc.Description, loc.Location);
                 list.Add(ctx);

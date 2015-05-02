@@ -113,6 +113,10 @@
     <Compile Include="CompilationMode.cs" />
     <Compile Include="CompilationTarget.cs" />
     <Compile Include="CompiledMethod.cs" />
+    <Compile Include="CompilerCache\AssemblyTypeByScopeIdCache.cs" />
+    <Compile Include="CompilerCache\CompilerCacheFixupException.cs" />
+    <Compile Include="CompilerCache\DexMethodBodyCloner.cs" />
+    <Compile Include="CompilerCache\DexMethodBodyCompilerCache.cs" />
     <Compile Include="CompilerException.cs" />
     <Compile Include="CompositionRoot.cs" />
     <Compile Include="DexOptimizer\BranchOptimizer.cs" />
