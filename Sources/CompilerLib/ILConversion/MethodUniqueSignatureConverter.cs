@@ -86,8 +86,7 @@ namespace Dot42.CompilerLib.ILConversion
                 // Initialize some sets
                 var reachableMethods = reachableContext.ReachableTypes
                                                        .SelectMany(x => x.Methods)
-                                                       .Where(m => m.IsReachable)
-                                                       .OrderBy(x => x.FullName)
+                                                       .Where(m => m.IsReachable)                                                       
                                                        .ToList();
 
                 var methodNames = new NameSet(reachableMethods.Select(m => m.Name));

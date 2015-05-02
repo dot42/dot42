@@ -31,7 +31,7 @@ namespace Dot42.CompilerLib.ILConversion
 
         private class Converter : ILConverter
         {
-            private List<MethodDefinition> reachableMethods;
+            private ICollection<MethodDefinition> reachableMethods;
             private NameSet methodNames;
 
             /// <summary>
@@ -63,7 +63,10 @@ namespace Dot42.CompilerLib.ILConversion
                     return;
 
                 // Initialize some sets
-                reachableMethods = reachableContext.ReachableTypes.SelectMany(x => x.Methods).Where(m => m.IsReachable).OrderBy(x => x.FullName).ToList();
+                reachableMethods = reachableContext.ReachableTypes.SelectMany(x => x.Methods)
+                                                                  .Where(m => m.IsReachable)
+                                                                  .ToList();
+
                 methodNames = new NameSet(reachableMethods.Select(m => m.Name));
 
                 var reachableMethodReferences = InterfaceHelper.GetReachableMethodReferencesByName(reachableMethods);

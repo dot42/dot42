@@ -41,7 +41,7 @@ namespace Dot42.CompilerLib.ILConversion
             private List<MethodDefinition> reachableMethods;
             private List<TypeDefinition> interfaces;
             private readonly List<Tuple<MethodDefinition, string>> addedStubs = new List<Tuple<MethodDefinition, string>>();
-            private HashSet<MethodReference> methodReferences;
+            private ILookup<string, MethodReference> methodReferences;
 
             /// <summary>
             /// Convert interface methods that have an explicit implementation.
@@ -55,7 +55,9 @@ namespace Dot42.CompilerLib.ILConversion
                     return;
 
                 // Initialize some sets
-                reachableMethods = reachableContext.ReachableTypes.SelectMany(x => x.Methods).Where(m => m.IsReachable).OrderBy(x => x.FullName).ToList();
+                reachableMethods = reachableContext.ReachableTypes.SelectMany(x => x.Methods)
+                                                                  .Where(m => m.IsReachable)
+                                                                  .ToList();
                 methodNames = new NameSet(reachableMethods.Select(m => m.Name));
                 interfaces = reachableContext.ReachableTypes.Where(x => x.IsInterface).ToList();
 
@@ -213,9 +215,9 @@ namespace Dot42.CompilerLib.ILConversion
             /// </summary>
             private void Rename(MethodDefinition method, string newName)
             {
-                methodReferences = methodReferences ?? CollectMethodReferences();
+                methodReferences = methodReferences ?? InterfaceHelper.GetReachableMethodReferencesByName(reachableMethods);
                 var resolver = new GenericsResolver(method.DeclaringType);
-                foreach (var methodRef in methodReferences)
+                foreach (var methodRef in methodReferences[method.Name])
                 {
                     if (ReferenceEquals(method, methodRef))
                         continue;
@@ -227,25 +229,7 @@ namespace Dot42.CompilerLib.ILConversion
                 method.SetName(newName);
             }
 
-            /// <summary>
-            /// Create a set containing all method references found in the reachable methods.
-            /// </summary>
-            private HashSet<MethodReference> CollectMethodReferences()
-            {
-                var result = new HashSet<MethodReference>();
-                foreach (var body in reachableMethods.Select(x => x.Body).Where(x => x != null))
-                {
-                    foreach (var ins in body.Instructions)
-                    {
-                        var methodRef = ins.Operand as MethodReference;
-                        if (methodRef == null)
-                            continue;
-                        methodRef = methodRef.GetElementMethod();
-                        result.Add(methodRef);
-                    }
-                }
-                return result;
-            }
+          
 
             /// <summary>
             /// Gets all implementations of the given interface method.
