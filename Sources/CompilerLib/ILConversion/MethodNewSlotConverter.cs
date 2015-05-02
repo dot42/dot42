@@ -66,7 +66,7 @@ namespace Dot42.CompilerLib.ILConversion
                 reachableMethods = reachableContext.ReachableTypes.SelectMany(x => x.Methods).Where(m => m.IsReachable).OrderBy(x => x.FullName).ToList();
                 methodNames = new NameSet(reachableMethods.Select(m => m.Name));
 
-                var reachableMethodReferences = InterfaceHelper.GetReachableMethodReferences(reachableMethods);
+                var reachableMethodReferences = InterfaceHelper.GetReachableMethodReferencesByName(reachableMethods);
 
                 var baseMethodToImplementation = reachableMethods.Except(methodsToRename)
                                                                  .SelectMany(m => m.GetBaseMethods(),

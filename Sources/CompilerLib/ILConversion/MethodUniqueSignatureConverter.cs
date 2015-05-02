@@ -99,7 +99,7 @@ namespace Dot42.CompilerLib.ILConversion
                                                                                         (e,m)=>new { Impl=e, Base=m})
                                                                            .ToLookup(p=>p.Base, p=>p.Impl);
 
-                var reachableMethodReferences = InterfaceHelper.GetReachableMethodReferences(reachableMethods);
+                var reachableMethodReferences = InterfaceHelper.GetReachableMethodReferencesByName(reachableMethods);
                                                                                   
 
                 // Rename methods that need renaming

@@ -81,26 +81,36 @@ namespace Dot42.CompilerLib.ILConversion
             return newMethod;
         }
 
-        public static List<MethodReference> GetReachableMethodReferences(IEnumerable<MethodDefinition> reachableMethods)
+        public static IEnumerable<MethodReference> GetReachableMethodReferences(IEnumerable<MethodDefinition> reachableMethods)
         {
             var reachableMethodReferences = reachableMethods.Select(x => x.Body)
                                                             .Where(x => x != null)
                                                             .SelectMany(x => x.Instructions)
                                                             .Where(i => i.Operand is MethodReference)
-                                                            .Select(i => ((MethodReference)i.Operand).GetElementMethod())
-                                                            .ToList();
+                                                            .Select(i => ((MethodReference)i.Operand).GetElementMethod());
             return reachableMethodReferences;
         }
 
+        public static ILookup<string, MethodReference> GetReachableMethodReferencesByName(IEnumerable<MethodDefinition> reachableMethods)
+        {
+            return GetReachableMethodReferences(reachableMethods)
+                  .ToLookup(m=>m.Name);
+        }
+
+
         /// <summary>
         /// Rename the given method and all references to it from code.
+        /// 
+        /// Note that the passed lookup will not be accurate after completion of this method.
+        /// If you rename methods multiple times, but know that you will rename each single method
+        /// only once, this should not be a problem.
         /// </summary>
-        public static void Rename(MethodDefinition method, string newName, IEnumerable<MethodReference> reachableMethodReferences)
+        public static void Rename(MethodDefinition method, string newName, ILookup<string, MethodReference> reachableMethodReferencesByMethodName)
         {
             var resolver = new GenericsResolver(method.DeclaringType);
 
             // Rename reference to method
-            foreach (var methodRef in reachableMethodReferences)
+            foreach (var methodRef in reachableMethodReferencesByMethodName[method.Name])
             {
                 if (!ReferenceEquals(methodRef, method) && methodRef.AreSameIncludingDeclaringType(method, resolver.Resolve))
                 {
