@@ -869,7 +869,7 @@ namespace Dot42.DexLib.IO
 
             var topLevelClasses = ClassDefinition.Hierarchicalize(classes);
             var dex = new Dex();
-            dex.Classes.AddRange(topLevelClasses);
+            dex.AddRange(topLevelClasses);
             return dex;
         }
 

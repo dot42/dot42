@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Text;
 using Dot42.DexLib.Metadata;
 
@@ -6,9 +7,9 @@ namespace Dot42.DexLib
 {
     public class ClassReference : CompositeType, IMemberReference
     {
-        private string ns;
-        private string fullNameCache;
-        private string name;
+        protected string ns;
+        protected string fullNameCache;
+        protected string name;
         public const char NamespaceSeparator = '.';
         public const char InternalNamespaceSeparator = '/';
 
@@ -70,7 +71,7 @@ namespace Dot42.DexLib
         /// <summary>
         /// Namespace
         /// </summary>
-        public string Namespace
+        public virtual string Namespace
         {
             get { return ns; }
             set
@@ -80,7 +81,7 @@ namespace Dot42.DexLib
             }
         }
 
-        public string Fullname
+        public virtual string Fullname
         {
             get
             {
@@ -100,21 +101,22 @@ namespace Dot42.DexLib
                 var items = value.Split(NamespaceSeparator);
                 if (items.Length > 0)
                 {
-                    Name = items[items.Length - 1];
+                    name = items[items.Length - 1];
                     Array.Resize(ref items, items.Length - 1);
-                    Namespace = string.Join(NamespaceSeparator.ToString(), items);
+                    ns = string.Join(NamespaceSeparator.ToString(), items);
                 }
                 else
                 {
-                    Name = string.Empty;
-                    Namespace = string.Empty;
+                    name = string.Empty;
+                    ns = string.Empty;
                 }
+                fullNameCache = value;
             }
         }
 
         #region IMemberReference Members
 
-        public string Name
+        public virtual string Name
         {
             get { return name; }
             set

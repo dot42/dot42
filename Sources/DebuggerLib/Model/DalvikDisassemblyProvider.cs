@@ -14,7 +14,7 @@ namespace Dot42.DebuggerLib.Model
         private readonly DalvikProcess _process;
         
         private readonly string _apkPath;
-        private readonly Lazy<Dex> _dex;
+        private readonly Lazy<DexLookup> _dex;
         private readonly MapFileLookup _mapFile;
 
 
@@ -23,7 +23,7 @@ namespace Dot42.DebuggerLib.Model
             _process = process;
             _apkPath = apkPath;
             _mapFile = mapFile;
-            _dex = new Lazy<Dex>(LoadDex);
+            _dex = new Lazy<DexLookup>(LoadDex);
         }
        
         public MethodDisassembly GetFromLocation(DocumentLocation loc)
@@ -73,11 +73,11 @@ namespace Dot42.DebuggerLib.Model
             return new MethodDisassembly(typeEntry, classDef, methodEntry, methodDef, _mapFile);
         }
 
-        private Dex LoadDex()
+        private DexLookup LoadDex()
         {
             var apk = new ApkFile(_apkPath);
             var dex = apk.Load("classes.dex");
-            return Dex.Read(new MemoryStream(dex));
+            return new DexLookup(Dex.Read(new MemoryStream(dex)));
         }
     }
 }

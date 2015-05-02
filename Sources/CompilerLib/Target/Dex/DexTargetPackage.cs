@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Dot42.CompilerLib.Extensions;
@@ -137,7 +138,7 @@ namespace Dot42.CompilerLib.Target.Dex
         /// </summary>
         private void AddStructureAnnotations()
         {
-            foreach (var @class in dex.GetClasses())
+            foreach (var @class in dex.Classes)
             {
                 AddStructureAnnotations(@class);
             }

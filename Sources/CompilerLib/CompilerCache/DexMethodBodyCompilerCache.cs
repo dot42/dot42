@@ -119,7 +119,7 @@ namespace Dot42.CompilerLib.CompilerCache
             if (!_methodsByMetadataToken.TryGetValue(Tuple.Create(scope, typeScopeId, methodScopeId), out entry))
                 return null;
 
-            var cachedMethod = _dexLookup.FindMethod(entry.Item1.DexName, entry.Item2.DexName, entry.Item2.DexSignature);
+            var cachedMethod = _dexLookup.GetMethod(entry.Item1.DexName, entry.Item2.DexName, entry.Item2.DexSignature);
 
             if (cachedMethod == null)
                 return null;

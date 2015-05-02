@@ -28,7 +28,7 @@ namespace Dot42.DexLib.IO.Collectors
 
         public virtual void Collect(Dex dex)
         {
-            Collect(dex.Classes);
+            Collect(dex.GetClassesList());
         }
 
         public virtual void Collect(List<ClassDefinition> classes)
@@ -119,7 +119,7 @@ namespace Dot42.DexLib.IO.Collectors
         {
             Collect(@class.Annotations);
             Collect(@class.Fields);
-            Collect(@class.InnerClasses);
+            Collect(@class.GetInnerClassesList());
             Collect(@class.Interfaces);
             Collect(@class.Methods);
             Collect(@class.SourceFile);

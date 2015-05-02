@@ -12,12 +12,8 @@ namespace Dot42.DexLib.Extensions
             result = methodRef as MethodDefinition;
             if (result != null)
                 return true;
-            var ownerRef = (ClassReference) methodRef.Owner;
-            var owner = target.GetClass(ownerRef.Fullname);
-            if (owner == null)
-                return false;
-            result = owner.Methods.SingleOrDefault(x => (x.Name == methodRef.Name) && (x.Prototype.Equals(methodRef.Prototype)));
-            return (result != null);
+            result = target.GetMethod(methodRef.Owner, methodRef.Name, methodRef.Prototype);
+            return result != null;
         }
     }
 }

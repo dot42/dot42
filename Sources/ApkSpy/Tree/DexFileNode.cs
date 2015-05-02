@@ -26,7 +26,7 @@ namespace Dot42.ApkSpy.Tree
             var data = Load();
             dexSize = data.Length;
             dex = Dex.Read(new MemoryStream(data));
-            foreach (var classDef in dex.GetClasses())
+            foreach (var classDef in dex.Classes)
             {
                 var parentNodes = Nodes.GetParentForFile(classDef.Namespace, 7, new[] { '.' });
                 parentNodes.Add(new DexClassDefinitionNode(classDef));

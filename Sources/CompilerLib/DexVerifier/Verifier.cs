@@ -29,7 +29,7 @@ namespace Dot42.CompilerLib.DexVerifier
         /// </summary>
         private void VerifyMethods(Dex dex)
         {
-            foreach (var @class in dex.GetClasses())
+            foreach (var @class in dex.Classes)
             {
                 VerifyClass(@class);
             }

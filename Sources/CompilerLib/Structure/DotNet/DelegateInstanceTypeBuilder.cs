@@ -56,7 +56,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
             @class.Name = CreateInstanceTypeName(owner);
             @class.Namespace = owner.Namespace;
             @class.AccessFlags = AccessFlags.Public | AccessFlags.Final;
-            owner.InnerClasses.Add(@class);
+            owner.AddInnerClass(@class);
 
             // Set super class
             @class.SuperClass = delegateClass;

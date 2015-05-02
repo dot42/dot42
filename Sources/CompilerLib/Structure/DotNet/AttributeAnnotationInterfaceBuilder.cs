@@ -41,7 +41,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
             @interface.Namespace = attributeClass.Namespace;
             @interface.AccessFlags = AccessFlags.Public | AccessFlags.Abstract | AccessFlags.Interface | AccessFlags.Annotation;
             @interface.Owner = attributeClass;
-            attributeClass.InnerClasses.Add(@interface);
+            attributeClass.AddInnerClass(@interface);
 
             // Set super class
             @interface.SuperClass = new ClassReference("java/lang/Object");

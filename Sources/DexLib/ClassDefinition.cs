@@ -1,12 +1,17 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Dot42.DexLib.IO;
 using Dot42.DexLib.Metadata;
+using Dot42.Utility;
 
 namespace Dot42.DexLib
 {
     public class ClassDefinition : ClassReference, IMemberDefinition
     {
+        private List<ClassDefinition> innerClasses;
+        private List<WeakReference> belongsToDex = new List<WeakReference>();
+
         public ClassDefinition()
         {
             TypeDescriptor = TypeDescriptors.FullyQualifiedName;
@@ -15,24 +20,32 @@ namespace Dot42.DexLib
             Annotations = new List<Annotation>();
             Fields = new List<FieldDefinition>();
             Methods = new List<MethodDefinition>();
-            InnerClasses = new List<ClassDefinition>();
+            innerClasses = new List<ClassDefinition>();
         }
 
         internal ClassDefinition(ClassReference cref)
             : this()
         {
-            Fullname = cref.Fullname;
-            Namespace = cref.Namespace;
-            Name = cref.Name;
+            fullNameCache = cref.Fullname;
+            ns = cref.Namespace;
+            name = cref.Name;
         }
 
         public int MapFileId { get; set; }
         public ClassReference SuperClass { get; set; }
-        public List<ClassDefinition> InnerClasses { get; set; }
+        public ICollection<ClassDefinition> InnerClasses { get { return innerClasses.AsReadOnly(); } }
         public List<ClassReference> Interfaces { get; set; }
         public string SourceFile { get; set; }
         public List<FieldDefinition> Fields { get; set; }
         public List<MethodDefinition> Methods { get; set; }
+
+        /// <summary>
+        /// Gets the underlying InnerClasses list. The caller must not add or remove
+        /// items from the list, but may change the order if items.
+        /// </summary>
+        /// <returns></returns>
+        internal List<ClassDefinition> GetInnerClassesList() { return innerClasses; }
+
 
         /// <summary>
         /// Field holding generic type arguments
@@ -145,6 +158,24 @@ namespace Dot42.DexLib
 
         #endregion
 
+        public override string Fullname
+        { 
+            get { return base.Fullname; } 
+            set { var prev = Fullname; base.Fullname = value; NotifyDexChangedName(prev);} 
+        }
+
+        public override string Namespace
+        {
+            get { return base.Namespace; }
+            set { var prev = Fullname; base.Namespace = value; NotifyDexChangedName(prev); } 
+        }
+
+        public override string Name
+        {
+            get { return base.Name; }
+            set { var prev = Fullname; base.Name = value; NotifyDexChangedName(prev); }
+        }
+
         /// <summary>
         /// Is other equal to this?
         /// </summary>
@@ -154,9 +185,47 @@ namespace Dot42.DexLib
             return base.Equals(other);
         }
 
+        #region Dex Association
+
+        internal void RegisterDex(Dex dex)
+        {
+            belongsToDex.Add(new WeakReference(dex));
+        }
+
+        public void AddInnerClass(ClassDefinition inner)
+        {
+            innerClasses.Add(inner);
+
+            foreach(var dex in RegisteredDexes())
+                dex.RegisterInnerClass(this, inner);
+        }
+
+        private void NotifyDexChangedName(string previousFullName)
+        {
+            foreach (var dex in RegisteredDexes())
+                dex.OnNameChanged(this, previousFullName);
+        }
+
+        private IEnumerable<Dex> RegisteredDexes()
+        {
+            for (int i = 0; i < belongsToDex.Count; ++i)
+            {
+                var dex = belongsToDex[i].Target as Dex;
+                if (dex == null)
+                {
+                    belongsToDex.RemoveAt(i);
+                    --i;
+                    continue;
+                }
+                yield return dex;
+            }
+        }
+
+        #endregion
+
         #region " Static utilities "
 
-        internal static List<ClassDefinition> Flattenize(List<ClassDefinition> container)
+        internal static List<ClassDefinition> Flattenize(IEnumerable<ClassDefinition> container)
         {
             var result = new List<ClassDefinition>();
             foreach (var cdef in container)
@@ -170,23 +239,30 @@ namespace Dot42.DexLib
         internal static List<ClassDefinition> Hierarchicalize(List<ClassDefinition> container)
         {
             var result = new List<ClassDefinition>();
+            var dex = new DexLookup(container, false);
+
             foreach (var cdef in container)
             {
-                if (cdef.Fullname.Contains(DexConsts.InnerClassMarker))
+                int idx = cdef.Fullname.LastIndexOf(DexConsts.InnerClassMarker);
+
+                if (idx == -1)
                 {
-                    var items = cdef.Fullname.Split(DexConsts.InnerClassMarker);
-                    var fullname = items[0];
-                    var name = items[1];
-                    var owner = Dex.GetClass(fullname, container);
-                    if (owner != null)
-                    {
-                        owner.InnerClasses.Add(cdef);
-                        cdef.Owner = owner;
-                    }
+                    result.Add(cdef);
                 }
                 else
                 {
-                    result.Add(cdef);
+                    string ownerFullName = cdef.Fullname.Substring(0, idx);
+                    var owner = dex.GetClass(ownerFullName);
+                    if (owner != null)
+                    {
+                        owner.AddInnerClass(cdef);
+                        cdef.Owner = owner;
+                    }
+                    else
+                    {
+                        DLog.Error(DContext.CompilerCodeGenerator, "owner not found for inner class {0}", cdef.Fullname);
+                        result.Add(cdef);
+                    }
                 }
             }
             return result;

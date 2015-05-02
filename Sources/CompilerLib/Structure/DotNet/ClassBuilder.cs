@@ -204,7 +204,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
             {
                 // Add to parent if this is a nested type
                 classDef.Owner = parent;
-                parent.InnerClasses.Add(classDef);
+                parent.AddInnerClass(classDef);
             }
             else
             {
