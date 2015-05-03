@@ -55,7 +55,8 @@ namespace Dot42.CompilerLib.Structure.DotNet
         protected override XTypeDefinition CreateXType(XTypeDefinition parentXType)
         {
             var baseType = Compiler.GetDot42InternalType("EnumInfo");
-            return XSyntheticTypeDefinition.Create(Compiler.Module, parentXType, XSyntheticTypeFlags.Private, null, ClassName, baseType);
+            return XSyntheticTypeDefinition.Create(Compiler.Module, parentXType, XSyntheticTypeFlags.Private, null, ClassName, 
+                                                   baseType, parentXType.ScopeId + ":Info");
         }
 
         /// <summary>

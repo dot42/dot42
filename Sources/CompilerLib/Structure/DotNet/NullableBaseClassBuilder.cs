@@ -2,11 +2,11 @@
 using System.Linq;
 using Dot42.CompilerLib.Extensions;
 using Dot42.CompilerLib.RL;
-using Dot42.CompilerLib.Target;
 using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel;
 using Dot42.CompilerLib.XModel.DotNet;
 using Dot42.DexLib;
+using Dot42.Mapping;
 using Mono.Cecil;
 using MethodDefinition = Dot42.DexLib.MethodDefinition;
 using MethodReference = Dot42.DexLib.MethodReference;
@@ -16,6 +16,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
 {
     /// <summary>
     /// Build ClassDefinition structures for base classes of struct's that are used as Nullable(T).
+    /// Currently only used for Enums.
     /// </summary>
     internal class NullableBaseClassBuilder : ClassBuilder
     {
@@ -104,7 +105,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
         }
 
         /// <summary>
-        /// Gets all constructors that has to be wrapped in this class.
+        /// Gets all constructors that have to be wrapped in this class.
         /// </summary>
         protected virtual IEnumerable<XMethodDefinition> GetBaseClassCtors()
         {
@@ -147,6 +148,12 @@ namespace Dot42.CompilerLib.Structure.DotNet
             ins.Add(new Instruction(RCode.Invoke_direct, paramRegs.ToArray()) { Operand = baseCtorRef });
             ins.Add(new Instruction(RCode.Return_void));
             return body;
+        }
+
+        protected override TypeEntry CreateMappingEntry()
+        {
+            var ret = base.CreateMappingEntry();
+            return new TypeEntry(ret.Name + "?", ret.Scope, ret.DexName, ret.Id, ret.ScopeId + ":Nullable");
         }
     }
 }

@@ -1,12 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Dot42.CecilExtensions;
 using Dot42.CompilerLib.Extensions;
 using Dot42.CompilerLib.Reachable;
 using Dot42.CompilerLib.RL;
 using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel;
 using Dot42.CompilerLib.XModel.DotNet;
+using Dot42.CompilerLib.XModel.Synthetic;
 using Dot42.DexLib;
+using Dot42.Mapping;
 using Mono.Cecil;
 using FieldDefinition = Mono.Cecil.FieldDefinition;
 using MethodDefinition = Dot42.DexLib.MethodDefinition;
@@ -47,13 +50,13 @@ namespace Dot42.CompilerLib.Structure.DotNet
             Class.IsSynthetic = true;
         }
 
-        /// <summary>
-        /// Create the name of the class.
-        /// </summary>
-        protected override string CreateClassName(XTypeDefinition xType)
-        {
-            return NameConverter.GetNullableBaseClassName(xType);
-        }
+        ///// <summary>
+        ///// Create the name of the class.
+        ///// </summary>
+        //protected override string CreateClassName(XTypeDefinition xType)
+        //{
+        //    return NameConverter.GetNullableBaseClassName();
+        //}
 
         /// <summary>
         /// Set the super class of the class definition.
@@ -66,7 +69,19 @@ namespace Dot42.CompilerLib.Structure.DotNet
             _underlyingBuilder.Class.NullableMarkerClass = Class;
         }
 
-        
+        protected override XTypeDefinition CreateXType(XTypeDefinition parentXType)
+        {
+            string name = NameConverter.GetNullableBaseClassName(_underlyingBuilder.Type.Name);
+
+            XSyntheticTypeFlags xflags = default(XSyntheticTypeFlags);
+            xflags |= XSyntheticTypeFlags.ValueType;
+            xflags |= XSyntheticTypeFlags.Sealed;
+
+            return XSyntheticTypeDefinition.Create(Compiler.Module, parentXType, xflags,  
+                                                   _underlyingBuilder.Type.Namespace, name, 
+                                                  Compiler.Module.TypeSystem.Object,
+                                                  string.Join(":", Type.Scope.Name, Type.MetadataToken.ToScopeId(), "Nullable"));
+        }
 
         /// <summary>
         /// Implement the class now that all classes have been created
@@ -76,7 +91,10 @@ namespace Dot42.CompilerLib.Structure.DotNet
             // Build ctors
             foreach (var baseCtor in GetBaseClassCtors())
             {
-                // Build ctor
+                // TODO: does this make sense? after all, we derive from object. 
+                //       probalby one should just remove this code, and generate a 
+                //       defaul constructor.
+                
                 var prototype = PrototypeBuilder.BuildPrototype(Compiler, targetPackage, null, baseCtor);
                 var ctor = new MethodDefinition(Class, "<init>", prototype);
                 ctor.AccessFlags = AccessFlags.Public | AccessFlags.Constructor;
@@ -108,7 +126,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
         }
 
         /// <summary>
-        /// Gets all constructors that has to be wrapped in this class.
+        /// Gets all constructors that have to be wrapped in this class.
         /// </summary>
         protected virtual IEnumerable<XMethodDefinition> GetBaseClassCtors()
         {
@@ -151,6 +169,12 @@ namespace Dot42.CompilerLib.Structure.DotNet
             ins.Add(new Instruction(RCode.Invoke_direct, paramRegs.ToArray()) { Operand = baseCtorRef });
             ins.Add(new Instruction(RCode.Return_void));
             return body;
+        }
+
+        protected override TypeEntry CreateMappingEntry()
+        {
+            var ret = base.CreateMappingEntry();
+            return new TypeEntry(ret.Name + "?", ret.Scope, ret.DexName, ret.Id, ret.ScopeId);
         }
 
         protected override void CreateGenericInstanceField(DexTargetPackage targetPackage)

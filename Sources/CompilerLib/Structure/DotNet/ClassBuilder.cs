@@ -302,7 +302,8 @@ namespace Dot42.CompilerLib.Structure.DotNet
             // Create mapping
             var dexName = (classDef != null) ? classDef.Fullname : null;
             var mapFileId = (classDef != null) ? classDef.MapFileId : 0;
-            var scopeId = typeDef.MetadataToken.ToScopeId();
+            // first part of XType.ScopeId contains the module name, cut it out.
+            var scopeId = XType.ScopeId.Substring(XType.ScopeId.IndexOf(':') + 1);
             var entry = new TypeEntry(typeDef.FullName, typeDef.Scope.Name, dexName, mapFileId, scopeId);
             return entry;
         }

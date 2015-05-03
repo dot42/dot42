@@ -117,7 +117,6 @@ namespace Dot42.CompilerLib.XModel
 
         /// <summary>
         /// Is this type a struct, and is it to be treated as immutable?
-        /// TODO: think about storing this information somewhere else.
         /// </summary>
         public abstract bool IsImmutableStruct { get; }
 
@@ -135,6 +134,14 @@ namespace Dot42.CompilerLib.XModel
         /// Is this class sealed/final (cannot be extended)?
         /// </summary>
         public abstract bool IsSealed { get; }
+
+        /// <summary>
+        /// Returns a full scope id, that is guaranteed to be
+        /// <para> - unique for all XTypeDefinitions</para><para>
+        ///        - constant accross builds, if the underlying 
+        ///          definition has not changed.</para>
+        /// </summary>
+        public abstract string ScopeId { get; }
 
         /// <summary>
         /// Resolve this reference to it's definition.

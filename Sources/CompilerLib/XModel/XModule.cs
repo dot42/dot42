@@ -14,6 +14,7 @@ namespace Dot42.CompilerLib.XModel
     {
         private readonly Dictionary<Type, object> caches = new Dictionary<Type, object>();
         private readonly Dictionary<string, XTypeDefinition> fullNameCache = new Dictionary<string, XTypeDefinition>();
+        //private readonly Dictionary<string, XTypeDefinition> scopeIdCache = new Dictionary<string, XTypeDefinition>();
         private readonly List<XTypeDefinition> types = new List<XTypeDefinition>();
         private List<XTypeDefinition> sortedTypes;
         private readonly XTypeSystem typeSystem;

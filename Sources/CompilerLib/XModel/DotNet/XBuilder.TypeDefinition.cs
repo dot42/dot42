@@ -327,6 +327,11 @@ namespace Dot42.CompilerLib.XModel.DotNet
             }
 
             /// <summary>
+            /// our unique id, constant across builds if the assembly has not changed.
+            /// </summary>
+            public override string ScopeId { get { return type.Scope.Name + ":" + type.MetadataToken.ToScopeId(); } }
+
+            /// <summary>
             /// Try to get a type definition (me or one of my nested typed) by the given full name.
             /// </summary>
             public override bool TryGet(string fullName, bool noImports, out XTypeDefinition xTypeDefinition)

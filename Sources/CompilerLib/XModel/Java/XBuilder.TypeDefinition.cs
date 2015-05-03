@@ -217,6 +217,11 @@ namespace Dot42.CompilerLib.XModel.Java
             }
 
             /// <summary>
+            /// our unique id, constant accross builds.
+            /// </summary>
+            public override string ScopeId { get { return FullName; } }
+
+            /// <summary>
             /// Is this type reachable?
             /// </summary>
             public override bool IsReachable
