@@ -18,10 +18,12 @@ namespace Dot42.CompilerLib.ILConversion
             MethodReference implicitImplRef = implicitImpl;
             GenericInstanceMethod implicitGenericInstanceMethod=null;
             // Create method
-            var newMethod = new MethodDefinition(name, implicitImpl.Attributes, implicitImpl.ReturnType);
-            newMethod.IsVirtual = false;
-            newMethod.IsAbstract = false;
-            newMethod.IsFinal = true;
+            var newMethod = new MethodDefinition(name, implicitImpl.Attributes, implicitImpl.ReturnType)
+            {
+                IsVirtual = false,
+                IsAbstract = false,
+                IsFinal = true,
+            };
 
             if (implicitImpl.GenericParameters.Count > 0)
             {

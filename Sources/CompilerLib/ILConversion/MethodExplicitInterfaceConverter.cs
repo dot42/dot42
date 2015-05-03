@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.Linq;
 using Dot42.CecilExtensions;
 using Dot42.CompilerLib.Ast.Extensions;
@@ -11,7 +10,6 @@ using Dot42.CompilerLib.Reachable;
 using Dot42.CompilerLib.XModel.DotNet;
 using Dot42.LoaderLib.Extensions;
 using Mono.Cecil;
-using Mono.Cecil.Cil;
 
 namespace Dot42.CompilerLib.ILConversion
 {
@@ -163,8 +161,8 @@ namespace Dot42.CompilerLib.ILConversion
                     newName = methodNames.GetUniqueName(NameConverter.GetConvertedName(xiType) + "_" + iMethod.Name);
                     oldName = newName;
                 }
-                Rename(iMethod, newName);
 
+                Rename(iMethod, newName);
               
                 // Update implementations
                 foreach (var typeAndImpl in implementations)

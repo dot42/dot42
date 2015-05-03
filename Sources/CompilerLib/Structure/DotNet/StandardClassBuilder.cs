@@ -24,7 +24,16 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// <summary>
         /// Sorting low comes first
         /// </summary>
-        protected override int SortPriority { get { return base.Type.UsedInNullableT?-50:0; } }
+        protected override int SortPriority
+        {
+            get
+            {
+                var sortPriority = base.Type.UsedInNullableT?-50:0;
+                if (HasXType() && XType.Priority > 0)
+                    sortPriority += 1;
+                return sortPriority;
+            }
+        }
 
         public override void CreateAnnotations(DexTargetPackage targetPackage)
         {

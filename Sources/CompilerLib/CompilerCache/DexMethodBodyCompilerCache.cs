@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -137,9 +138,15 @@ namespace Dot42.CompilerLib.CompilerCache
                 FixReferences(body, compiler, targetPackage);
                 return body;
             }
+            catch (CompilerCacheResolveException ex)
+            {
+                Trace.WriteLine(string.Format("Compiler cache: error while converting cached body: {0}: {1}. Not using cached body.", sourceMethod, ex.Message));
+                return null;
+            }
             catch (Exception ex)
             {
-                DLog.Warning(DContext.CompilerCodeGenerator, "Compiler cache: error while converting cached body: {0}: {1}. Not using cached body.", sourceMethod, ex.Message);
+                DLog.Error(DContext.CompilerCodeGenerator, "Compiler cache: error while converting cached body: {0}: {1}. Not using cached body.", sourceMethod, ex.Message);
+                Trace.WriteLine(string.Format("Compiler cache: error while converting cached body: {0}: {1}. Not using cached body.", sourceMethod, ex.Message));
                 return null;
             }
         }

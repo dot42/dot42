@@ -14,14 +14,15 @@ namespace Dot42.Mapping
     /// </summary>
     public sealed class MapFile 
     {
+        private readonly List<TypeEntry> types = new List<TypeEntry>();
         private readonly Dictionary<string, TypeEntry> typesByDexName = new Dictionary<string, TypeEntry>();
         private readonly Dictionary<string, Document> documents = new Dictionary<string, Document>(StringComparer.InvariantCultureIgnoreCase);
         private readonly List<ScopeEntry> scopes = new List<ScopeEntry>();
         private TypeEntry generatedType;
 
-        public ICollection<ScopeEntry> Scopes { get { return new ReadOnlyCollection<ScopeEntry>(scopes); } }
+        public ReadOnlyCollection<ScopeEntry> Scopes { get { return scopes.AsReadOnly(); } }
         public ICollection<Document> Documents { get { return documents.Values; } }
-        public ICollection<TypeEntry> TypeEntries { get { return typesByDexName.Values; } }
+        public ReadOnlyCollection<TypeEntry> TypeEntries { get { return types.AsReadOnly(); } }
 
         /// <summary>
         /// this TypeEntry contains the dexName of the compiler generated class, typically named
@@ -72,8 +73,8 @@ namespace Dot42.Mapping
         public XDocument ToXml()
         {
             var root = new XElement("dmap");
-            root.Add(typesByDexName.Values.OrderBy(o=>o.Id)
-                                          .Select(x => x.ToXml("type")));
+            root.Add(types.OrderBy(o=>o.Id)
+                          .Select(x => x.ToXml("type")));
             root.Add(documents.Values.Select(x => x.ToXml("document")));
             root.Add(scopes.Select(x => x.ToXml("scope")));
             return new XDocument(root);
@@ -107,14 +108,19 @@ namespace Dot42.Mapping
             {
                 generatedType = entry;
             }
+            types.Add(entry);
 
             if (!string.IsNullOrEmpty(entry.DexName))
             {
-                typesByDexName[entry.DexName] = entry;
+                // assume earlier entries are more important
+                if(!typesByDexName.ContainsKey(entry.DexName))
+                    typesByDexName[entry.DexName] = entry;
             }
             else if (!string.IsNullOrEmpty(entry.Name))
             {
-                typesByDexName[entry.Name] = entry;
+                // assume earlier entries are more important
+                if (!typesByDexName.ContainsKey(entry.Name))
+                    typesByDexName[entry.Name] = entry;
             }
         }
 

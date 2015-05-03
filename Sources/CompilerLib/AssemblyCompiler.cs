@@ -113,10 +113,22 @@ namespace Dot42.CompilerLib
             ILConversion.ILToJava.Convert(reachableContext);
 
             // Convert all types
-            var classBuilders = reachableContext.ClassBuilders.OrderBy(x => x.SortPriority).ThenBy(x => x.FullName).ToList();
+            var classBuilders = reachableContext.ClassBuilders.OrderBy(x => x.SortPriority)
+                                                              .ThenBy(x => x.FullName)
+                                                              .ToList();
+
             classBuilders.ForEachWithExceptionMessage(x => x.Create(targetPackage));
+
+            // update sort priority which might have changed after create
+            classBuilders = classBuilders.OrderBy(x => x.SortPriority)
+                                         .ThenBy(x => x.FullName)
+                                         .ToList();
+
             classBuilders.ForEachWithExceptionMessage(x => x.Implement(targetPackage));
             classBuilders.ForEachWithExceptionMessage(x => x.FixUp(targetPackage));
+
+
+
             classBuilders.ForEachWithExceptionMessage(x => x.GenerateCode(targetPackage));
             classBuilders.ForEachWithExceptionMessage(x => x.CreateAnnotations(targetPackage));
 

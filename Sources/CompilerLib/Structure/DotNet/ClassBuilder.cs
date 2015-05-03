@@ -670,6 +670,11 @@ namespace Dot42.CompilerLib.Structure.DotNet
             }
         }
 
+        protected bool HasXType()
+        {
+            return xType != null;
+        }
+
         private class PropertyAnnotationProvider : IAnnotationProvider
         {
             public List<Annotation> Annotations { get; set; }
