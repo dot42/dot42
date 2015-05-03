@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Linq;
 using Dot42.CompilerLib.Ast;
-using Dot42.CompilerLib.Extensions;
-using Dot42.CompilerLib.Target;
 using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel;
 using Dot42.CompilerLib.XModel.Synthetic;
 using Dot42.DexLib;
 using Dot42.DexLib.Instructions;
+using Dot42.Mapping;
 using Dot42.Utility;
 using Mono.Cecil;
 using MethodDefinition = Dot42.DexLib.MethodDefinition;
@@ -54,7 +53,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
 
             // Build default ctor
             XTypeSystem typeSystem = Compiler.Module.TypeSystem;
-            XSyntheticMethodDefinition ctor = XSyntheticMethodDefinition.Create(XType, XSyntheticMethodFlags.Constructor, "<init>", typeSystem.Void);
+            XSyntheticMethodDefinition ctor = XSyntheticMethodDefinition.Create(XType, XSyntheticMethodFlags.Constructor, "<init>", null, typeSystem.Void);
             ctor.Body = CreateCtorBody();
             Class.Methods.Add(ctor.GetDexMethod(Class, targetPackage));
 
@@ -122,6 +121,21 @@ namespace Dot42.CompilerLib.Structure.DotNet
                     new AstExpression(AstNode.NoSource, AstCode.Ldthis, null)),
                 // Return
                 new AstExpression(AstNode.NoSource, AstCode.Ret, null));
+        }
+
+        protected override TypeEntry CreateMappingEntry()
+        {
+            var ret = base.CreateMappingEntry();
+
+            foreach (var methodName in new[] {"Invoke" /*...*/})
+            {
+                var xMethod = XType.Methods.Single(x => x.EqualsName(methodName));
+                var dMethod = Class.Methods.Single(x => x.Name == methodName);
+                var method = Type.Methods.Single(x => x.Name == methodName);
+                MethodBuilder.RecordMapping(ret, xMethod, method, dMethod, null);
+                
+            }
+            return ret;
         }
     }
 }

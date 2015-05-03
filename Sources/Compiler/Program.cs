@@ -269,16 +269,8 @@ namespace Dot42.Compiler
                 table = new Table(stream);
             }
 
-            var ccache = new DexMethodBodyCompilerCache();
-            //if (options.EnableCompilerCache)
-            //{
-            //    ccache = new DexMethodBodyCompilerCache(options.OutputFolder, resolver.GetFileName);
-            //    foreach(var asm in assemblies)
-            //        ccache.AssemblyCache.AddAssembly(asm);
-            //    foreach (var asm in references)
-            //        ccache.AssemblyCache.AddAssembly(asm);
-            //}
-             
+            var ccache = options.EnableCompilerCache ? new DexMethodBodyCompilerCache(options.OutputFolder, resolver.GetFileName)
+                                                     : new DexMethodBodyCompilerCache();
 
             // Create compiler
             var compiler = new AssemblyCompiler(options.CompilationMode, assemblies, references, table, nsConverter,

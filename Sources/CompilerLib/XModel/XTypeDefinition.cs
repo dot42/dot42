@@ -147,7 +147,7 @@ namespace Dot42.CompilerLib.XModel
         public abstract bool IsSealed { get; }
 
         /// <summary>
-        /// Returns a full scope id, that is guaranteed to be
+        /// Returns a scope id, that is guaranteed to be
         /// <para> - unique for all XTypeDefinitions</para><para>
         ///        - constant accross builds, if the underlying 
         ///          definition has not changed.</para>
@@ -201,6 +201,11 @@ namespace Dot42.CompilerLib.XModel
                 return baseTypeDef.TryGet(fieldRef, out field);
             }
             return false;
+        }
+
+        public XMethodDefinition GetMethodByScopeId(string scopeId)
+        {
+            return Methods.FirstOrDefault(x => x.ScopeId == scopeId);
         }
 
         /// <summary>

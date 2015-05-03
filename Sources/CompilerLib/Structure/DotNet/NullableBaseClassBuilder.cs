@@ -1,10 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Dot42.CecilExtensions;
 using Dot42.CompilerLib.Extensions;
 using Dot42.CompilerLib.RL;
 using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel;
 using Dot42.CompilerLib.XModel.DotNet;
+using Dot42.CompilerLib.XModel.Synthetic;
 using Dot42.DexLib;
 using Dot42.Mapping;
 using Mono.Cecil;
@@ -44,12 +46,19 @@ namespace Dot42.CompilerLib.Structure.DotNet
             Class.IsSynthetic = true;
         }
 
-        /// <summary>
-        /// Create the name of the class.
-        /// </summary>
-        protected override string CreateClassName(XTypeDefinition xType)
+        protected override XTypeDefinition CreateXType(XTypeDefinition parentXType)
         {
-            return NameConverter.GetNullableBaseClassName(xType);
+            var typeDef = (XBuilder.ILTypeDefinition)XBuilder.AsTypeReference(Compiler.Module, Type)
+                                                             .Resolve();
+
+            string name = NameConverter.GetNullableClassName(typeDef.Name);
+
+            XSyntheticTypeFlags xflags = default(XSyntheticTypeFlags);
+
+            return XSyntheticTypeDefinition.Create(Compiler.Module, parentXType, xflags,
+                                                   typeDef.Namespace, name,
+                                                  Compiler.Module.TypeSystem.Object,
+                                                  string.Join(":", Type.Scope.Name, Type.MetadataToken.ToScopeId(), "Nullable"));
         }
 
         /// <summary>
@@ -97,8 +106,8 @@ namespace Dot42.CompilerLib.Structure.DotNet
 
             // not sure if GetClassReference is the best way to go forward here.
             // might depend on the sort order of the class builders.
-            dfield.Value = XType.GetClassReference(targetPackage);
-            
+            var underlyingType = XBuilder.AsTypeReference(Compiler.Module, Type);
+            dfield.Value = underlyingType.GetClassReference(targetPackage);
 
             Class.Fields.Add(dfield);
 

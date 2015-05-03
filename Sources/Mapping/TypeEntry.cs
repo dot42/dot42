@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Xml.Linq;
 using Dot42.Utility;
@@ -9,6 +10,7 @@ namespace Dot42.Mapping
     /// <summary>
     /// Type entry in map file
     /// </summary>
+    [DebuggerDisplay("{Name}")]
     public sealed class TypeEntry
     {
         private readonly string name;

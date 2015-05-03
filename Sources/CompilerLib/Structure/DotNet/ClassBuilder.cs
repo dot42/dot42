@@ -112,6 +112,8 @@ namespace Dot42.CompilerLib.Structure.DotNet
 
         /// <summary>
         /// Sorting low comes first
+        /// 
+        /// Note that this does not work globally for nested types.
         /// </summary>
         protected abstract int SortPriority { get; }
 
@@ -228,7 +230,9 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// </summary>
         protected void CreateNestedClasses(DexTargetPackage targetPackage, ClassDefinition parent)
         {
-            nestedBuilders = CreateNestedClassBuilders(context, targetPackage, parent).OrderBy(x => x.SortPriority).ToList();
+            nestedBuilders = CreateNestedClassBuilders(context, targetPackage, parent)
+                                                     .OrderBy(x => x.SortPriority)
+                                                     .ToList();
             nestedBuilders.ForEach(x => x.Create(targetPackage, classDef, typeDef, XType));
         }
 

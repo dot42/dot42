@@ -48,6 +48,8 @@ namespace Dot42.CompilerLib.XModel.Synthetic
             var type = new XSyntheticTypeDefinition(module, declaringType, flags, @namespace, name, baseType, fullScopeId);
             if(declaringType != null)
                 declaringType.Add(type);
+
+            module.Register(type);
             return type;
         }
 
@@ -157,7 +159,6 @@ namespace Dot42.CompilerLib.XModel.Synthetic
         internal override void Add(XSyntheticTypeDefinition nestedType)
         {
             nestedTypes.Add(nestedType);
-            Module.Register(nestedType);
             Reset();
         }
 

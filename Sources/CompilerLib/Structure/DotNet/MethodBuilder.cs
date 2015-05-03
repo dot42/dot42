@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Linq;
 using System.Text;
 using Dot42.CecilExtensions;
@@ -10,7 +9,6 @@ using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel;
 using Dot42.CompilerLib.XModel.DotNet;
 using Dot42.DexLib;
-using Dot42.DexLib.Extensions;
 using Dot42.Mapping;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -174,11 +172,11 @@ namespace Dot42.CompilerLib.Structure.DotNet
 
             var source = new MethodSource(xMethod, method);
 
-            //var body = compiler.MethodBodyCompilerCache.GetFromCache(dmethod, method, compiler, targetPackage);
-            //if (body != null)
-            //{
-            //    //Trace.WriteLine("found cached body for " + method.FullName);
-            //}
+            var body = compiler.MethodBodyCompilerCache.GetFromCache(dmethod, xMethod, compiler, targetPackage);
+            if (body != null)
+            {
+                //Trace.WriteLine("found cached body for " + method.FullName);
+            }
 
             ExpandSequencePoints(method.Body);
             
@@ -267,14 +265,19 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// </summary>
         public void RecordMapping(TypeEntry typeEntry)
         {
-            var scopeId = method.DeclaringType.Methods.IndexOf(method)
-                                .ToString(CultureInfo.InvariantCulture);
+            RecordMapping(typeEntry, xMethod, method, dmethod, compiledMethod);
+        }
+
+        public static void RecordMapping(TypeEntry typeEntry, XMethodDefinition xMethod, MethodDefinition method, DexLib.MethodDefinition dmethod, CompiledMethod compiledMethod)
+        {
+            var scopeId = xMethod.ScopeId;
 
             StringBuilder netSignature = new StringBuilder();
             method.MethodSignatureFullName(netSignature);
 
-            var entry = new MethodEntry(method.OriginalName, netSignature.ToString(), dmethod.Name, dmethod.Prototype.ToSignature(), dmethod.MapFileId, scopeId);
-            
+            var entry = new MethodEntry(method.OriginalName, netSignature.ToString(), dmethod.Name, dmethod.Prototype.ToSignature(), dmethod.MapFileId,
+                                        scopeId);
+
             typeEntry.Methods.Add(entry);
 
             if (compiledMethod != null)

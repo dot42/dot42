@@ -44,19 +44,25 @@ namespace Dot42.Mapping
 
         private void Add(TypeEntry entry)
         {
+            // if there are duplicates in any field, assume the more "important"
+            // definition comes first.
+
             if (!string.IsNullOrEmpty(entry.DexName))
             {
-                _typesByDexName[entry.DexName] = entry;
+                if (!_typesByDexName.ContainsKey(entry.DexName))
+                    _typesByDexName[entry.DexName] = entry;
             }
 
             if (!string.IsNullOrEmpty(entry.Name))
             {
-                _typesByClrName[entry.Name] = entry;
+                if(!_typesByClrName.ContainsKey(entry.Name))
+                    _typesByClrName[entry.Name] = entry;
             }
 
             if (!string.IsNullOrEmpty(entry.DexSignature))
             {
-                _typesBySignature[entry.DexSignature] = entry;
+                if(!_typesBySignature.ContainsKey(entry.DexSignature))
+                    _typesBySignature[entry.DexSignature] = entry;
             }
 
             if (entry.Id != 0)
@@ -80,7 +86,7 @@ namespace Dot42.Mapping
                     if (m.Id != 0)
                         _typesByMethodId[m.Id] = entry;
 
-                    _methodsByFullSignature[Tuple.Create(typeDexName, m.DexName, m.DexSignature)] = m;
+                    _methodsByFullSignature.Add(Tuple.Create(typeDexName, m.DexName, m.DexSignature), m);
                 }
             }
         }

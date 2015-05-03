@@ -119,7 +119,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
             base.CreateMembers(targetPackage);
 
             // Build value ctor
-            ctor = XSyntheticMethodDefinition.Create(XType, XSyntheticMethodFlags.Constructor | XSyntheticMethodFlags.Protected, "<init>", module.TypeSystem.Void,
+            ctor = XSyntheticMethodDefinition.Create(XType, XSyntheticMethodFlags.Constructor | XSyntheticMethodFlags.Protected, "<init>", null, module.TypeSystem.Void,
                 XParameter.Create("name", module.TypeSystem.String),
                 XParameter.Create("ordinal", module.TypeSystem.Int),
                 XParameter.Create("value", xValueType));
@@ -136,37 +136,37 @@ namespace Dot42.CompilerLib.Structure.DotNet
             Class.Fields.Add(defaultField.GetDexField(Class, targetPackage));
 
             // Build class ctor
-            var classCtor = XSyntheticMethodDefinition.Create(XType, XSyntheticMethodFlags.Static | XSyntheticMethodFlags.Constructor | XSyntheticMethodFlags.Private, "<clinit>", module.TypeSystem.Void);
+            var classCtor = XSyntheticMethodDefinition.Create(XType, XSyntheticMethodFlags.Static | XSyntheticMethodFlags.Constructor | XSyntheticMethodFlags.Private, "<clinit>", null, module.TypeSystem.Void);
             classCtor.Body = CreateClassCtorBody(isWide, enumInfoField, defaultField, enumInfoClassBuilder.DefaultCtor, xValueType, module.TypeSystem);
             Class.Methods.Add(classCtor.GetDexMethod(Class, targetPackage));
 
             if (!isWide)
             {
                 // Build IntValue method
-                var intValue = XSyntheticMethodDefinition.Create(XType, XSyntheticMethodFlags.Virtual, "IntValue", module.TypeSystem.Int);
+                var intValue = XSyntheticMethodDefinition.Create(XType, XSyntheticMethodFlags.Virtual, "IntValue", null, module.TypeSystem.Int);
                 intValue.Body = CreateIntOrLongValueBody();
                 Class.Methods.Add(intValue.GetDexMethod(Class, targetPackage));
             }
             else
             {
                 // Build LongValue method
-                var longValue = XSyntheticMethodDefinition.Create(XType, XSyntheticMethodFlags.Virtual, "LongValue", module.TypeSystem.Long);
+                var longValue = XSyntheticMethodDefinition.Create(XType, XSyntheticMethodFlags.Virtual, "LongValue", null, module.TypeSystem.Long);
                 longValue.Body = CreateIntOrLongValueBody();
                 Class.Methods.Add(longValue.GetDexMethod(Class, targetPackage));
             }
 
             // Build values() method
-            var valuesMethod = XSyntheticMethodDefinition.Create(XType, XSyntheticMethodFlags.Static, NameConstants.Enum.ValuesMethodName, new XArrayType(XType));
+            var valuesMethod = XSyntheticMethodDefinition.Create(XType, XSyntheticMethodFlags.Static, NameConstants.Enum.ValuesMethodName, null, new XArrayType(XType));
             valuesMethod.Body = CreateValuesBody();
             Class.Methods.Add(valuesMethod.GetDexMethod(Class, targetPackage));
 
             // Build valueOf(string) method
-            var valueOfMethod = XSyntheticMethodDefinition.Create(XType, XSyntheticMethodFlags.Static, NameConstants.Enum.ValueOfMethodName, XType, XParameter.Create("name", module.TypeSystem.String));
+            var valueOfMethod = XSyntheticMethodDefinition.Create(XType, XSyntheticMethodFlags.Static, NameConstants.Enum.ValueOfMethodName, null, XType, XParameter.Create("name", module.TypeSystem.String));
             valueOfMethod.Body = CreateValueOfBody(valueOfMethod, module.TypeSystem);
             Class.Methods.Add(valueOfMethod.GetDexMethod(Class, targetPackage));
 
             // Build Unbox(object) method
-            unboxMethod = XSyntheticMethodDefinition.Create(XType, XSyntheticMethodFlags.Static, NameConstants.Enum.UnboxMethodName, XType, XParameter.Create("value", Compiler.Module.TypeSystem.Object));
+            unboxMethod = XSyntheticMethodDefinition.Create(XType, XSyntheticMethodFlags.Static, NameConstants.Enum.UnboxMethodName, null, XType, XParameter.Create("value", Compiler.Module.TypeSystem.Object));
             unboxMethod.Body = CreateUnboxBody(unboxMethod, isWide, Compiler);
             Class.Methods.Add(unboxMethod.GetDexMethod(Class, targetPackage));
         }

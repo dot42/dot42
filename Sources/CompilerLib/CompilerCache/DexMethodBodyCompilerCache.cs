@@ -1,49 +1,38 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using Dot42.CecilExtensions;
 using Dot42.CompilerLib.Extensions;
 using Dot42.CompilerLib.Target.Dex;
-using Dot42.CompilerLib.XModel.DotNet;
+using Dot42.CompilerLib.XModel;
 using Dot42.DexLib;
 using Dot42.DexLib.Instructions;
 using Dot42.Mapping;
 using Dot42.Utility;
-using Mono.Cecil;
-using ArrayType = Dot42.DexLib.ArrayType;
-using ByReferenceType = Dot42.DexLib.ByReferenceType;
-using FieldReference = Dot42.DexLib.FieldReference;
-using MethodDefinition = Dot42.DexLib.MethodDefinition;
-using MethodReference = Dot42.DexLib.MethodReference;
-using TypeReference = Dot42.DexLib.TypeReference;
-
 
 namespace Dot42.CompilerLib.CompilerCache
 {
     public class DexMethodBodyCompilerCache
     {
-        private readonly AssemblyTypeByScopeIdCache _assemblyCache;
+        private readonly AssemblyModifiedDetector _modifiedDetector;
         private readonly Dex _dex;
 
         private readonly DexLookup _dexLookup;
         private readonly MapFileLookup _map;
 
-        private readonly Dictionary<Tuple<string, string, string>, Tuple<TypeEntry, MethodEntry>> _methodsByMetadataToken = new Dictionary<Tuple<string, string, string>, Tuple<TypeEntry, MethodEntry>>();
+        private readonly Dictionary<Tuple<string, string>, Tuple<TypeEntry, MethodEntry>> _methodsByScopeId = new Dictionary<Tuple<string, string>, Tuple<TypeEntry, MethodEntry>>();
         private int statCacheHits;
         private int statCacheMisses;
 
         public bool IsEnabled { get { return _dex != null && _map != null; } }
 
-        public AssemblyTypeByScopeIdCache AssemblyCache { get { return _assemblyCache; } }
-
         public DexMethodBodyCompilerCache()
         {
         }
 
-        public DexMethodBodyCompilerCache(string cacheDirectory, Func<AssemblyDefinition, string> filenameFromAssembly, string dexFilename = "classes.dex")
+        public DexMethodBodyCompilerCache(string cacheDirectory, Func<Mono.Cecil.AssemblyDefinition, string> filenameFromAssembly, string dexFilename = "classes.dex")
         {
             dexFilename = Path.Combine(cacheDirectory, dexFilename);
             var mapfile = Path.ChangeExtension(dexFilename, ".d42map");
@@ -56,7 +45,7 @@ namespace Dot42.CompilerLib.CompilerCache
                 var dex = Dex.Read(dexFilename);
                 var map = new MapFileLookup(new MapFile(mapfile));
 
-                _assemblyCache = new AssemblyTypeByScopeIdCache(filenameFromAssembly, map);
+                _modifiedDetector = new AssemblyModifiedDetector(filenameFromAssembly, map);
 
                 foreach (var type in map.TypeEntries)
                 {
@@ -66,8 +55,8 @@ namespace Dot42.CompilerLib.CompilerCache
                     {
                         if (type.ScopeId == null)
                             continue;
-                        _methodsByMetadataToken[Tuple.Create(type.Scope, type.ScopeId, method.ScopeId)] = 
-                                                                            Tuple.Create(type, method);
+                        var scopeKey = Tuple.Create(GetTypeScopeId(type), method.ScopeId);
+                        _methodsByScopeId[scopeKey] = Tuple.Create(type, method);
                     }
                 }
 
@@ -89,9 +78,8 @@ namespace Dot42.CompilerLib.CompilerCache
                 DLog.Warning(DContext.CompilerCodeGenerator, "Dex method body compiler cache: {0} hits and {1} misses.", statCacheHits, statCacheMisses);
         }
 
-        public MethodBody GetFromCache(MethodDefinition targetMethod, Mono.Cecil.MethodDefinition sourceMethod, AssemblyCompiler compiler, DexTargetPackage targetPackage)
+        public MethodBody GetFromCache(MethodDefinition targetMethod, XMethodDefinition sourceMethod, AssemblyCompiler compiler, DexTargetPackage targetPackage)
         {
-            return null;
             var ret = GetFromCacheImpl(targetMethod, sourceMethod, compiler, targetPackage);
             
             if (ret != null) Interlocked.Increment(ref statCacheHits);
@@ -100,23 +88,42 @@ namespace Dot42.CompilerLib.CompilerCache
             return ret;
         }
 
-        public MethodBody GetFromCacheImpl(MethodDefinition targetMethod, Mono.Cecil.MethodDefinition sourceMethod, AssemblyCompiler compiler, DexTargetPackage targetPackage)
+        public MethodBody GetFromCacheImpl(MethodDefinition targetMethod, XMethodDefinition sourceMethod, AssemblyCompiler compiler, DexTargetPackage targetPackage)
         {
             if (!IsEnabled)
                 return null;
 
-            var assembly = sourceMethod.Module.Assembly;
+            var ilMethod = sourceMethod as XModel.DotNet.XBuilder.ILMethodDefinition;
+            var javaMethod = sourceMethod as XModel.Java.XBuilder.JavaMethodDefinition;
+            if (ilMethod != null)
+            {
+                var assembly = ilMethod.OriginalMethod.DeclaringType.Module.Assembly;
 
-            if (_assemblyCache.IsModified(assembly))
+                if (_modifiedDetector.IsModified(assembly))
+                    return null;
+            }
+            else if(javaMethod != null)
+            {
+                // TODO: implement this for Java methods as well.
+                //       all that's missing seems to be some kind of
+                //       modification detection.
                 return null;
+            }
+            else
+            {
+                // TODO: synthetic methods could be resolved from the cache as well.
+                //       check if this would bring any performance benefits.
+                return null;
+            }
+                
+            
 
             Tuple<TypeEntry, MethodEntry> entry;
 
-            string scope = sourceMethod.DeclaringType.Scope.Name;
-            string typeScopeId = sourceMethod.DeclaringType.MetadataToken.ToScopeId();
+            string typeScopeId = sourceMethod.DeclaringType.ScopeId;
             string methodScopeId = sourceMethod.DeclaringType.Methods.IndexOf(sourceMethod).ToString(System.Globalization.CultureInfo.InvariantCulture);
 
-            if (!_methodsByMetadataToken.TryGetValue(Tuple.Create(scope, typeScopeId, methodScopeId), out entry))
+            if (!_methodsByScopeId.TryGetValue(Tuple.Create(typeScopeId, methodScopeId), out entry))
                 return null;
 
             var cachedMethod = _dexLookup.GetMethod(entry.Item1.DexName, entry.Item2.DexName, entry.Item2.DexSignature);
@@ -127,12 +134,12 @@ namespace Dot42.CompilerLib.CompilerCache
             try
             {
                 var body = DexMethodBodyCloner.Clone(targetMethod, cachedMethod);
-                FixReferences(body, assembly, compiler, targetPackage);
+                FixReferences(body, compiler, targetPackage);
                 return body;
             }
             catch (Exception ex)
             {
-                DLog.Warning(DContext.CompilerCodeGenerator, "Compiler cache: EXCEPTION while converting cached body: {0}", ex.Message);
+                DLog.Warning(DContext.CompilerCodeGenerator, "Compiler cache: error while converting cached body: {0}: {1}. Not using cached body.", sourceMethod, ex.Message);
                 return null;
             }
         }
@@ -141,8 +148,7 @@ namespace Dot42.CompilerLib.CompilerCache
         /// Operands refering to types, methods or fields need to be fixed, as they might have
         /// gotten another name in the target package. he same applies for catch references.
         /// </summary>
-        private void FixReferences(MethodBody body, Mono.Cecil.AssemblyDefinition assembly, 
-                                                AssemblyCompiler compiler,  DexTargetPackage targetPackage)
+        private void FixReferences(MethodBody body, AssemblyCompiler compiler,  DexTargetPackage targetPackage)
         {
             // fix operands
             foreach (var ins in body.Instructions)
@@ -201,50 +207,81 @@ namespace Dot42.CompilerLib.CompilerCache
 
         private ClassReference ConvertClassReference(ClassReference sourceRef, AssemblyCompiler compiler, DexTargetPackage targetPackage)
         {
-            TypeEntry type = _map.GetTypeByDexName(sourceRef.Fullname);
-            if (type == null)
-            {
-                // has no dex name; assue that it is a native java type with
-                // DexImport or JavaImport attribute who's name can not change.
-                Trace.WriteLine("TypeEntry not found:   " + sourceRef);
-                return new ClassReference(sourceRef.Fullname);
+            TypeEntry type = _map.GetTypeBySignature(sourceRef.Descriptor);
+            var xTypeDef = ResolveToType(type, sourceRef, compiler);
 
-            }
-            var cecilTypeDef = _assemblyCache.FindType(type);
-            return cecilTypeDef.GetClassReference(targetPackage, compiler.Module);
+            return xTypeDef.GetClassReference(targetPackage);
         }
 
         private MethodReference ConvertMethodReference(MethodReference methodRef, AssemblyCompiler compiler, DexTargetPackage targetPackage)
         {
+            TypeEntry typeEntry;
             MethodEntry methodEntry = _map.GetMethodByDexSignature(methodRef.Owner.Fullname, methodRef.Name, methodRef.Prototype.ToSignature());
-            if (methodEntry == null)
+            string scopeId;
+
+            if (methodEntry != null)
             {
-                // has no dex name; assue that it is a native java type with
-                // DexImport or JavaImport attribute whose name can not change.
-                Trace.WriteLine("MethodEntry not found: " + methodRef);
-                return methodRef;
+                // important to do this indirection, to correctly resolve methods in
+                // the "__generated" class
+                typeEntry = _map.GetTypeByMethodId(methodEntry.Id);
+                scopeId = methodEntry.ScopeId;
+            }
+            else
+            {
+                typeEntry = _map.GetTypeBySignature(methodRef.Owner.Descriptor);
+                scopeId = methodRef.Name + methodRef.Prototype.ToSignature();
+            }
+            
+            var xTypeDef =  ResolveToType(typeEntry, methodRef.Owner, compiler);
+            var methodDef = xTypeDef.GetMethodByScopeId(scopeId);
+
+            if (methodDef == null)
+            {
+                throw new CompilerCacheResolveException("unable to resolve method by it's scope id: " + methodRef + " (" + scopeId + ")");
             }
 
-            var cecilMethod = _assemblyCache.FindMethod(methodEntry);
-
-            if (cecilMethod == null)
-            {
-                throw new CompilerCacheFixupException("Unable to resolve method reference: " + methodRef);
-            }
-
-            var xmethodReference = XBuilder.AsMethodReference(compiler.Module, cecilMethod);
-            return xmethodReference.GetReference(targetPackage);
+            return methodDef.GetReference(targetPackage);
         }
 
         private object ConvertFieldReference(FieldReference fieldRef, AssemblyCompiler compiler, DexTargetPackage targetPackage)
         {
             var classRef = ConvertClassReference(fieldRef.Owner, compiler, targetPackage);
             var typeRef = ConvertTypeReference(fieldRef.Type, compiler, targetPackage);
+
             // I don't believe we have to protect ourselfs from field name changes. 
             // Except for obfuscation, there is no reason to rename fields. They are 
             // independent of other classes.
+            
+            // TODO: handle generated class.
+            if(classRef.Name == "__generated")
+                throw new CompilerCacheResolveException("unable to resolve fields in __generated: " + fieldRef);
+
             return new FieldReference(classRef, fieldRef.Name, typeRef);
         }
 
+        /// <summary>
+        /// will throw if type is not found.
+        /// </summary>
+        private static XTypeDefinition ResolveToType(TypeEntry type, ClassReference sourceRef, AssemblyCompiler compiler)
+        {
+            XTypeDefinition xTypeDef = null;
+
+            if (type != null)
+            {
+                string scopeId = GetTypeScopeId(type);
+                xTypeDef = compiler.Module.GetTypeByScopeID(scopeId);
+            }
+
+            if (xTypeDef == null)
+            {
+                throw new CompilerCacheResolveException("unable to resolve " + sourceRef);
+            }
+            return xTypeDef;
+        }
+
+        private static string GetTypeScopeId(TypeEntry type)
+        {
+            return type.ScopeId == null ? type.Name : string.Join(":", type.Scope, type.ScopeId);
+        }
     }
 }

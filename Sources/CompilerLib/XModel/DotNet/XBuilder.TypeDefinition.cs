@@ -223,7 +223,6 @@ namespace Dot42.CompilerLib.XModel.DotNet
             internal override void Add(XSyntheticTypeDefinition nestedType)
             {
                 nested.Add(nestedType);
-                Module.Register(nestedType);
             }
 
             /// <summary>

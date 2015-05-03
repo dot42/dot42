@@ -69,6 +69,14 @@ namespace Dot42.CompilerLib.XModel
         public abstract bool IsDirect { get; }
 
         /// <summary>
+        /// Returns a scope id, that is guaranteed to be
+        /// <para> - unique for all methods declared in this type</para><para>
+        ///        - constant accross builds, if the underlying 
+        ///          definition has not changed.</para>
+        /// </summary>
+        public abstract string ScopeId { get; }
+
+        /// <summary>
         /// Gets the "base" method of the given method or null if there is no such method.
         /// </summary>
         public virtual XMethodDefinition GetBaseMethod(bool ignoreVirtual)

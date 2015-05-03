@@ -13,7 +13,7 @@ namespace Dot42.CompilerLib.XModel
         private readonly Dictionary<Type, object> caches = new Dictionary<Type, object>();
 
         private readonly Dictionary<string, FullNameCacheEntry> fullNameCache = new Dictionary<string, FullNameCacheEntry>();
-        //private readonly Dictionary<string, XTypeDefinition> scopeIdCache = new Dictionary<string, XTypeDefinition>();
+        private readonly Dictionary<string, XTypeDefinition> scopeIdCache = new Dictionary<string, XTypeDefinition>();
         private readonly List<XTypeDefinition> types = new List<XTypeDefinition>();
         private readonly XTypeSystem typeSystem;
 
@@ -49,6 +49,14 @@ namespace Dot42.CompilerLib.XModel
             return false;
         }
 
+        /// <summary>
+        /// Gets the type with the given namespace and name.
+        /// </summary>
+        internal XTypeDefinition GetTypeByScopeID(string scopeId)
+        {
+            return scopeIdCache[scopeId];
+        }
+
         internal ReadOnlyCollection<XTypeDefinition> Types { get { return types.AsReadOnly(); } }
 
         /// <summary>
@@ -75,6 +83,11 @@ namespace Dot42.CompilerLib.XModel
 
         private void Register(XTypeDefinition type, string overridenName, bool isImport)
         {
+            // scopeId must be unique
+            if(scopeIdCache.ContainsKey(type.ScopeId) && scopeIdCache[type.ScopeId] != type)
+                throw new Exception("scopeId not unique.");
+            scopeIdCache[type.ScopeId] =  type;
+
             var fullname = overridenName ?? type.FullName;
 
             FullNameCacheEntry e;

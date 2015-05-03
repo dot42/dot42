@@ -113,8 +113,8 @@
     <Compile Include="CompilationMode.cs" />
     <Compile Include="CompilationTarget.cs" />
     <Compile Include="CompiledMethod.cs" />
-    <Compile Include="CompilerCache\AssemblyTypeByScopeIdCache.cs" />
-    <Compile Include="CompilerCache\CompilerCacheFixupException.cs" />
+    <Compile Include="CompilerCache\AssemblyModifiedDetector.cs" />
+    <Compile Include="CompilerCache\CompilerCacheResolveException.cs" />
     <Compile Include="CompilerCache\DexMethodBodyCloner.cs" />
     <Compile Include="CompilerCache\DexMethodBodyCompilerCache.cs" />
     <Compile Include="CompilerException.cs" />

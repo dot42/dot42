@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq;
 using Dot42.CompilerLib.Ast.Extensions;
 using Dot42.CompilerLib.Extensions;
@@ -22,15 +23,17 @@ namespace Dot42.CompilerLib.XModel.DotNet
             private string javaImportName;
             private bool? useInvokeInterface;
             private bool? needsGenericInstanceMethodParameter;
+            private string scopeId;
 
             /// <summary>
             /// Default ctor
             /// </summary>
-            public ILMethodDefinition(XTypeDefinition declaringType, MethodDefinition method)
+            public ILMethodDefinition(XTypeDefinition declaringType, MethodDefinition method, string forceScopeId=null)
                 : base(declaringType)
             {
                 this.method = method;
                 OriginalReturnType = method.ReturnType;
+                scopeId = forceScopeId;
             }
 
             public MethodDefinition OriginalMethod { get { return method; } }
@@ -146,6 +149,17 @@ namespace Dot42.CompilerLib.XModel.DotNet
             public override bool IsDirect
             {
                 get { return method.IsDirect(); }
+            }
+
+            /// <summary>
+            /// our unique scope id
+            /// </summary>
+            public override string ScopeId
+            {
+                get
+                {
+                    return scopeId ?? (scopeId = GetScopeId());
+                }
             }
 
             /// <summary>
@@ -368,6 +382,20 @@ namespace Dot42.CompilerLib.XModel.DotNet
             {
                 OriginalReturnType = method.ReturnType;
                 method.ReturnType = type;
+            }
+
+            private string GetScopeId()
+            {
+                // Note: this code in unfortunately closely coupled to how the ClassBuilder
+                //       creates entries in the mapping file.
+                string methodName, descriptor, className;
+                if (TryGetDexImportNames(out methodName, out descriptor, out className)
+                 || TryGetJavaImportNames(out methodName, out descriptor, out className))
+                {
+                    return methodName + descriptor;
+                }
+
+                return method.DeclaringType.Methods.IndexOf(method).ToString(CultureInfo.InvariantCulture);
             }
         }
     }

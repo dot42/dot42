@@ -41,12 +41,12 @@ namespace Dot42.CompilerLib
         /// <summary>
         /// Create the classname for the Nullable base class for the given type.
         /// </summary>
-        public static string GetNullableBaseClassName(XTypeDefinition type)
+        public static string GetNullableClassName(XTypeDefinition type)
         {
-            return GetNullableBaseClassName(type.Name);
+            return GetNullableClassName(type.Name);
         }
 
-        public static string GetNullableBaseClassName(string underlyingTypeName)
+        public static string GetNullableClassName(string underlyingTypeName)
         {
             return underlyingTypeName + "__Nullable";
         }

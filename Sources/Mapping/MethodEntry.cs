@@ -7,7 +7,7 @@ namespace Dot42.Mapping
     /// <summary>
     /// Method entry in map file
     /// </summary>
-    [DebuggerDisplay("{Name}, {Signature}")]
+    [DebuggerDisplay("{Name}{Signature}")]
     public sealed class MethodEntry
     {
         private readonly string name;

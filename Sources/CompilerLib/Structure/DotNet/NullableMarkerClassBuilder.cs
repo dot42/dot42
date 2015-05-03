@@ -50,14 +50,6 @@ namespace Dot42.CompilerLib.Structure.DotNet
             Class.IsSynthetic = true;
         }
 
-        ///// <summary>
-        ///// Create the name of the class.
-        ///// </summary>
-        //protected override string CreateClassName(XTypeDefinition xType)
-        //{
-        //    return NameConverter.GetNullableBaseClassName();
-        //}
-
         /// <summary>
         /// Set the super class of the class definition.
         /// </summary>
@@ -71,16 +63,18 @@ namespace Dot42.CompilerLib.Structure.DotNet
 
         protected override XTypeDefinition CreateXType(XTypeDefinition parentXType)
         {
-            string name = NameConverter.GetNullableBaseClassName(_underlyingBuilder.Type.Name);
+            var typeDef = (XBuilder.ILTypeDefinition)XBuilder.AsTypeReference(Compiler.Module, Type)
+                                                             .Resolve();
+            string name = NameConverter.GetNullableClassName(typeDef.Name);
 
             XSyntheticTypeFlags xflags = default(XSyntheticTypeFlags);
             xflags |= XSyntheticTypeFlags.ValueType;
             xflags |= XSyntheticTypeFlags.Sealed;
 
-            return XSyntheticTypeDefinition.Create(Compiler.Module, parentXType, xflags,  
-                                                   _underlyingBuilder.Type.Namespace, name, 
-                                                  Compiler.Module.TypeSystem.Object,
-                                                  string.Join(":", Type.Scope.Name, Type.MetadataToken.ToScopeId(), "Nullable"));
+            return XSyntheticTypeDefinition.Create(Compiler.Module, parentXType, xflags,
+                                                   typeDef.Namespace, name, 
+                                                   Compiler.Module.TypeSystem.Object,
+                                                   string.Join(":", Type.Scope.Name, Type.MetadataToken.ToScopeId(), "Nullable"));
         }
 
         /// <summary>

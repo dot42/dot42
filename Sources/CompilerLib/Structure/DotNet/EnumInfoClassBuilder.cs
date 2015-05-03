@@ -104,11 +104,11 @@ namespace Dot42.CompilerLib.Structure.DotNet
             var valueType = isWide ? module.TypeSystem.Long : module.TypeSystem.Int;
 
             // Build default ctor
-            defaultCtor = XSyntheticMethodDefinition.Create(XType, XSyntheticMethodFlags.Constructor, "<init>", module.TypeSystem.Void);
+            defaultCtor = XSyntheticMethodDefinition.Create(XType, XSyntheticMethodFlags.Constructor, "<init>", null, module.TypeSystem.Void);
             Class.Methods.Add(defaultCtor.GetDexMethod(Class, targetPackage));
 
             // Build Create method
-            create = XSyntheticMethodDefinition.Create(XType, XSyntheticMethodFlags.Protected, "Create", enumType,
+            create = XSyntheticMethodDefinition.Create(XType, XSyntheticMethodFlags.Protected, "Create", null, enumType,
                 XParameter.Create("value", valueType));
             Class.Methods.Add(create.GetDexMethod(Class, targetPackage));
         }
