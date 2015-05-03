@@ -20,12 +20,12 @@ namespace Dot42.CompilerLib.XModel.Synthetic
         private readonly List<XMethodDefinition> methods;
         private readonly List<XTypeDefinition> nestedTypes;
         private readonly List<XTypeReference> interfaces;
-        private string _scopeId;
+        private readonly string scopeId;
 
         /// <summary>
         /// Default ctor
         /// </summary>
-        private XSyntheticTypeDefinition(XModule module, XTypeDefinition declaringType, XSyntheticTypeFlags flags, string @namespace, string name, XTypeReference baseType, string _scopeId)
+        private XSyntheticTypeDefinition(XModule module, XTypeDefinition declaringType, XSyntheticTypeFlags flags, string @namespace, string name, XTypeReference baseType, string scopeId)
             : base(module, declaringType, flags.HasFlag(XSyntheticTypeFlags.ValueType), null)
         {
             this.flags = flags;
@@ -36,7 +36,7 @@ namespace Dot42.CompilerLib.XModel.Synthetic
             methods = new List<XMethodDefinition>();
             nestedTypes = new List<XTypeDefinition>();
             interfaces = new List<XTypeReference>();
-            this._scopeId = _scopeId;
+            this.scopeId = scopeId;
        }
 
         
@@ -157,6 +157,7 @@ namespace Dot42.CompilerLib.XModel.Synthetic
         internal override void Add(XSyntheticTypeDefinition nestedType)
         {
             nestedTypes.Add(nestedType);
+            Module.Register(nestedType);
             Reset();
         }
 
@@ -231,7 +232,7 @@ namespace Dot42.CompilerLib.XModel.Synthetic
         /// <summary>
         /// our unique id, constant accross builds.
         /// </summary>
-        public override string ScopeId { get { return _scopeId; } }
+        public override string ScopeId { get { return scopeId; } }
 
         /// <summary>
         /// Is there a DexImport attribute on this type?

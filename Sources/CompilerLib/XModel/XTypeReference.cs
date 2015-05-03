@@ -321,6 +321,7 @@ namespace Dot42.CompilerLib.XModel
                 var generics = "";
                 if (!noGenerics)
                 {
+                    // TODO: why does resharper show a suspicious cast?
                     var genericInstance = this as IXGenericInstance;
                     if (genericInstance != null)
                     {

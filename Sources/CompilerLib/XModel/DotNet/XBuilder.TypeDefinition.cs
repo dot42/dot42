@@ -22,7 +22,6 @@ namespace Dot42.CompilerLib.XModel.DotNet
             private readonly List<XMethodDefinition> methods;
             private int addedMethodCount;
             private int addedFieldCount;
-            private int addedNestedTypesCount;
             private readonly List<XTypeDefinition> nested;
             private readonly List<XTypeReference> interfaces;
             private XTypeReference baseType;
@@ -45,6 +44,14 @@ namespace Dot42.CompilerLib.XModel.DotNet
                 methods = new List<XMethodDefinition>(type.Methods.Count);
                 nested = new List<XTypeDefinition>();
                 interfaces = new List<XTypeReference>();
+
+                // Add nested types
+                foreach (var source in type.NestedTypes/*.Where(t=>t.IsReachable) should we only consider reachables?*/)
+                {
+                    var nestedType = new ILTypeDefinition(Module, this, source);
+                    nested.Add(nestedType);
+                    module.Register(nestedType);
+                }
             }
 
             /// <summary>
@@ -189,22 +196,7 @@ namespace Dot42.CompilerLib.XModel.DotNet
             /// </summary>
             public override ReadOnlyCollection<XTypeDefinition> NestedTypes
             {
-                get
-                {
-                    if ((nested.Count - addedNestedTypesCount) != type.NestedTypes.Count)
-                    {
-                        // Add missing nested types
-                        foreach (var source in type.NestedTypes)
-                        {
-                            if (nested.OfType<ILTypeDefinition>().All(x => x.OriginalTypeDefinition != source))
-                            {
-                                nested.Add(new ILTypeDefinition(Module, this, source));
-                            }
-                        }
-                        Reset();
-                    }
-                    return nested.AsReadOnly();
-                }
+                get { return nested.AsReadOnly(); }
             }
 
             /// <summary>
@@ -231,7 +223,7 @@ namespace Dot42.CompilerLib.XModel.DotNet
             internal override void Add(XSyntheticTypeDefinition nestedType)
             {
                 nested.Add(nestedType);
-                addedNestedTypesCount++;
+                Module.Register(nestedType);
             }
 
             /// <summary>
@@ -330,34 +322,6 @@ namespace Dot42.CompilerLib.XModel.DotNet
             /// our unique id, constant across builds if the assembly has not changed.
             /// </summary>
             public override string ScopeId { get { return type.Scope.Name + ":" + type.MetadataToken.ToScopeId(); } }
-
-            /// <summary>
-            /// Try to get a type definition (me or one of my nested typed) by the given full name.
-            /// </summary>
-            public override bool TryGet(string fullName, bool noImports, out XTypeDefinition xTypeDefinition)
-            {
-                if (base.TryGet(fullName, noImports, out xTypeDefinition))
-                    return true;
-                if (!noImports)
-                {
-                    EnsureDexImportType();
-                    if (dexImportType != Module.TypeSystem.NoType)
-                    {
-                        if (dexImportType.FullName == fullName)
-                        {
-                            xTypeDefinition = this;
-                            return true;
-                        }
-                    }
-                    EnsureJavaImportType();
-                    if (javaImportType.FullName == fullName)
-                    {
-                        xTypeDefinition = this;
-                        return true;
-                    }
-                }
-                return false;
-            }
 
             /// <summary>
             /// Does this type reference point to the same type as the given other reference?

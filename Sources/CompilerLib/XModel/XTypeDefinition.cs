@@ -38,7 +38,18 @@ namespace Dot42.CompilerLib.XModel
         /// Sort order priority.
         /// Low values come first
         /// </summary>
-        public abstract int Priority { get; }
+        public virtual int Priority
+        {
+            get
+            {
+                // Using the DeclaringTypes Priority probably makes no difference 
+                // whatsoever, but the refactored code had this implicit logic, 
+                // so i kept it for now. 
+                if (DeclaringType != null)  
+                    return DeclaringType.Priority;
+                throw new NotImplementedException("derived classes must implement Priority.");
+            }
+        }
 
         /// <summary>
         /// Gets the type this type extends (null if System.Object)
@@ -150,25 +161,6 @@ namespace Dot42.CompilerLib.XModel
         {
             type = this;
             return true;
-        }
-
-        /// <summary>
-        /// Try to get a type definition (me or one of my nested typed) by the given full name.
-        /// </summary>
-        public virtual bool TryGet(string fullName, bool noImports, out XTypeDefinition type)
-        {
-            if (FullName == fullName)
-            {
-                type = this;
-                return true;
-            }
-            foreach (var nested in NestedTypes)
-            {
-                if (nested.TryGet(fullName, noImports, out type))
-                    return true;
-            }
-            type = null;
-            return false;
         }
 
         /// <summary>
