@@ -284,7 +284,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// <summary>
         /// Record the mapping from .NET to Dex
         /// </summary>
-        public void RecordMapping(MapFile mapFile)
+        public virtual void RecordMapping(MapFile mapFile)
         {
             var entry = CreateMappingEntry();
 

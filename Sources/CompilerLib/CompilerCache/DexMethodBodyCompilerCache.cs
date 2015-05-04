@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using Dot42.CecilExtensions;
 using Dot42.CompilerLib.Extensions;
+using Dot42.CompilerLib.Structure.DotNet;
 using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel;
 using Dot42.DexLib;
@@ -24,6 +25,7 @@ namespace Dot42.CompilerLib.CompilerCache
         private readonly MapFileLookup _map;
 
         private readonly Dictionary<Tuple<string, string>, Tuple<TypeEntry, MethodEntry>> _methodsByScopeId = new Dictionary<Tuple<string, string>, Tuple<TypeEntry, MethodEntry>>();
+
         private int statCacheHits;
         private int statCacheMisses;
 
@@ -52,11 +54,13 @@ namespace Dot42.CompilerLib.CompilerCache
                 {
                     if(type.ScopeId == null)
                         continue;
+                    var typeScopeId = GetTypeScopeId(type);
                     foreach (var method in type.Methods)
                     {
                         if (type.ScopeId == null)
                             continue;
-                        var scopeKey = Tuple.Create(GetTypeScopeId(type), method.ScopeId);
+                        
+                        var scopeKey = Tuple.Create(typeScopeId, method.ScopeId);
                         _methodsByScopeId[scopeKey] = Tuple.Create(type, method);
                     }
                 }
@@ -215,9 +219,17 @@ namespace Dot42.CompilerLib.CompilerCache
         private ClassReference ConvertClassReference(ClassReference sourceRef, AssemblyCompiler compiler, DexTargetPackage targetPackage)
         {
             TypeEntry type = _map.GetTypeBySignature(sourceRef.Descriptor);
-            var xTypeDef = ResolveToType(type, sourceRef, compiler);
 
-            return xTypeDef.GetClassReference(targetPackage);
+            if (IsDelegateType(type))
+            {
+                // special delegate handling.
+                return GetDelegateInstanceType(type, sourceRef, compiler, targetPackage).InstanceDefinition;
+            }
+            else
+            {
+                var xTypeDef = ResolveToType(type, sourceRef, compiler);
+                return xTypeDef.GetClassReference(targetPackage);
+            }
         }
 
         private MethodReference ConvertMethodReference(MethodReference methodRef, AssemblyCompiler compiler, DexTargetPackage targetPackage)
@@ -236,10 +248,19 @@ namespace Dot42.CompilerLib.CompilerCache
             else
             {
                 typeEntry = _map.GetTypeBySignature(methodRef.Owner.Descriptor);
+                
+                // special delegate handling
+                if (IsDelegateType(typeEntry))
+                {
+                    var delInstanceType = GetDelegateInstanceType(typeEntry, methodRef.Owner, compiler, targetPackage);
+                    return new MethodReference(delInstanceType.InstanceDefinition, methodRef.Name, methodRef.Prototype);
+                }
                 scopeId = methodRef.Name + methodRef.Prototype.ToSignature();
             }
             
             var xTypeDef =  ResolveToType(typeEntry, methodRef.Owner, compiler);
+
+
             var methodDef = xTypeDef.GetMethodByScopeId(scopeId);
 
             if (methodDef == null)
@@ -248,6 +269,31 @@ namespace Dot42.CompilerLib.CompilerCache
             }
 
             return methodDef.GetReference(targetPackage);
+        }
+
+        /// <summary>
+        /// Delegate methods are created unfortunately during the compilation phase in AstCompiler.VisitExpression.
+        /// Model this behaviour here.
+        /// </summary>
+        private DelegateInstanceType GetDelegateInstanceType(TypeEntry typeEntry, ClassReference classRef, AssemblyCompiler compiler, DexTargetPackage targetPackage)
+        {
+            var scopeIds = typeEntry.ScopeId.Split(new[] { ":delegate:" }, StringSplitOptions.None);
+
+            var typeScopId = scopeIds[0];
+            var xTypeDef = compiler.Module.GetTypeByScopeID(GetTypeScopeId(typeEntry.Scope, typeScopId, typeEntry.Name));
+            var delegateType = compiler.GetDelegateType(xTypeDef);
+            
+            var calledMethodId = scopeIds[1];
+            var calledTypeScopeId = calledMethodId.Split('|')[0];
+            var calledMethodScope = calledMethodId.Split('|')[1];
+
+            var calledTypeDef = compiler.Module.GetTypeByScopeID(calledTypeScopeId);
+            var calledMethod = calledTypeDef.GetMethodByScopeId(calledMethodScope);
+
+            // NOTE: we are loosing the SequencePoint (DebugInfo) here. I'm not sure if this
+            //       was ever valuable anyways.
+            var delInstanceType = delegateType.GetOrCreateInstance(null, targetPackage, calledMethod);
+            return delInstanceType;
         }
 
         private object ConvertFieldReference(FieldReference fieldRef, AssemblyCompiler compiler, DexTargetPackage targetPackage)
@@ -288,7 +334,18 @@ namespace Dot42.CompilerLib.CompilerCache
 
         private static string GetTypeScopeId(TypeEntry type)
         {
-            return type.ScopeId == null ? type.Name : string.Join(":", type.Scope, type.ScopeId);
+            return GetTypeScopeId(type.Scope, type.ScopeId, type.Name);
         }
+
+        private static string GetTypeScopeId(string scope, string scopeId, string typeFullname)
+        {
+            return scope == null ? typeFullname : string.Join(":", scope, scopeId);
+        }
+
+        private bool IsDelegateType(TypeEntry type)
+        {
+            return type.ScopeId.Contains(":delegate:");
+        }
+
     }
 }

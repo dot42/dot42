@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using Dot42.CompilerLib.Target;
@@ -60,6 +61,11 @@ namespace Dot42.CompilerLib.Structure.DotNet
         {
             get { return delegateType; }
         }
+
+        /// <summary>
+        /// get all created instances
+        /// </summary>
+        public ICollection<DelegateInstanceType> Instances { get { return instances.Values; } }
 
         /// <summary>
         /// Gets the instance type that calls the given method.

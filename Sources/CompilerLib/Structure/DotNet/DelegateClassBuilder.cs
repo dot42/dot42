@@ -18,6 +18,8 @@ namespace Dot42.CompilerLib.Structure.DotNet
     /// </summary>
     internal sealed class DelegateClassBuilder : ClassBuilder
     {
+        private DelegateType delegateType;
+
         /// <summary>
         /// Default ctor
         /// </summary>
@@ -41,7 +43,8 @@ namespace Dot42.CompilerLib.Structure.DotNet
             Class.IsAbstract = true;
             //Class.IsInterface = true;
             // Record in compiler
-            Compiler.Record(new DelegateType(Compiler, XType, Class, targetPackage.DexFile, targetPackage.NameConverter));
+            delegateType = new DelegateType(Compiler, XType, Class, targetPackage.DexFile, targetPackage.NameConverter);
+            Compiler.Record(delegateType);
         }
 
         /// <summary>
@@ -127,17 +130,33 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 new AstExpression(AstNode.NoSource, AstCode.Ret, null));
         }
 
+        public override void RecordMapping(MapFile mapFile)
+        {
+            base.RecordMapping(mapFile);
+
+            // create the mapping for all our instance type.
+            foreach (var instance in delegateType.Instances)
+            {
+                // Create mapping
+                var dexName = instance.InstanceDefinition.Fullname;
+                var mapFileId = instance.InstanceDefinition.MapFileId;
+                var scopeId = XType.ScopeId.Substring(XType.ScopeId.IndexOf(':') + 1);
+                scopeId += ":delegate:" + instance.CalledMethod.DeclaringType.ScopeId + "|" + instance.CalledMethod.ScopeId;
+                
+                var entry = new TypeEntry(Type.FullName, Type.Scope.Name, dexName, mapFileId, scopeId);
+                mapFile.Add(entry);
+            }
+        }
+
         protected override TypeEntry CreateMappingEntry()
         {
             var ret = base.CreateMappingEntry();
-
             foreach (var methodName in new[] {"Invoke" /*...*/})
             {
                 var xMethod = XType.Methods.Single(x => x.EqualsName(methodName));
                 var dMethod = Class.Methods.Single(x => x.Name == methodName);
                 var method = Type.Methods.Single(x => x.Name == methodName);
                 MethodBuilder.RecordMapping(ret, xMethod, method, dMethod, null);
-                
             }
             return ret;
         }

@@ -32,8 +32,8 @@ namespace Dot42.CompilerLib.Structure.DotNet
         {
             // Prepare called method
             var target = targetPackage.DexFile;
-            var owner = target.GetClass(calledMethod.DeclaringType.GetClassReference(targetPackage).Fullname) ??
-                targetPackage.GetOrCreateGeneratedCodeClass();
+            var owner = target.GetClass(calledMethod.DeclaringType.GetClassReference(targetPackage).Fullname) 
+                     ?? targetPackage.GetOrCreateGeneratedCodeClass();
             var calledMethodPrototype = PrototypeBuilder.BuildPrototype(compiler, targetPackage, owner, calledMethod);
             var calledMethodRef = calledMethod.GetReference(targetPackage);
 
@@ -52,10 +52,13 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 }
             }
 
-            var @class = new ClassDefinition();
-            @class.Name = CreateInstanceTypeName(owner);
-            @class.Namespace = owner.Namespace;
-            @class.AccessFlags = AccessFlags.Public | AccessFlags.Final;
+            var @class = new ClassDefinition
+            {
+                Name = CreateInstanceTypeName(owner),
+                Namespace = owner.Namespace,
+                AccessFlags = AccessFlags.Public | AccessFlags.Final,
+                MapFileId = compiler.GetNextMapFileId(),
+            };
             owner.AddInnerClass(@class);
 
             // Set super class
@@ -106,11 +109,14 @@ namespace Dot42.CompilerLib.Structure.DotNet
             }
 
             // Add ctor
-            var ctor = new Dot42.DexLib.MethodDefinition();
-            ctor.Owner = @class;
-            ctor.Name = "<init>";
-            ctor.AccessFlags = AccessFlags.Public | AccessFlags.Constructor;
-            ctor.Prototype = new Prototype(PrimitiveType.Void);
+            var ctor = new Dot42.DexLib.MethodDefinition
+            {
+                Owner = @class,
+                Name = "<init>",
+                AccessFlags = AccessFlags.Public | AccessFlags.Constructor,
+                Prototype = new Prototype(PrimitiveType.Void),
+                MapFileId = compiler.GetNextMapFileId(),
+            };
 
             if (!calledMethod.IsStatic)
             {
@@ -133,7 +139,11 @@ namespace Dot42.CompilerLib.Structure.DotNet
             targetPackage.Record(new CompiledMethod() { DexMethod = ctor, RLBody = ctorBody });
 
             // Add Invoke method
-            var invoke = new Dot42.DexLib.MethodDefinition(@class, "Invoke", invokePrototype) { AccessFlags = AccessFlags.Public };
+            var invoke = new Dot42.DexLib.MethodDefinition(@class, "Invoke", invokePrototype)
+            {
+                AccessFlags = AccessFlags.Public,
+                MapFileId = compiler.GetNextMapFileId(),
+            };
             @class.Methods.Add(invoke);
             // Create body
             var invokeBody = CreateInvokeBody(sequencePoint, compiler, targetPackage, calledMethod, invokeMethod, invokePrototype, calledMethodPrototype, instanceField, genericInstanceTypeField, genericMethodTypeField, delegateClass);
