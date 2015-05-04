@@ -46,6 +46,7 @@ namespace Dot42.CompilerLib.Structure.Java
             dmethod.Name = GetMethodName(method, targetPackage);
             dmethod.MapFileId = compiler.GetNextMapFileId();
             AddMethodToDeclaringClass(declaringClass, dmethod, targetPackage);
+
             targetPackage.Record(xMethod, dmethod);
 
             // Set access flags

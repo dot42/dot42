@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text;
 using Dot42.CecilExtensions;
 using Dot42.CompilerLib.Ast.Extensions;
+using Dot42.CompilerLib.CompilerCache;
 using Dot42.CompilerLib.Extensions;
 using Dot42.CompilerLib.Target;
 using Dot42.CompilerLib.Target.Dex;
@@ -23,6 +24,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
         private DexLib.MethodDefinition dmethod;
         private CompiledMethod compiledMethod;
         private XBuilder.ILMethodDefinition xMethod;
+        private CacheEntry cachedBody;
 
         /// <summary>
         /// Default ctor
@@ -64,7 +66,9 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 Name = GetMethodName(method, targetPackage),
                 MapFileId = compiler.GetNextMapFileId()
             };
+            
             AddMethodToDeclaringClass(declaringClass, dmethod, targetPackage);
+
             targetPackage.Record(xMethod, dmethod);
 
             // Set access flags
@@ -154,7 +158,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
 
                     //// update the original method's return type as well, 
                     //// to make sure the code generation later knows what it is handling.
-                    //// TODO: this seems to be a hack. should't this have been handled 
+                    //// TODO: this seems to be a hack. shouldn't this have been handled 
                     ////       during the IL-conversion phase?
                     xMethod.SetInheritedReturnType(inheritedReturnType);
                 }
@@ -170,20 +174,26 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 return;
 
             // Create body (if any)
-            if (!method.HasBody) return;
+            if (!method.HasBody) 
+                return;
 
-            var source = new MethodSource(xMethod, method);
+            cachedBody = compiler.MethodBodyCompilerCache.GetFromCache(dmethod, xMethod, compiler, targetPackage);
 
-            var body = compiler.MethodBodyCompilerCache.GetFromCache(dmethod, xMethod, compiler, targetPackage);
-            if (body != null)
+            if (cachedBody != null)
             {
-                //Trace.WriteLine("found cached body for " + method.FullName);
+                dmethod.Body = cachedBody.Body;
+                // important to fix the owners source file as early as possible, 
+                // so it can't be changed later. Else we would have to recreate
+                // all cached method bodies debug infos.
+                dmethod.Owner.SetSourceFile(cachedBody.ClassSourceFile);
+                return;
             }
 
+            var source = new MethodSource(xMethod, method);
             ExpandSequencePoints(method.Body);
-            
 
-            bool generateSetNextInstructionCode = compiler.GenerateSetNextInstructionCode && method.DeclaringType.IsInDebugBuildAssembly();
+            bool generateSetNextInstructionCode = compiler.GenerateSetNextInstructionCode 
+                                                  && method.DeclaringType.IsInDebugBuildAssembly();
 
             DexMethodBodyCompiler.TranslateToRL(compiler, targetPackage, source, dmethod, generateSetNextInstructionCode, out compiledMethod);
         }
@@ -265,12 +275,35 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// <summary>
         /// Record the mapping from .NET to Dex
         /// </summary>
-        public void RecordMapping(TypeEntry typeEntry)
+        public void RecordMapping(TypeEntry typeEntry, MapFile mapFile)
         {
-            RecordMapping(typeEntry, xMethod, method, dmethod, compiledMethod);
+            var entry = RecordMapping(typeEntry, xMethod, method, dmethod, compiledMethod);
+
+            if (cachedBody != null)
+            {
+                // take the mapping and debug info from the cached body.
+                foreach (var v in cachedBody.MethodEntry.Variables)
+                    entry.Variables.Add(v);
+                foreach (var p in cachedBody.MethodEntry.Parameters)
+                    entry.Parameters.Add(p);
+
+                if (cachedBody.SourceCodePositions.Count > 0)
+                {
+                    var doc = mapFile.GetOrCreateDocument(cachedBody.SourceCodePositions[0].Document.Path, true);
+                    foreach (var pos in cachedBody.SourceCodePositions.Select(p=>p.Position))
+                    {
+                        var newPos = new DocumentPosition(pos.Start.Line,pos.Start.Column, pos.End.Line, pos.End.Column, typeEntry.Id, dmethod.MapFileId, pos.MethodOffset)
+                        {
+                            AlwaysKeep = true
+                        };
+                        doc.Positions.Add(newPos);
+                    }
+                        
+                }
+            }
         }
 
-        public static void RecordMapping(TypeEntry typeEntry, XMethodDefinition xMethod, MethodDefinition method, DexLib.MethodDefinition dmethod, CompiledMethod compiledMethod)
+        public static MethodEntry RecordMapping(TypeEntry typeEntry, XMethodDefinition xMethod, MethodDefinition method, DexLib.MethodDefinition dmethod, CompiledMethod compiledMethod)
         {
             var scopeId = xMethod.ScopeId;
 
@@ -286,6 +319,8 @@ namespace Dot42.CompilerLib.Structure.DotNet
             {
                 compiledMethod.RecordMapping(entry);
             }
+
+            return entry;
         }
 
         /// <summary>

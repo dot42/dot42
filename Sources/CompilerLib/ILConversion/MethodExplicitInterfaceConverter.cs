@@ -186,7 +186,7 @@ namespace Dot42.CompilerLib.ILConversion
                     else if (!(impl.HasDexImportAttribute() || impl.HasJavaImportAttribute()))
                     {
                         // Add stub redirecting explicit implementation to implicit implementation
-                        if (createExplicitStubs)
+                        if (createExplicitStubs/* && !type.IsInterface TODO: check what to do with interfaces*/)
                         {
                             CreateExplicitStub(type, impl, newName, oldName, iMethod, iMethodIsJavaWithGenericParams /*|| iMethodContainsGenericParams*/);
                         }

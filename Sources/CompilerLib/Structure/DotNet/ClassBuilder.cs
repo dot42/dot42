@@ -291,7 +291,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
             mapFile.Add(entry);
 
             if (fieldBuilders != null) fieldBuilders.ForEach(x => x.RecordMapping(entry));
-            if (methodBuilders != null) methodBuilders.ForEach(x => x.RecordMapping(entry));
+            if (methodBuilders != null) methodBuilders.ForEach(x => x.RecordMapping(entry, mapFile));
 
             // Create mapping of nested classes
             if (nestedBuilders != null) nestedBuilders.ForEach(x => x.RecordMapping(mapFile));

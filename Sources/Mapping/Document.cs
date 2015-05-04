@@ -96,7 +96,7 @@ namespace Dot42.Mapping
                 var last = positions[i - 1];
                 var pos = positions[i];
 
-                if (last.EqualExceptOffset(pos) && !pos.IsReturn)
+                if (!pos.AlwaysKeep && last.EqualExceptOffset(pos))
                 {
                     // Remove current position
                     positions.RemoveAt(i);

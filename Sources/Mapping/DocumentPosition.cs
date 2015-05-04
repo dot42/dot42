@@ -61,13 +61,20 @@ namespace Dot42.Mapping
         public int TypeId { get; set; }
         public int MethodId { get; set; }
         public int MethodOffset { get; set; }
-        public bool IsReturn { get; set; } // Not persisted, used to avoid removing mapping for return address
+        
+        /// <summary>
+        /// Not persisted, used to avoid removing mapping for return address
+        /// </summary>
+        public bool AlwaysKeep { get; set; } 
 
         /// <summary>
         /// Compares the current object with another object of the same type.
         /// </summary>
         /// <returns>
-        /// A value that indicates the relative order of the objects being compared. The return value has the following meanings: Value Meaning Less than zero This object is less than the <paramref name="other"/> parameter.Zero This object is equal to <paramref name="other"/>. Greater than zero This object is greater than <paramref name="other"/>. 
+        /// A value that indicates the relative order of the objects being compared. The return value has the following meanings:
+        /// Value Meaning Less than zero: This object is less than the <paramref name="other"/> parameter.
+        /// Zero This object is equal to <paramref name="other"/>. Greater than zero This object is greater 
+        /// than <paramref name="other"/>. 
         /// </returns>
         /// <param name="other">An object to compare with this object.</param>
         public int CompareTo(DocumentPosition other)

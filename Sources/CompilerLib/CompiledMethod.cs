@@ -145,7 +145,11 @@ namespace Dot42.CompilerLib
                 throw new ArgumentException("No DexMethod set");
             if ((dmethod.IsAbstract) || (dmethod.IsNative))
                 return;
+
             var rlBody = RLBody;
+
+            if (rlBody == null && dmethod.Body != null) // already satisfied from the cache?
+                return;
 
             if (rlBody == null)
                 throw new ArgumentException(string.Format("internal compiler error: No RL body set on method '{2}'.'{3}' => '{0}'.'{1}'", dmethod.Owner.Name, dmethod.Name, method == null ? null : method.DeclaringType.FullName, method == null ? null : method.Name));
@@ -172,7 +176,7 @@ namespace Dot42.CompilerLib
                 var debugInfoBuilder = new DebugInfoBuilder(this);
                 if (generateDebugInfo)
                     debugInfoBuilder.CreateDebugInfo(dbody, regMapper, targetPackage);
-                if (mapFile != null)
+                if (mapFile != null && dmethod.MapFileId != 0)
                     debugInfoBuilder.AddDocumentMapping(mapFile);
             }
         }

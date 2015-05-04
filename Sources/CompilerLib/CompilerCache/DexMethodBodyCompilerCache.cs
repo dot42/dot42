@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -11,11 +12,26 @@ using Dot42.CompilerLib.XModel;
 using Dot42.DexLib;
 using Dot42.Mapping;
 using Dot42.Utility;
-using Mono.Cecil.Cil;
 using MethodBody = Dot42.DexLib.Instructions.MethodBody;
 
 namespace Dot42.CompilerLib.CompilerCache
 {
+    public class CacheEntry
+    {
+        public readonly MethodBody Body;
+        public readonly MethodEntry MethodEntry;
+        public readonly ReadOnlyCollection<SourceCodePosition> SourceCodePositions;
+        public readonly string ClassSourceFile;
+
+        public CacheEntry(MethodBody body, MethodEntry methodEntry, IList<SourceCodePosition> sourceCodePositions, string classSourceFile)
+        {
+            Body = body;
+            MethodEntry = methodEntry;
+            ClassSourceFile = classSourceFile;
+            SourceCodePositions = new ReadOnlyCollection<SourceCodePosition>(sourceCodePositions);
+        }
+    }
+
     public class DexMethodBodyCompilerCache
     {
         private readonly AssemblyModifiedDetector _modifiedDetector;
@@ -58,7 +74,7 @@ namespace Dot42.CompilerLib.CompilerCache
                     
                     var typeScopeId = GetTypeScopeId(type);
                     
-                    // redirect references to the generated class.
+                    // redirect the generated class if neccessary.
                     var dexType = type.Id == 0 ? map.GeneratedType : type;
 
                     foreach (var method in type.Methods)
@@ -78,8 +94,7 @@ namespace Dot42.CompilerLib.CompilerCache
             }
             catch (Exception ex)
             {
-                DLog.Warning(DContext.CompilerCodeGenerator, "unable to initialize compiler cache", ex);
-                throw;
+                DLog.Warning(DContext.CompilerCodeGenerator, "unable to initialize compiler cache: {0}", ex.Message);
             }
         }
 
@@ -89,18 +104,17 @@ namespace Dot42.CompilerLib.CompilerCache
                 DLog.Warning(DContext.CompilerCodeGenerator, "Dex method body compiler cache: {0} hits and {1} misses.", statCacheHits, statCacheMisses);
         }
 
-        public MethodBody GetFromCache(MethodDefinition targetMethod, XMethodDefinition sourceMethod, AssemblyCompiler compiler, DexTargetPackage targetPackage)
+        public CacheEntry GetFromCache(MethodDefinition targetMethod, XMethodDefinition sourceMethod, AssemblyCompiler compiler, DexTargetPackage targetPackage)
         {
             var ret = GetFromCacheImpl(targetMethod, sourceMethod, compiler, targetPackage);
             
             if (ret != null) Interlocked.Increment(ref statCacheHits);
-            else            
-                Interlocked.Increment(ref statCacheMisses);
+            else             Interlocked.Increment(ref statCacheMisses);
             
             return ret;
         }
 
-        public MethodBody GetFromCacheImpl(MethodDefinition targetMethod, XMethodDefinition sourceMethod, AssemblyCompiler compiler, DexTargetPackage targetPackage)
+        public CacheEntry GetFromCacheImpl(MethodDefinition targetMethod, XMethodDefinition sourceMethod, AssemblyCompiler compiler, DexTargetPackage targetPackage)
         {
             if (!IsEnabled)
                 return null;
@@ -116,27 +130,40 @@ namespace Dot42.CompilerLib.CompilerCache
             if (!_methodsByScopeId.TryGetValue(Tuple.Create(typeScopeId, methodScopeId), out entry))
                 return null;
 
-            // Note: this fails at the moment for methods in the _generated class, since we do not have
-            //       their new name.
             var cachedMethod = _dexLookup.GetMethod(entry.Item1.DexName, entry.Item2.DexName, entry.Item2.DexSignature);
 
             if (cachedMethod == null)
                 return null;
 
+            if (cachedMethod.Body == null)
+            {
+                // I believe there is a bug in MethodExplicitInterfaceConverter generating
+                // stubs for interfaces if they derive from an imported interface.
+                // Bail out for now until this is fixed.
+                DLog.Info(DContext.CompilerCodeGenerator, "Compiler cache: no method body found on cached version of {0}, even though one was expected", sourceMethod);
+                return null;
+            }
+
             try
             {
                 var body = DexMethodBodyCloner.Clone(targetMethod, cachedMethod);
                 FixReferences(body, compiler, targetPackage);
-                return body;
+
+                var @class = _dexLookup.GetClass(entry.Item1.DexName);
+
+                return new CacheEntry(body, entry.Item2, _map.GetSourceCodePositions(entry.Item2), @class.SourceFile);
             }
             catch (CompilerCacheResolveException ex)
             {
-                Trace.WriteLine(string.Format("Compiler cache: error while converting cached body: {0}: {1}. Not using cached body.", sourceMethod, ex.Message));
+                // This happens at the moment for methods using fields in the __generated class.
+                // The number of these failures in my test is 6 out of ~9000. Since we gracefully
+                // handle it by re-compiling the method body, there shouldn't be any need for action.
+                Debug.WriteLine(string.Format("Compiler cache: error while converting cached body: {0}: {1}. Not using cached body.", sourceMethod, ex.Message));
                 return null;
             }
             catch (Exception ex)
             {
-                DLog.Error(DContext.CompilerCodeGenerator, "Compiler cache: error while converting cached body: {0}: {1}. Not using cached body.", sourceMethod, ex.Message);
+                DLog.Error(DContext.CompilerCodeGenerator, "Compiler cache: exception while converting cached body: {0}: {1}. Not using cached body.", sourceMethod, ex.Message);
                 Trace.WriteLine(string.Format("Compiler cache: error while converting cached body: {0}: {1}. Not using cached body.", sourceMethod, ex.Message));
                 return null;
             }
@@ -312,17 +339,19 @@ namespace Dot42.CompilerLib.CompilerCache
 
         private object ConvertFieldReference(FieldReference fieldRef, AssemblyCompiler compiler, DexTargetPackage targetPackage)
         {
-            // TODO: handle generated class.
-            if (fieldRef.Owner.Name == "__generated")
+            // We could also handle access to fields in the generated class; but see the coverage comment above.
+            // It would require to map fields in the MapFile as well, at least for those in the __generated 
+            // class. I don't think its worth it.
+            if (fieldRef.Owner.Descriptor == _map.GeneratedType.DexSignature)
                 throw new CompilerCacheResolveException("unable to resolve fields in __generated: " + fieldRef);
-
-            var classRef = ConvertClassReference(fieldRef.Owner, compiler, targetPackage);
-            var typeRef = ConvertTypeReference(fieldRef.Type, compiler, targetPackage);
 
             // I don't believe we have to protect ourselfs from field name changes. 
             // Except for obfuscation, there is no reason to rename fields. They are 
-            // independent of other classes.
+            // independent of other classes not in their class hierachy (of which we know
+            // that it can not have changed)
 
+            var classRef = ConvertClassReference(fieldRef.Owner, compiler, targetPackage);
+            var typeRef = ConvertTypeReference(fieldRef.Type, compiler, targetPackage);
 
             return new FieldReference(classRef, fieldRef.Name, typeRef);
         }

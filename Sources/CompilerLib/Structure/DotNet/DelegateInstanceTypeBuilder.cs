@@ -115,7 +115,6 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 Name = "<init>",
                 AccessFlags = AccessFlags.Public | AccessFlags.Constructor,
                 Prototype = new Prototype(PrimitiveType.Void),
-                MapFileId = compiler.GetNextMapFileId(),
             };
 
             if (!calledMethod.IsStatic)
@@ -142,7 +141,6 @@ namespace Dot42.CompilerLib.Structure.DotNet
             var invoke = new Dot42.DexLib.MethodDefinition(@class, "Invoke", invokePrototype)
             {
                 AccessFlags = AccessFlags.Public,
-                MapFileId = compiler.GetNextMapFileId(),
             };
             @class.Methods.Add(invoke);
             // Create body

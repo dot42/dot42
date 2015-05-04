@@ -35,7 +35,7 @@ namespace Dot42.DexLib
         public ClassReference SuperClass { get; set; }
         public ICollection<ClassDefinition> InnerClasses { get { return innerClasses.AsReadOnly(); } }
         public List<ClassReference> Interfaces { get; set; }
-        public string SourceFile { get; set; }
+        public string SourceFile { get; internal set; }
         public List<FieldDefinition> Fields { get; set; }
         public List<MethodDefinition> Methods { get; set; }
 
@@ -80,6 +80,20 @@ namespace Dot42.DexLib
                 if (fdef.Name == name)
                     return fdef;
             return null;
+        }
+
+        /// <summary>
+        /// Set the source file. 
+        /// Returns false if the source file has
+        /// already been set to another value ealier.
+        /// </summary>
+        public bool SetSourceFile(string sourceFile)
+        {
+            if (SourceFile != null)
+                return SourceFile == sourceFile;
+
+            SourceFile = sourceFile;
+            return true;
         }
 
         #region " AccessFlags "
