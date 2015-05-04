@@ -162,7 +162,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
         protected override TypeEntry CreateMappingEntry()
         {
             var ret = base.CreateMappingEntry();
-            return new TypeEntry(ret.Name + "?", ret.Scope, ret.DexName, ret.Id, ret.ScopeId + ":Nullable");
+            return new TypeEntry(ret.Name + "?", ret.Scope, ret.DexName, ret.Id, ret.ScopeId);
         }
     }
 }

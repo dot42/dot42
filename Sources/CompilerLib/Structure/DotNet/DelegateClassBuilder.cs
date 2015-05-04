@@ -60,7 +60,11 @@ namespace Dot42.CompilerLib.Structure.DotNet
             // Build Invoke method.
             XMethodDefinition sourceMethod = XType.Methods.Single(x => x.EqualsName("Invoke"));
             Prototype prototype = PrototypeBuilder.BuildPrototype(Compiler, targetPackage, Class, sourceMethod);
-            MethodDefinition method = new MethodDefinition(Class, sourceMethod.Name, prototype) { AccessFlags = AccessFlags.Public | AccessFlags.Abstract };
+            MethodDefinition method = new MethodDefinition(Class, sourceMethod.Name, prototype)
+            {
+                AccessFlags = AccessFlags.Public | AccessFlags.Abstract,
+                MapFileId = Compiler.GetNextMapFileId()
+            };
             Class.Methods.Add(method);
 
             // Find xSource method

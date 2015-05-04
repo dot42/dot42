@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Dot42.ApkLib.Resources;
@@ -17,7 +16,6 @@ using Dot42.WcfTools.ProxyBuilder;
 using Mono.Cecil;
 using TallComponents.Common.Util;
 using NameConverter = Dot42.CompilerLib.NameConverter;
-using ResourceType = Dot42.ResourcesLib.ResourceType;
 
 namespace Dot42.Compiler
 {

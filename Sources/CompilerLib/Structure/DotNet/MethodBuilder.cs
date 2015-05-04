@@ -59,9 +59,11 @@ namespace Dot42.CompilerLib.Structure.DotNet
             xMethod = (XBuilder.ILMethodDefinition)XBuilder.AsMethodDefinition(compiler.Module, method);
 
             // Create method definition
-            dmethod = new DexLib.MethodDefinition();
-            dmethod.Name = GetMethodName(method, targetPackage);
-            dmethod.MapFileId = compiler.GetNextMapFileId();
+            dmethod = new DexLib.MethodDefinition
+            {
+                Name = GetMethodName(method, targetPackage),
+                MapFileId = compiler.GetNextMapFileId()
+            };
             AddMethodToDeclaringClass(declaringClass, dmethod, targetPackage);
             targetPackage.Record(xMethod, dmethod);
 
