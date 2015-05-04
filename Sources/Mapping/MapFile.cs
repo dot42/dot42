@@ -30,8 +30,6 @@ namespace Dot42.Mapping
         /// </summary>
         public TypeEntry GeneratedType { get { return generatedType; } }
 
-        
-
         /// <summary>
         /// Default ctor
         /// </summary>
@@ -108,6 +106,7 @@ namespace Dot42.Mapping
             {
                 generatedType = entry;
             }
+
             types.Add(entry);
 
             if (!string.IsNullOrEmpty(entry.DexName))

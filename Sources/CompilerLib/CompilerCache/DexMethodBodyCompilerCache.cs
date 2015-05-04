@@ -4,15 +4,15 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using Dot42.CecilExtensions;
 using Dot42.CompilerLib.Extensions;
 using Dot42.CompilerLib.Structure.DotNet;
 using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel;
 using Dot42.DexLib;
-using Dot42.DexLib.Instructions;
 using Dot42.Mapping;
 using Dot42.Utility;
+using Mono.Cecil.Cil;
+using MethodBody = Dot42.DexLib.Instructions.MethodBody;
 
 namespace Dot42.CompilerLib.CompilerCache
 {
@@ -54,14 +54,20 @@ namespace Dot42.CompilerLib.CompilerCache
                 {
                     if(type.ScopeId == null)
                         continue;
+
+                    
                     var typeScopeId = GetTypeScopeId(type);
+                    
+                    // redirect references to the generated class.
+                    var dexType = type.Id == 0 ? map.GeneratedType : type;
+
                     foreach (var method in type.Methods)
                     {
                         if (type.ScopeId == null)
                             continue;
                         
                         var scopeKey = Tuple.Create(typeScopeId, method.ScopeId);
-                        _methodsByScopeId[scopeKey] = Tuple.Create(type, method);
+                        _methodsByScopeId[scopeKey] = Tuple.Create(dexType, method);
                     }
                 }
 
@@ -88,7 +94,8 @@ namespace Dot42.CompilerLib.CompilerCache
             var ret = GetFromCacheImpl(targetMethod, sourceMethod, compiler, targetPackage);
             
             if (ret != null) Interlocked.Increment(ref statCacheHits);
-            else             Interlocked.Increment(ref statCacheMisses);
+            else            
+                Interlocked.Increment(ref statCacheMisses);
             
             return ret;
         }
@@ -98,39 +105,19 @@ namespace Dot42.CompilerLib.CompilerCache
             if (!IsEnabled)
                 return null;
 
-            var ilMethod = sourceMethod as XModel.DotNet.XBuilder.ILMethodDefinition;
-            var javaMethod = sourceMethod as XModel.Java.XBuilder.JavaMethodDefinition;
-            if (ilMethod != null)
-            {
-                var assembly = ilMethod.OriginalMethod.DeclaringType.Module.Assembly;
-
-                if (_modifiedDetector.IsModified(assembly))
-                    return null;
-            }
-            else if(javaMethod != null)
-            {
-                // TODO: implement this for Java methods as well.
-                //       all that's missing seems to be some kind of
-                //       modification detection.
+            if (IsUnderlyingCodeModified(sourceMethod)) 
                 return null;
-            }
-            else
-            {
-                // TODO: synthetic methods could be resolved from the cache as well.
-                //       check if this would bring any performance benefits.
-                return null;
-            }
-                
-            
 
             Tuple<TypeEntry, MethodEntry> entry;
 
             string typeScopeId = sourceMethod.DeclaringType.ScopeId;
-            string methodScopeId = sourceMethod.DeclaringType.Methods.IndexOf(sourceMethod).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            string methodScopeId = sourceMethod.ScopeId;
 
             if (!_methodsByScopeId.TryGetValue(Tuple.Create(typeScopeId, methodScopeId), out entry))
                 return null;
 
+            // Note: this fails at the moment for methods in the _generated class, since we do not have
+            //       their new name.
             var cachedMethod = _dexLookup.GetMethod(entry.Item1.DexName, entry.Item2.DexName, entry.Item2.DexSignature);
 
             if (cachedMethod == null)
@@ -153,6 +140,33 @@ namespace Dot42.CompilerLib.CompilerCache
                 Trace.WriteLine(string.Format("Compiler cache: error while converting cached body: {0}: {1}. Not using cached body.", sourceMethod, ex.Message));
                 return null;
             }
+        }
+
+        private bool IsUnderlyingCodeModified(XMethodDefinition sourceMethod)
+        {
+            var ilMethod = sourceMethod as XModel.DotNet.XBuilder.ILMethodDefinition;
+            var javaMethod = sourceMethod as XModel.Java.XBuilder.JavaMethodDefinition;
+            if (ilMethod != null)
+            {
+                var assembly = ilMethod.OriginalMethod.DeclaringType.Module.Assembly;
+
+                if (_modifiedDetector.IsModified(assembly))
+                    return true;
+            }
+            else if (javaMethod != null)
+            {
+                // TODO: implement this for Java methods as well.
+                //       all that's missing seems to be some kind of
+                //       modification detection.
+                return true;
+            }
+            else
+            {
+                // TODO: synthetic methods could be resolved from the cache as well.
+                //       check if this would bring any performance benefits.
+                return true;
+            }
+            return false;
         }
 
         /// <summary>
@@ -220,7 +234,7 @@ namespace Dot42.CompilerLib.CompilerCache
         {
             TypeEntry type = _map.GetTypeBySignature(sourceRef.Descriptor);
 
-            if (IsDelegateType(type))
+            if (IsDelegateInstance(type))
             {
                 // special delegate handling.
                 return GetDelegateInstanceType(type, sourceRef, compiler, targetPackage).InstanceDefinition;
@@ -250,7 +264,7 @@ namespace Dot42.CompilerLib.CompilerCache
                 typeEntry = _map.GetTypeBySignature(methodRef.Owner.Descriptor);
                 
                 // special delegate handling
-                if (IsDelegateType(typeEntry))
+                if (IsDelegateInstance(typeEntry))
                 {
                     var delInstanceType = GetDelegateInstanceType(typeEntry, methodRef.Owner, compiler, targetPackage);
                     return new MethodReference(delInstanceType.InstanceDefinition, methodRef.Name, methodRef.Prototype);
@@ -298,16 +312,17 @@ namespace Dot42.CompilerLib.CompilerCache
 
         private object ConvertFieldReference(FieldReference fieldRef, AssemblyCompiler compiler, DexTargetPackage targetPackage)
         {
+            // TODO: handle generated class.
+            if (fieldRef.Owner.Name == "__generated")
+                throw new CompilerCacheResolveException("unable to resolve fields in __generated: " + fieldRef);
+
             var classRef = ConvertClassReference(fieldRef.Owner, compiler, targetPackage);
             var typeRef = ConvertTypeReference(fieldRef.Type, compiler, targetPackage);
 
             // I don't believe we have to protect ourselfs from field name changes. 
             // Except for obfuscation, there is no reason to rename fields. They are 
             // independent of other classes.
-            
-            // TODO: handle generated class.
-            if(classRef.Name == "__generated")
-                throw new CompilerCacheResolveException("unable to resolve fields in __generated: " + fieldRef);
+
 
             return new FieldReference(classRef, fieldRef.Name, typeRef);
         }
@@ -342,9 +357,9 @@ namespace Dot42.CompilerLib.CompilerCache
             return scope == null ? typeFullname : string.Join(":", scope, scopeId);
         }
 
-        private bool IsDelegateType(TypeEntry type)
+        private bool IsDelegateInstance(TypeEntry type)
         {
-            return type.ScopeId.Contains(":delegate:");
+            return type.ScopeId != null && type.ScopeId.Contains(":delegate:");
         }
 
     }

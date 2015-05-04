@@ -42,6 +42,8 @@ namespace Dot42.Mapping
         public ICollection<TypeEntry> TypeEntries { get { return _map.TypeEntries; } }
         public ICollection<ScopeEntry> Scopes { get { return _map.Scopes; } }
 
+        public TypeEntry GeneratedType { get { return _map.GeneratedType; } }
+
         private void Add(TypeEntry entry)
         {
             // if there are duplicates in any field, assume the more "important"

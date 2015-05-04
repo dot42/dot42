@@ -119,14 +119,13 @@ namespace Dot42.CompilerLib
 
             classBuilders.ForEachWithExceptionMessage(x => x.Create(targetPackage));
 
-            // update sort priority which might have changed after create
-            classBuilders = classBuilders.OrderBy(x => x.SortPriority)
-                                         .ThenBy(x => x.FullName)
-                                         .ToList();
-
             classBuilders.ForEachWithExceptionMessage(x => x.Implement(targetPackage));
             classBuilders.ForEachWithExceptionMessage(x => x.FixUp(targetPackage));
 
+            // update sort priority which might have changed after XType creation.
+            classBuilders = classBuilders.OrderBy(x => x.SortPriority)
+                                         .ThenBy(x => x.FullName)
+                                         .ToList();
 
 
             classBuilders.ForEachWithExceptionMessage(x => x.GenerateCode(targetPackage));
