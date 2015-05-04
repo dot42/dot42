@@ -40,7 +40,9 @@ namespace Dot42.CompilerLib.ILConversion
             public void Convert(ReachableContext reachableContext)
             {
                 // Collect all names
-                var newSlotMethods = reachableContext.ReachableTypes.SelectMany(x => x.Methods).
+                var newSlotMethods = reachableContext.ReachableTypes
+                                                     .OrderBy(r => r.FullName) // order,so we get a stable output. useful for debugging.
+                                                     .SelectMany(x => x.Methods).
                     Where(m => m.IsHideBySig && !m.IsStatic && !m.IsRuntimeSpecialName && !m.DeclaringType.IsInterface && (m.GetDexOrJavaImportAttribute() == null)).ToList();
                 if (newSlotMethods.Count == 0)
                     return;

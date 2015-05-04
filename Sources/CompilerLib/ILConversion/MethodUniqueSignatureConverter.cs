@@ -52,7 +52,9 @@ namespace Dot42.CompilerLib.ILConversion
                 //   - don't belong to Dot42.Internal namespace (as these are compiler-used)
 
                 // TODO: either check here or in CreateSignaturePostfix, but not at both places...
-                var consideredMethods = reachableContext.ReachableTypes.SelectMany(x => x.Methods)
+                var consideredMethods = reachableContext.ReachableTypes
+                                                        .OrderBy(r => r.FullName) // order,so we get a stable output. useful for debugging.
+                                                        .SelectMany(x => x.Methods)
                                                         .Where(m => !m.IsRuntimeSpecialName
                                                                     && m.GetDexOrJavaImportAttribute() == null
                                                                     &&((!m.IsGetter && !m.IsSetter) || m.IsHideBySig)

@@ -52,19 +52,25 @@ namespace Dot42.CompilerLib.ILConversion
                 if (!reachableContext.ReachableTypes.SelectMany(x => x.Methods).Any(NeedsConversion))
                     return;
 
-                // Initialize some sets
-                reachableMethods = reachableContext.ReachableTypes.SelectMany(x => x.Methods)
+                // Initialize some sets                                                 
+                reachableMethods = reachableContext.ReachableTypes.OrderBy(r=>r.FullName)
+                                                                   // order,so we get a stable output. useful for debugging.
+                                                                  .SelectMany(x => x.Methods)
                                                                   .Where(m => m.IsReachable)
                                                                   .ToList();
                 methodNames = new NameSet(reachableMethods.Select(m => m.Name));
                 interfaces = reachableContext.ReachableTypes.Where(x => x.IsInterface).ToList();
+
+                var interfaceToImplementingTypes = interfaces.ToDictionary(i=>i,  i=>reachableContext.ReachableTypes
+                                                                                                     .Where(x=>x.Implements(i))
+                                                                                                     .ToList());
 
                 // Go over all interfaces
                 foreach (var iType in interfaces)
                 {
                     foreach (var iMethod in iType.Methods)
                     {
-                        ConvertInterfaceMethod(iType, iMethod);
+                        ConvertInterfaceMethod(iType, iMethod, interfaceToImplementingTypes);
                     }
                 }
 
@@ -124,9 +130,9 @@ namespace Dot42.CompilerLib.ILConversion
             /// <summary>
             /// Convert the given interface method if it has explicit implementations.
             /// </summary>
-            private void ConvertInterfaceMethod(TypeDefinition iType, MethodDefinition iMethod)
+            private void ConvertInterfaceMethod(TypeDefinition iType, MethodDefinition iMethod, Dictionary<TypeDefinition, List<TypeDefinition>> interfaceToImplementingTypes)
             {
-                var implementations = GetImplementations(iMethod);
+                var implementations = GetImplementations(iMethod, interfaceToImplementingTypes);
                 var iMethodIsJavaWithGenericParams = iMethod.IsJavaMethodWithGenericParams();
                 var iMethodContainsGenericParams = iMethod.ContainsGenericParameter;
                 if (!iMethodIsJavaWithGenericParams && !iMethodContainsGenericParams && (!implementations.Any(x => x.Item2.IsExplicitImplementation())))
@@ -232,10 +238,10 @@ namespace Dot42.CompilerLib.ILConversion
             /// <summary>
             /// Gets all implementations of the given interface method.
             /// </summary>
-            private List<Tuple<TypeDefinition,MethodDefinition>> GetImplementations(MethodDefinition iMethod)
+            private List<Tuple<TypeDefinition, MethodDefinition>> GetImplementations(MethodDefinition iMethod, Dictionary<TypeDefinition, List<TypeDefinition>> interfaceToImplementingTypes)
             {
                 var iType = iMethod.DeclaringType;
-                var typesThatImplement = reachableContext.ReachableTypes.Where(x => x.Implements(iType)).ToList();
+                var typesThatImplement = interfaceToImplementingTypes[iType];
 
                 return typesThatImplement.Select(x => Tuple.Create(x, iMethod.GetImplementation(x)))
                                          .Where(x => x.Item2 != null)

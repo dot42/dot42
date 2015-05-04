@@ -42,6 +42,7 @@ namespace Dot42.CompilerLib.ILConversion
                 var reachableInterfaces = reachableContext.ReachableTypes.Where(i=>i.IsInterface).ToList();
                 var interfaceToImplementingTypes = reachableContext.ReachableTypes
                                                                    .Except(reachableInterfaces)
+                                                                   .OrderBy(m=>m.FullName)
                                                                    .SelectMany(t => GetInterfaces(t).Distinct(), Tuple.Create)
                                                                    .Where(e=>e.Item2.IsReachable)
                                                                    .ToLookup(e=>e.Item2, e=>e.Item1);
