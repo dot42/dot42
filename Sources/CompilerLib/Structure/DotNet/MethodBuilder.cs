@@ -154,8 +154,9 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 var inheritedTargetReturnType = inheritedReturnType.GetReference(targetPackage, compiler.Module);
                 if (inheritedTargetReturnType.Descriptor != dmethod.Prototype.ReturnType.Descriptor)
                 {
+                    dmethod.Prototype.Unfreeze();
                     dmethod.Prototype.ReturnType = inheritedTargetReturnType;
-
+                    dmethod.Prototype.Freeze();
                     //// update the original method's return type as well, 
                     //// to make sure the code generation later knows what it is handling.
                     //// TODO: this seems to be a hack. shouldn't this have been handled 

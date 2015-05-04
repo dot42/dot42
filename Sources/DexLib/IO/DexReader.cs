@@ -260,16 +260,13 @@ namespace Dot42.DexLib.IO
                                                                      uint offset = reader.ReadUInt32();
                                                                      var annotations =
                                                                          ReadAnnotationSetRefList(reader, offset);
-                                                                     var mdef =
-                                                                         (methodReferences[methodIndex] as
-                                                                          MethodDefinition);
+                                                                     var mdef = (methodReferences[methodIndex] as MethodDefinition);
 
                                                                      for (int i = 0; i < annotations.Count; i++)
                                                                      {
                                                                          if (annotations[i].Count > 0)
                                                                          {
-                                                                             mdef.Prototype.Parameters[i].
-                                                                                 Annotations = annotations[i];
+                                                                             mdef.Prototype.Parameters[i].Annotations = annotations[i];
                                                                          }
                                                                      }
                                                                  }
@@ -359,7 +356,7 @@ namespace Dot42.DexLib.IO
                                                                                 ReadParameters(reader, prototype,
                                                                                                parametersOffset);
                                                                             }
-
+                                                                            prototype.Freeze();
                                                                             prototypes.Add(prototype);
                                                                         }
                                                                     });

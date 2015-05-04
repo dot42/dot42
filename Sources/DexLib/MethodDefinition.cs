@@ -6,6 +6,8 @@ namespace Dot42.DexLib
 {
     public class MethodDefinition : MethodReference, IMemberDefinition
     {
+        private List<Annotation> _annotations;
+
         public MethodDefinition()
         {
             Annotations = new List<Annotation>();
@@ -160,6 +162,6 @@ namespace Dot42.DexLib
             set { base.Owner = value; }
         }
 
-        public List<Annotation> Annotations { get; set; }
+        public IList<Annotation> Annotations { get { return _annotations; } set { _annotations = new List<Annotation>(value); } }
     }
 }

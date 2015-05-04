@@ -93,6 +93,10 @@ namespace Dot42.DexLib.Metadata
 
         public static string Encode(TypeReference tref, bool shorty)
         {
+            string cached;
+            if(!shorty && (cached = tref.CachedTypeDescriptor) != null)
+                return cached;
+
             var result = new StringBuilder();
 
             var td = (char) tref.TypeDescriptor;
@@ -102,13 +106,14 @@ namespace Dot42.DexLib.Metadata
                 result.Append(td);
 
                 if (tref is ArrayType)
-                    result.Append(Encode((tref as ArrayType).ElementType, false));
+                    result.Append(Encode(((ArrayType) tref).ElementType, false));
 
                 if (tref is ClassReference)
-                    result.Append(
-                        string.Concat(
-                            (tref as ClassReference).Fullname.Replace(ClassReference.NamespaceSeparator,
-                                                                      ClassReference.InternalNamespaceSeparator), ";"));
+                {
+                    result.Append(((ClassReference) tref).Fullname.Replace(ClassReference.NamespaceSeparator,
+                                                          ClassReference.InternalNamespaceSeparator));
+                    result.Append(';');
+                }
             }
             else
             {
@@ -120,6 +125,13 @@ namespace Dot42.DexLib.Metadata
                     td = (char) TypeDescriptors.FullyQualifiedName;
 
                 result.Append(td);
+            }
+
+            if (!shorty)
+            {
+                cached = result.ToString();
+                tref.CachedTypeDescriptor = cached;
+                return cached;
             }
 
             return result.ToString();

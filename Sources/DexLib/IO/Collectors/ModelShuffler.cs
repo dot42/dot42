@@ -5,31 +5,31 @@ namespace Dot42.DexLib.IO.Collectors
 {
     internal class ModelShuffler : BaseCollector<object>
     {
-        public override void Collect(List<ClassDefinition> classes)
+        public override void Collect(IList<ClassDefinition> classes)
         {
             classes.Shuffle();
             base.Collect(classes);
         }
 
-        public override void Collect(List<ClassReference> classes)
+        public override void Collect(IList<ClassReference> classes)
         {
             classes.Shuffle();
             base.Collect(classes);
         }
 
-        public override void Collect(List<MethodDefinition> methods)
+        public override void Collect(IList<MethodDefinition> methods)
         {
             methods.Shuffle();
             base.Collect(methods);
         }
 
-        public override void Collect(List<FieldDefinition> fields)
+        public override void Collect(IList<FieldDefinition> fields)
         {
             fields.Shuffle();
             base.Collect(fields);
         }
 
-        public override void Collect(List<Annotation> annotations)
+        public override void Collect(IList<Annotation> annotations)
         {
             annotations.Shuffle();
             base.Collect(annotations);

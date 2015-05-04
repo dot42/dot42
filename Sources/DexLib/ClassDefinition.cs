@@ -9,8 +9,14 @@ namespace Dot42.DexLib
 {
     public class ClassDefinition : ClassReference, IMemberDefinition
     {
-        private List<ClassDefinition> innerClasses;
-        private List<WeakReference> belongsToDex = new List<WeakReference>();
+        // TODO: implement the freezable contract.
+
+        private readonly List<ClassDefinition> innerClasses;
+        private readonly List<WeakReference> belongsToDex = new List<WeakReference>();
+        private List<Annotation> _annotations;
+        private List<FieldDefinition> _fields;
+        private List<MethodDefinition> _methods;
+        private List<ClassReference> _interfaces;
 
         public ClassDefinition()
         {
@@ -34,18 +40,18 @@ namespace Dot42.DexLib
         public int MapFileId { get; set; }
         public ClassReference SuperClass { get; set; }
         public ICollection<ClassDefinition> InnerClasses { get { return innerClasses.AsReadOnly(); } }
-        public List<ClassReference> Interfaces { get; set; }
+        public IList<ClassReference> Interfaces { get { return _interfaces; } set { _interfaces = new List<ClassReference>(value); } }
+
         public string SourceFile { get; internal set; }
-        public List<FieldDefinition> Fields { get; set; }
-        public List<MethodDefinition> Methods { get; set; }
+        public IList<FieldDefinition> Fields { get { return _fields; } set { _fields = new List<FieldDefinition>(value); } }
+        public IList<MethodDefinition> Methods { get { return _methods; } set { _methods = new List<MethodDefinition>(); } }
 
         /// <summary>
         /// Gets the underlying InnerClasses list. The caller must not add or remove
         /// items from the list, but may change the order if items.
         /// </summary>
         /// <returns></returns>
-        internal List<ClassDefinition> GetInnerClassesList() { return innerClasses; }
-
+        internal IList<ClassDefinition> GetInnerClassesList() { return innerClasses; }
 
         /// <summary>
         /// Field holding generic type arguments
@@ -57,7 +63,8 @@ namespace Dot42.DexLib
         #region IMemberDefinition Members
 
         public AccessFlags AccessFlags { get; set; }
-        public List<Annotation> Annotations { get; set; }
+        public IList<Annotation> Annotations { get { return _annotations; } set { _annotations = new List<Annotation>(value); } }
+
         public ClassDefinition Owner { get; set; }
 
         #endregion

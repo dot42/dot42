@@ -28,6 +28,7 @@ namespace Dot42.CompilerLib.Structure.Java
                 var dparameter = new Parameter(p.GetReference(XTypeUsageFlags.ParameterType, targetPackage, module), "p" + paramIndex++);
                 result.Parameters.Add(dparameter);
             }
+            result.Freeze();
             return result;
         }
 

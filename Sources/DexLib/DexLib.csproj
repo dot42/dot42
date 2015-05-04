@@ -50,6 +50,7 @@
     <Compile Include="ByReferenceType.cs" />
     <Compile Include="DexLookup.cs" />
     <Compile Include="Extensions\ResolveExtensions.cs" />
+    <Compile Include="FreezableBase.cs" />
     <Compile Include="Generated\OpCodes.cs">
       <SubType>Code</SubType>
     </Compile>

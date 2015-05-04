@@ -228,7 +228,8 @@ namespace Dot42.CompilerLib.Structure.Java
         protected virtual void ImplementInterfaces(Dex target, NameConverter nsConverter)
         {
             // Implement interfaces
-            classDef.Interfaces.AddRange(typeDef.Interfaces.Select(x => new ClassReference(x.ClassName)));
+            foreach(var intf in typeDef.Interfaces.Select(x => new ClassReference(x.ClassName)))
+                classDef.Interfaces.Add(intf);
         }
 
         /// <summary>

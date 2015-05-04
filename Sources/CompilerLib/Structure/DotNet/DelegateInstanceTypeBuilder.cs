@@ -117,6 +117,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 Prototype = new Prototype(PrimitiveType.Void),
             };
 
+            ctor.Prototype.Unfreeze();
             if (!calledMethod.IsStatic)
             {
                 ctor.Prototype.Parameters.Add(new Parameter(instanceTypeRef, "this"));
@@ -131,6 +132,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
             {
                 ctor.Prototype.Parameters.Add(new Parameter(FrameworkReferences.ClassArray, "genericMethodType"));
             }
+            ctor.Prototype.Freeze();
 
             @class.Methods.Add(ctor);
             // Create ctor body

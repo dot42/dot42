@@ -55,6 +55,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 result.Parameters.Add(dparameter);
                 result.GenericInstanceMethodParameter = dparameter;
             }
+            result.Freeze();
             return result;
         }
 

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Text;
 using Dot42.DexLib.Metadata;
 
@@ -9,6 +8,7 @@ namespace Dot42.DexLib
     {
         protected string ns;
         protected string fullNameCache;
+        private string descriptorCache;
         protected string name;
         public const char NamespaceSeparator = '.';
         public const char InternalNamespaceSeparator = '/';
@@ -19,21 +19,27 @@ namespace Dot42.DexLib
         }
 
         /// <summary>
-        /// Fullname ctor
+        /// When using this constructor, the ClassReference object
+        /// will be in a frozen state. Use Unfreeze if you need to
+        /// change the state.
         /// </summary>
         public ClassReference(string fullname) : this()
         {
             Fullname = fullname;
+            base.Freeze();
         }
 
         /// <summary>
-        /// Namespace + name ctor
+        /// When using this constructor, the ClassReference object
+        /// will be in a frozen state. Use Unfreeze if you need to
+        /// change the state.
         /// </summary>
         public ClassReference(string @namespace, string name)
             : this()
         {
-            Namespace = @namespace;
-            Name = name;
+            ns = @namespace;
+            this.name = name;
+            base.Freeze();
         }
 
         /// <summary>
@@ -76,8 +82,10 @@ namespace Dot42.DexLib
             get { return ns; }
             set
             {
+                ThrowIfFrozen();
                 ns = value;
                 fullNameCache = null;
+                descriptorCache = null;
             }
         }
 
@@ -97,6 +105,8 @@ namespace Dot42.DexLib
             }
             set
             {
+                ThrowIfFrozen();
+
                 value = value.Replace(InternalNamespaceSeparator, NamespaceSeparator);
                 var items = value.Split(NamespaceSeparator);
                 if (items.Length > 0)
@@ -111,22 +121,22 @@ namespace Dot42.DexLib
                     ns = string.Empty;
                 }
                 fullNameCache = value;
+                descriptorCache = null;
             }
         }
-
-        #region IMemberReference Members
 
         public virtual string Name
         {
             get { return name; }
             set
             {
+                ThrowIfFrozen();
+
                 name = value;
                 fullNameCache = null;
+                descriptorCache = null;
             }
         }
-
-        #endregion
 
         public override string ToString()
         {
@@ -138,7 +148,7 @@ namespace Dot42.DexLib
         /// </summary>
         public override string Descriptor
         {
-            get { return "L" + Fullname.Replace(NamespaceSeparator, InternalNamespaceSeparator) + ";"; }
+            get { return descriptorCache ?? (descriptorCache = "L" + Fullname.Replace(NamespaceSeparator, InternalNamespaceSeparator) + ";"); }
         }
     }
 }

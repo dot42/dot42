@@ -339,7 +339,9 @@ namespace Dot42.CompilerLib.Structure.DotNet
         protected virtual void ImplementInterfaces(DexTargetPackage targetPackage)
         {
             // Implement interfaces
-            classDef.Interfaces.AddRange(typeDef.Interfaces.Select(x => x.Interface.GetClassReference(targetPackage, compiler.Module)).Distinct());
+            foreach (var intf in typeDef.Interfaces.Select(x => x.Interface.GetClassReference(targetPackage, compiler.Module))
+                                                   .Distinct())
+                classDef.Interfaces.Add(intf);
         }
 
         /// <summary>
@@ -677,7 +679,8 @@ namespace Dot42.CompilerLib.Structure.DotNet
 
         private class PropertyAnnotationProvider : IAnnotationProvider
         {
-            public List<Annotation> Annotations { get; set; }
+            private List<Annotation> _annotations;
+            public IList<Annotation> Annotations { get { return _annotations; } set { _annotations = new List<Annotation>(value); } }
         }
 
         public override string ToString()
