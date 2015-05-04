@@ -10,6 +10,8 @@ namespace Dot42.CompilerLib.XModel
     /// </summary>
     public sealed class XModule
     {
+        private HashSet<AssemblyNameDefinition> loadedAssemblies = new HashSet<AssemblyNameDefinition>();
+
         private readonly Dictionary<Type, object> caches = new Dictionary<Type, object>();
 
         private readonly Dictionary<string, FullNameCacheEntry> fullNameCache = new Dictionary<string, FullNameCacheEntry>();
@@ -110,6 +112,12 @@ namespace Dot42.CompilerLib.XModel
         /// </summary>
         public void OnAssemblyLoaded(AssemblyDefinition assembly)
         {
+            // TODO: this is a hack. fix the loading of assemblies so that each 
+            //       only gets send to us exactly once. then remove this line.
+            if (loadedAssemblies.Contains(assembly.Name))
+                return;
+            loadedAssemblies.Add(assembly.Name);
+
             foreach (var type in assembly.MainModule.Types)
             {
                 var typeDef = new DotNet.XBuilder.ILTypeDefinition(this, null, type);

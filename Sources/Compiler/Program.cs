@@ -232,11 +232,18 @@ namespace Dot42.Compiler
             // Load resource type usage info file
             var usedTypeNames = LoadResourceTypeUsageInformation(options);
 
+
             // Load assemblies
             var assemblies = new List<AssemblyDefinition>();
             var module = new XModule();
             var classLoader = new AssemblyClassLoader(module.OnClassLoaded);
             var resolver = new AssemblyResolver(options.ReferenceFolders, classLoader, module.OnAssemblyLoaded);
+
+            // initialize compiler cache in background.
+            var ccache = options.EnableCompilerCache ? new DexMethodBodyCompilerCache(options.OutputFolder, resolver.GetFileName)
+                                                     : new DexMethodBodyCompilerCache();
+
+
             var readerParameters = new ReaderParameters(ReadingMode.Immediate)
             {
                 AssemblyResolver = resolver,
@@ -266,9 +273,6 @@ namespace Dot42.Compiler
             {
                 table = new Table(stream);
             }
-
-            var ccache = options.EnableCompilerCache ? new DexMethodBodyCompilerCache(options.OutputFolder, resolver.GetFileName)
-                                                     : new DexMethodBodyCompilerCache();
 
             // Create compiler
             var compiler = new AssemblyCompiler(options.CompilationMode, assemblies, references, table, nsConverter,

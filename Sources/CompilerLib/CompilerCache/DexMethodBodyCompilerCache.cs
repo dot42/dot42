@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Dot42.CompilerLib.Extensions;
 using Dot42.CompilerLib.Structure.DotNet;
 using Dot42.CompilerLib.Target.Dex;
@@ -12,7 +13,14 @@ using Dot42.CompilerLib.XModel;
 using Dot42.DexLib;
 using Dot42.Mapping;
 using Dot42.Utility;
+using Mono.Cecil;
+using ArrayType = Dot42.DexLib.ArrayType;
+using ByReferenceType = Dot42.DexLib.ByReferenceType;
+using FieldReference = Dot42.DexLib.FieldReference;
 using MethodBody = Dot42.DexLib.Instructions.MethodBody;
+using MethodDefinition = Dot42.DexLib.MethodDefinition;
+using MethodReference = Dot42.DexLib.MethodReference;
+using TypeReference = Dot42.DexLib.TypeReference;
 
 namespace Dot42.CompilerLib.CompilerCache
 {
@@ -34,18 +42,20 @@ namespace Dot42.CompilerLib.CompilerCache
 
     public class DexMethodBodyCompilerCache
     {
-        private readonly AssemblyModifiedDetector _modifiedDetector;
-        private readonly Dex _dex;
+        private AssemblyModifiedDetector _modifiedDetector;
 
-        private readonly DexLookup _dexLookup;
-        private readonly MapFileLookup _map;
+        private readonly Task _initialize;
+
+        private Dex _dex;
+        private DexLookup _dexLookup;
+        private MapFileLookup _map;
 
         private readonly Dictionary<Tuple<string, string>, Tuple<TypeEntry, MethodEntry>> _methodsByScopeId = new Dictionary<Tuple<string, string>, Tuple<TypeEntry, MethodEntry>>();
 
         private int statCacheHits;
         private int statCacheMisses;
 
-        public bool IsEnabled { get { return _dex != null && _map != null; } }
+        public bool IsEnabled { get; private set; }
 
         public DexMethodBodyCompilerCache()
         {
@@ -59,11 +69,22 @@ namespace Dot42.CompilerLib.CompilerCache
             if (!File.Exists(dexFilename) || !File.Exists(mapfile))
                 return;
 
+            IsEnabled = true;
+
+            _initialize = Task.Factory.StartNew(()=>Initialize(dexFilename, mapfile, filenameFromAssembly));
+        }
+
+        private void Initialize(string dexFilename, string mapfile, Func<AssemblyDefinition, string> filenameFromAssembly)
+        {
             try
             {
-                var dex = Dex.Read(dexFilename);
-                var map = new MapFileLookup(new MapFile(mapfile));
+                var readDex = Task.Factory.StartNew(() => Dex.Read(dexFilename));
+                var readMap = Task.Factory.StartNew(() => new MapFileLookup(new MapFile(mapfile)));
 
+                Task.WaitAll(readMap, readDex);
+                var dex = readDex.Result;
+                var map = readMap.Result;
+                
                 _modifiedDetector = new AssemblyModifiedDetector(filenameFromAssembly, map);
 
                 foreach (var type in map.TypeEntries)
@@ -94,8 +115,9 @@ namespace Dot42.CompilerLib.CompilerCache
             }
             catch (Exception ex)
             {
+                IsEnabled = false;
                 DLog.Warning(DContext.CompilerCodeGenerator, "unable to initialize compiler cache: {0}", ex.Message);
-            }
+            }            
         }
 
         public void PrintStatistics()
@@ -116,6 +138,10 @@ namespace Dot42.CompilerLib.CompilerCache
 
         public CacheEntry GetFromCacheImpl(MethodDefinition targetMethod, XMethodDefinition sourceMethod, AssemblyCompiler compiler, DexTargetPackage targetPackage)
         {
+            if (_initialize == null)
+                return null;
+            _initialize.Wait();
+
             if (!IsEnabled)
                 return null;
 

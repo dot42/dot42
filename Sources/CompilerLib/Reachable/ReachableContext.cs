@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using Dot42.CompilerLib.Ast.Extensions;
 using Dot42.CompilerLib.Extensions;
 using Dot42.CompilerLib.Reachable.DotNet;
@@ -23,12 +24,12 @@ namespace Dot42.CompilerLib.Reachable
     public sealed class ReachableContext : IReachableContext, JvmClassLib.IReachableContext, IClassLoader
     {
         private readonly AssemblyClassLoader assemblyClassLoader;
-        private readonly HashSet<TypeDefinition> reachableTypes = new HashSet<TypeDefinition>();
-        private readonly HashSet<ClassFile> reachableClasses = new HashSet<ClassFile>();
+        private readonly ConcurrentDictionary<TypeDefinition, bool> reachableTypes = new ConcurrentDictionary<TypeDefinition, bool>();
+        private readonly ConcurrentDictionary<ClassFile,bool> reachableClasses = new ConcurrentDictionary<ClassFile, bool>();
         private readonly Dictionary<TypeDefinition, List<IClassBuilder>> dotNetClassBuilders = new Dictionary<TypeDefinition, List<IClassBuilder>>();
-        private readonly Dictionary<ClassFile, IClassBuilder> javaClassBuilders = new Dictionary<ClassFile, IClassBuilder>();
-        private readonly Dictionary<AssemblyDefinition, List<TypeConditionInclude>> conditionalIncludes = new Dictionary<AssemblyDefinition, List<TypeConditionInclude>>();
-        private readonly Dictionary<TypeDefinition, bool> isApplicationRootTypes = new Dictionary<TypeDefinition, bool>();
+        private readonly ConcurrentDictionary<ClassFile, IClassBuilder> javaClassBuilders = new ConcurrentDictionary<ClassFile, IClassBuilder>();
+        private readonly ConcurrentDictionary<AssemblyDefinition, List<TypeConditionInclude>> conditionalIncludes = new ConcurrentDictionary<AssemblyDefinition, List<TypeConditionInclude>>();
+        private readonly ConcurrentDictionary<TypeDefinition, bool> isApplicationRootTypes = new ConcurrentDictionary<TypeDefinition, bool>();
         private readonly AssemblyCompiler compiler;
         private bool newReachablesDetected;
         private readonly List<AssemblyNameDefinition> assemblyNames;
@@ -159,11 +160,11 @@ namespace Dot42.CompilerLib.Reachable
                 FindConditionalIncludes();
 
                 // Find .NET overrides and implementations that should be made reachable.
-                var nonReachableDotNetMethods = reachableTypes.SelectMany(x => x.Methods).Where(x => !x.IsReachable).ToList();
-                foreach (var method in nonReachableDotNetMethods)
+                var nonReachableDotNetMethods = reachableTypes.Keys.SelectMany(x => x.Methods).Where(x => !x.IsReachable).ToList();
+                Parallel.ForEach(nonReachableDotNetMethods, method=>
                 {
                     if (method.IsReachable)
-                        continue;
+                        return;
 
                     // Is an imported java class marked reachable?
                     CustomAttribute javaImportAttr;
@@ -180,7 +181,7 @@ namespace Dot42.CompilerLib.Reachable
                             if ((javaMethod != null) && (javaMethod.IsReachable))
                             {
                                 method.MarkReachable(this);
-                                continue;
+                                return;
                             }
                         }
                     }
@@ -189,32 +190,32 @@ namespace Dot42.CompilerLib.Reachable
                     if (method.GetBaseMethods().Any(x => x.IsReachable))
                     {
                         method.MarkReachable(this);
-                        continue;
+                        return;
                     }
 
                     // Is any base interface method reachable?
                     if (method.GetBaseInterfaceMethods().Any(x => x.IsReachable))
                     {
                         method.MarkReachable(this);
-                        continue;
+                        return;
                     }
 
                     // Is any method from override collection reachable
                     if (method.Overrides.Select(x => x.GetElementMethod().Resolve()).Where(x => x != null).Any(x => x.IsReachable))
                     {
                         method.MarkReachable(this);
-                        continue;                        
+                        return;
                     }
-                }
+                });
 
                 // Make sure all implementations of reachable interface methods are included
-                var reachableInterfaceMethods = reachableTypes.Where(x => x.IsInterface).SelectMany(x => x.Methods).Where(x => x.IsReachable).ToList();
+                var reachableInterfaceMethods = reachableTypes.Keys.Where(x => x.IsInterface).SelectMany(x => x.Methods).Where(x => x.IsReachable).ToList();
                 var reachableInterfaces = reachableInterfaceMethods.Select(m => m.DeclaringType.GetElementType())
                                                                    .Distinct();
-                var reachableTypesByInterfaces = reachableInterfaces.SelectMany(iface => reachableTypes.Where(x => x.Implements(iface)), Tuple.Create)
+                var reachableTypesByInterfaces = reachableInterfaces.SelectMany(iface => reachableTypes.Keys.Where(x => x.Implements(iface)), Tuple.Create)
                                                                     .ToLookup(e => e.Item1,  e=>e.Item2);
-                                                                    
-                foreach (var method in reachableInterfaceMethods)
+
+                Parallel.ForEach(reachableInterfaceMethods, method =>
                 {
                     var interfaceType = method.DeclaringType.GetElementType();
                     var implementedBy = reachableTypesByInterfaces[interfaceType];
@@ -223,34 +224,34 @@ namespace Dot42.CompilerLib.Reachable
                         var implementation = method.GetImplementation(type);
                         implementation.MarkReachable(this);
                     }
-                }
+                });
 
                 // Find java overrides and implementations that should be made reachable.
-                var nonReachableJavaMethods = reachableClasses.SelectMany(x => x.Methods).Where(x => !x.IsReachable).ToList();
-                foreach (var method in nonReachableJavaMethods)
+                var nonReachableJavaMethods = reachableClasses.Keys.SelectMany(x => x.Methods).Where(x => !x.IsReachable).ToList();
+                Parallel.ForEach(nonReachableJavaMethods, method =>
                 {
                     if (method.IsReachable)
-                        continue;
+                        return;
 
                     // Is any base method reachable?
                     if (method.GetBaseMethods().Any(x => x.IsReachable))
                     {
                         method.MarkReachable(this);
-                        continue;
+                        return;
                     }
 
                     // Is any base interface method reachable?
                     if (method.GetBaseInterfaceMethods().Any(x => x.IsReachable))
                     {
                         method.MarkReachable(this);
-                        continue;
+                        return;
                     }
-                }
+                });
             }
 
             // create classbuilders (here, because now we know for all types
             // if they are used in Nullable<T>. 
-            reachableTypes.ForEach(CreateClassBuilder);
+            reachableTypes.Keys.ForEach(CreateClassBuilder);
 
         }
 
@@ -341,8 +342,8 @@ namespace Dot42.CompilerLib.Reachable
         /// </summary>
         private void FindConditionalIncludes()
         {
-            var reachableAssemblies = reachableTypes.Select(x => x.Module.Assembly).Where(x => x != null).Distinct().ToList();
-            foreach (var assembly in reachableAssemblies)
+            var reachableAssemblies = reachableTypes.Keys.Select(x => x.Module.Assembly).Where(x => x != null).Distinct().ToList();
+            Parallel.ForEach(reachableAssemblies, assembly =>
             {
                 List<TypeConditionInclude> includes;
                 if (!conditionalIncludes.TryGetValue(assembly, out includes))
@@ -356,7 +357,7 @@ namespace Dot42.CompilerLib.Reachable
                 {
                     include.IncludeIfNeeded(this);
                 }
-            }
+            });
         }
 
         /// <summary>
@@ -516,7 +517,7 @@ namespace Dot42.CompilerLib.Reachable
         /// </summary>
         public void RecordReachableType(TypeDefinition type)
         {
-            reachableTypes.Add(type);
+            reachableTypes[type] = true;
         }
 
         /// <summary>
@@ -526,7 +527,7 @@ namespace Dot42.CompilerLib.Reachable
         {
             if (!classFile.IsCreatedByLoader)
             {
-                reachableClasses.Add(classFile);
+                reachableClasses[classFile] = true;
                 CreateClassBuilder(classFile);
             }
         }
@@ -534,7 +535,7 @@ namespace Dot42.CompilerLib.Reachable
         /// <summary>
         /// Gets all types recorded as reachable.
         /// </summary>
-        public IEnumerable<TypeDefinition> ReachableTypes { get { return reachableTypes; } }
+        public IEnumerable<TypeDefinition> ReachableTypes { get { return reachableTypes.Keys; } }
 
         /// <summary>
         /// Create a class builder for the given type.
@@ -554,7 +555,7 @@ namespace Dot42.CompilerLib.Reachable
         {
             if ((!type.IsNested) && (!javaClassBuilders.ContainsKey(type)))
             {
-                javaClassBuilders.Add(type, Structure.Java.ClassBuilder.Create(compiler, type));
+                javaClassBuilders.TryAdd(type, Structure.Java.ClassBuilder.Create(compiler, type));
             }
         }
 

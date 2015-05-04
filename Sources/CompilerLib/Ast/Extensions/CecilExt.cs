@@ -14,8 +14,6 @@ namespace Dot42.CompilerLib.Ast.Extensions
     /// </summary>
     public static partial class AssemblyCompilerExtensions
     {
-        private static readonly ConditionalWeakTable<TypeDefinition, TypeReference[]> InterfaceCache = new ConditionalWeakTable<TypeDefinition, TypeReference[]>();
-
         /// <summary>
         /// Gets the first method the given method overrides.
         /// </summary>
@@ -373,33 +371,34 @@ namespace Dot42.CompilerLib.Ast.Extensions
         /// </summary>
         internal static IList<TypeReference> GetImplementedInterfaces(this TypeDefinition type)
         {
-            return InterfaceCache.GetValue(type, currentType =>
+            if (type.CachedImplementedInterfaces != null)
+                return type.CachedImplementedInterfaces;
+
+            var ret = new List<TypeReference>();
+            var currentType = type;
+            while (currentType != null)
             {
-                var ret = new List<TypeReference>();
-
-                while (currentType != null)
+                foreach (var intf in currentType.Interfaces)
                 {
-                    foreach (var intf in currentType.Interfaces)
+                    ret.Add(intf.Interface);
+
+                    var intfDef = intf.Interface.GetElementType().Resolve();
+
+                    if (intfDef != null)
                     {
-                        ret.Add(intf.Interface);
-
-                        var intfDef = intf.Interface.GetElementType().Resolve();
-
-                        if (intfDef != null)
+                        if (intfDef != intf.Interface)
                         {
-                            if (intfDef != intf.Interface)
-                            {
-                                ret.Add(intfDef);
-                            }
-
-                            ret.AddRange(GetImplementedInterfaces(intfDef));
+                            ret.Add(intfDef);
                         }
-                    }
 
-                    currentType = (currentType.BaseType != null) ? currentType.BaseType.Resolve() : null;
+                        ret.AddRange(GetImplementedInterfaces(intfDef));
+                    }
                 }
-                return ret.Distinct().ToArray();
-            });
+
+                currentType = (currentType.BaseType != null) ? currentType.BaseType.Resolve() : null;
+            }
+            // no need for locking. in case somebody was faster, we just overwrite him.
+            return type.CachedImplementedInterfaces = ret.Distinct().ToArray();
         }
 
         /// <summary>
