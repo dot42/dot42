@@ -25,6 +25,7 @@ namespace Dot42.CompilerLib.Reachable
     {
         private readonly AssemblyClassLoader assemblyClassLoader;
         private readonly ConcurrentDictionary<TypeDefinition, bool> reachableTypes = new ConcurrentDictionary<TypeDefinition, bool>();
+        private List<TypeDefinition> reachableTypesList;
         private readonly ConcurrentDictionary<ClassFile,bool> reachableClasses = new ConcurrentDictionary<ClassFile, bool>();
         private readonly Dictionary<TypeDefinition, List<IClassBuilder>> dotNetClassBuilders = new Dictionary<TypeDefinition, List<IClassBuilder>>();
         private readonly ConcurrentDictionary<ClassFile, IClassBuilder> javaClassBuilders = new ConcurrentDictionary<ClassFile, IClassBuilder>();
@@ -251,7 +252,7 @@ namespace Dot42.CompilerLib.Reachable
 
             // create classbuilders (here, because now we know for all types
             // if they are used in Nullable<T>. 
-            reachableTypes.Keys.ForEach(CreateClassBuilder);
+            ReachableTypes.ForEach(CreateClassBuilder);
 
         }
 
@@ -517,6 +518,7 @@ namespace Dot42.CompilerLib.Reachable
         /// </summary>
         public void RecordReachableType(TypeDefinition type)
         {
+            reachableTypesList = null;
             reachableTypes[type] = true;
         }
 
@@ -533,9 +535,17 @@ namespace Dot42.CompilerLib.Reachable
         }
 
         /// <summary>
-        /// Gets all types recorded as reachable.
+        /// Gets all types recorded as reachable. After the completion phase, these are ordered by fullname.
         /// </summary>
-        public IEnumerable<TypeDefinition> ReachableTypes { get { return reachableTypes.Keys; } }
+        public IEnumerable<TypeDefinition> ReachableTypes
+        {
+            get
+            {
+                if(reachableTypesList != null)
+                    return reachableTypesList;
+                return reachableTypesList = reachableTypes.Keys.OrderBy(p=>p.FullName).ToList();
+            } 
+        }
 
         /// <summary>
         /// Create a class builder for the given type.

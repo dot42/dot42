@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Dot42.ApkLib.Resources;
 using Dot42.CompilerLib.CompilerCache;
 using Dot42.CompilerLib.Reachable;
@@ -159,10 +160,13 @@ namespace Dot42.CompilerLib
         {
             if (!Directory.Exists(outputFolder))
                 Directory.CreateDirectory(outputFolder);
-            targetPackage.Save(outputFolder);
 
+            var task1 = Task.Factory.StartNew(()=>targetPackage.Save(outputFolder));
+            
             var mapPath = Path.Combine(outputFolder, "classes.d42map");
-            mapFile.Save(mapPath);
+            var task2 = Task.Factory.StartNew(() => mapFile.Save(mapPath));
+
+            Task.WaitAll(task1, task2);
 
             // Save free apps key
             if (!string.IsNullOrEmpty(freeAppsKeyPath))

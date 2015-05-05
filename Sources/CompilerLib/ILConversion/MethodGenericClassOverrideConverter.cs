@@ -42,7 +42,10 @@ namespace Dot42.CompilerLib.ILConversion
                 this.reachableContext = reachableContext;
 
                 // Initialize some sets
-                reachableMethods = reachableContext.ReachableTypes.Where(x => !x.HasDexImportAttribute()).SelectMany(x => x.Methods).Where(m => m.IsReachable).OrderBy(x => x.FullName).ToList();
+                reachableMethods = reachableContext.ReachableTypes.Where(x => !x.HasDexImportAttribute())
+                                                                  .SelectMany(x => x.Methods)
+                                                                  .Where(m => m.IsReachable)
+                                                                  .ToList();
 
                 // Do we need to convert anything?
                 foreach (var method in reachableMethods)

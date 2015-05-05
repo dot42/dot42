@@ -53,15 +53,15 @@ namespace Dot42.CompilerLib.ILConversion
 
                 // TODO: either check here or in CreateSignaturePostfix, but not at both places...
                 var consideredMethods = reachableContext.ReachableTypes
-                                                        .OrderBy(r => r.FullName) // order,so we get a stable output. useful for debugging.
+                                                        .AsParallel()
                                                         .SelectMany(x => x.Methods)
                                                         .Where(m => !m.IsRuntimeSpecialName
-                                                                    && m.GetDexOrJavaImportAttribute() == null
                                                                     &&((!m.IsGetter && !m.IsSetter) || m.IsHideBySig)
+                                                                    && !DontConsiderForMethodRenaming(m.DeclaringType)
+                                                                    && m.GetDexOrJavaImportAttribute() == null
                                                                     &&!m.IsExplicitImplementation()
-                                                                    &&!DontConsiderForMethodRenaming(m.DeclaringType)
-                                                                    && m.GetBaseMethod() == null
-                                                                    && m.GetBaseInterfaceMethod() == null)
+                                                                    && m.GetBaseInterfaceMethod() == null
+                                                                    && m.GetBaseMethod() == null)
                                                         .ToList();
 
                 // Go over each method, check if it needs renaming
