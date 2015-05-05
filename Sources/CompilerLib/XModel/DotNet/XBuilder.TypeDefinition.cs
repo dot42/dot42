@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq;
 using Dot42.CecilExtensions;
 using Dot42.CompilerLib.Extensions;
@@ -33,6 +35,8 @@ namespace Dot42.CompilerLib.XModel.DotNet
             private bool? isGenericClass;
             private string @namespace;
 
+            private Dictionary<MethodDefinition, int> methodToIdx;
+
             /// <summary>
             /// Default ctor
             /// </summary>
@@ -52,6 +56,8 @@ namespace Dot42.CompilerLib.XModel.DotNet
                     nested.Add(nestedType);
                     module.Register(nestedType);
                 }
+
+                 methodToIdx = type.Methods.Select((m, idx) => new { m, idx }).ToDictionary(k => k.m, k => k.idx);
             }
 
             /// <summary>
@@ -442,6 +448,14 @@ namespace Dot42.CompilerLib.XModel.DotNet
                     return false;
                 field = Fields.OfType<ILFieldDefinition>().FirstOrDefault(x => x.OriginalField == ilField);
                 return (field != null);
+            }
+
+            internal string GetMethodScopeId(MethodDefinition methodDefinition)
+            {
+                int idx;
+                if(methodToIdx.TryGetValue(methodDefinition, out idx))
+                    return idx.ToString(CultureInfo.InvariantCulture);
+                return null;
             }
         }
     }

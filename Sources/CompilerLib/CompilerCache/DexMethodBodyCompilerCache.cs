@@ -145,6 +145,12 @@ namespace Dot42.CompilerLib.CompilerCache
             if (!IsEnabled)
                 return null;
 
+            if (sourceMethod.ScopeId == null || sourceMethod.ScopeId == "(none)")
+            {
+                return null;
+            }
+                
+
             if (IsUnderlyingCodeModified(sourceMethod)) 
                 return null;
 
@@ -172,6 +178,11 @@ namespace Dot42.CompilerLib.CompilerCache
 
             try
             {
+                if (!Equals(cachedMethod.Prototype,targetMethod.Prototype))
+                {
+                    throw new Exception("internal error, got the wrong method.");
+                }
+
                 var body = DexMethodBodyCloner.Clone(targetMethod, cachedMethod);
                 FixReferences(body, compiler, targetPackage);
 
@@ -324,6 +335,9 @@ namespace Dot42.CompilerLib.CompilerCache
                 }
                 scopeId = methodRef.Name + methodRef.Prototype.ToSignature();
             }
+
+            if(scopeId == null || scopeId == "(none)")
+                throw new CompilerCacheResolveException("unable to resolve method without scope: " + methodRef);
             
             var xTypeDef =  ResolveToType(typeEntry, methodRef.Owner, compiler);
 

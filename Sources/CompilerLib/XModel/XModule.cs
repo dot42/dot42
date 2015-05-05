@@ -86,9 +86,9 @@ namespace Dot42.CompilerLib.XModel
         private void Register(XTypeDefinition type, string overridenName, bool isImport)
         {
             // scopeId must be unique
-            if(scopeIdCache.ContainsKey(type.ScopeId) && scopeIdCache[type.ScopeId] != type)
+            if (scopeIdCache.ContainsKey(type.ScopeId) && scopeIdCache[type.ScopeId] != type)
                 throw new Exception("scopeId not unique.");
-            scopeIdCache[type.ScopeId] =  type;
+            scopeIdCache[type.ScopeId] = type;
 
             var fullname = overridenName ?? type.FullName;
 

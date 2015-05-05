@@ -205,6 +205,8 @@ namespace Dot42.CompilerLib.XModel
 
         public XMethodDefinition GetMethodByScopeId(string scopeId)
         {
+            if (string.IsNullOrEmpty(scopeId))
+                return null;
             return Methods.FirstOrDefault(x => x.ScopeId == scopeId);
         }
 

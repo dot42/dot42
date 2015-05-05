@@ -241,7 +241,9 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// </summary>
         protected virtual IEnumerable<ClassBuilder> CreateNestedClassBuilders(ReachableContext context, DexTargetPackage targetPackage, ClassDefinition parent)
         {
-            return typeDef.NestedTypes.Where(x => x.IsReachable).SelectMany(x => Create(context, compiler, x)).Cast<ClassBuilder>();
+            return typeDef.NestedTypes.Where(x => x.IsReachable)
+                                      .SelectMany(x => Create(context, compiler, x))
+                                      .Cast<ClassBuilder>();
         }
 
         /// <summary>

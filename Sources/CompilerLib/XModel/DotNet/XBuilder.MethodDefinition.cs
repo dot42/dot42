@@ -28,7 +28,7 @@ namespace Dot42.CompilerLib.XModel.DotNet
             /// <summary>
             /// Default ctor
             /// </summary>
-            public ILMethodDefinition(XTypeDefinition declaringType, MethodDefinition method, string forceScopeId=null)
+            public ILMethodDefinition(ILTypeDefinition declaringType, MethodDefinition method, string forceScopeId=null)
                 : base(declaringType)
             {
                 this.method = method;
@@ -386,8 +386,10 @@ namespace Dot42.CompilerLib.XModel.DotNet
 
             private string GetScopeId()
             {
-                // Note: this code in unfortunately closely coupled to how the ClassBuilder
-                //       creates entries in the mapping file.
+                // last resort: if we have a java/dex import attribute
+                //              we will not get written to the mapfile
+                //              make sure we are found by our descriptor.
+                // these are not written in the map file.
                 string methodName, descriptor, className;
                 if (TryGetDexImportNames(out methodName, out descriptor, out className)
                  || TryGetJavaImportNames(out methodName, out descriptor, out className))
@@ -395,7 +397,25 @@ namespace Dot42.CompilerLib.XModel.DotNet
                     return methodName + descriptor;
                 }
 
-                return method.DeclaringType.Methods.IndexOf(method).ToString(CultureInfo.InvariantCulture);
+                // this should work for normal method.
+                var id = ((ILTypeDefinition)DeclaringType).GetMethodScopeId(method);
+                if (id != null)
+                    return id;
+
+                // is it an internal generated method of which 
+                // we know that it will never change, i.e. "$Clone" or "$CopyFrom"?
+                if (Name.StartsWith("$"))
+                    return Name;
+
+                if (IsConstructor && method.Parameters.Count == 0 && !method.IsStatic)
+                {
+                    // a generated constructor. 
+                    return "(new)";
+                }
+
+                // we are a generated method (most probably an explicit interface stub,
+                // or a static class ctor.
+                return "(none)";
             }
         }
     }
