@@ -33,6 +33,7 @@ namespace Dot42.CompilerLib
         private readonly Dictionary<XTypeDefinition, DelegateType> delegateTypes = new Dictionary<XTypeDefinition, DelegateType>();
         private readonly Dictionary<TypeDefinition, AttributeAnnotationInterface> attributeAnnotationTypes = new Dictionary<TypeDefinition, AttributeAnnotationInterface>();
         private readonly MapFile mapFile = new MapFile();
+        private bool optimizedMapFile = false;
         private int lastMapFileId;
         private readonly Dictionary<string, XTypeReference> internalTypeReferences = new Dictionary<string, XTypeReference>();
         private string freeAppsKey;
@@ -68,9 +69,24 @@ namespace Dot42.CompilerLib
         public XModule Module { get { return module; } }
         public List<AssemblyDefinition> Assemblies { get { return assemblies; } }
         public Table ResourceTable { get { return resources; } }
-        public MapFile MapFile { get { return mapFile; } }
         public bool GenerateSetNextInstructionCode { get { return generateSetNextInstructionCode; } }
         internal DexMethodBodyCompilerCache MethodBodyCompilerCache { get { return methodBodyCompilerCache; } }
+
+        public MapFile MapFile
+        {
+            get
+            {
+                if (!optimizedMapFile && mapFile != null)
+                {
+                    lock (mapFile)
+                    {
+                        mapFile.Optimize();
+                        optimizedMapFile = true;
+                    } 
+                }
+                return mapFile;
+            }
+        }
 
         /// <summary>
         /// Gets the classloader used by this compiler.
@@ -79,8 +95,6 @@ namespace Dot42.CompilerLib
         {
             get { return assemblyClassLoader; }
         }
-
-        
 
 
         /// <summary>
@@ -100,14 +114,11 @@ namespace Dot42.CompilerLib
             // Detect all types to include in the compilation
             var reachableContext = new ReachableContext(this, assemblies.Select(x => x.Name), rootClassNames);
             const bool includeAllJavaCode = false;
-            foreach (var assembly in assemblies)
-            {
-                reachableContext.MarkRoots(assembly, includeAllJavaCode);
-            }
-            foreach (var assembly in references.Where(IsLibraryProject))
-            {
-                reachableContext.MarkRoots(assembly, includeAllJavaCode);                
-            }
+
+            assemblies.Concat(references.Where(IsLibraryProject))
+                      .AsParallel()
+                      .ForAll(assembly=>reachableContext.MarkRoots(assembly, includeAllJavaCode));
+
             reachableContext.Complete();
 
             // Convert IL to java compatible constructs.
@@ -146,11 +157,10 @@ namespace Dot42.CompilerLib
             targetPackage.VerifyBeforeSave(freeAppsKey);
 
 
-            // Create MapFile
+            // Create MapFile, but don't optimize jet.
+            optimizedMapFile = false;
             RecordScopeMapping(reachableContext);
             classBuilders.ForEachWithExceptionMessage(x => x.RecordMapping(mapFile));
-
-            mapFile.Optimize();
         }
 
         /// <summary>
@@ -164,7 +174,7 @@ namespace Dot42.CompilerLib
             var task1 = Task.Factory.StartNew(()=>targetPackage.Save(outputFolder));
             
             var mapPath = Path.Combine(outputFolder, "classes.d42map");
-            var task2 = Task.Factory.StartNew(() => mapFile.Save(mapPath));
+            var task2 = Task.Factory.StartNew(() => { MapFile.Save(mapPath);});
 
             Task.WaitAll(task1, task2);
 

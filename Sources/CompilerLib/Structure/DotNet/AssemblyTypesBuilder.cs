@@ -19,8 +19,9 @@ namespace Dot42.CompilerLib.Structure.DotNet
 
             var types = new List<Annotation>();
 
-            foreach (var type in reachableTypes.OrderBy(t=>t.Namespace)
-                                               .ThenBy(t=>t.Name))
+            foreach (var type in reachableTypes.OrderBy(t => t.Scope.Name)
+                                               .ThenBy(t  => t.Namespace)
+                                               .ThenBy(t =>  t.Name))
             {
                 var assemblyName = type.module.Assembly.Name.Name;
                 if (assemblyName == "dot42")
