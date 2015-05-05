@@ -116,14 +116,14 @@ namespace Dot42.CompilerLib.CompilerCache
             catch (Exception ex)
             {
                 IsEnabled = false;
-                DLog.Warning(DContext.CompilerCodeGenerator, "unable to initialize compiler cache: {0}", ex.Message);
+                DLog.Warning(DContext.CompilerCodeGenerator, "Unable to initialize compiler cache: {0}", ex.Message);
             }            
         }
 
         public void PrintStatistics()
         {
             if(IsEnabled)
-                DLog.Warning(DContext.CompilerCodeGenerator, "Dex method body compiler cache: {0} hits and {1} misses.", statCacheHits, statCacheMisses);
+                DLog.Info(DContext.CompilerCodeGenerator, "Compiler cache: {0} hits and {1} misses.", statCacheHits, statCacheMisses);
         }
 
         public CacheEntry GetFromCache(MethodDefinition targetMethod, XMethodDefinition sourceMethod, AssemblyCompiler compiler, DexTargetPackage targetPackage)
@@ -172,7 +172,7 @@ namespace Dot42.CompilerLib.CompilerCache
                 // I believe there is a bug in MethodExplicitInterfaceConverter generating
                 // stubs for interfaces if they derive from an imported interface.
                 // Bail out for now until this is fixed.
-                DLog.Info(DContext.CompilerCodeGenerator, "Compiler cache: no method body found on cached version of {0}, even though one was expected", sourceMethod);
+                DLog.Debug(DContext.CompilerCodeGenerator, "Compiler cache: no method body found on cached version of {0}, even though one was expected.", sourceMethod);
                 return null;
             }
 
@@ -192,15 +192,17 @@ namespace Dot42.CompilerLib.CompilerCache
             }
             catch (CompilerCacheResolveException ex)
             {
-                // This happens at the moment for methods using fields in the __generated class.
-                // The number of these failures in my test is 6 out of ~9000. Since we gracefully
-                // handle it by re-compiling the method body, there shouldn't be any need for action.
+                // This happens at the moment for methods using fields in the __generated class,
+                // as well as for references to generated methods (mostly explicit interfac stubs)
+                // during the IL conversion phase.
+                // The number of these failures in my test is 800 out of ~9000. We gracefully
+                // handle it by re-compiling the method body.
                 Debug.WriteLine(string.Format("Compiler cache: error while converting cached body: {0}: {1}. Not using cached body.", sourceMethod, ex.Message));
                 return null;
             }
             catch (Exception ex)
             {
-                DLog.Error(DContext.CompilerCodeGenerator, "Compiler cache: exception while converting cached body: {0}: {1}. Not using cached body.", sourceMethod, ex.Message);
+                DLog.Warning(DContext.CompilerCodeGenerator, "Compiler cache: exception while converting cached body: {0}: {1}. Not using cached body.", sourceMethod, ex.Message);
                 Trace.WriteLine(string.Format("Compiler cache: error while converting cached body: {0}: {1}. Not using cached body.", sourceMethod, ex.Message));
                 return null;
             }

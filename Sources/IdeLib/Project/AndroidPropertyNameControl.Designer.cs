@@ -29,6 +29,8 @@
         private void InitializeComponent()
         {
             this.tlpMain = new System.Windows.Forms.TableLayoutPanel();
+            this.labelCompilerCacheHelp = new System.Windows.Forms.Label();
+            this.cbEnableCompilerCache = new System.Windows.Forms.CheckBox();
             this.cbGenerateSetNextInstructionCode = new System.Windows.Forms.CheckBox();
             this.label1 = new System.Windows.Forms.Label();
             this.tbPackageName = new System.Windows.Forms.TextBox();
@@ -40,6 +42,7 @@
             this.cmdNewCertificate = new System.Windows.Forms.Button();
             this.lbAndroidVersionInfo = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
+            this.additionalLibrariesControl = new Dot42.Ide.WizardForms.AdditionalLibrariesControl();
             this.lbGenerateWcfProxy = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.cbGenerateWcfProxy = new System.Windows.Forms.CheckBox();
@@ -54,7 +57,6 @@
             this.labelSetNextInstructionHelp = new System.Windows.Forms.Label();
             this.cbTargetSdkVersion = new System.Windows.Forms.ComboBox();
             this.lbTargetSdkVersion = new System.Windows.Forms.Label();
-            this.additionalLibrariesControl = new Dot42.Ide.WizardForms.AdditionalLibrariesControl();
             this.tlpMain.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -66,6 +68,8 @@
             this.tlpMain.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tlpMain.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
             this.tlpMain.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            this.tlpMain.Controls.Add(this.labelCompilerCacheHelp, 1, 19);
+            this.tlpMain.Controls.Add(this.cbEnableCompilerCache, 1, 18);
             this.tlpMain.Controls.Add(this.cbGenerateSetNextInstructionCode, 1, 16);
             this.tlpMain.Controls.Add(this.label1, 0, 0);
             this.tlpMain.Controls.Add(this.tbPackageName, 1, 0);
@@ -95,7 +99,7 @@
             this.tlpMain.Dock = System.Windows.Forms.DockStyle.Top;
             this.tlpMain.Location = new System.Drawing.Point(0, 0);
             this.tlpMain.Name = "tlpMain";
-            this.tlpMain.RowCount = 17;
+            this.tlpMain.RowCount = 19;
             this.tlpMain.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tlpMain.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tlpMain.RowStyles.Add(new System.Windows.Forms.RowStyle());
@@ -114,8 +118,34 @@
             this.tlpMain.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.tlpMain.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tlpMain.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tlpMain.Size = new System.Drawing.Size(500, 544);
+            this.tlpMain.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tlpMain.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tlpMain.Size = new System.Drawing.Size(500, 614);
             this.tlpMain.TabIndex = 0;
+            // 
+            // labelCompilerCacheHelp
+            // 
+            this.labelCompilerCacheHelp.AutoSize = true;
+            this.tlpMain.SetColumnSpan(this.labelCompilerCacheHelp, 3);
+            this.labelCompilerCacheHelp.Location = new System.Drawing.Point(147, 567);
+            this.labelCompilerCacheHelp.Margin = new System.Windows.Forms.Padding(3, 0, 3, 8);
+            this.labelCompilerCacheHelp.Name = "labelCompilerCacheHelp";
+            this.labelCompilerCacheHelp.Size = new System.Drawing.Size(313, 39);
+            this.labelCompilerCacheHelp.TabIndex = 54;
+            this.labelCompilerCacheHelp.Text = "This experimental feature will speed up the compilation phase on incremental buil" +
+    "ds by up to 50%. Please report any problems encountered due to this setting.";
+            // 
+            // cbEnableCompilerCache
+            // 
+            this.cbEnableCompilerCache.AutoSize = true;
+            this.tlpMain.SetColumnSpan(this.cbEnableCompilerCache, 3);
+            this.cbEnableCompilerCache.Location = new System.Drawing.Point(147, 547);
+            this.cbEnableCompilerCache.Name = "cbEnableCompilerCache";
+            this.cbEnableCompilerCache.Size = new System.Drawing.Size(152, 17);
+            this.cbEnableCompilerCache.TabIndex = 53;
+            this.cbEnableCompilerCache.Text = "Enable the compiler cache";
+            this.cbEnableCompilerCache.UseVisualStyleBackColor = true;
+            this.cbEnableCompilerCache.CheckedChanged += new System.EventHandler(this.OnValueChanged);
             // 
             // cbGenerateSetNextInstructionCode
             // 
@@ -233,6 +263,16 @@
             this.label2.Text = "The Android version against which this software was tested.\r\nCorresponds to the a" +
     "ndroid:targetSdkVersion attribute.";
             // 
+            // additionalLibrariesControl
+            // 
+            this.tlpMain.SetColumnSpan(this.additionalLibrariesControl, 3);
+            this.additionalLibrariesControl.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.additionalLibrariesControl.Location = new System.Drawing.Point(147, 370);
+            this.additionalLibrariesControl.Name = "additionalLibrariesControl";
+            this.additionalLibrariesControl.Size = new System.Drawing.Size(350, 94);
+            this.additionalLibrariesControl.TabIndex = 41;
+            this.additionalLibrariesControl.CheckedLibrariesChanged += new System.EventHandler(this.OnValueChanged);
+            // 
             // lbGenerateWcfProxy
             // 
             this.lbGenerateWcfProxy.Anchor = System.Windows.Forms.AnchorStyles.Left;
@@ -340,9 +380,9 @@
             this.label8.AutoSize = true;
             this.label8.Location = new System.Drawing.Point(3, 492);
             this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(62, 13);
+            this.label8.Size = new System.Drawing.Size(114, 13);
             this.label8.TabIndex = 50;
-            this.label8.Text = "Debugging:";
+            this.label8.Text = "Experimental Features:";
             // 
             // labelSetNextInstructionHelp
             // 
@@ -351,10 +391,10 @@
             this.labelSetNextInstructionHelp.Location = new System.Drawing.Point(147, 510);
             this.labelSetNextInstructionHelp.Margin = new System.Windows.Forms.Padding(3, 0, 3, 8);
             this.labelSetNextInstructionHelp.Name = "labelSetNextInstructionHelp";
-            this.labelSetNextInstructionHelp.Size = new System.Drawing.Size(321, 26);
+            this.labelSetNextInstructionHelp.Size = new System.Drawing.Size(332, 26);
             this.labelSetNextInstructionHelp.TabIndex = 52;
-            this.labelSetNextInstructionHelp.Text = "Note that this will increase the .apk size and might slow down your application. " +
-    "This setting is ignored during release builds.";
+            this.labelSetNextInstructionHelp.Text = "Note that this will increase the .apk size and might slightly slow down your appl" +
+    "ication. This setting is ignored during release builds.";
             // 
             // cbTargetSdkVersion
             // 
@@ -378,25 +418,15 @@
             this.lbTargetSdkVersion.TabIndex = 13;
             this.lbTargetSdkVersion.Text = "Android target SDK version:";
             // 
-            // additionalLibrariesControl
-            // 
-            this.tlpMain.SetColumnSpan(this.additionalLibrariesControl, 3);
-            this.additionalLibrariesControl.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.additionalLibrariesControl.Location = new System.Drawing.Point(147, 370);
-            this.additionalLibrariesControl.Name = "additionalLibrariesControl";
-            this.additionalLibrariesControl.Size = new System.Drawing.Size(350, 94);
-            this.additionalLibrariesControl.TabIndex = 41;
-            this.additionalLibrariesControl.CheckedLibrariesChanged += new System.EventHandler(this.OnValueChanged);
-            // 
             // AndroidPropertyNameControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.tlpMain);
-            this.MaximumSize = new System.Drawing.Size(500, 543);
-            this.MinimumSize = new System.Drawing.Size(500, 543);
+            this.MaximumSize = new System.Drawing.Size(500, 620);
+            this.MinimumSize = new System.Drawing.Size(500, 620);
             this.Name = "AndroidPropertyNameControl";
-            this.Size = new System.Drawing.Size(500, 543);
+            this.Size = new System.Drawing.Size(500, 620);
             this.tlpMain.ResumeLayout(false);
             this.tlpMain.PerformLayout();
             this.ResumeLayout(false);
@@ -433,5 +463,7 @@
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.CheckBox cbGenerateSetNextInstructionCode;
         private System.Windows.Forms.Label labelSetNextInstructionHelp;
+        private System.Windows.Forms.Label labelCompilerCacheHelp;
+        private System.Windows.Forms.CheckBox cbEnableCompilerCache;
     }
 }

@@ -42,6 +42,7 @@
         public const string PropTargetSdkAndroidVersion = "TargetSdkAndroidVersion";
         public const string PropGenerateWcfProxy = "GenerateWcfProxy";
         public const string PropGenerateSetNextInstructionCode = "GenerateSetNextInstructionCode";
+        public const string PropEnableCompilerCache = "EnableCompilerCache";
         public const string PropGenerateAndroidManifest = "GenerateAndroidManifest";
         public const string PropAndroidManifestFile = "AndroidManifestFile";
         

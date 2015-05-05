@@ -263,6 +263,13 @@ namespace Dot42.VStudio.Flavors
                 set { page.SetProjectProperty(Dot42Constants.PropGenerateSetNextInstructionCode, value ? "true" : "false"); }
             }
 
+            public bool EnableCompilerCache 
+            {
+                get { return page.GetProjectProperty(Dot42Constants.PropEnableCompilerCache) == "true"; }
+                set { page.SetProjectProperty(Dot42Constants.PropEnableCompilerCache, value ? "true" : "false"); }
+            }
+
+
             public void AddReferencedLibrary(string name)
             {
                 page.AddReferencedLibrary(name);

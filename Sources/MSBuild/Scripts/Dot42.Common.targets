@@ -624,6 +624,7 @@ Copyright (C) TallComponents BV. All rights reserved.
         RootNamespace="$(RootNamespace)"
         GenerateDebugInfo="$(DebugSymbols)"
         GenerateSetNextInstructionCode="$(GenerateSetNextInstructionCode)"
+        EnableCompilerCache="$(EnableCompilerCache)"
         FreeAppsKeyPath="$(IntermediateFreeAppsKey)"
 			    >
     </CompileAssembly>

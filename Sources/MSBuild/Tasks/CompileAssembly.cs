@@ -58,6 +58,7 @@ namespace Dot42.MSBuild.Tasks
         public bool GenerateDebugInfo { get; set; }
 
         public bool GenerateSetNextInstructionCode { get; set; }
+        public bool EnableCompilerCache { get; set; }
 
         /// <summary>
         /// Path of Free Apps Key file
@@ -127,6 +128,11 @@ namespace Dot42.MSBuild.Tasks
             if (GenerateSetNextInstructionCode)
             {
                 builder.Add(ToolOptions.GenerateSetNextInstructionCode.AsArg());
+            }
+
+            if (EnableCompilerCache)
+            {
+                builder.Add(ToolOptions.EnableCompilerCache.AsArg());
             }
 
 

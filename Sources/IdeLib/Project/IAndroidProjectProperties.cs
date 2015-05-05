@@ -61,10 +61,15 @@ namespace Dot42.Ide.Project
         IEnumerable<string> ReferencedLibraryNames { get; }
 
         /// <summary>
-        /// should special "set next instruction" code be included in the 
+        /// Should special "set next instruction" code be included in the 
         /// output?
         /// </summary>
         bool GenerateSetNextInstructionCode { get; set; }
+
+        /// <summary>
+        /// Should the compiler cache speed up incremental builds?
+        /// </summary>
+        bool EnableCompilerCache { get; set; }
 
         /// <summary>
         /// Add a reference to a library with given name.

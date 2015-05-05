@@ -52,7 +52,7 @@ namespace Dot42.Compiler
 
             protected override void Write(Levels level, DContext context, string url, int column, int lineNr, string msg, Exception exception, object[] args)
             {
-                if (level < Levels.Warning)
+                if (level < Levels.Info)
                     return;
                 if ((msg == null) && (exception != null)) msg = exception.Message;
                 if (msg == null)
@@ -61,6 +61,10 @@ namespace Dot42.Compiler
                 column = Math.Max(0, column);
                 switch (level)
                 {
+                    //case Levels.Info:
+                    //        log.LogMessage(msg, args);
+                    //    break;
+                    case Levels.Info: //TODO: get LogMessage to work.
                     case Levels.Warning:
                         if (url != null)
                             log.LogWarning(null, null, null, url, lineNr, column, 0, 0, msg, args);
@@ -78,12 +82,16 @@ namespace Dot42.Compiler
 
             protected override void Write(Levels level, DContext context, string url, int column, int lineNr, Func<string> messageBuilder)
             {
-                if (level < Levels.Warning)
+                if (level < Levels.Info)
                     return;
                 lineNr = Math.Max(0, lineNr);
                 column = Math.Max(0, column);
                 switch (level)
                 {
+                    //case Levels.Info:
+                    //        log.LogMessage(messageBuilder());
+                    //    break;
+                    case Levels.Info: //TODO: get LogMessage to work.
                     case Levels.Warning:
                         if (url != null)
                             log.LogWarning(null, null, null, url, lineNr, column, 0, 0, messageBuilder());

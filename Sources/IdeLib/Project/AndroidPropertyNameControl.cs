@@ -138,6 +138,7 @@ namespace Dot42.VStudio.Flavors
             ApkCertificateThumbprint = source.ApkCertificateThumbprint;
             cbGenerateWcfProxy.Checked = source.GenerateWcfProxy;
             cbGenerateSetNextInstructionCode.Checked = source.GenerateSetNextInstructionCode;
+            cbEnableCompilerCache.Checked = source.EnableCompilerCache;
             AssemblyName = source.AssemblyName;
             RootNamespace = source.RootNamespace;
 
@@ -162,6 +163,8 @@ namespace Dot42.VStudio.Flavors
             ShowRow(tbCertificate, source.ApkOutputs);
             ShowRow(cbGenerateSetNextInstructionCode, source.ApkOutputs);
             ShowRow(labelSetNextInstructionHelp, source.ApkOutputs);
+            ShowRow(cbEnableCompilerCache, source.ApkOutputs);
+            ShowRow(labelCompilerCacheHelp, source.ApkOutputs);
             
             // TODO: not sure about the other properties.
         }
@@ -245,6 +248,8 @@ namespace Dot42.VStudio.Flavors
             destination.AssemblyName = AssemblyName;
             destination.RootNamespace = RootNamespace;
             destination.GenerateSetNextInstructionCode = cbGenerateSetNextInstructionCode.Checked;
+            destination.EnableCompilerCache= cbEnableCompilerCache.Checked;
+
             foreach (var node in nodesToRemove) destination.RemoveReferencedLibrary(node.DllName);
             foreach (var node in nodesToAdd) destination.AddReferencedLibrary(node.DllName);
 

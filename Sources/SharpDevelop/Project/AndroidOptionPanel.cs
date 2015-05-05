@@ -144,6 +144,13 @@ namespace Dot42.SharpDevelop.Project
                 set { project.SetProperty(Dot42Constants.PropGenerateSetNextInstructionCode, value ? "true" : "false"); }
             }
 
+		    public bool EnableCompilerCache
+		    {
+                get { return project.GetUnevalatedProperty(Dot42Constants.PropEnableCompilerCache) == "true"; }
+                set { project.SetProperty(Dot42Constants.PropEnableCompilerCache, value ? "true" : "false"); }
+		        
+		    }
+
 		    public void AddReferencedLibrary(string name)
 			{
 				project.PerformUpdateOnProjectFile(() => { project.MSBuildProjectFile.AddItem(ItemType.Reference.ItemName, name); });
