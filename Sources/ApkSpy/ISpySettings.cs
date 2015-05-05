@@ -11,5 +11,10 @@
         bool EnableBaksmali { get; }
         string BaksmaliCommand { get; }
         string BaksmaliParameters { get; }
+
+        bool ShowControlFlow { get; }
+
+        bool EmbedSourceCodePositions { get; }
+        bool EmbedSourceCode { get; }
     }
 }

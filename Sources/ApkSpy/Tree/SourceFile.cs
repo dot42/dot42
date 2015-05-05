@@ -206,5 +206,8 @@ namespace Dot42.ApkSpy.Tree
         public bool EnableBaksmali { get { return settings.EnableBaksmali; } }
         public string BaksmaliCommand { get { return settings.BaksmaliCommand; } }
         public string BaksmaliParameters { get { return settings.BaksmaliParameters; }}
+        public bool ShowControlFlow { get { return settings.ShowControlFlow; } }
+        public bool EmbedSourceCodePositions { get { return settings.EmbedSourceCodePositions; } }
+        public bool EmbedSourceCode { get { return settings.EmbedSourceCode; } }
     }
 }

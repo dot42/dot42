@@ -107,11 +107,15 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\DebuggerLib\Model\MethodDisassembly.cs">
+      <Link>Disassembly\MethodDisassembly.cs</Link>
+    </Compile>
     <Compile Include="..\Version.cs" />
     <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="Disassembly\MethodBodyDisassemblyFormatter.cs" />
     <Compile Include="IPC\AsyncLineReader.cs" />
     <Compile Include="IPC\AsyncStreamReader.cs" />
-    <Compile Include="BaksmaliDisassembler.cs" />
+    <Compile Include="Disassembly\BaksmaliDisassembler.cs" />
     <Compile Include="IPC\ConsoleProcess.cs" />
     <Compile Include="IPC\ConsoleReader.cs" />
     <Compile Include="IPC\Run.cs" />

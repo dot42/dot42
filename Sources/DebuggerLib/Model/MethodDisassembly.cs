@@ -5,6 +5,11 @@ using Dot42.Mapping;
 
 namespace Dot42.DebuggerLib.Model
 {
+    /// <summary>
+    /// Provides a disassembled method and helps with formatting.
+    /// </summary>
+    // TODO: move to a place where it is available from ApkSpy as well,
+    //       without ApkSpy needing a reference to the DebuggerLib.
     public class MethodDisassembly
     {
         private readonly TypeEntry _typeEntry;
@@ -17,7 +22,7 @@ namespace Dot42.DebuggerLib.Model
         public MethodEntry MethodEntry { get { return _methodEntry; } }
         public TypeEntry TypeEntry { get { return _typeEntry; } }
 
-        public MethodDisassembly(TypeEntry typeEntry,  MethodEntry methodEntry, MethodDefinition methodDef, MapFileLookup mapFile)
+        public MethodDisassembly(MethodDefinition methodDef, MapFileLookup mapFile = null, TypeEntry typeEntry = null, MethodEntry methodEntry = null)
         {
             _typeEntry = typeEntry;
             _methodEntry = methodEntry;
@@ -32,7 +37,7 @@ namespace Dot42.DebuggerLib.Model
 
         public string FormatOpCode(Instruction ins)
         {
-            return ins.OpCode.ToString().PadLeft(20) + " ";
+            return OpCodesNames.GetName(ins.OpCode).ToLowerInvariant().PadLeft(20) + " ";
         }
 
         public string FormatOperands(Instruction ins)
@@ -43,6 +48,16 @@ namespace Dot42.DebuggerLib.Model
         public string FormatInstruction(Instruction ins)
         {
             return FormatAddress(ins) + " " + FormatOpCode(ins) + " " + FormatOperands(ins);
+        }
+
+        public string FormatRegister(Register r)
+        {
+            return FormatRegister(r, _methodDef.Body);
+        }
+
+        public string FormatRegister(int index)
+        {
+            return FormatRegister(new Register(index));
         }
 
         public static string FormatRegister(Register r, MethodBody body)
@@ -141,6 +156,8 @@ namespace Dot42.DebuggerLib.Model
         /// <returns>null, if not found</returns>
         public SourceCodePosition FindSourceCode(int offset, bool allowSpecial=true)
         {
+            if (_mapFile == null || _methodEntry == null)
+                return null;
             return _mapFile.FindSourceCode(_methodEntry, offset, allowSpecial);
         }
 
@@ -151,6 +168,8 @@ namespace Dot42.DebuggerLib.Model
         /// <returns>null, if not found</returns>
         public SourceCodePosition FindNextSourceCode(int offset)
         {
+            if (_mapFile == null || _methodEntry == null)
+                return null;
             return _mapFile.FindNextSourceCode(_methodEntry, offset);
         }
 

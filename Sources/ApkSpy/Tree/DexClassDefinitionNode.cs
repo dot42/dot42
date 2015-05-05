@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using Dot42.ApkSpy.Disassembly;
 using Dot42.DexLib;
 
 namespace Dot42.ApkSpy.Tree
@@ -54,6 +55,8 @@ namespace Dot42.ApkSpy.Tree
                     sb.AppendFormat("Implements: {0}{1}", intf.Fullname, nl);
                 }
                 sb.AppendFormat("AccessFlags: {0}{1}", AccessFlagsAsString(classDef.AccessFlags), nl);
+                if (classDef.SourceFile != null)
+                    sb.AppendFormat("SourceFile : {0}", classDef.SourceFile);
                 sb.AppendFormat("Annotations: {0}{1}", LoadAnnotations(classDef), nl);
                 return sb.ToString();
             }

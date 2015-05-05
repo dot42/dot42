@@ -63,7 +63,7 @@ namespace Dot42.DebuggerLib.Model
             var typeEntry   = loc.TypeEntry   ?? _mapFile.GetTypeByDexName(className);
             var methodEntry = loc.MethodEntry ?? _mapFile.GetMethodByDexSignature(className, methodName, methodSignature);
 
-            return new MethodDisassembly(typeEntry, methodEntry, methodDef, _mapFile);
+            return new MethodDisassembly(methodDef, _mapFile, typeEntry, methodEntry);
         }
 
         private DexLookup LoadDex()

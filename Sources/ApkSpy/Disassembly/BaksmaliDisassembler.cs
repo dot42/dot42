@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using Dot42.ApkSpy.IPC;
 using Dot42.DexLib;
 
-namespace Dot42.ApkSpy
+namespace Dot42.ApkSpy.Disassembly
 {
     internal class BaksmaliDisassembler
     {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Text;
+using Dot42.ApkSpy.Disassembly;
 using Dot42.CompilerLib.RL2DexCompiler;
 using Dot42.DexLib;
 using Dot42.DexLib.Instructions;
@@ -42,97 +43,14 @@ namespace Dot42.ApkSpy.Tree
             var body = methodDef.Body;
             if (body != null)
             {
-                var cfg = new ControlFlowGraph(body);
                 sb.AppendFormat("#Registers:  {0}{1}", body.Registers.Count, nl);
                 sb.AppendFormat("#Incoming:   {0}{1}", body.IncomingArguments, nl);
                 sb.AppendFormat("#Outgoing:   {0}{1}", body.OutgoingArguments, nl);
-                sb.AppendLine("Code:");
-#if DEBUG
-                var firstBlock = true;
-#endif
-                foreach (var block in cfg)
-                {
-#if DEBUG
-                    if (!firstBlock)
-                    {
-                        sb.AppendLine("\t----------------- ");
-                    }
-                    sb.AppendFormat("\tEntry [{0}], Exit [{1}]{2}",
-                              string.Join(", ", block.EntryBlocks.Select(x => x.Entry.Offset.ToString("x4"))),
-                              string.Join(", ", block.ExitBlocks.Select(x => x.Entry.Offset.ToString("x4"))),
-                              nl);
-                    firstBlock = false;
-#endif
-                    foreach (var i in block.Instructions)
-                    {
-                        sb.AppendFormat("\t{0:x4} {1} {2}   {3}{4}", i.Offset, Format(i.OpCode), Register(i), FormatOperand(i.Operand), nl);
-                    }
-                }
                 sb.AppendLine();
 
-                if (body.Exceptions.Any())
-                {
-                    sb.AppendLine("Exception handlers:");
-                    foreach (var handler in body.Exceptions)
-                    {
-                        sb.AppendFormat("\t{0:x4}-{1:x4}{2}", handler.TryStart.Offset, handler.TryEnd.Offset, nl);
-                        foreach (var c in handler.Catches)
-                        {
-                            sb.AppendFormat("\t\t{0} => {1:x4}{2}", c.Type, c.Instruction.Offset, nl);                            
-                        }
-                        if (handler.CatchAll != null)
-                        {
-                            sb.AppendFormat("\t\t{0} => {1:x4}{2}", "<any>", handler.CatchAll.Offset, nl);                                                        
-                        }
-                    }
-                }
-
-                var mapFile = settings.MapFile;
-                if (mapFile != null)
-                {
-                    var typeEntry = mapFile.GetTypeByNewName(methodDef.Owner.Fullname);
-                    if (typeEntry != null)
-                    {
-                        var methodEntry = typeEntry.FindDexMethod(methodDef.Name, methodDef.Prototype.ToSignature());
-                        if (methodEntry != null)
-                        {
-                            var validParameters = methodEntry.Parameters.Where(x => !string.IsNullOrEmpty(x.Name)).ToList();
-                            if (validParameters.Any())
-                            {
-                                sb.AppendLine("Parameters:");
-                                foreach (var p in validParameters)
-                                {
-                                    sb.AppendFormat("\tr{0} -> {1}{2}", p.Register, p.Name, nl);
-                                }
-                                sb.AppendLine();
-                            }
-
-                            var validVariables = methodEntry.Variables.Where(x => !string.IsNullOrEmpty(x.Name)).ToList();
-                            if (validVariables.Any())
-                            {
-                                sb.AppendLine("Variables:");
-                                foreach (var p in validVariables)
-                                {
-                                    sb.AppendFormat("\tr{0} -> {1}{2}", p.Register, p.Name, nl);
-                                }
-                                sb.AppendLine();
-                            }
-
-                            sb.AppendLine("Source code:");
-                            Document lastDocument = null;
-                            foreach (var row in mapFile.GetSourceCodePositions(methodEntry))
-                            {
-                                if (row.Document != lastDocument)
-                                {
-                                    sb.AppendFormat("\t{0}{1}", row.Document.Path, nl);
-                                    lastDocument = row.Document;
-                                }
-                                var pos = row.Position;
-                                sb.AppendFormat("\t{0:x4}\t({1},{2}) - ({3},{4}){5}", pos.MethodOffset, pos.Start.Line, pos.Start.Column, pos.End.Line, pos.End.Column, nl);
-                            }
-                        }
-                    }
-                }
+                var formatter = new MethodBodyDisassemblyFormatter(methodDef, settings.MapFile);
+                var code = formatter.Format(settings.EmbedSourceCodePositions, settings.EmbedSourceCode, settings.ShowControlFlow);
+                sb.AppendLine(code);
 
 #if DEBUG
                 var debugInfo = body.DebugInfo;
@@ -176,28 +94,6 @@ namespace Dot42.ApkSpy.Tree
             result += accessFlags.HasFlag(AccessFlags.DeclaredSynchronized) ? "synchronized " : string.Empty;
 
             return result.Trim();
-        }
-
-        private static string Format(OpCodes opcode)
-        {
-            return OpCodesNames.GetName(opcode).PadRight(15);
-        }
-
-        private static string FormatOperand(object operand)
-        {
-            if (operand == null)
-                return string.Empty;
-            var ins = operand as Instruction;
-            if (ins != null)
-            {
-                return string.Format("{0:x4}", ins.Offset);
-            }
-            return operand.ToString();
-        }
-
-        private static string Register(Instruction i)
-        {
-            return string.Join(", ", i.Registers.Select(x => string.Format("r{0}", x.Index)).ToArray());
         }
     }
 }

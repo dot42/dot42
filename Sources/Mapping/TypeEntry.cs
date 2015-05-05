@@ -117,7 +117,6 @@ namespace Dot42.Mapping
         /// <summary>
         /// Find the method based on its dex name and signature.
         /// </summary>
-        [Obsolete("use MapFileLookup.FindMethodByDexSignature(), which also handles some special cases")]
         public MethodEntry FindDexMethod(string dexName, string dexSignature)
         {
             foreach (var entry in Methods)

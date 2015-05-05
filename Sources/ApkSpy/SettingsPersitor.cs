@@ -18,6 +18,9 @@ namespace Dot42.ApkSpy
         private const string BAKSMALI_ENABLE = "baksmali_enable";
         private const string BAKSMALI_COMMAND = "baksmali_command";
         private const string BAKSMALI_PARAMETERS = "baksmali_parameters";
+        private const string EMBED_SOURCE_CODE_POSITIONS = "embed_source_code_positions";
+        private const string EMBED_SOURCE_CODE = "embed_source_code";
+        private const string SHOW_CONTROL_FLOW = "show_control_flow";
         private const int maxNumberOfFiles = 10;
         private const string registryPath = @"Software\TallComponents\Dot42\Mru";
         private static readonly Size DefaultWindowSize = new Size(972, 567);
@@ -143,6 +146,24 @@ namespace Dot42.ApkSpy
             }
         }
 
+        public static bool EmbedSourceCodePositions
+        {
+            get { return GetValue(EMBED_SOURCE_CODE_POSITIONS, "0") != "0"; }
+            set { SetValue(EMBED_SOURCE_CODE_POSITIONS, value? "1" : "0");}
+        }
+
+        public static bool EmbedSourceCode
+        {
+            get { return GetValue(EMBED_SOURCE_CODE, "0") != "0"; }
+            set { SetValue(EMBED_SOURCE_CODE, value ? "1" : "0"); }
+        }
+
+        public static bool ShowControlFlow
+        {
+            get { return GetValue(SHOW_CONTROL_FLOW, "0") != "0"; }
+            set { SetValue(SHOW_CONTROL_FLOW, value ? "1" : "0"); }
+        }
+
         /// <summary>
         /// Load the MRU list.
         /// </summary>
@@ -191,7 +212,7 @@ namespace Dot42.ApkSpy
         /// <summary>
         /// Gets/sets the last known path in the tree of the last opened file.
         /// </summary>
-        private static string GetValue(string valueName)
+        private static string GetValue(string valueName, string @default="")
         {
             string result = null;
             try
@@ -209,7 +230,7 @@ namespace Dot42.ApkSpy
             {
                 Trace.WriteLine("Loading MRU from Registry failed: " + ex.Message);
             }
-            return result ?? string.Empty;
+            return result ?? @default;
         }
 
         private static void SetValue(string valueName, string value)

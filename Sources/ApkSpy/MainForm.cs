@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using Dot42.ApkSpy.Disassembly;
 using Dot42.ApkSpy.IPC;
 using Dot42.ApkSpy.Tree;
 using Ookii.Dialogs;
@@ -32,6 +33,9 @@ namespace Dot42.ApkSpy
             miShowAst.Checked = true;
 #endif
             miEnableBaksmali.Checked = SettingsPersitor.EnableBaksmali;
+            miEmbedSourceCode.Checked = SettingsPersitor.EmbedSourceCode;
+            miEmbedSourceCodePositions.Checked = SettingsPersitor.EmbedSourceCodePositions;
+            miShowControlFlow.Checked = SettingsPersitor.ShowControlFlow;
         }
 
         /// <summary>
@@ -303,6 +307,9 @@ namespace Dot42.ApkSpy
         public bool EnableBaksmali { get { return miEnableBaksmali.Checked; } }
         public string BaksmaliCommand { get { return SettingsPersitor.BaksmaliCommand; } }
         public string BaksmaliParameters { get { return SettingsPersitor.BaksmaliParameters; } }
+        public bool ShowControlFlow { get { return miShowControlFlow.Checked; } }
+        public bool EmbedSourceCodePositions { get { return miEmbedSourceCodePositions.Checked; } }
+        public bool EmbedSourceCode { get { return miEmbedSourceCode.Checked; } }
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
@@ -328,11 +335,7 @@ namespace Dot42.ApkSpy
 
             if (EnableBaksmali && string.IsNullOrEmpty(BaksmaliCommand))
                 miConfigureBaksmali_Click(sender,e);
-
-            // update views
-            var node = treeView.SelectedNode;
-            treeView.SelectedNode = null;
-            treeView.SelectedNode = node;
+            UpdateView();
         }
 
         private void miConfigureBaksmali_Click(object sender, EventArgs e)
@@ -383,6 +386,32 @@ namespace Dot42.ApkSpy
             {
                 Process.Start(dlg.SelectedPath);
             }
+        }
+
+        private void UpdateView()
+        {
+            var node = treeView.SelectedNode;
+            treeView.SelectedNode = null;
+            treeView.SelectedNode = node;
+        }
+   
+
+        private void miEmbedSourceCodePositions_Click(object sender, EventArgs e)
+        {
+            SettingsPersitor.EmbedSourceCodePositions = EmbedSourceCodePositions;
+            UpdateView();
+        }
+
+        private void miEmbedSourceCode_Click(object sender, EventArgs e)
+        {
+            SettingsPersitor.EmbedSourceCode = EmbedSourceCode;
+            UpdateView();
+        }
+
+        private void miShowControlFlow_Click(object sender, EventArgs e)
+        {
+            SettingsPersitor.ShowControlFlow = ShowControlFlow;
+            UpdateView();
         }
     }
 }
