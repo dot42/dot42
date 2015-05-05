@@ -214,6 +214,8 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 // changed above, to compensate for interface 
                 // inheritance and generic specialization.
                 // We need to use the original declaration.
+                // TODO: why not get rid of "OriginalReturnType"
+                //       and use the IL's return type??
                 var returnType = xMethod.OriginalReturnType;
                 var xType = XBuilder.AsTypeReference(compiler.Module, returnType);
                 dmethod.AddGenericDefinitionAnnotationIfGeneric(xType, compiler, targetPackage);

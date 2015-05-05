@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Dot42.CecilExtensions;
 using Dot42.CompilerLib.Ast.Extensions;
 using Dot42.CompilerLib.Extensions;
@@ -77,10 +78,23 @@ namespace Dot42.CompilerLib.Structure.DotNet
             // Set access flags
             SetAccessFlags(dfield, field);
 
-            // give warning if static in generic class.
+            // Give warning if static in generic class.
+            // This could of cause also be handled automagically be the compiler,
+            // with mixture of whats done in the Interlocked converter and whats
+            // done in the GenericInstanceConverter.
             if (field.IsStatic && declaringType.IsGenericClass)
             {
-                DLog.Warning(DContext.CompilerILConverter, "Static field {0} in generic class {1}: All generic instances will share the same static field, contrary on how CLR operates. A workaround is to use ConcurrentDictionaries to access the values dependent on the type.", field.Name, declaringType.FullName);
+                if (!field.HasSuppressMessageAttribute("StaticFieldInGenericType")
+                 && !field.DeclaringType.HasSuppressMessageAttribute("StaticFieldInGenericType"))
+                {
+                    string msg = "Static field {0} in generic type {1}: All generic instances will share " +
+                                 "the same static field, contrary on how CLR operates. A workaround is to " +
+                                 "use ConcurrentDictionaries to access the values dependent on the type. " +
+                                 "You can suppress this warning with a [SuppressMessage(\"dot42\"," +
+                                 " \"StaticFieldInGenericType\"] attribute, either on the field or on the class.";
+                    DLog.Warning(DContext.CompilerILConverter, msg, field.Name, declaringType.FullName);
+                }
+                
             }
         }
 

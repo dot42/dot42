@@ -206,8 +206,7 @@ namespace Dot42.CompilerLib.Reachable.DotNet
                         if (typeofT != null && !typeofT.UsedInNullableT)
                         {
                             typeofT.UsedInNullableT = true;
-
-                            Utility.DLog.Info(Utility.DContext.CompilerAssemblyResolver, "found System.Nullable<{0}>", typeofT.FullName);
+                            DLog.Debug(DContext.CompilerAssemblyResolver, "found System.Nullable<{0}>", typeofT.FullName);
                         }
                     }
                     Walk(context, (IGenericInstance)git);

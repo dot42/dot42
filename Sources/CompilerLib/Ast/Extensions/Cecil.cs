@@ -31,6 +31,32 @@ namespace Dot42.CompilerLib.Ast.Extensions
                 return true;
             return IsCompilerGeneratedOrIsInCompilerGeneratedClass(member.DeclaringType);
         }
-
+        
+        /// <summary>
+        /// Should we suppress a specific message?
+        /// </summary>
+        internal static bool HasSuppressMessageAttribute(this ICustomAttributeProvider provider, string messageCode)
+        {
+            if (provider != null && provider.HasCustomAttributes)
+            {
+                foreach (CustomAttribute a in provider.CustomAttributes)
+                {
+                    if (a.AttributeType.FullName != "System.Diagnostics.CodeAnalysis.SuppressMessageAttribute")
+                        continue;
+                    if (a.ConstructorArguments.Count != 2)
+                        continue;
+                    if (a.ConstructorArguments[0].Value == null ||
+                        a.ConstructorArguments[0].Value.ToString().ToLowerInvariant() != "dot42")
+                        continue;
+                 
+                    string code = (a.ConstructorArguments[1].Value ?? "").ToString().ToLowerInvariant();
+                    
+                    if (code.Equals(messageCode, StringComparison.InvariantCultureIgnoreCase) ||
+                        code.StartsWith(messageCode + ":", StringComparison.InvariantCultureIgnoreCase))
+                        return true;
+                }
+            }
+            return false;
+        }
     }
 }

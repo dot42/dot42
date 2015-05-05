@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Dot42.CompilerLib.Ast.Extensions;
 using Dot42.CompilerLib.XModel;
 using Dot42.FrameworkDefinitions;
 using Dot42.Utility;
@@ -246,7 +247,13 @@ namespace Dot42.CompilerLib.Ast.Converters
                     {
                         // Class ctor's cannot have type information.
                         // Return Object instead
-                        DLog.Warning(DContext.CompilerCodeGenerator, "Class (static) constructor of {0} tries to use generic parameter. This will always yield Object.", currentMethod.DeclaringTypeFullName);
+                        if(currentMethod.IsDotNet && !currentMethod.ILMethod.DeclaringType.HasSuppressMessageAttribute("StaticConstructorUsesGenericParameter"))
+                        {
+                            var msg = "Class (static) constructor of {0} tries to use generic parameter. This will always yield Object. " +
+                                      "You can suppress this warning with a [SuppressMessage(\"dot42\", \"StaticConstructorUsesGenericParameter\"] " +
+                                      "attribute on the class.";
+                            DLog.Warning(DContext.CompilerCodeGenerator, msg, currentMethod.DeclaringTypeFullName);
+                        }
                         return new AstExpression(seqp, AstCode.TypeOf, typeSystem.Object) { ExpectedType = typeSystem.Type };
                     }
                     gi = currentMethod.IsStatic ?

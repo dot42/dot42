@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Dot42.CompilerLib.Ast.Extensions;
 using Dot42.CompilerLib.Target.Dex;
 using Dot42.DexLib;
 using Dot42.Utility;
@@ -38,13 +39,27 @@ namespace Dot42.CompilerLib.Structure.DotNet
             dmethod.IsStatic = true;
             dmethod.IsPublic = true;
 
-            // TODO: check if this is the correct behavior. 
-            // The rationale is that the generation of all methods as static 
-            // clashes with virtual/abstract. There should be a way of 
-            // being able to suppress this message through the [SuppressMessage] 
-            // attribute. Then it can be made a warning again.
-            if(method.IsAbstract || method.IsVirtual)
+            
+            if (method.IsAbstract || method.IsVirtual)
+            {
+                // generate a warning, since these methods will never be called 
+                // as virtual. Do not generate a warning if we know the compiler
+                // will handle the call.
+
+                if (method.DeclaringType.FullName == "System.Array")
+                {
+                    // all array methods should be redirected by the compiler.
+                    return;
+                }
+                var intfMethod = method.GetBaseInterfaceMethod();
+                if (intfMethod != null && intfMethod.DeclaringType.FullName == "System.IFormattable")
+                {
+                    // this is handled by the compiler.
+                    return;
+                }
+
                 DLog.Warning(DContext.CompilerCodeGenerator, "Abstract or virtual .NET method '{0}' in DexImport class '{1}'. Unless specially handled by the compiler, this will never be called virtually.", method.Name, method.DeclaringType.FullName);
+            }
         }
 
         /// <summary>

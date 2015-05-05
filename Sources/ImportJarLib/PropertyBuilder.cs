@@ -274,8 +274,8 @@ namespace Dot42.ImportJarLib
                     // Check for any base property with setter
                 }
 
-                // we've got to implement the property, since we inherited it. 
-                // fix up any clashes.
+                // We've got to implement the property, since we inherited it. 
+                // Fix up any clashes.
                 var propName = prop.Name;
                 if (propName == typeDef.Name)
                 {

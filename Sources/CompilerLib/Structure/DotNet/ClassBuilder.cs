@@ -516,8 +516,10 @@ namespace Dot42.CompilerLib.Structure.DotNet
 
                         if (getter.Prototype.Parameters.Count > 0)
                         {
-                            DLog.Info(DContext.CompilerCodeGenerator,
-                                "not generating property for getter with arguments " + getter);
+                            // When the VS plugin correctly supports DLog.Info,
+                            // this should be changed to Info again.
+                            DLog.Debug(DContext.CompilerCodeGenerator,
+                                        "not generating property for getter with arguments " + getter);
                             continue;
                         }
 
