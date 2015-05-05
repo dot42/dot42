@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Management.Instrumentation;
 using System.Threading.Tasks;
 using Dot42.Mapping;
 using Dot42.Utility;
@@ -232,17 +233,21 @@ namespace Dot42.DebuggerLib.Model
             }
 
             var typeSignature = (refType != null) ? refType.GetSignatureAsync().Await(VmTimeout) : null;
-            var typeEntry = (typeSignature != null) ? mapFile.GetTypeBySignature(typeSignature) : null;
+            var methodDexName = (method != null) ? method.Name : null;
+            var methodDexSignature = (method != null) ? method.Signature : null;
+
+            var methodEntry = (typeSignature != null && methodDexSignature != null)
+                                        ? mapFile.GetMethodByDexSignature(typeSignature, methodDexName, methodDexSignature)
+                                        : null;
+
+            var typeEntry = (methodEntry != null ? mapFile.GetTypeByMethodId(methodEntry.Id) : null) 
+                       ?? (typeSignature != null ? mapFile.GetTypeBySignature(typeSignature) : null);
+
             if(typeEntry == null && refType != null)
             {
                 var typeClrName = refType.GetNameAsync().Await(VmTimeout);
                 typeEntry = mapFile.GetTypeByClrName(typeClrName);
             }
-            var methodDexName      = (method != null) ? method.Name : null;
-            var methodDexSignature = (method != null) ? method.Signature : null;
-            var methodEntry        = (method != null) 
-                                        ? typeEntry.FindDexMethod(methodDexName, methodDexSignature)
-                                        : null;
 
             SourceCodePosition position = null;
             if (methodEntry != null)

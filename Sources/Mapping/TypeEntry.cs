@@ -144,7 +144,6 @@ namespace Dot42.Mapping
         /// Gets a method by its map file id.
         /// </summary>
         /// <returns>Null if not found</returns>
-        [Obsolete("use MapFileLookup which also handles some special cases")]
         public MethodEntry GetMethodById(int id)
         {
             return methods.FirstOrDefault(x => x.Id == id);

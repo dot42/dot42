@@ -9,19 +9,17 @@ namespace Dot42.DebuggerLib.Model
     {
         private readonly TypeEntry _typeEntry;
         private readonly MethodEntry _methodEntry;
-        private readonly ClassDefinition _classDef;
         private readonly MethodDefinition _methodDef;
         private readonly MapFileLookup _mapFile;
 
-        public ClassDefinition Class { get { return _classDef; } }
+        public ClassDefinition Class { get { return _methodDef.Owner; } }
         public MethodDefinition Method { get { return _methodDef; } }
         public MethodEntry MethodEntry { get { return _methodEntry; } }
         public TypeEntry TypeEntry { get { return _typeEntry; } }
 
-        public MethodDisassembly(TypeEntry typeEntry, ClassDefinition classDef, MethodEntry methodEntry, MethodDefinition methodDef, MapFileLookup mapFile)
+        public MethodDisassembly(TypeEntry typeEntry,  MethodEntry methodEntry, MethodDefinition methodDef, MapFileLookup mapFile)
         {
             _typeEntry = typeEntry;
-            _classDef = classDef;
             _methodEntry = methodEntry;
             _methodDef = methodDef;
             _mapFile = mapFile;

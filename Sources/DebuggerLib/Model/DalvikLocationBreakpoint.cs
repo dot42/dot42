@@ -29,6 +29,7 @@ namespace Dot42.DebuggerLib.Model
         {
             this.typeEntry = typeEntry;
             this.methodEntry = methodEntry;
+            SourceCodePosition = sourcePosition;
         }
 
         /// <summary>

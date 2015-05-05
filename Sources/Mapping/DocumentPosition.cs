@@ -9,6 +9,8 @@ namespace Dot42.Mapping
     /// </summary>
     public sealed class DocumentPosition : IComparable<DocumentPosition>
     {
+        public const int SpecialOffset = 0xfeefee;
+
         /// <summary>
         /// Default ctor
         /// </summary>
@@ -149,7 +151,7 @@ namespace Dot42.Mapping
         /// </summary>
         public bool IsSpecial
         {
-            get { return Start.Line == 0xfeefee; }
+            get { return Start.Line == SpecialOffset; }
         }
 
         public override string ToString()

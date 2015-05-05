@@ -75,20 +75,28 @@ namespace Dot42.Mapping
             if (entry.Methods.Count > 0)
             {
                 string typeDexName = entry.DexName;
+                string typeDexSignature = entry.DexSignature;
 
                 if (entry.Id == 0)
                 {
                     // all methods are in the generated class
                     if (_map.GeneratedType != null)
+                    {
                         typeDexName = _map.GeneratedType.DexName;
+                        typeDexSignature = _map.GeneratedType.DexSignature;
+                    }
                 }
 
-                foreach (var m in entry.Methods)
+                if (typeDexName != null) // should not happen, but guard against anyways.
                 {
-                    if (m.Id != 0)
-                        _typesByMethodId[m.Id] = entry;
+                    foreach (var m in entry.Methods)
+                    {
+                        if (m.Id != 0)
+                            _typesByMethodId[m.Id] = entry;
 
-                    _methodsByFullSignature.Add(Tuple.Create(typeDexName, m.DexName, m.DexSignature), m);
+                        _methodsByFullSignature.Add(Tuple.Create(typeDexName, m.DexName, m.DexSignature), m);
+                        _methodsByFullSignature.Add(Tuple.Create(typeDexSignature, m.DexName, m.DexSignature), m);
+                    }
                 }
             }
         }
@@ -145,10 +153,10 @@ namespace Dot42.Mapping
             return e;
         }
 
-        public MethodEntry GetMethodByDexSignature(string dexClassName, string dexMethodName, string dexSignature)
+        public MethodEntry GetMethodByDexSignature(string dexClassNameOrSignature, string dexMethodName, string dexSignature)
         {
             MethodEntry m;
-            var key = Tuple.Create(dexClassName, dexMethodName, dexSignature);
+            var key = Tuple.Create(dexClassNameOrSignature, dexMethodName, dexSignature);
             if(_methodsByFullSignature.TryGetValue(key, out m))
                 return m;
 
@@ -161,11 +169,11 @@ namespace Dot42.Mapping
                 return null;
 
             // Try name without generics
-            return GetMethodByDexSignature(dexClassName, dexMethodName.Substring(0, openIndex), dexSignature);
+            return GetMethodByDexSignature(dexClassNameOrSignature, dexMethodName.Substring(0, openIndex), dexSignature);
         }
 
         /// <summary>
-        /// Get all source code poisitions for the given type and method. The returned list will be
+        /// Get all source code positions for the given type and method. The returned list will be
         /// ordered by MethodOffset.
         /// </summary>
         public IList<SourceCodePosition> GetSourceCodePositions(MethodEntry method)
@@ -181,7 +189,9 @@ namespace Dot42.Mapping
         /// <summary>
         /// Try to find the document location that belongs to the given method + offset.
         /// </summary>
-        /// <returns>null, if not found</returns>
+        /// <returns>null, if not found. If we know the document, but the offset is marked to
+        /// have no source code attached (compiler generated), the returned position will
+        /// be marked as IsSpecial.</returns>
         public SourceCodePosition FindSourceCode(MethodEntry method, int methodOffset, bool allowSpecial = true)
         {
             var locs = GetSourceCodePositions(method);
@@ -191,6 +201,15 @@ namespace Dot42.Mapping
 
             if (idx != -1 && (allowSpecial || !locs[idx].IsSpecial))
                 return locs[idx];
+
+            if (allowSpecial && locs.Count > 0)
+            {
+                // this can only happen at the beginning of the method.
+                // forge a special location.
+                var pos = locs[0].Position;
+                var forgedPos = new DocumentPosition(pos.Start.Line,pos.Start.Column, pos.End.Line, pos.End.Column, pos.TypeId, pos.MethodId, DocumentPosition.SpecialOffset);
+                return new SourceCodePosition(locs[0].Document, forgedPos);
+            }
 
             return null;
         }

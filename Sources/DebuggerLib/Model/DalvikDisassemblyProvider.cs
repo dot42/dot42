@@ -33,20 +33,18 @@ namespace Dot42.DebuggerLib.Model
             if (loc == null)
                 return null;
 
-            if (loc.TypeEntry != null)
-                className = loc.TypeEntry.DexName;
-
             if (loc.Method != null)
             {
-                if (className == null)
-                {
-                    var type = loc.Method.DeclaringType.GetSignatureAsync().Await(DalvikProcess.VmTimeout);
-                    var typeDef = Descriptors.ParseClassType(type);
-                    className = typeDef.ClassName.Replace("/", ".");
-                }
+                var type = loc.Method.DeclaringType.GetSignatureAsync().Await(DalvikProcess.VmTimeout);
+                var typeDef = Descriptors.ParseClassType(type);
+                className = typeDef.ClassName.Replace("/", ".");
+
                 methodName = loc.Method.Name;
                 methodSignature = loc.Method.Signature;
             }
+
+            if (className == null && loc.TypeEntry != null)
+                className = loc.TypeEntry.DexName;
 
             if (methodName == null && loc.MethodEntry != null)
             {
@@ -57,20 +55,15 @@ namespace Dot42.DebuggerLib.Model
             if (methodName == null || className == null)
                 return null;
 
-            var classDef = _dex.Value.GetClass(className);
-            if (classDef == null)
-                return null;
-
-            var methodDef = loc.MethodEntry != null ? classDef.Methods.FirstOrDefault(m => m.MapFileId == loc.MethodEntry.Id) 
-                                                    : classDef.GetMethods(methodName).SingleOrDefault(m=>m.Prototype.ToSignature() == methodSignature);
+            var methodDef = _dex.Value.GetMethod(className, methodName, methodSignature);
 
             if (methodDef == null)
                 return null;
 
-            var typeEntry = loc.TypeEntry ?? _mapFile.GetTypeById(classDef.MapFileId);
-            var methodEntry = loc.MethodEntry ?? (typeEntry == null ? null : typeEntry.GetMethodById(methodDef.MapFileId));
+            var typeEntry   = loc.TypeEntry   ?? _mapFile.GetTypeByDexName(className);
+            var methodEntry = loc.MethodEntry ?? _mapFile.GetMethodByDexSignature(className, methodName, methodSignature);
 
-            return new MethodDisassembly(typeEntry, classDef, methodEntry, methodDef, _mapFile);
+            return new MethodDisassembly(typeEntry, methodEntry, methodDef, _mapFile);
         }
 
         private DexLookup LoadDex()
