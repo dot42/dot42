@@ -112,17 +112,15 @@ namespace Dot42.CompilerLib.XModel
         /// </summary>
         public void OnAssemblyLoaded(AssemblyDefinition assembly)
         {
-            // TODO: this is a hack. fix the loading of assemblies so that each 
-            //       only gets send to us exactly once. then remove this line.
-            if (loadedAssemblies.Contains(assembly.Name))
-                return;
-            loadedAssemblies.Add(assembly.Name);
-
-            foreach (var type in assembly.MainModule.Types)
+            // Not multithreading capable yet...
+            lock (types)
             {
-                var typeDef = new DotNet.XBuilder.ILTypeDefinition(this, null, type);
-                types.Add(typeDef);
-                Register(typeDef);
+                foreach (var type in assembly.MainModule.Types)
+                {
+                    var typeDef = new DotNet.XBuilder.ILTypeDefinition(this, null, type);
+                    types.Add(typeDef);
+                    Register(typeDef);
+                }
             }
         }
 

@@ -186,7 +186,7 @@ namespace Dot42.Compiler
                     SymbolReaderProvider = new SafeSymbolReaderProvider(),
                     ReadSymbols = true
                 };
-                var assemblies = options.WcfProxyInputAssemblies.Select(x => AssemblyDefinition.ReadAssembly(x, readerParameters)).ToList();
+                var assemblies = options.WcfProxyInputAssemblies.Select(x => resolver.Load(x, readerParameters)).ToList();
                 var proxyTool = new ProxyBuilderTool(assemblies, options.GeneratedProxySourcePath);
                 proxyTool.Build();
             }
@@ -234,7 +234,9 @@ namespace Dot42.Compiler
 
 
             // Load assemblies
-            var assemblies = new List<AssemblyDefinition>();
+            List<AssemblyDefinition> assemblies = new List<AssemblyDefinition>();
+            List<AssemblyDefinition> references= new List<AssemblyDefinition>();
+
             var module = new XModule();
             var classLoader = new AssemblyClassLoader(module.OnClassLoaded);
             var resolver = new AssemblyResolver(options.ReferenceFolders, classLoader, module.OnAssemblyLoaded);
@@ -243,29 +245,30 @@ namespace Dot42.Compiler
             var ccache = options.EnableCompilerCache ? new DexMethodBodyCompilerCache(options.OutputFolder, resolver.GetFileName)
                                                      : new DexMethodBodyCompilerCache();
 
-
-            var readerParameters = new ReaderParameters(ReadingMode.Immediate)
+            var readerParameters = new ReaderParameters
             {
                 AssemblyResolver = resolver,
                 SymbolReaderProvider = new SafeSymbolReaderProvider(),
-                ReadSymbols = true
+                ReadSymbols = true,
+                ReadingMode = ReadingMode.Immediate
             };
-            foreach (var asmPath in options.Assemblies)
-            {
-                var asm = resolver.Load(asmPath, readerParameters);
-                module.OnAssemblyLoaded(asm);
-                classLoader.LoadAssembly(asm);
-                assemblies.Add(asm);
-            }
-            // Load references
-            var references = new List<AssemblyDefinition>();
-            foreach (var refPath in options.References)
-            {
-                var asm = resolver.Load(refPath, readerParameters);
-                module.OnAssemblyLoaded(asm);
-                classLoader.LoadAssembly(asm);
-                references.Add(asm);
-            }
+
+            // load assemblies
+            var toLoad = options.Assemblies.Select(path => new {path, target = assemblies})
+                 .Concat(options.References.Select(path => new {path, target = references}))
+                 // Some micro optimizations... 
+                 // Our startup is IO bound until we have loaded first assembly from disk.
+                 // So just load from smallest to largest.
+                 .Select(load => new { load.path, load.target, length = new FileInfo(resolver.ResolvePath(load.path)).Length})
+                 .OrderBy(load=>load.length)
+                 .ToList();
+
+            toLoad.AsParallel().ForAll(load =>
+                 {
+                    var assm = resolver.Load(load.path, readerParameters);
+                    lock (load.target) load.target.Add(assm);
+                 });
+
 
             // Load resources
             Table table;

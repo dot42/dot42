@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Dot42.FrameworkDefinitions;
 using Dot42.LoaderLib.Java;
 using Dot42.Utility;
@@ -14,30 +16,29 @@ namespace Dot42.LoaderLib.DotNet
     /// </summary>
     public class AssemblyResolver : IAssemblyResolver
     {
-        private readonly AssemblyClassLoader classLoader;
+
         private readonly List<string> referenceFolders;
-        private readonly Dictionary<string, AssemblyDefinition> references = new Dictionary<string, AssemblyDefinition>();
-        private readonly Dictionary<AssemblyDefinition, string> fileNames = new Dictionary<AssemblyDefinition, string>();
+        private readonly ConcurrentDictionary<string, AssemblyDefinition> referencesByName = new ConcurrentDictionary<string, AssemblyDefinition>();
+        private readonly ConcurrentDictionary<AssemblyDefinition, string> fileNamesByAssembly = new ConcurrentDictionary<AssemblyDefinition, string>();
+
+        private readonly AssemblyClassLoader classLoader;
         private readonly Action<AssemblyDefinition> assemblyLoaded;
 
+        // This is used to prevent loading of multiple assemblies at the same time. keys can be assemby names
+        // or filenames. Note that filenames ignore casing.
+        private readonly ConcurrentDictionary<string, Task<AssemblyDefinition>> loadingTasks =
+                            new ConcurrentDictionary<string, Task<AssemblyDefinition>>(StringComparer.InvariantCultureIgnoreCase);
+        
         /// <summary>
-        /// Default ctor
+        /// For all explicitly and implicitly loaded assemblies the classloader 
+        /// and the callback will be invoked, if not null. Callback and classloader 
+        /// might be called reentrantly, if the AssemblyResolver itself is used reentrantly.
         /// </summary>
         public AssemblyResolver(IEnumerable<string> referenceFolders, AssemblyClassLoader classLoader, Action<AssemblyDefinition> assemblyLoaded)
         {
             this.classLoader = classLoader;
             this.assemblyLoaded = assemblyLoaded;
             this.referenceFolders = referenceFolders.Select(ToFolder).Distinct().ToList();
-        }
-
-        /// <summary>
-        /// Is the given path is a file, return it's folder, otherwise return the given path.
-        /// </summary>
-        private static string ToFolder(string path)
-        {
-            if (File.Exists(path))
-                return Path.GetDirectoryName(path);
-            return path;
         }
 
         /// <summary>
@@ -56,14 +57,122 @@ namespace Dot42.LoaderLib.DotNet
             var fullPath = ResolvePath(path);
             if (fullPath == null)
                 throw new FileNotFoundException(path);
-            var asm = AssemblyDefinition.ReadAssembly(fullPath, parameter);
-            AssemblyDefinition existing;
-            var key = asm.Name.Name;
-            if (references.TryGetValue(key, out existing))
-                return existing;
-            references.Add(key, asm);
-            fileNames.Add(asm, fullPath);
-            return asm;
+
+            return Load(null, fullPath, parameter);
+        }
+
+        /// <summary>
+        /// this is fully reentrant and multithreading capable, but will itself block.
+        /// </summary>
+        private AssemblyDefinition Load(AssemblyNameReference name, string assemblyFilename, ReaderParameters parameters)
+        {
+            AssemblyDefinition ret = null;
+            TaskCompletionSource<AssemblyDefinition> loadingTaskSource = new TaskCompletionSource<AssemblyDefinition>();
+
+            bool nameRegistered = false, filenameRegistered = false;
+
+            try
+            {
+                // First, make sure we are the only one loading.
+                while (true)
+                {
+                    Task<AssemblyDefinition> loadingTask;
+                    if (name != null && !nameRegistered)
+                    {
+                        if (loadingTasks.TryGetValue(name.Name, out loadingTask))
+                        {
+                            ret = loadingTask.Result;
+                            return ret;
+                        }
+                            
+                        if (!loadingTasks.TryAdd(name.Name, loadingTaskSource.Task))
+                            continue;
+                        nameRegistered = true;
+                    }
+
+                    if (loadingTasks.TryAdd(assemblyFilename, loadingTaskSource.Task))
+                    {
+                        filenameRegistered = true;
+                        break;
+                    }
+                    if (loadingTasks.TryGetValue(assemblyFilename, out loadingTask))
+                    {
+                        ret = loadingTask.Result;
+                        return ret;
+                    }
+                }
+
+                // now check if it has already been loaded.
+                if (name != null)
+                {
+                    if (referencesByName.TryGetValue(name.Name, out ret))
+                        return ret;
+                }
+
+                ret = fileNamesByAssembly.FirstOrDefault(v => v.Value.Equals(assemblyFilename, StringComparison.InvariantCultureIgnoreCase)).Key;
+                if (ret != null)
+                    return ret;
+
+                // now load the assembly.
+                Console.WriteLine("Loading {0}...", Path.GetFileName(assemblyFilename));
+
+                AssemblyDefinition assm = AssemblyDefinition.ReadAssembly(assemblyFilename, parameters);    
+
+                VerifyFrameworkAssembly(assm, assemblyFilename);
+
+                // have to use a lock to update both data structures at the same time.
+                lock (referencesByName)
+                {
+                    // now check again by the assembly name if it has been loaded before.
+                    // This can happen if we were only provided a file name
+                    if (!referencesByName.TryAdd(assm.Name.Name, assm))
+                    {
+                        ret = referencesByName[assm.Name.Name];
+                        return ret;
+                    }
+
+                    fileNamesByAssembly[assm] = assemblyFilename;
+                }
+
+                ret = assm;
+
+                // now notify any listeners. note that if we were called on multiple threads
+                // these might be called reentrantly as well.
+
+                if(assemblyLoaded != null)
+                    assemblyLoaded(ret);
+
+                if (classLoader != null)
+                    classLoader.LoadAssembly(ret);
+
+                // done.
+                return ret;
+            }
+            catch (Exception ex)
+            {
+#if DEBUG
+                Console.WriteLine(ex.Message);
+                Console.WriteLine(ex.StackTrace);
+#endif
+                // Log the error
+                DLog.Error(DContext.CompilerAssemblyResolver, "Failed to load assembly {0}", ex, name);
+
+                // Pass the error on
+                var exn = new AssemblyResolutionException(name);
+                loadingTaskSource.SetException(exn);
+                throw exn;
+            }
+            finally
+            {
+                loadingTaskSource.TrySetResult(ret);
+                
+                // cleanup our registrations
+                Task<AssemblyDefinition> ignore;
+                if (nameRegistered)
+                    loadingTasks.TryRemove(name.Name, out ignore);
+                if (filenameRegistered)
+                    loadingTasks.TryRemove(assemblyFilename, out ignore);
+            }
         }
 
         /// <summary>
@@ -84,7 +193,7 @@ namespace Dot42.LoaderLib.DotNet
         public AssemblyDefinition Resolve(AssemblyNameReference name, ReaderParameters parameters)
         {
             AssemblyDefinition result;
-            if (references.TryGetValue(name.Name, out result))
+            if (referencesByName.TryGetValue(name.Name, out result))
                 return result;
 
             var path = ResolvePath(name.Name);
@@ -94,40 +203,7 @@ namespace Dot42.LoaderLib.DotNet
                 throw new AssemblyResolutionException(name);
             }
 
-            try
-            {
-                Console.WriteLine(string.Format("Loading {0}", name.Name));
-                var reference = AssemblyDefinition.ReadAssembly(path, parameters);
-                references[name.Name] = reference;
-                VerifyFrameworkAssembly(reference, path);
-
-                fileNames.Add(reference, path);
-
-                if (assemblyLoaded != null)
-                {
-                    assemblyLoaded(reference);
-                }
-                if (classLoader != null)
-                {
-                    classLoader.LoadAssembly(reference);
-                }
-
-                return reference;
-            }
-            catch (Exception ex)
-            {
-                // Unload the reference
-                references.Remove(name.Name);
-#if DEBUG
-                Console.WriteLine(ex.Message);
-                Console.WriteLine(ex.StackTrace);
-#endif
-                // Log the error
-                DLog.Error(DContext.CompilerAssemblyResolver, "Failed to load assembly {0}", ex, name);
-
-                // Pass the error on
-                throw new AssemblyResolutionException(name);
-            }
+            return Load(name, path, parameters);
         }
 
         /// <summary>
@@ -135,21 +211,23 @@ namespace Dot42.LoaderLib.DotNet
         /// </summary>
         public string GetFileName(AssemblyDefinition def)
         {
-            if(fileNames.ContainsKey(def))
-                return fileNames[def];
+            if(fileNamesByAssembly.ContainsKey(def))
+                return fileNamesByAssembly[def];
             return null;
         }
 
         /// <summary>
         /// Resolve the given name into a path.
         /// </summary>
-        private string ResolvePath(string path)
+        public string ResolvePath(string path)
         {
             if (File.Exists(path))
                 return path;
             var name = Path.GetFileName(path);
-            var referencePaths = referenceFolders.Select(x => Path.Combine(x, name + ".dll"));
-            referencePaths = referencePaths.Concat(referenceFolders.Select(x => Path.Combine(x, name)));
+            var referencePaths = referenceFolders.Select(x => Path.Combine(x, name + ".dll"))
+                         .Concat(referenceFolders.Select(x => Path.Combine(x, name)))
+                         .Concat(referenceFolders.Select(x => Path.Combine(x, name + ".exe")));
+
             path = referencePaths.FirstOrDefault(x => string.Equals(Path.GetFileNameWithoutExtension(x), name, StringComparison.OrdinalIgnoreCase) && File.Exists(x));
             return path;
         }
@@ -170,6 +248,16 @@ namespace Dot42.LoaderLib.DotNet
         {
             var name = AssemblyNameReference.Parse(fullName);
             return Resolve(name, parameters);
+        }
+
+        /// <summary>
+        /// Is the given path is a file, return it's folder, otherwise return the given path.
+        /// </summary>
+        private static string ToFolder(string path)
+        {
+            if (File.Exists(path))
+                return Path.GetDirectoryName(path);
+            return path;
         }
 
         /// <summary>
