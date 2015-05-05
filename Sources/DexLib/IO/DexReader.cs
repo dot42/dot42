@@ -328,7 +328,14 @@ namespace Dot42.DexLib.IO
                     {
                         ReadParameters(reader, prototype, parametersOffset);
                     }
+
                     prototype.Freeze();
+
+                    // cache the signature and hashcode.
+                    // ReSharper disable once ReturnValueOfPureMethodIsNotUsed
+                    prototype.GetHashCode();
+                    prototype.ToSignature();
+                    
                     prototypes.Add(prototype);
                 }
             });
@@ -358,9 +365,7 @@ namespace Dot42.DexLib.IO
                     uint classIndex = reader.ReadUInt32();
 
                     var cdef = (ClassDefinition) typeReferences[(int) classIndex];
-                    cdef.AccessFlags =
-                        (AccessFlags)
-                            reader.ReadUInt32();
+                    cdef.AccessFlags = (AccessFlags) reader.ReadUInt32();
 
                     uint superClassIndex = reader.ReadUInt32();
                     if (superClassIndex != DexConsts.NoIndex)
@@ -590,15 +595,13 @@ namespace Dot42.DexLib.IO
                         case DebugOpCodes.RestartLocal:
                             // uleb128 register_num
                             registerIndex = reader.ReadULEB128();
-                            ins.Operands.Add(
-                                mdef.Body.Registers[(int) registerIndex]);
+                            ins.Operands.Add(mdef.Body.Registers[(int) registerIndex]);
                             break;
                         case DebugOpCodes.SetFile:
                             // uleb128p1 name_idx
                             nameIndex = reader.ReadULEB128p1();
                             name = null;
-                            if (nameIndex != DexConsts.NoIndex &&
-                                nameIndex >= 0)
+                            if (nameIndex != DexConsts.NoIndex && nameIndex >= 0)
                                 name = strings[(int) nameIndex];
                             ins.Operands.Add(name);
                             break;
@@ -611,32 +614,26 @@ namespace Dot42.DexLib.IO
                                                      StartLocalExtended;
 
                             registerIndex = reader.ReadULEB128();
-                            ins.Operands.Add(
-                                mdef.Body.Registers[(int) registerIndex]);
+                            ins.Operands.Add(mdef.Body.Registers[(int) registerIndex]);
 
                             nameIndex = reader.ReadULEB128p1();
                             name = null;
-                            if (nameIndex != DexConsts.NoIndex &&
-                                nameIndex >= 0)
+                            if (nameIndex != DexConsts.NoIndex && nameIndex >= 0)
                                 name = strings[(int) nameIndex];
                             ins.Operands.Add(name);
 
                             typeIndex = reader.ReadULEB128p1();
                             TypeReference type = null;
-                            if (typeIndex != DexConsts.NoIndex &&
-                                typeIndex >= 0)
-                                type =
-                                    typeReferences[(int) typeIndex];
+                            if (typeIndex != DexConsts.NoIndex && typeIndex >= 0)
+                                type = typeReferences[(int) typeIndex];
                             ins.Operands.Add(type);
 
                             if (isExtended)
                             {
                                 signatureIndex = reader.ReadULEB128p1();
                                 string signature = null;
-                                if (signatureIndex != DexConsts.NoIndex &&
-                                    signatureIndex >= 0)
-                                    signature =
-                                        strings[(int) signatureIndex];
+                                if (signatureIndex != DexConsts.NoIndex && signatureIndex >= 0)
+                                    signature = strings[(int) signatureIndex];
                                 ins.Operands.Add(signature);
                             }
 
@@ -776,6 +773,10 @@ namespace Dot42.DexLib.IO
                     int descriptorIndex = reader.ReadInt32();
                     string descriptor = strings[descriptorIndex];
                     TypeDescriptor.Fill(descriptor, typeReferences[i]);
+
+                    // freeze the references and cache the encoded value.
+                    typeReferences[i].Freeze();
+                    TypeDescriptor.Encode(typeReferences[i]);
                 }
             });
         }

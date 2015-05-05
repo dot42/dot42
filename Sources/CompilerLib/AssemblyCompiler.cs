@@ -116,7 +116,8 @@ namespace Dot42.CompilerLib
             const bool includeAllJavaCode = false;
 
             assemblies.Concat(references.Where(IsLibraryProject))
-                      .AsParallel()
+                      .ToList()
+                      .AsParallel().WithExecutionMode(ParallelExecutionMode.ForceParallelism)
                       .ForAll(assembly=>reachableContext.MarkRoots(assembly, includeAllJavaCode));
 
             reachableContext.Complete();

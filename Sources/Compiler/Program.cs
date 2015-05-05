@@ -263,12 +263,12 @@ namespace Dot42.Compiler
                  .OrderBy(load=>load.length)
                  .ToList();
 
-            toLoad.AsParallel().ForAll(load =>
-                 {
-                    var assm = resolver.Load(load.path, readerParameters);
-                    lock (load.target) load.target.Add(assm);
-                 });
-
+            toLoad.AsParallel().WithExecutionMode(ParallelExecutionMode.ForceParallelism)
+                  .ForAll(load =>
+                    {
+                        var assm = resolver.Load(load.path, readerParameters);
+                        lock (load.target) load.target.Add(assm);
+                    });
 
             // Load resources
             Table table;

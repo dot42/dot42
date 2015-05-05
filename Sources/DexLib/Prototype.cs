@@ -125,9 +125,15 @@ namespace Dot42.DexLib
             var result = new Prototype();
             result.ReturnType = ReturnType;
 
-            foreach (Parameter p in Parameters)
+            foreach (Parameter p in _parameters)
             {
                 result.Parameters.Add(p.Clone());
+            }
+
+            if (IsFrozen)
+            {
+                result._signatureCache = _signatureCache;
+                result._hashCode = _hashCode;
             }
 
             return result;
