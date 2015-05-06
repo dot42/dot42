@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -36,21 +37,23 @@ namespace Dot42.ImportJarLib
 
             var getters = typeDef.Methods.Where(IsGetter).ToList();
             var setters = typeDef.Methods.Where(IsSetter).ToList();
-            var generatedNames = new HashSet<string>();
 
             foreach (var getMethod in getters)
             {
                 // Get the name of the property
                 var name = GetPropertyName(getMethod);
 
-                // other clashes must be handled in FixOverrides.
-                typeDef.Fields.Where(x => x.Name == name).ForEach(f => f.Name = "@" + f.Name.ToLowerInvariant());
-
-                if (!generatedNames.Add(name + "_" + getMethod.Parameters.Count))
-                    continue;
+                // other clashes must be handled in later.
+                if(getMethod.InterfaceType == null)
+                    typeDef.Fields.Where(x => x.Name == name).ForEach(RenameClashingField);
 
                 // Create property
-                var prop = new NetPropertyDefinition { Name = name, Getter = getMethod, Description = getMethod.Description };
+                var prop = new NetPropertyDefinition
+                {
+                    Name = name, 
+                    Getter = getMethod, 
+                    Description = getMethod.Description,
+                };
 
                 AddCustomAttributes(getMethod, prop.CustomAttributes);
                 
@@ -83,10 +86,8 @@ namespace Dot42.ImportJarLib
                 var name = GetPropertyName(setMethod);
 
                 // other clashes must be handled in FixOverrides
-                typeDef.Fields.Where(x => x.Name == name).ForEach(f => f.Name = "@" + f.Name.ToLowerInvariant());
-
-                if (!generatedNames.Add(name + "_" + (setMethod.Parameters.Count-1)))
-                    continue;
+                if (setMethod.InterfaceType == null)
+                    typeDef.Fields.Where(x => x.Name == name).ForEach(RenameClashingField);
 
                 // Create property
                 var prop = new NetPropertyDefinition { Name = name, Setter = setMethod, Description = setMethod.Description };
@@ -111,6 +112,7 @@ namespace Dot42.ImportJarLib
         public void Finalize(TargetFramework target, MethodRenamer methodRenamer)
         {
             FixOverridenProperties(methodRenamer);
+            RemoveDuplicateProperties();
             RemoveClashingProperties();
             FixPropertyFinalState();
         }
@@ -122,24 +124,40 @@ namespace Dot42.ImportJarLib
         {
             var name = method.Name;
 
-            bool isSetter = method.Name.StartsWith("Set");
+            bool isSetter = method.Name.StartsWith("Set") || method.Name.StartsWith("set_");
 
-            name = name.StartsWith("Get") ? name.Substring(3) 
-                 : name.StartsWith("Set") ? name.Substring(3) 
+            name = name.StartsWith("get_") ? name.Substring(4) 
+                 : name.StartsWith("Get")  ? name.Substring(3)
+                 : name.StartsWith("set_") ? name.Substring(4) 
+                 : name.StartsWith("Set")  ? name.Substring(3) 
                  : name;
-
-            if (!(char.IsLetter(name[0]) || (name[0] == '_')))
-                name = "_" + name;
 
             bool isBool = (isSetter ? method.Parameters[0].ParameterType : method.ReturnType)
                          .IsBoolean();
 
-            if (isBool && !name.StartsWith("Is") 
-                       && !name.StartsWith("Has") 
-                       && !name.StartsWith("Can"))
+            if (isBool && AddIsPrefixToBoolProperty(name, method))
+            {
                 name = "Is" + name;
+            }
+
+            if (!(char.IsLetter(name[0]) || (name[0] == '_')))
+                name = "_" + name;
 
             return name;
+        }
+
+        protected virtual bool AddIsPrefixToBoolProperty(string name, NetMethodDefinition method)
+        {
+            // We can't really tell if the "Is" Prefix was omitted because of 
+            // careless naming or because the actual name is more to the point.
+            // http://docstore.mik.ua/orelly/java-ent/jnut/ch06_02.htm
+            // http://stackoverflow.com/questions/5322648/for-a-boolean-field-what-is-the-naming-convention-for-its-getter-setter
+            // http://stackoverflow.com/questions/11941485/java-naming-convention-for-boolean-variable-names-writerenabled-vs-writerisenab
+            // http://stackoverflow.com/questions/4851337/setter-for-a-boolean-variable-named-like-isactive
+
+            var excludedPrefixes = new[] { "Is", "Can", "Has", "Use" };
+            var namePrefix = GetNamePrefix(name);
+            return !excludedPrefixes.Contains(namePrefix);
         }
 
         /// <summary>
@@ -163,15 +181,8 @@ namespace Dot42.ImportJarLib
             if (name == "GetHashCode")
                 return false;
 
-            bool startsWithGet = name.StartsWith("Get") || name.StartsWith("Has") || name.StartsWith("Can");
-            bool startsWithIs = name.StartsWith("Is");
-
-            if (!startsWithGet && !startsWithIs)
-                return false;
-            if ((startsWithGet && name.Length < 4) || (startsWithIs && name.Length < 3))
-                return false;
-
-            return true;
+            var prefix = GetNamePrefix(name);
+            return prefix == "Get" || prefix == "Has" || prefix == "Can" || prefix == "Is" || prefix == "get_";
         }
 
         /// <summary>
@@ -184,11 +195,10 @@ namespace Dot42.ImportJarLib
             if (!method.ReturnType.IsVoid())
                 return false;
             var name = method.Name;
-            if (!name.StartsWith("Set"))
-                return false;
-            if (name.Length < 4)
-                return false;
-            return true;
+
+            var prefix = GetNamePrefix(name);
+
+            return prefix == "Set" || prefix == "set_";
         }
 
         /// <summary>
@@ -197,21 +207,23 @@ namespace Dot42.ImportJarLib
         protected virtual NetMethodDefinition FindSetter(NetMethodDefinition getMethod, IEnumerable<NetMethodDefinition> setters)
         {
             var getName = getMethod.Name;
+            var getPrefix = GetNamePrefix(getName);
             
-            if (getName.StartsWith("Has") || getName.StartsWith("Can"))
+            if (getPrefix == "Has" || getPrefix == "Can")
                 return null;
 
-            if (getName.StartsWith("Get"))
-                getName = getName.Substring(3);
-            else if(getName.StartsWith("Is"))
-                getName = getName.Substring(2);
+            if(getPrefix != null)
+                getName = getName.Substring(getPrefix.Length);
 
-            var name = "Set" + getName;
+            var name1 = "Set" + getName;
+            var name2 = "set_" + getName;
 
             var type = getMethod.ReturnType;
 
-            var possibleMatch = setters.Where(x => x.Name == name 
-                                                && x.Parameters[0].ParameterType.AreSame(type))
+            var possibleMatch = setters.Where(x => (x.Name == name1 || x.Name == name2)
+                                                && x.Parameters[0].ParameterType.AreSame(type)
+                                                && x.InterfaceType.AreSame(getMethod.InterfaceType)
+                                                && x.HasSameVisibility(getMethod))
                                        .ToList();
 
             if (possibleMatch.Count > 1)
@@ -225,18 +237,24 @@ namespace Dot42.ImportJarLib
 
         /// <summary>
         /// Remove all properties that override / implement a property that does not exist.
+        /// 
+        /// Will also fix property visibility.
         /// </summary>
-        /// <param name="methodRenamer"></param>
         private void FixOverridenProperties(MethodRenamer methodRenamer)
         {
             if (!typeDef.Properties.Any())
                 return;
 
+            // handle overiding properties
             var allBaseTypes = typeDef.GetBaseTypes(true);
             var allBaseProperties = allBaseTypes.SelectMany(x => x.GetElementType().Properties).ToList();
-            // handle overiding getters.
-            foreach (var prop in typeDef.Properties.Where(x => IsAnyOverride(x) && !DoNotFixOverridenProperty(x)).ToList())
+
+            var overridingProperties = typeDef.Properties.Where(x => IsAnyOverride(x) && !DoNotFixOverridenProperty(x)).ToList();
+
+            for (int i = 0; i < overridingProperties.Count; ++i)
             {
+                var prop = overridingProperties[i];
+
                 var sameBaseProperties = allBaseProperties.Where(prop.AreSame).ToList();
                 var getter = prop.Getter;
                 var setter = prop.Setter;
@@ -245,9 +263,7 @@ namespace Dot42.ImportJarLib
                 if (sameBaseProperties.Count == 0)
                 {
                     // implement as normal method.
-                    if (getter != null) getter.Property = null;
-                    if (setter != null) setter.Property = null;
-                    typeDef.Properties.Remove(prop);
+                    RemoveProperty(prop);
                     continue;
                 }
 
@@ -274,8 +290,13 @@ namespace Dot42.ImportJarLib
                     // Check for any base property with setter
                 }
 
-                // We've got to implement the property, since we inherited it. 
+                // We  must implement the property, since we inherited it. 
                 // Fix up any clashes.
+
+                // clashes with explicit implementations should not occur.
+                if ((prop.Getter ?? prop.Setter).InterfaceType != null)
+                    continue;
+
                 var propName = prop.Name;
                 if (propName == typeDef.Name)
                 {
@@ -292,24 +313,60 @@ namespace Dot42.ImportJarLib
                     typeDef.NestedTypes.Where(x => x.Name == propName).ForEach(t=>t.Name += "FixMe");
                 }
 
+                foreach (var clash in typeDef.Properties.Where(x => x != prop && x.Name == propName).ToList())
+                {
+                    if (clash.Parameters.Count != prop.Parameters.Count)
+                        continue;
+                    if ((clash.Getter ?? clash.Setter).InterfaceType != null)
+                        continue;
+
+                    if (prop.PropertyType.AreSame(clash.PropertyType) && 
+                        prop.MainMethod.CreateReason == "TypeBuilder.AddAbstractInterfaceMethods")
+                    {
+                        // it appears that the method does have an implementation!
+                        typeDef.Properties.Remove(prop);
+                        typeDef.Methods.Remove(prop.Getter);
+                        typeDef.Methods.Remove(prop.Setter);
+                        overridingProperties.RemoveAt(i);
+                        i -= 1;
+                        continue;
+                    }
+
+                    if (overridingProperties.Contains(clash))
+                    {
+                        // This would have probably been removed later anyways.
+                        //Console.Error.WriteLine("Warning: duplicate property names {0}::{1}. Not generating property for one of the clashes.", typeDef.FullName, propName);
+                        RemoveProperty(clash);
+                        overridingProperties.Remove(clash); // this must come after us.
+                        continue;
+                    }
+
+                    // else remove other property
+                    RemoveProperty(clash);
+                }  
+                
                 if (typeDef.Methods.Any(x => x != getter && x != setter && x.Name == propName))
                 {
                     Console.Error.WriteLine("Warning: Inherited property {0}::{1} clashes with methods. Prepending \"Invoke\" prefix to methods.", typeDef.FullName, propName);
                     typeDef.Methods.Where(x => x != getter && x != setter && x.Name == propName)
                                    .ForEach(m => methodRenamer.Rename(m, "Invoke" + m.Name));
                 }
-               
             }
+        }
+
+        private void RemoveProperty(NetPropertyDefinition prop)
+        {
+            if (prop.Getter != null) prop.Getter.Property = null;
+            if (prop.Setter != null) prop.Setter.Property = null;
+            typeDef.Properties.Remove(prop);
         }
 
         private void RemoveClashingProperties()
         {
             // remove all properties with clashes
-            foreach (var prop in typeDef.Properties.Where(p => IsNameClash(typeDef, p)).ToList())
+            foreach (var clash in typeDef.Properties.Where(p => IsNameClash(typeDef, p)).ToList())
             {
-                if (prop.Getter != null) prop.Getter.Property = null;
-                if (prop.Setter != null) prop.Setter.Property = null;
-                typeDef.Properties.Remove(prop);
+                RemoveProperty(clash);
             }
         }
 
@@ -333,8 +390,39 @@ namespace Dot42.ImportJarLib
             }
         }
 
+        private void RemoveDuplicateProperties()
+        {
+            // Remove all properties with duplicate names.
+            // note that the less-important properties 
+            // (i.e. those with only a lone setter)
+            // come later in the list.
+
+            var props = typeDef.Properties.ToList();
+            for (int i = 0; i < props.Count; ++i)
+            {
+                var prop = props[i];
+
+                if (prop.MainMethod.InterfaceType != null)
+                    continue;
+
+                foreach (var clash in typeDef.Properties.Where(x => x != prop && x.Name == prop.Name).ToList())
+                {
+                    if (clash.Parameters.Count != prop.Parameters.Count)
+                        continue;
+                    if (clash.MainMethod.InterfaceType != null)
+                        continue;
+
+                    RemoveProperty(clash);
+                    props.Remove(clash);
+                }
+            }
+        }
+
         public static bool IsNameClash(NetTypeDefinition typeDef, NetPropertyDefinition prop)
         {
+            if ((prop.Getter ?? prop.Setter).InterfaceType != null)
+                return false;
+
             var name = prop.Name;
             return prop.Name == typeDef.Name
                              || typeDef.NestedTypes.Any(x => x.Name == name)
@@ -353,6 +441,44 @@ namespace Dot42.ImportJarLib
         private static bool DoNotFixOverridenProperty(NetPropertyDefinition prop)
         {
             return (prop.Name == "Adapter");
+        }
+
+        /// <summary>
+        /// Will return everyting up to the first non-lower 
+        /// character or underscore, starting from the second character.
+        /// returns null if none found.
+        /// </summary>
+        private static string GetNamePrefix(string name)
+        {
+            string namePrefix = null;
+
+            for (int i = 1; i < name.Length; ++i)
+            {
+                if (!char.IsLower(name[i]) && name[i] != '_')
+                {
+                    namePrefix = name.Substring(0, i);
+                    break;
+                }
+            }
+
+            //namePrefix = namePrefix ?? name;
+            return namePrefix;
+        }
+
+        private static void RenameClashingField(NetFieldDefinition field)
+        {
+            field.Name = "@" + char.ToLower(field.Name[0]) + field.Name.Substring(1);
+        }
+
+        private string GetUniqueName(string originalName, IList<string> names)
+        {
+            var result = originalName;
+            var index = 0;
+            while (names.Contains(result))
+            {
+                result = originalName + (++index);
+            }
+            return result;
         }
     }
 }

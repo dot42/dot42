@@ -7,6 +7,7 @@ using Dot42.JvmClassLib;
 using Dot42.LoaderLib.Java;
 using Mono.Cecil;
 using MethodAttributes = System.Reflection.MethodAttributes;
+using MethodDefinition = Mono.Cecil.MethodDefinition;
 using TypeAttributes = System.Reflection.TypeAttributes;
 using TypeReference = Mono.Cecil.TypeReference;
 
@@ -207,8 +208,44 @@ namespace Dot42.ImportJarLib
 
                     // Add to typeDef
                     typeDef.Methods.Add(method);
+
+                    // create or add to property if getter or setter
+                    if (ilMethod.IsSetter || ilMethod.IsGetter)
+                    {
+                        AddToProperty(typeDef, method, ilMethod);
+                    }
+
                 }
                 
+            }
+
+            private void AddToProperty(NetTypeDefinition typeDef, NetMethodDefinition method, MethodDefinition ilMethod)
+            {
+                var ilProp = ilMethod.DeclaringType.Properties.First(p => p.SetMethod == ilMethod || p.GetMethod == ilMethod);
+                if (ilProp.Parameters.Count > 0) //no need to handle indexers for now
+                    return;
+
+                var propType = ilMethod.IsGetter ? method.ReturnType : method.Parameters[0].ParameterType;
+                
+                var prop = typeDef.Properties.FirstOrDefault(p=>p.Name == ilProp.Name 
+                                                             //&& p.Parameters.Count == ilProp.Parameters.Count
+                                                             && p.PropertyType == propType
+                                                             && p.MainMethod.InterfaceType.AreSame(method.InterfaceType));
+                if (prop == null)
+                {
+                    prop = new NetPropertyDefinition();
+                    prop.Name = ilProp.Name;
+                    prop.Description = method.Description;
+                    prop.DeclaringType = method.DeclaringType;
+                    prop.EditorBrowsableState = method.EditorBrowsableState;
+                    prop.CustomAttributes.AddRange(method.CustomAttributes);
+                    typeDef.Properties.Add(prop);
+                }
+
+                if (ilMethod.IsGetter)
+                    prop.Getter = method;
+                else
+                    prop.Setter = method;
             }
 
             /// <summary>

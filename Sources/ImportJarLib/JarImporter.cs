@@ -124,9 +124,9 @@ namespace Dot42.ImportJarLib
             var otherBuilders = typeBuilders.Where(b => !(b is StandardTypeBuilder));
             var standardBuilders = typeBuilders.OfType<StandardTypeBuilder>();
             standardBuilders = TopologicalSort.Sort(standardBuilders, b => b.TypeDefinition.GetBaseTypes(true),
-                                                                        b => b.TypeDefinition,
-                                                                        new NetTypeReferenceEqualityComparer())
-                                            .ToList();
+                                                                      b => b.TypeDefinition,
+                                                                      new NetTypeReferenceEqualityComparer())
+                                              .ToList();
             typeBuilders = otherBuilders.Concat(standardBuilders).ToList();
 
             // finialize.
