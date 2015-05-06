@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using Dot42.CompilerLib.XModel.Java;
 using Mono.Cecil;
 
 namespace Dot42.CompilerLib.XModel
@@ -66,8 +68,7 @@ namespace Dot42.CompilerLib.XModel
         /// </summary>
         internal void Register(XTypeDefinition type, string overrideFullName = null)
         {
-
-            Register(type, null, false);
+            Register(type, overrideFullName, false);
 
             string className;
             if (type.TryGetDexImportNames(out className))
@@ -87,7 +88,18 @@ namespace Dot42.CompilerLib.XModel
         {
             // scopeId must be unique
             if (scopeIdCache.ContainsKey(type.ScopeId) && scopeIdCache[type.ScopeId] != type)
-                throw new Exception("scopeId not unique.");
+            {
+                if (type is XBuilder.JavaTypeDefinition)
+                {
+                    // FixMe. Java TypeDefinitions get created multiple times.
+                    //Debugger.Break();
+                }
+                else
+                {
+                    throw new Exception("scopeId not unique for " + type.ScopeId);    
+                }
+            }
+                
             scopeIdCache[type.ScopeId] = type;
 
             var fullname = overridenName ?? type.FullName;

@@ -1,11 +1,13 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Dot42.CompilerLib.RL.Extensions;
 using Dot42.DexLib;
 
 namespace Dot42.CompilerLib.RL.Transformations
 {
     /// <summary>
-    /// Remove all nop's
+    /// Remove code that cannot be reached.
     /// </summary>
     internal sealed class EliminateDeadCodeTransformation : IRLTransformation
     {
@@ -68,10 +70,15 @@ namespace Dot42.CompilerLib.RL.Transformations
                     return;
                 }
 
-                if (ins.Code == RCode.Packed_switch || ins.Code == RCode.Sparse_switch)
+                if (ins.Code == RCode.Packed_switch)
                 {
                     foreach (var target in (Instruction[]) ins.Operand)
                         MarkReachable(target.Index, instructions, reachable, body);
+                }
+                else if (ins.Code == RCode.Sparse_switch)
+                {
+                    foreach (var target in (IList<Tuple<int,Instruction>>)ins.Operand)
+                        MarkReachable(target.Item2.Index, instructions, reachable, body);
                 }
                 else if (ins.Code.IsBranch())
                 {

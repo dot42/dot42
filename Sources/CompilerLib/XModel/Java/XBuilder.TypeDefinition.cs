@@ -32,8 +32,10 @@ namespace Dot42.CompilerLib.XModel.Java
                 methods = type.Methods.Select(x => new JavaMethodDefinition(this, x)).Cast<XMethodDefinition>().ToList().AsReadOnly();
                 interfaces = new List<XTypeReference>();
                 nested = type.InnerClasses.Where(x => x.InnerClassFile.DeclaringClass == type).Select(x => new JavaTypeDefinition(module, this, x.InnerClassFile)).Cast<XTypeDefinition>().ToList().AsReadOnly();
-                
+
+                module.Register(this, FullName);
                 module.Register(this, type.ClassName);
+
                 foreach(var n in nested)
                     module.Register(n);
             }

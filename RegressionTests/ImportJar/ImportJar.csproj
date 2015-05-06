@@ -13,7 +13,8 @@
     <AssemblyName>ImportJar</AssemblyName>
     <TargetFrameworkIdentifier>Android</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v4.0.3</TargetFrameworkVersion>
-    <TargetSdkAndroidVersion>v4.0.3</TargetSdkAndroidVersion>
+    <TargetSdkAndroidVersion>
+    </TargetSdkAndroidVersion>
     <AndroidVersion>$(TargetFrameworkVersion)</AndroidVersion>
     <SupportedCultures>
     </SupportedCultures>
@@ -24,8 +25,11 @@
     <Dot42ExtensionsPath Condition=" '$(Dot42ExtensionsPath)' == '' ">$(Registry:HKEY_CURRENT_USER\SOFTWARE\TallApplications\Dot42@ExtensionsPath)</Dot42ExtensionsPath>
     <Dot42ExtensionsPath Condition=" '$(Dot42ExtensionsPath)' == '' ">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\TallApplications\Dot42@ExtensionsPath)</Dot42ExtensionsPath>
     <ApkCertificatePath>..\Certificate.pfx</ApkCertificatePath>
-    <ApkCertificateThumbprint>E459CAAA643505C4FCE6932D22C8F6681A9E1F48</ApkCertificateThumbprint>
+    <ApkCertificateThumbprint>18D32F30B1980D5F81EFED7BAC553A4471B6DDB9</ApkCertificateThumbprint>
     <AfterBuildDependsOn Condition=" '$(BuildingInsideVisualStudio)' != 'true'">Test</AfterBuildDependsOn>
+    <GenerateWcfProxy>false</GenerateWcfProxy>
+    <GenerateSetNextInstructionCode>false</GenerateSetNextInstructionCode>
+    <EnableCompilerCache>false</EnableCompilerCache>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -50,8 +54,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Dot42" />
-    <Reference Include="mscorlib" />
-    <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Sources\AssemblyInfo.cs" />
@@ -64,7 +66,7 @@
   </ItemGroup>
   <Import Project="$(Dot42ExtensionsPath)\Dot42.CSharp.targets" />
   <ItemGroup />
-  <ItemGroup>  
+  <ItemGroup>
     <JarReference Include="Libs\GoogleAdMobAdsSdk-6.4.1.jar">
       <ImportCode>yes</ImportCode>
     </JarReference>
@@ -92,7 +94,9 @@
   </ItemGroup>
   <Target Name="BeforeBuild">
   </Target>
-  <Target Name="AfterBuild" DependsOnTargets="$(AfterBuildDependsOn)">
+  <!--Target Name="AfterBuild" DependsOnTargets="$(AfterBuildDependsOn)">
+  </-->
+  <Target Name="AfterBuild" DependsOnTargets="Test">
   </Target>
   <ProjectExtensions />
 </Project>

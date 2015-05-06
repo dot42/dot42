@@ -1,6 +1,6 @@
 ﻿using System;
 using Android.App;
-using Android.Os;
+using Android.OS;
 using Android.Test;
 using Android.Widget;
 using Java.Util;
@@ -26,11 +26,15 @@ namespace ImportJar.Sources.Gson
 		{
 			var json = new JsonObject();
 			json.Add("name", JsonNull.INSTANCE);
+            //AssertEquals(JsonNull.INSTANCE, json.).A
 		}
 		
 		public void test3() 
 		{
+            // How is this supposed to work with gson, java, and type erasure???
 			ArrayList<Fill> pList = GetValue(new ArrayList<Fill>());
+            AssertEquals(1, pList.Count);
+            //AssertEquals(5, pList[0].Name); // see above.
 		}
 		
 		public T GetValue<T>(T xDefaultValue)

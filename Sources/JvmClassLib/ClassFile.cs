@@ -303,5 +303,10 @@ namespace Dot42.JvmClassLib
                 return JvmClassLib.ClassName.StripPackage(className);
             }
         }
+
+        public override string ToString()
+        {
+            return ClassName;
+        }
     }
 }
