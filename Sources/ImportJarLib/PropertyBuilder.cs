@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using Dot42.ImportJarLib.Model;
 using Dot42.Utility;
-using Mono.Cecil;
-using Mono.Cecil.Cil;
 
 namespace Dot42.ImportJarLib
 {
@@ -32,9 +28,6 @@ namespace Dot42.ImportJarLib
         /// </summary>
         internal void BuildProperties(TargetFramework target, MethodRenamer methodRenamer)
         {
-            //if (typeDef.IsInterface)
-            //    return;
-
             var getters = typeDef.Methods.Where(IsGetter).ToList();
             var setters = typeDef.Methods.Where(IsSetter).ToList();
 
@@ -43,7 +36,7 @@ namespace Dot42.ImportJarLib
                 // Get the name of the property
                 var name = GetPropertyName(getMethod);
 
-                // other clashes must be handled in later.
+                // other clashes must be handled later.
                 if(getMethod.InterfaceType == null)
                     typeDef.Fields.Where(x => x.Name == name).ForEach(RenameClashingField);
 
@@ -111,7 +104,7 @@ namespace Dot42.ImportJarLib
         /// </summary>
         public void Finalize(TargetFramework target, MethodRenamer methodRenamer)
         {
-            FixOverridenProperties(methodRenamer);
+            FixOverridenProperties(methodRenamer, target);
             RemoveDuplicateProperties();
             RemoveClashingProperties();
             FixPropertyFinalState();
@@ -146,18 +139,24 @@ namespace Dot42.ImportJarLib
             return name;
         }
 
+        /// <summary>
+        /// Returns true if the given boolean property should be prefixed by "Is"
+        /// </summary>
         protected virtual bool AddIsPrefixToBoolProperty(string name, NetMethodDefinition method)
         {
             // We can't really tell if the "Is" Prefix was omitted because of 
-            // careless naming or because the actual name is more to the point.
+            // careless naming or because the chosen name is more to the point.
             // http://docstore.mik.ua/orelly/java-ent/jnut/ch06_02.htm
             // http://stackoverflow.com/questions/5322648/for-a-boolean-field-what-is-the-naming-convention-for-its-getter-setter
             // http://stackoverflow.com/questions/11941485/java-naming-convention-for-boolean-variable-names-writerenabled-vs-writerisenab
             // http://stackoverflow.com/questions/4851337/setter-for-a-boolean-variable-named-like-isactive
+            //
+            // Also, not adding a prefix improves source code compatibility with Xamarin.Android.
 
-            var excludedPrefixes = new[] { "Is", "Can", "Has", "Use" };
-            var namePrefix = GetNamePrefix(name);
-            return !excludedPrefixes.Contains(namePrefix);
+            return false;
+            //var excludedPrefixes = new[] { "Is", "Can", "Has", "Use" };
+            //var namePrefix = GetNamePrefix(name);
+            //return !excludedPrefixes.Contains(namePrefix);
         }
 
         /// <summary>
@@ -240,7 +239,7 @@ namespace Dot42.ImportJarLib
         /// 
         /// Will also fix property visibility.
         /// </summary>
-        private void FixOverridenProperties(MethodRenamer methodRenamer)
+        private void FixOverridenProperties(MethodRenamer methodRenamer, TargetFramework target)
         {
             if (!typeDef.Properties.Any())
                 return;
@@ -255,40 +254,68 @@ namespace Dot42.ImportJarLib
             {
                 var prop = overridingProperties[i];
 
-                var sameBaseProperties = allBaseProperties.Where(prop.AreSame).ToList();
-                var getter = prop.Getter;
-                var setter = prop.Setter;
-
-                // Check for existing property in base class
-                if (sameBaseProperties.Count == 0)
+                if (prop.Getter != null)
                 {
-                    // implement as normal method.
-                    RemoveProperty(prop);
-                    continue;
-                }
+                    NetPropertyDefinition matchingBaseProp = null;
 
-                // Check for base property with setter
-                if (setter != null)
-                {
-                    if (sameBaseProperties.Any(x => x.Setter == null))
+                    // Note: this logic might need to be also applied for the "lone" setter logic below.
+                    foreach (var baseProp in allBaseProperties.Where(p=>p.Name == prop.Name))
                     {
-                        // Remove setter
-                        setter.Property = null;
-                        prop.Setter = null;
+                        var basePropType = GenericParameters.Resolve(baseProp.PropertyType, prop.DeclaringType, target.TypeNameMap);
+                        if(!prop.PropertyType.AreSame(basePropType))
+                            continue;
+                        matchingBaseProp = baseProp;
+                        break;
+                    }
 
-                        if (getter == null)
+
+                    // Check for existing property in base class
+                    if (matchingBaseProp == null)
+                    {
+                        // implement as normal method.
+                        RemoveProperty(prop);
+                        continue;
+                    }
+
+                    // Check for base property with setter
+                    if (prop.Setter != null)
+                    {
+                        if (matchingBaseProp.Setter == null)
                         {
-                            // remove property alltogether
-                            typeDef.Properties.Remove(prop);
+                            // Remove setter
+                            prop.Setter.Property = null;
+                            prop.Setter = null;
                             continue;
                         }
-
                     }
                 }
                 else
                 {
-                    // Check for any base property with setter
+                    // this is a "lone" setter. for boolean setters, the name might have changed.
+                    // try to match all base properties, update the name if neccessary.
+                    NetPropertyDefinition bestProp = null;
+                    foreach (var baseProp in allBaseProperties.Where(g => g.Getter != null && g.Setter != null))
+                    {
+                        if (FindSetter(baseProp.Getter, new[] {prop.Setter}) != null)
+                        {
+                            if (baseProp.Setter.IsVirtual)
+                            {
+                                if (bestProp == null || prop.Name == baseProp.Name)
+                                    bestProp = baseProp;
+                            }
+                        }
+                    }
+                    if(bestProp == null)
+                    { 
+                        // remove the property alltogether
+                        prop.Setter.Property = null;
+                        typeDef.Properties.Remove(prop);
+                        continue;
+                    }
+
+                    prop.Name = bestProp.Name;
                 }
+
 
                 // We  must implement the property, since we inherited it. 
                 // Fix up any clashes.
@@ -302,8 +329,8 @@ namespace Dot42.ImportJarLib
                 {
                     Console.Error.WriteLine("Warning: Not generating inherited property and methods for {0}::{1}: clash with type name.", typeDef.FullName,propName);
                     typeDef.Properties.Remove(prop);
-                    typeDef.Methods.Remove(getter);
-                    typeDef.Methods.Remove(setter);
+                    typeDef.Methods.Remove(prop.Getter);
+                    typeDef.Methods.Remove(prop.Setter);
                     continue;
                 }
 
@@ -345,10 +372,10 @@ namespace Dot42.ImportJarLib
                     RemoveProperty(clash);
                 }  
                 
-                if (typeDef.Methods.Any(x => x != getter && x != setter && x.Name == propName))
+                if (typeDef.Methods.Any(x => x != prop.Setter && x != prop.Getter && x.Name == propName))
                 {
                     Console.Error.WriteLine("Warning: Inherited property {0}::{1} clashes with methods. Prepending \"Invoke\" prefix to methods.", typeDef.FullName, propName);
-                    typeDef.Methods.Where(x => x != getter && x != setter && x.Name == propName)
+                    typeDef.Methods.Where(x => x != prop.Setter && x != prop.Getter && x.Name == propName)
                                    .ForEach(m => methodRenamer.Rename(m, "Invoke" + m.Name));
                 }
             }
