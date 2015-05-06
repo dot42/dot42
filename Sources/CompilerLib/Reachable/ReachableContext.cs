@@ -161,8 +161,11 @@ namespace Dot42.CompilerLib.Reachable
                 FindConditionalIncludes();
 
                 // Find .NET overrides and implementations that should be made reachable.
-                var nonReachableDotNetMethods = reachableTypes.Keys.SelectMany(x => x.Methods).Where(x => !x.IsReachable).ToList();
-                Parallel.ForEach(nonReachableDotNetMethods, method=>
+                var nonReachableDotNetMethods = reachableTypes.Keys.SelectMany(x => x.Methods)
+                                                                   .Where(x => !x.IsReachable)
+                                                                   .ToList();
+                nonReachableDotNetMethods.AsParallel().ForAll(method=>
+                //nonReachableDotNetMethods.ForEach(method=>
                 {
                     if (method.IsReachable)
                         return;
@@ -210,13 +213,17 @@ namespace Dot42.CompilerLib.Reachable
                 });
 
                 // Make sure all implementations of reachable interface methods are included
-                var reachableInterfaceMethods = reachableTypes.Keys.Where(x => x.IsInterface).SelectMany(x => x.Methods).Where(x => x.IsReachable).ToList();
+                var reachableInterfaceMethods = reachableTypes.Keys.Where(x => x.IsInterface)
+                                                                   .SelectMany(x => x.Methods)
+                                                                   .Where(x => x.IsReachable)
+                                                                   .ToList();
                 var reachableInterfaces = reachableInterfaceMethods.Select(m => m.DeclaringType.GetElementType())
                                                                    .Distinct();
                 var reachableTypesByInterfaces = reachableInterfaces.SelectMany(iface => reachableTypes.Keys.Where(x => x.Implements(iface)), Tuple.Create)
                                                                     .ToLookup(e => e.Item1,  e=>e.Item2);
 
-                Parallel.ForEach(reachableInterfaceMethods, method =>
+                reachableInterfaceMethods.AsParallel().ForAll(method =>
+                //reachableInterfaceMethods.ForEach(method =>
                 {
                     var interfaceType = method.DeclaringType.GetElementType();
                     var implementedBy = reachableTypesByInterfaces[interfaceType];
@@ -228,8 +235,11 @@ namespace Dot42.CompilerLib.Reachable
                 });
 
                 // Find java overrides and implementations that should be made reachable.
-                var nonReachableJavaMethods = reachableClasses.Keys.SelectMany(x => x.Methods).Where(x => !x.IsReachable).ToList();
-                Parallel.ForEach(nonReachableJavaMethods, method =>
+                var nonReachableJavaMethods = reachableClasses.Keys.SelectMany(x => x.Methods)
+                                                                   .Where(x => !x.IsReachable)
+                                                                   .ToList();
+                nonReachableJavaMethods.AsParallel().ForAll(method =>
+                //nonReachableJavaMethods.ForEach(nonReachableJavaMethods, method =>
                 {
                     if (method.IsReachable)
                         return;
@@ -251,9 +261,8 @@ namespace Dot42.CompilerLib.Reachable
             }
 
             // create classbuilders (here, because now we know for all types
-            // if they are used in Nullable<T>. 
+            // if they are used in Nullable<T>). 
             ReachableTypes.ForEach(CreateClassBuilder);
-
         }
 
         /// <summary>
@@ -343,8 +352,12 @@ namespace Dot42.CompilerLib.Reachable
         /// </summary>
         private void FindConditionalIncludes()
         {
-            var reachableAssemblies = reachableTypes.Keys.Select(x => x.Module.Assembly).Where(x => x != null).Distinct().ToList();
-            Parallel.ForEach(reachableAssemblies, assembly =>
+            var reachableAssemblies = reachableTypes.Keys.Select(x => x.Module.Assembly)
+                                                         .Where(x => x != null)
+                                                         .Distinct()
+                                                         .ToList();
+            reachableAssemblies.AsParallel().ForAll(assembly =>
+            //reachableAssemblies.ForEach(assembly =>
             {
                 List<TypeConditionInclude> includes;
                 if (!conditionalIncludes.TryGetValue(assembly, out includes))

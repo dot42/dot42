@@ -71,7 +71,7 @@ namespace Dot42.CompilerLib.CompilerCache
 
             IsEnabled = true;
 
-            _initialize = Task.Factory.StartNew(()=>Initialize(dexFilename, mapfile, filenameFromAssembly));
+            _initialize = Task.Factory.StartNew(()=>Initialize(dexFilename, mapfile, filenameFromAssembly), TaskCreationOptions.LongRunning);
         }
 
         private void Initialize(string dexFilename, string mapfile, Func<AssemblyDefinition, string> filenameFromAssembly)

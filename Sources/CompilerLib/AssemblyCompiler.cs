@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -115,33 +116,39 @@ namespace Dot42.CompilerLib
             var reachableContext = new ReachableContext(this, assemblies.Select(x => x.Name), rootClassNames);
             const bool includeAllJavaCode = false;
 
-            assemblies.Concat(references.Where(IsLibraryProject))
-                      .ToList()
-                      .AsParallel().WithExecutionMode(ParallelExecutionMode.ForceParallelism)
-                      .ForAll(assembly=>reachableContext.MarkRoots(assembly, includeAllJavaCode));
+            using (Profile("for marking roots"))
+                assemblies.Concat(references.Where(IsLibraryProject))
+                          .ToList()
+                          .AsParallel().WithDegreeOfParallelism(4)
+                          .ForAll(assembly=>reachableContext.MarkRoots(assembly, includeAllJavaCode));
 
-            reachableContext.Complete();
+            using (Profile("for finding reachables"))
+                reachableContext.Complete();
 
             // Convert IL to java compatible constructs.
-            ILConversion.ILToJava.Convert(reachableContext);
+            using (Profile("for IL conversion"))
+                ILConversion.ILToJava.Convert(reachableContext);
 
             // Convert all types
             var classBuilders = reachableContext.ClassBuilders.OrderBy(x => x.SortPriority)
                                                               .ThenBy(x => x.FullName)
                                                               .ToList();
+            using (Profile("for creating/implementing/fixup"))
+            {
+                classBuilders.ForEachWithExceptionMessage(x => x.Create(targetPackage));
 
-            classBuilders.ForEachWithExceptionMessage(x => x.Create(targetPackage));
+                classBuilders.ForEachWithExceptionMessage(x => x.Implement(targetPackage));
+                classBuilders.ForEachWithExceptionMessage(x => x.FixUp(targetPackage));
 
-            classBuilders.ForEachWithExceptionMessage(x => x.Implement(targetPackage));
-            classBuilders.ForEachWithExceptionMessage(x => x.FixUp(targetPackage));
+                // update sort priority which might have changed after XType creation.
+                classBuilders = classBuilders.OrderBy(x => x.SortPriority)
+                                             .ThenBy(x => x.FullName)
+                                             .ToList();
+            }
 
-            // update sort priority which might have changed after XType creation.
-            classBuilders = classBuilders.OrderBy(x => x.SortPriority)
-                                         .ThenBy(x => x.FullName)
-                                         .ToList();
+            using (Profile("for generating code"))
+                classBuilders.ForEachWithExceptionMessage(x => x.GenerateCode(targetPackage));
 
-
-            classBuilders.ForEachWithExceptionMessage(x => x.GenerateCode(targetPackage));
             classBuilders.ForEachWithExceptionMessage(x => x.CreateAnnotations(targetPackage));
 
             if (AddAssemblyTypesAnnotations())
@@ -149,7 +156,8 @@ namespace Dot42.CompilerLib
 
 
             // Compile all methods
-            targetPackage.CompileToTarget(generateDebugInfo, mapFile);
+            using (Profile("for compiling to target"))
+                targetPackage.CompileToTarget(generateDebugInfo, mapFile);
 
             // Add structure annotations
             targetPackage.AfterCompileMethods();
@@ -172,10 +180,10 @@ namespace Dot42.CompilerLib
             if (!Directory.Exists(outputFolder))
                 Directory.CreateDirectory(outputFolder);
 
-            var task1 = Task.Factory.StartNew(()=>targetPackage.Save(outputFolder));
-            
+            var task1 = Task.Factory.StartNew(() => targetPackage.Save(outputFolder));
+
             var mapPath = Path.Combine(outputFolder, "classes.d42map");
-            var task2 = Task.Factory.StartNew(() => { MapFile.Save(mapPath);});
+            var task2 = Task.Factory.StartNew(() => { MapFile.Save(mapPath); });
 
             Task.WaitAll(task1, task2);
 
@@ -320,6 +328,11 @@ namespace Dot42.CompilerLib
                     mapFile.Add(scopeEntry);
                 }
             }
+        }
+
+        public static IDisposable Profile(string msg, bool isSummary=false)
+        {
+            return Profiler.Profile(x => Console.WriteLine("{2}{0} ms {1}", x.TotalMilliseconds.ToString("#,000", CultureInfo.InvariantCulture).PadLeft(6), msg, isSummary?"------\n":""));
         }
     }
 }

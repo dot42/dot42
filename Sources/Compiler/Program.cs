@@ -209,8 +209,8 @@ namespace Dot42.Compiler
 #if DEBUG
                         //Debugger.Launch();
 #endif
-
-                        CompileAssembly(options, nsConverter);
+                        using (AssemblyCompiler.Profile("total processing time", true))
+                            CompileAssembly(options, nsConverter);
                     }
                 }
 
@@ -263,12 +263,16 @@ namespace Dot42.Compiler
                  .OrderBy(load=>load.length)
                  .ToList();
 
-            toLoad.AsParallel().WithExecutionMode(ParallelExecutionMode.ForceParallelism)
-                  .ForAll(load =>
+            using (AssemblyCompiler.Profile("for loading assemblies"))
+            {
+                toLoad.AsParallel().ForAll(
+                //toLoad.ForEach(
+                    load =>
                     {
                         var assm = resolver.Load(load.path, readerParameters);
                         lock (load.target) load.target.Add(assm);
                     });
+            }
 
             // Load resources
             Table table;
@@ -281,11 +285,14 @@ namespace Dot42.Compiler
             var compiler = new AssemblyCompiler(options.CompilationMode, assemblies, references, table, nsConverter,
                                                 options.DebugInfo, classLoader, resolver.GetFileName, ccache, 
                                                 usedTypeNames, module, options.GenerateSetNextInstructionCode);
-            compiler.Compile();
+
+            using (AssemblyCompiler.Profile("total compilation time", true))
+                compiler.Compile();
 
             ccache.PrintStatistics();
 
-            compiler.Save(options.OutputFolder, options.FreeAppsKeyPath);
+            using (AssemblyCompiler.Profile("saving results"))
+                compiler.Save(options.OutputFolder, options.FreeAppsKeyPath);
 
             
         }
