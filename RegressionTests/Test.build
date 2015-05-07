@@ -50,8 +50,16 @@
 		</trycatch>
 	</target>
 	
-	<target name="small-test" description="Run compiler and framework tests">
-		<nant failonerror="true" buildfile="${basedir}\Compiler\Test.build" />
-		<nant failonerror="true" buildfile="${basedir}\Framework\Test.build" />
+	<target name="small-test" description="Run compiler and framework tests">	
+		<record name="${logfile}" action="Start" />
+		<trycatch>
+			<try>
+				<nant failonerror="true" buildfile="${basedir}\Compiler\Test.build" />
+				<nant failonerror="true" buildfile="${basedir}\Framework\Test.build" />
+			</try>
+			<finally>
+				<record name="${logfile}" action="Close" />
+			</finally>
+		</trycatch>	
 	</target>
 </project>

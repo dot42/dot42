@@ -579,5 +579,9 @@
 	<target name="test" description="Run regression tests">
 		<nant buildfile="${basedir}\RegressionTests\Test.build" />
 	</target>
+	
+	<target name="small-test" description="Run framework and compiler regression tests">
+		<nant buildfile="${basedir}\RegressionTests\Test.build" target="small-test"/>
+	</target>	
 
 </project>

@@ -10,17 +10,17 @@ namespace Test1
     public sealed class R
     {
         
-        public sealed class Layouts
+        public sealed class Layout
         {
             
             public const int MainLayout = 0x7f020000;
         }
         
-        public sealed class Ids
+        public sealed class Id
         {
         }
         
-        public sealed class Styles
+        public sealed class Style
         {
             
             public const int MyTextView1 = 0x7f040000;

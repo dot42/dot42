@@ -39,6 +39,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="RecordTask.cs" />
     <Compile Include="Utils\ExternalProgramWithWorkingDirectoryBase.cs" />
     <Compile Include="InnoSetupTask.cs" />
     <Compile Include="IPC\AsyncLineReader.cs" />
