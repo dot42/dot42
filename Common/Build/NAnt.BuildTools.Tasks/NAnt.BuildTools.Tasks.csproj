@@ -36,19 +36,19 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Utils\ExternalProgramWithWorkingDirectoryBase.cs" />
+    <Compile Include="InnoSetupTask.cs" />
     <Compile Include="IPC\AsyncLineReader.cs" />
     <Compile Include="IPC\AsyncStreamReader.cs" />
     <Compile Include="IPC\ConsoleProcess.cs" />
     <Compile Include="IPC\ConsoleReader.cs" />
     <Compile Include="AssemblyReferenceCheckTask.cs" />
     <Compile Include="AssemblyApiCompare.cs" />
-    <Compile Include="Run.cs" />
+    <Compile Include="Utils\RegHelper.cs" />
+    <Compile Include="Utils\Run.cs" />
     <Compile Include="PeVerifyTask.cs" />
     <Compile Include="DevEnvTask.cs" />
     <Compile Include="UpdateVersionTask.cs" />

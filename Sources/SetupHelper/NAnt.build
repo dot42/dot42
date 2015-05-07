@@ -1,6 +1,6 @@
 <project name='ObfuscatorContextMenu' default='rebuild'>
 
-	<property name="sdkversion" value="v7.0A"/>
+	<property name="sdkversion" value="v7.1A"/>
 	<property name="basedir" value="${project::get-base-directory()}"/>
 	<include buildfile="${basedir}\..\..\Common\Build\Common-VC.build"/>
 

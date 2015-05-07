@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text;
 using NAnt.BuildTools.Tasks.IPC;
+using NAnt.BuildTools.Tasks.Utils;
 using NAnt.Core;
 using NAnt.Core.Attributes;
 

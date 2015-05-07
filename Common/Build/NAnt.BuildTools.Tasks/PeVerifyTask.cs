@@ -1,6 +1,5 @@
-﻿using System;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
+using NAnt.BuildTools.Tasks.Utils;
 using NAnt.Core;
 using NAnt.Core.Attributes;
 using NAnt.Core.Types;

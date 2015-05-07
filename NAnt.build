@@ -78,7 +78,7 @@
 
 	<target name="remove-extension" description="Remove VisualStudio extensions">
 		<foreach item="String" in="${targets}" delim="," property="target">
-			<property name="extensiondir" value="${devenvdir}\Extensions\dot42 C# for ${target}\1.0"/>
+			<property name="extensiondir" value="${devenvdir}\Extensions\dot42 C# for ${target}\1.1"/>
 			<property name="manifestfile" value="${extensiondir}\extension.vsixmanifest"/>
 			<move file="${manifestfile}" tofile="${manifestfile}.delete" if="${file::exists(manifestfile)}"/>
 			<delete dir="${extensiondir}"/>
@@ -533,7 +533,7 @@
 
 	<target name="copy-vs2010-extension" description="Copy visual studio extension to local extension folder">
 		<foreach item="String" in="${targets}" delim="," property="target">
-			<copy todir="${environment::get-folder-path('LocalApplicationData')}\Microsoft\VisualStudio\10.0\Extensions\dot42\dot42 C# for ${target}\1.0">
+			<copy todir="${environment::get-folder-path('LocalApplicationData')}\Microsoft\VisualStudio\10.0\Extensions\dot42\dot42 C# for ${target}\1.1">
 				<fileset basedir="${builddir}\Application\Extension\${target}">
 					<include name="**/*"/>
 				</fileset>
