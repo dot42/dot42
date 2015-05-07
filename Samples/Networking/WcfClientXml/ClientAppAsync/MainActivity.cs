@@ -7,8 +7,7 @@ using System.ServiceModel;
 using System.ServiceModel.Web;
 using System.Threading;
 using System.Threading.Tasks;
-using Android.App;
-using Android.Os;
+using Android.App;using Android.OS;
 using Android.Widget;
 
 using Dot42;
@@ -35,12 +34,12 @@ namespace WcfClient
 		protected async override void OnCreate(Bundle savedInstance)
 		{
 			base.OnCreate(savedInstance);
-			SetContentView(R.Layouts.MainLayout);
+			SetContentView(R.Layout.MainLayout);
 
 			// Find all views and connect to them
-			versionTextView = FindViewById<TextView>(R.Ids.Version);
-			todoListView = FindViewById<ListView>(R.Ids.TodoList);
-			var addButton = FindViewById<Button>(R.Ids.AddButton);
+			versionTextView = FindViewById<TextView>(R.Id.Version);
+			todoListView = FindViewById<ListView>(R.Id.TodoList);
+			var addButton = FindViewById<Button>(R.Id.AddButton);
             addButton.Click += (s, x) => AddRandomTodoAsync();
 
             //set the this as synchronization context, see OS\AsyncAndActivityInstances sample for details
@@ -97,7 +96,7 @@ namespace WcfClient
 		private void UpdateVersionView(string message, bool exception)
 		{
 		    if (exception) message = "An error occurred: " + message;
-			versionTextView.SetText(message);	
+			versionTextView.Text = (message);	
 		}
 
         /// <summary>

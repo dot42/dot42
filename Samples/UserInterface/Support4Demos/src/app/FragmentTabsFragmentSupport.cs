@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 using Support4Demos;
-
-using Android.Os;
-using Android.Support.V4.App;
-using Android.View;
+using Android.OS;
+using Android.Support.V4.App;using Android.Views;
 
 namespace com.example.android.supportv4.app
 {
@@ -27,7 +25,7 @@ namespace com.example.android.supportv4.app
         public override View OnCreateView(LayoutInflater Inflater, ViewGroup container,
                 Bundle savedInstanceState) {
             mTabHost = new FragmentTabHost(GetActivity());
-            mTabHost.Setup(GetActivity(), GetChildFragmentManager(), R.Ids.fragment1);
+            mTabHost.Setup(GetActivity(), GetChildFragmentManager(), R.Id.fragment1);
 
             mTabHost.AddTab(mTabHost.NewTabSpec("simple").SetIndicator("Simple"),
                     typeof(FragmentStackSupport.CountingFragment), null);

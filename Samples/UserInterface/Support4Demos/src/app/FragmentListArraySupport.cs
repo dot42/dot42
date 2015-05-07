@@ -17,10 +17,8 @@
 using Support4Demos;
 
 using Android.Support.V4.App;
-
-using Android.Os;
-using Android.Util;
-using Android.View;
+using Android.OS;
+using Android.Util;using Android.Views;
 using Android.Widget;
 
 using Dot42.Manifest;

@@ -1,5 +1,4 @@
-using Android.App;
-using Android.Os;
+using Android.App;using Android.OS;
 using Android.Widget;
 using Dot42.Manifest;
 
@@ -16,7 +15,7 @@ namespace test.Simple
         {
             base.OnCreate(savedInstance);
 			var tv = new TextView(this);
-			tv.SetText("Hello Dot42");
+			tv.Text = ("Hello Dot42");
 			SetContentView(tv);
         }
 

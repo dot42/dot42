@@ -16,12 +16,10 @@
 
 using Dot42;
 using Support4Demos;
-
-using Android.Os;
+using Android.OS;
 using Android.Support.V4.App;
 using Android.Support.V4.View;
-using Android.Util;
-using Android.View;
+using Android.Util;using Android.Views;
 using Android.Widget;
 
 using Dot42.Manifest;
@@ -39,18 +37,18 @@ namespace com.example.android.supportv4.app
 
         protected override void OnCreate(Bundle savedInstanceState) {
             base.OnCreate(savedInstanceState);
-            SetContentView(R.Layouts.fragment_pager);
+            SetContentView(R.Layout.fragment_pager);
 
             mAdapter = new MyAdapter(GetSupportFragmentManager());
 
-            mPager = (ViewPager)FindViewById(R.Ids.pager);
+            mPager = (ViewPager)FindViewById(R.Id.pager);
             mPager.SetAdapter(mAdapter);
 
             // Watch for button clicks.
-            Button button = (Button)FindViewById(R.Ids.goto_first);
+            Button button = (Button)FindViewById(R.Id.goto_first);
             button.Click += (o, a) => mPager.SetCurrentItem(0);
            
-            button = (Button)FindViewById(R.Ids.goto_last);
+            button = (Button)FindViewById(R.Id.goto_last);
             button.Click += (o, a) => mPager.SetCurrentItem(NUM_ITEMS-1);
         }
 
@@ -100,8 +98,8 @@ namespace com.example.android.supportv4.app
              */
             public override View OnCreateView(LayoutInflater Inflater, ViewGroup container,
                     Bundle savedInstanceState) {
-                View v = Inflater.Inflate(R.Layouts.fragment_pager_list, container, false);
-                View tv = v.FindViewById(R.Ids.text);
+                View v = Inflater.Inflate(R.Layout.fragment_pager_list, container, false);
+                View tv = v.FindViewById(R.Id.text);
                 ((TextView)tv).SetText("Fragment #" + mNum);
                 return v;
             }

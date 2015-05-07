@@ -180,16 +180,11 @@ namespace Luxmate.MMT.Utilities
 			return this.GetEnumerator();
 		}
 
-		int IList<T>.Add(T element)
+		void ICollection<T>.Add(T element)
 		{
 			int num = this.list.Size();
 			this.list.Add(element);
-			return num;
-		}
-
-		void IList<T>.Remove(T element)
-		{
-			this.list.Remove(element);
+            //return num;
 		}
 
 		IEnumerator IEnumerable.GetEnumerator()

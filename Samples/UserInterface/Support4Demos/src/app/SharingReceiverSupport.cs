@@ -18,13 +18,12 @@ using Support4Demos;
 
 using Android.App;
 using Android.Graphics.Drawable;
-using Android.Net;
-using Android.Os;
+using Android.Net;using Android.OS;
 using Android.Support.V4.App;
 using Android.Util;
 using Android.Widget;
 
-using Java.Io;
+using Java.IO;
 
 using System.IO;
 using System.Text;
@@ -48,21 +47,21 @@ namespace com.example.android.supportv4.app
 
         protected override void OnCreate(Bundle b) {
             base.OnCreate(b);
-            SetContentView(R.Layouts.sharing_receiver_support);
+            SetContentView(R.Layout.sharing_receiver_support);
 
-            float density = GetResources().GetDisplayMetrics().Density;
+            float density = Resources.GetDisplayMetrics().Density;
             int iconSize = (int) (ICON_SIZE * density + 0.5f);
 
             ShareCompat.IntentReader intentReader = ShareCompat.IntentReader.From(this);
 
             // The following provides attribution for the app that shared the data with us.
-            TextView info = (TextView) FindViewById(R.Ids.app_info);
+            TextView info = (TextView) FindViewById(R.Id.app_info);
             Drawable d = intentReader.GetCallingActivityIcon();
             d.SetBounds(0, 0, iconSize, iconSize);
             info.SetCompoundDrawables(d, null, null, null);
-            info.SetText(intentReader.GetCallingApplicationLabel());
+            info.Text = (intentReader.GetCallingApplicationLabel());
 
-            TextView tv = (TextView) FindViewById(R.Ids.text);
+            TextView tv = (TextView) FindViewById(R.Id.text);
             StringBuilder txt = new StringBuilder("Received share!\nText was: ");
 
             txt.Append(intentReader.GetText());
@@ -90,7 +89,7 @@ namespace com.example.android.supportv4.app
                 }
             }
 
-            tv.SetText(txt.ToString());
+            tv.Text = (txt.ToString());
         }
     }
 }

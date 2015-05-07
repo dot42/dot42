@@ -1,8 +1,7 @@
 using Android.Content;
-using Android.Content.Res;
-using Android.Os;
-using Android.Preference;
-using Java.Io;
+using Android.Content.Res;using Android.OS;
+using Android.Preferences;
+using Java.IO;
 
 namespace KiloBoltRobotGame.Framework
 {
@@ -15,8 +14,8 @@ namespace KiloBoltRobotGame.Framework
         public AndroidFileIO(Context context)
         {
             this.context = context;
-            this.assets = context.GetAssets();
-            this.externalStoragePath = Environment.GetExternalStorageDirectory().GetAbsolutePath() + File.Separator;
+            this.assets = context.Assets;
+            this.externalStoragePath = Environment.ExternalStorageDirectory.AbsolutePath + File.Separator;
         }
 
         public InputStream readAsset(string file)

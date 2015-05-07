@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Android.View;
+using Android.Views;
 using SorterenMaar.Palette;
 using Android.Widget;
 using Android.Content;
 using Android.Graphics;
 using SorterenMaar.Checkers;
-using Android.Graphics.Drawable;
+using Android.Graphics.Drawables;
 using SorterenMaar.UserControls;
 using System.Xml.Linq;
 using System.IO;
@@ -88,8 +88,8 @@ namespace SorterenMaar.Games
       //for (int i = 1; i < 15; ++i)
       //{
       //  var s = new TextView(context);
-      //  s.SetText("View " + i.ToString());
-      //  s.SetLayoutParams(p);
+      //  s.Text = ("View " + i.ToString());
+      //  s.LayoutParameters = (p);
       //  result.Add(s);
       //}
 
@@ -98,7 +98,7 @@ namespace SorterenMaar.Games
       //s.SetOnDragListener(d);
       //s.SetOnLongClickListener(d);
       //s.SetOnTouchListener(d);
-      //s.SetLayoutParams(p);
+      //s.LayoutParameters = (p);
       //result.Add(s);
 
       //s = new ShapeView(context, ShapeView.ShapeEnum.OvalShape, 100, 75, Color.WHITE);
@@ -106,7 +106,7 @@ namespace SorterenMaar.Games
       //s.SetOnDragListener(d);
       //s.SetOnLongClickListener(d);
       //s.SetOnTouchListener(d);
-      //s.SetLayoutParams(p);
+      //s.LayoutParameters = (p);
       //result.Add(s);
 
       //s = new ShapeView(context, ShapeView.ShapeEnum.TriangleShape, 100, 100, Color.MAGENTA);
@@ -114,7 +114,7 @@ namespace SorterenMaar.Games
       //s.SetOnDragListener(d);
       //s.SetOnLongClickListener(d);
       //s.SetOnTouchListener(d);
-      //s.SetLayoutParams(p);
+      //s.LayoutParameters = (p);
       //result.Add(s);
 
       //s = new ShapeView(context, ShapeView.ShapeEnum.RoundedRectShape, 100, 100, Color.YELLOW);
@@ -122,7 +122,7 @@ namespace SorterenMaar.Games
       //s.SetOnDragListener(d);
       //s.SetOnLongClickListener(d);
       //s.SetOnTouchListener(d);
-      //s.SetLayoutParams(p);
+      //s.LayoutParameters = (p);
       //result.Add(s);
 
       var p = new LinearLayout.LayoutParams(120, 120);
@@ -130,9 +130,9 @@ namespace SorterenMaar.Games
 
       var i = new ImageView(context);
       i.SetScaleType(Android.Widget.ImageView.ScaleType.CENTER_INSIDE);
-      i.SetImageResource(R.Drawables.Laura);
+      i.SetImageResource(R.Drawable.Laura);
       //- i.SetImageDrawable(Drawable.CreateFromPath("res/drawable/laura.png"));
-      i.SetLayoutParams(p);
+      i.LayoutParameters = (p);
       var d = new MoveDragHandler { CheckerData = sortObjects.ResultChecker.CreateCheckerData("1") };
       var t = new SpeechDropHandler { Tts = tts, Text = "This is Laura" };
       d.Successor = t;
@@ -142,9 +142,9 @@ namespace SorterenMaar.Games
 
       i = new ImageView(context);
       i.SetScaleType(Android.Widget.ImageView.ScaleType.CENTER_INSIDE);
-      i.SetImageResource(R.Drawables.Inge);
+      i.SetImageResource(R.Drawable.Inge);
       //- i.SetImageDrawable(Drawable.CreateFromPath("res/drawable/laura.png"));
-      i.SetLayoutParams(p);
+      i.LayoutParameters = (p);
       d = new MoveDragHandler { CheckerData = sortObjects.ResultChecker.CreateCheckerData("1") };
       t = new SpeechDropHandler { Tts = tts, Text = "This is Inge" };
       d.Successor = t;
@@ -154,9 +154,9 @@ namespace SorterenMaar.Games
 
       i = new ImageView(context);
       i.SetScaleType(Android.Widget.ImageView.ScaleType.CENTER_INSIDE);
-      i.SetImageResource(R.Drawables.Emma);
+      i.SetImageResource(R.Drawable.Emma);
       //- i.SetImageDrawable(Drawable.CreateFromPath("res/drawable/laura.png"));
-      i.SetLayoutParams(p);
+      i.LayoutParameters = (p);
       d = new MoveDragHandler { CheckerData = sortObjects.ResultChecker.CreateCheckerData("2") };
       t = new SpeechDropHandler { Tts = tts, Text = "This is Emma" };
       d.Successor = t;
@@ -166,9 +166,9 @@ namespace SorterenMaar.Games
 
       i = new ImageView(context);
       i.SetScaleType(Android.Widget.ImageView.ScaleType.CENTER_INSIDE);
-      i.SetImageResource(R.Drawables.Thor);
+      i.SetImageResource(R.Drawable.Thor);
       //- i.SetImageDrawable(Drawable.CreateFromPath("res/drawable/laura.png"));
-      i.SetLayoutParams(p);
+      i.LayoutParameters = (p);
       d = new MoveDragHandler { CheckerData = sortObjects.ResultChecker.CreateCheckerData("2") };
       t = new SpeechDropHandler { Tts = tts, Text = "This is Thor" };
       d.Successor = t;
@@ -186,22 +186,22 @@ namespace SorterenMaar.Games
       var result = new List<View>();
 
       var l = new HorizontalFlowLayout(context);
-      l.SetBackgroundColor(context.GetResources().GetColor(R.Colors.light_blue));
+      l.SetBackgroundColor(context.Resources.GetColor(R.Color.light_blue));
       var p = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1);
       //var p = new RelativeLayout.MarginLayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
       p.SetMargins(7, 7, 7, 0);
-      l.SetLayoutParams(p);
+      l.LayoutParameters = (p);
       var d = new MoveDropHandler { Id = "1" };
       d.OnMoveDropAccepted += sortObjects.ResultChecker.DropHandler;
       l.SetOnDragListener(d);
       result.Add(l);
 
       l = new HorizontalFlowLayout(context);
-      l.SetBackgroundColor(context.GetResources().GetColor(R.Colors.light_blue));
+      l.SetBackgroundColor(context.Resources.GetColor(R.Color.light_blue));
       p = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1);
       //p = new RelativeLayout.MarginLayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
       p.SetMargins(7, 7, 7, 7);
-      l.SetLayoutParams(p);
+      l.LayoutParameters = (p);
       d = new MoveDropHandler { Id = "2" };
       d.OnMoveDropAccepted += sortObjects.ResultChecker.DropHandler;
       l.SetOnDragListener(d);
@@ -218,7 +218,7 @@ namespace SorterenMaar.Games
       //s.SetOnDragListener(d);
       //s.SetOnLongClickListener(d);
       //s.SetOnTouchListener(d);
-      //s.SetLayoutParams(p);
+      //s.LayoutParameters = (p);
       //result.Add(s);
 
       //List<ShapeView> shapeList = new List<ShapeView>();

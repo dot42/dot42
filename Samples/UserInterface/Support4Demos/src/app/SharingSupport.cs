@@ -19,13 +19,11 @@ using com.example.android.supportv4;
 using com.example.android.supportv4.content;
 
 using Android.App;
-using Android.Net;
-using Android.Os;
+using Android.Net;using Android.OS;
 using Android.Support.V4.App;
-using Android.Support.V4.View;
-using Android.View;
+using Android.Support.V4.View;using Android.Views;
 
-using Java.Io;
+using Java.IO;
 
 using System.IO;
 
@@ -51,7 +49,7 @@ namespace com.example.android.supportv4.app
     public class SharingSupport : Activity {
         protected override void OnCreate(Bundle b) {
             base.OnCreate(b);
-            SetContentView(R.Layouts.sharing_support);
+            SetContentView(R.Layout.sharing_support);
         }
 
         public override bool OnCreateOptionsMenu(IMenu menu) {

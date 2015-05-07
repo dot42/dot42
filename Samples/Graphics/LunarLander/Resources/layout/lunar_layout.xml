@@ -17,9 +17,9 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-    
-    <LunarLander.LunarView
-      android:id="@+id/lunar"
+
+   <LunarLander.LunarLander.LunarView
+    android:id="@+id/lunar"
       android:layout_width="match_parent"
       android:layout_height="match_parent"/>
     

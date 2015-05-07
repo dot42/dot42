@@ -4,9 +4,7 @@ using Test1;
 using Java.Net;
 using Java.Util;
 
-using Android.App;
-using Android.Os;
-using Android.View;
+using Android.App;using Android.OS;using Android.Views;
 using Android.Widget;
 
 using Com.Microsoft.Windowsazure.Mobileservices;
@@ -119,7 +117,7 @@ namespace com.example.stamware
 		         }
 
 				public void Run() {
-					if (mProgressBar != null) mProgressBar.SetVisibility(mVisiblity);
+					if (mProgressBar != null) mProgressBar.Visibility = mVisiblity;
 				}
 			}
 
@@ -188,12 +186,12 @@ namespace com.example.stamware
 	     */
 	    protected override void OnCreate(Bundle savedInstanceState) {
 		    base.OnCreate(savedInstanceState);
-		    SetContentView(R.Layouts.activity_to_do);
+		    SetContentView(R.Layout.activity_to_do);
 		
-		    mProgressBar = (ProgressBar) FindViewById(R.Ids.loadingProgressBar);
+		    mProgressBar = (ProgressBar) FindViewById(R.Id.loadingProgressBar);
 
 		    // Initialize the progress bar
-		    mProgressBar.SetVisibility(ProgressBar.GONE);
+		    mProgressBar.Visibility = ProgressBar.GONE;
 		
 		    try {
 			    // Create the Mobile Service Client instance, using the provided
@@ -206,12 +204,12 @@ namespace com.example.stamware
 			    // Get the Mobile Service Table instance to use
                 mToDoTable = mClient.GetTable<ToDoItem>(typeof(ToDoItem));
 
-			    mTextNewToDo = (EditText) FindViewById(R.Ids.textNewToDo);
+			    mTextNewToDo = (EditText) FindViewById(R.Id.textNewToDo);
 
 			    // Create an adapter to bind the items with the view
-			    mAdapter = new ToDoItemAdapter(this, R.Layouts.row_list_to_do);
-			    ListView listViewToDo = (ListView) FindViewById(R.Ids.listViewToDo);
-			    listViewToDo.SetAdapter(mAdapter);
+			    mAdapter = new ToDoItemAdapter(this, R.Layout.row_list_to_do);
+			    ListView listViewToDo = (ListView) FindViewById(R.Id.listViewToDo);
+			    listViewToDo.Adapter = mAdapter;
 		
 			    // Load the items from the Mobile Service
 			    RefreshItemsFromTable();
@@ -225,7 +223,7 @@ namespace com.example.stamware
 	     * Initializes the activity menu
 	     */
 	    public override bool OnCreateOptionsMenu(IMenu menu) {
-		    GetMenuInflater().Inflate(R.Menus.activity_main, menu);
+		    MenuInflater.Inflate(R.Menu.activity_main, menu);
 		    return true;
 	    }
 	
@@ -233,7 +231,7 @@ namespace com.example.stamware
 	     * Select an option from the menu
 	     */
 	    public override bool OnOptionsItemSelected(IMenuItem item) {
-		    if (item.GetItemId() == R.Ids.menu_refresh) {
+		    if (item.ItemId == R.Id.menu_refresh) {
 			    RefreshItemsFromTable();
 		    }
 		
@@ -271,13 +269,13 @@ namespace com.example.stamware
 		    // Create a new item
 		    ToDoItem item = new ToDoItem();
 
-		    item.SetText(mTextNewToDo.GetText().ToString());
+		    item.Text = (mTextNewToDo.GetText().ToString());
 		    item.SetComplete(false);
 		
 		    // Insert the new item
 		    mToDoTable.Insert(item, new MyInsertTableOperationCallback(this));
 
-		    mTextNewToDo.SetText("");
+		    mTextNewToDo.Text = "";
 	    }
 
 	    /**

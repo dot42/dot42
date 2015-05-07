@@ -10,25 +10,25 @@ namespace FontDemo
     public sealed class R
     {
         
-        public sealed class Drawables
+        public sealed class Drawable
         {
             
             public const int icon = 0x7f020000;
         }
         
-        public sealed class Layouts
+        public sealed class Layout
         {
             
             public const int MainLayout = 0x7f030000;
         }
         
-        public sealed class Ids
+        public sealed class Id
         {
             
-            public const int fontView = 0x7f040035;
+            public const int fontView = 0x7f040036;
         }
         
-        public sealed class Strings
+        public sealed class String
         {
             
             public const int FontFailTitle = 0x7f050000;

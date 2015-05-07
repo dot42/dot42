@@ -1,5 +1,4 @@
-﻿using Android.App;
-using Android.Os;
+﻿using Android.App;using Android.OS;
 using Android.Widget;
 using Dot42;
 using Dot42.Manifest;
@@ -14,9 +13,9 @@ namespace UsingSpinner
         protected override void OnCreate(Bundle savedInstance)
         {
             base.OnCreate(savedInstance);
-            SetContentView(R.Layouts.MainLayout);
+            SetContentView(R.Layout.MainLayout);
 
-            var animalSpinner = (Spinner)FindViewById(R.Ids.animalSpinner);
+            var animalSpinner = (Spinner)FindViewById(R.Id.animalSpinner);
             // Create an ArrayAdapter using the string array and a default spinner layout
             var adapter = ArrayAdapter<string>.CreateFromResource(this, R.Arrays.my_animals, Android.R.Layout.Simple_spinner_item);
             // Specify the layout to use when the list of choices appears

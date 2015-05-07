@@ -19,9 +19,7 @@
 using Support4Demos;
 
 using Android.App;
-using Android.Content;
-using Android.Os;
-using Android.View;
+using Android.Content;using Android.OS;using Android.Views;
 using Android.Widget;
 
 using Dot42.Manifest;
@@ -48,10 +46,10 @@ namespace com.example.android.supportv4.app
             // See assets/res/any/layout/hello_world.xml for this
             // view layout definition, which is being set here as
             // the content of our screen.
-            SetContentView(R.Layouts.send_result);
+            SetContentView(R.Layout.send_result);
 
             // Watch for button clicks.
-            Button button = (Button)FindViewById(R.Ids.corky);
+            Button button = (Button)FindViewById(R.Id.corky);
             button.Click += (o, a) =>
             {
                 // To send a result, simply call setResult() before your
@@ -59,7 +57,7 @@ namespace com.example.android.supportv4.app
                 SetResult(RESULT_OK, (new Intent()).SetAction("Corky!"));
                 Finish();
             };
-            button = (Button)FindViewById(R.Ids.violet);
+            button = (Button)FindViewById(R.Id.violet);
             button.Click += (o, a) => {
                 // To send a result, simply call setResult() before your
                 // activity is Finished.

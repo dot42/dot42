@@ -30,6 +30,7 @@
     <TargetSdkAndroidVersion />
     <GenerateWcfProxy>false</GenerateWcfProxy>
     <GenerateSetNextInstructionCode>false</GenerateSetNextInstructionCode>
+    <EnableCompilerCache>false</EnableCompilerCache>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>

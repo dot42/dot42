@@ -1,7 +1,7 @@
 ﻿using System;
 using Android.App;
 using Android.Content;
-using Android.Os;
+using Android.OS;
 using Android.Widget;
 using Dot42.Manifest;
 
@@ -30,7 +30,7 @@ namespace RekenMaar.Activities
     protected override void OnCreate(Bundle savedInstance)
     {
       base.OnCreate(savedInstance);
-      SetContentView(R.Layouts.SettingActivityLayout);
+      SetContentView(R.Layout.SettingActivityLayout);
 
       ActionBar actionBar = GetActionBar();
       // To enable the icon for up navigation (which displays the "up" indicator next to the icon)
@@ -40,43 +40,43 @@ namespace RekenMaar.Activities
       gamePreferences = new Preferences();
       gamePreferences.RetrievePreferences(GetSharedPreferences("GamePreferences", MODE_MULTI_PROCESS));
 
-      txtV = FindViewById<TextView>(R.Ids.tableChoosen);
-      txtV1 = FindViewById<TextView>(R.Ids.tableChoosenTxt);
+      txtV = FindViewById<TextView>(R.Id.tableChoosen);
+      txtV1 = FindViewById<TextView>(R.Id.tableChoosenTxt);
 
-      seekbar = FindViewById<SeekBar>(R.Ids.seekbar);
+      seekbar = FindViewById<SeekBar>(R.Id.seekbar);
       seekbar.ProgressChanged += new EventHandler<ProgressChangedEventArgs>(seekbar_ProgressChanged);
       seekbar.SetProgress(gamePreferences.TableOf);
 
-      var btn = FindViewById<Button>(R.Ids.Ok);
+      var btn = FindViewById<Button>(R.Id.Ok);
       btn.Click += new EventHandler(btn_ClickOk);
-      btn = FindViewById<Button>(R.Ids.Cancel);
+      btn = FindViewById<Button>(R.Id.Cancel);
       btn.Click += new EventHandler(btn_ClickCancel);
 
-      swV = FindViewById<Switch>(R.Ids.isRandom);
+      swV = FindViewById<Switch>(R.Id.isRandom);
       swV.CheckedChanged += new EventHandler<CheckedChangedEventArgs>(swV_CheckedChanged);
       swV.SetChecked(!gamePreferences.RandomQuestions);
 
-      rbtnTo10 = FindViewById<RadioButton>(R.Ids.To10);
+      rbtnTo10 = FindViewById<RadioButton>(R.Id.To10);
       if (gamePreferences.UpperLimit == 10)
       {
         rbtnTo10.SetChecked(true);
       }
-      rbtnTo50 = FindViewById<RadioButton>(R.Ids.To50);
+      rbtnTo50 = FindViewById<RadioButton>(R.Id.To50);
       if (gamePreferences.UpperLimit == 50)
       {
         rbtnTo50.SetChecked(true);
       }
-      rbtnTo100 = FindViewById<RadioButton>(R.Ids.To100);
+      rbtnTo100 = FindViewById<RadioButton>(R.Id.To100);
       if (gamePreferences.UpperLimit == 100)
       {
         rbtnTo100.SetChecked(true);
       }
-      rbtnTo500 = FindViewById<RadioButton>(R.Ids.To500);
+      rbtnTo500 = FindViewById<RadioButton>(R.Id.To500);
       if (gamePreferences.UpperLimit == 500)
       {
         rbtnTo500.SetChecked(true);
       }
-      rbtnTo1000 = FindViewById<RadioButton>(R.Ids.To1000);
+      rbtnTo1000 = FindViewById<RadioButton>(R.Id.To1000);
       if (gamePreferences.UpperLimit == 1000)
       {
         rbtnTo1000.SetChecked(true);
@@ -87,22 +87,22 @@ namespace RekenMaar.Activities
       rbtnTo500.CheckedChanged += new EventHandler<CheckedChangedEventArgs>(rbtnTo_CheckedChanged);
       rbtnTo1000.CheckedChanged += new EventHandler<CheckedChangedEventArgs>(rbtnTo_CheckedChanged);
 
-      rbtn0To10 = FindViewById<RadioButton>(R.Ids.With0To10);
+      rbtn0To10 = FindViewById<RadioButton>(R.Id.With0To10);
       if (gamePreferences.CounterMin == 0)
       {
         rbtn0To10.SetChecked(true);
       }
-      rbtn10To20 = FindViewById<RadioButton>(R.Ids.With10To20);
+      rbtn10To20 = FindViewById<RadioButton>(R.Id.With10To20);
       if (gamePreferences.CounterMin == 10)
       {
         rbtn10To20.SetChecked(true);
       }
-      rbtn20To50 = FindViewById<RadioButton>(R.Ids.With20To50);
+      rbtn20To50 = FindViewById<RadioButton>(R.Id.With20To50);
       if (gamePreferences.CounterMin == 20)
       {
         rbtn20To50.SetChecked(true);
       }
-      rbtn50To100 = FindViewById<RadioButton>(R.Ids.With50To100);
+      rbtn50To100 = FindViewById<RadioButton>(R.Id.With50To100);
       if (gamePreferences.CounterMin == 50)
       {
         rbtn50To100.SetChecked(true);

@@ -17,11 +17,9 @@
 using Support4Demos;
 
 using Android.App;
-using Android.Content;
-using Android.Os;
+using Android.Content;using Android.OS;
 using Android.Support.V4.App;
-using Android.Support.V4.Content;
-using Android.View;
+using Android.Support.V4.Content;using Android.Views;
 using Android.Widget;
 
 using Dot42.Manifest;
@@ -52,12 +50,12 @@ namespace com.example.android.supportv4.content
 	        }
 
              public override void OnReceive(Context context, Intent intent) {
-                    if (intent.GetAction().Equals(ACTION_STARTED)) {
-                        callbackData.SetText("STARTED");
-                    } else if (intent.GetAction().Equals(ACTION_UPDATE)) {
-                        callbackData.SetText("Got update: " + intent.GetIntExtra("value", 0));
-                    } else if (intent.GetAction().Equals(ACTION_STOPPED)) {
-                        callbackData.SetText("STOPPED");
+                    if (intent.Action.Equals(ACTION_STARTED)) {
+                        callbackData.Text = ("STARTED");
+                    } else if (intent.Action.Equals(ACTION_UPDATE)) {
+                        callbackData.Text = ("Got update: " + intent.GetIntExtra("value", 0));
+                    } else if (intent.Action.Equals(ACTION_STOPPED)) {
+                        callbackData.Text = ("STOPPED");
 					}
                 }
         }
@@ -65,13 +63,13 @@ namespace com.example.android.supportv4.content
         protected override void OnCreate(Bundle savedInstanceState) {
             base.OnCreate(savedInstanceState);
 
-            SetContentView(R.Layouts.local_service_broadcaster);
+            SetContentView(R.Layout.local_service_broadcaster);
 
             // This is where we print the data we get back.
-            TextView callbackData = (TextView)FindViewById(R.Ids.callback);
+            TextView callbackData = (TextView)FindViewById(R.Id.callback);
 
             // Put in some initial text.
-            callbackData.SetText("No broadcast received yet");
+            callbackData.Text = ("No broadcast received yet");
 
             // We use this to send broadcasts within our local process.
             mLocalBroadcastManager = LocalBroadcastManager.GetInstance(this);
@@ -86,9 +84,9 @@ namespace com.example.android.supportv4.content
             mLocalBroadcastManager.RegisterReceiver(mReceiver, filter);
 
             // Watch for button clicks.
-            Button button = (Button)FindViewById(R.Ids.start);
+            Button button = (Button)FindViewById(R.Id.start);
             button.Click += (o,e) => StartService(new Intent(this, typeof(LocalService)));
-            button = (Button)FindViewById(R.Ids.stop);
+            button = (Button)FindViewById(R.Id.stop);
             button.Click += (o,e) => StopService(new Intent(this, typeof(LocalService)));
         }
 

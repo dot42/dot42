@@ -1,4 +1,4 @@
-using Android.View;
+using Android.Views;
 using Java.Util;
 
 namespace KiloBoltRobotGame.Framework
@@ -30,10 +30,10 @@ namespace KiloBoltRobotGame.Framework
         {
             lock (this)
             {
-                int action = @event.GetAction() & MotionEvent.ACTION_MASK;
-                int pointerIndex = (@event.GetAction() & MotionEvent.ACTION_POINTER_ID_MASK) >>
+                int action = @event.Action & MotionEvent.ACTION_MASK;
+                int pointerIndex = (@event.Action & MotionEvent.ACTION_POINTER_ID_MASK) >>
                                    MotionEvent.ACTION_POINTER_ID_SHIFT;
-                int pointerCount = @event.GetPointerCount();
+                int pointerCount = @event.PointerCount;
                 TouchEvent touchEvent;
                 for (int i = 0; i < MAX_TOUCHPOINTS; i++)
                 {
@@ -44,7 +44,7 @@ namespace KiloBoltRobotGame.Framework
                         continue;
                     }
                     int pointerId = @event.GetPointerId(i);
-                    if (@event.GetAction() != MotionEvent.ACTION_MOVE && i != pointerIndex)
+                    if (@event.Action != MotionEvent.ACTION_MOVE && i != pointerIndex)
                     {
                         // if it's an up/down/cancel/out event, mask the id to see if we should process it for this touch
                         // point

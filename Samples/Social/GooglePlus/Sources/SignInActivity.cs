@@ -6,11 +6,9 @@ using Dot42.Manifest;
 using Com.Google.Android.Gms.Common;
 using Com.Google.Android.Gms.Plus;
 using Com.Google.Android.Gms.Plus.Model.People;
-
-using Android.View;
+using Android.Views;
 using Android.Support.V4.App;
-using Android.Widget;
-using Android.Os;
+using Android.Widget;using Android.OS;
 using Android.Content;
 
 namespace GooglePlusClient
@@ -27,28 +25,28 @@ namespace GooglePlusClient
       {
          base.OnCreate(savedInstance);
 
-         SetContentView(R.Layouts.sign_in_activity);
+         SetContentView(R.Layout.sign_in_activity);
 
          mSignInFragment = PlusClientFragment.GetPlusClientFragment(this, MomentUtil.VISIBLE_ACTIVITIES);
 
-         FindViewById(R.Ids.sign_in_button).SetOnClickListener(this);
-         FindViewById(R.Ids.sign_out_button).SetOnClickListener(this);
-         FindViewById(R.Ids.revoke_access_button).SetOnClickListener(this);
-         mSignInStatus = (TextView)FindViewById(R.Ids.sign_in_status);
+         FindViewById(R.Id.sign_in_button).SetOnClickListener(this);
+         FindViewById(R.Id.sign_out_button).SetOnClickListener(this);
+         FindViewById(R.Id.revoke_access_button).SetOnClickListener(this);
+         mSignInStatus = (TextView)FindViewById(R.Id.sign_in_status);
       }
 
       public void OnClick(View view)
       {
          switch (view.GetId())
          {
-            case R.Ids.sign_out_button:
+            case R.Id.sign_out_button:
                resetAccountState();
                mSignInFragment.SignOut();
                break;
-            case R.Ids.sign_in_button:
+            case R.Id.sign_in_button:
                mSignInFragment.SignIn(REQUEST_CODE_PLUS_CLIENT_FRAGMENT);
                break;
-            case R.Ids.revoke_access_button:
+            case R.Id.revoke_access_button:
                resetAccountState();
                mSignInFragment.RevokeAccessAndDisconnect();
                break;
@@ -62,14 +60,14 @@ namespace GooglePlusClient
 
       public void OnSignedIn(PlusClient plusClient)
       {
-         mSignInStatus.SetText(GetString(R.Strings.signed_in_status));
+         mSignInStatus.Text = (GetString(R.String.signed_in_status));
 
          // We can now obtain the signed-in user's profile information.
          IPerson currentPerson = plusClient.GetCurrentPerson();
          if (currentPerson != null)
          {
-            String greeting = GetString(R.Strings.greeting_status, currentPerson.GetDisplayName());
-            mSignInStatus.SetText(greeting);
+            String greeting = GetString(R.String.greeting_status, currentPerson.GetDisplayName());
+            mSignInStatus.Text = (greeting);
          }
          else
          {
@@ -79,7 +77,7 @@ namespace GooglePlusClient
 
       private void resetAccountState()
       {
-         mSignInStatus.SetText(GetString(R.Strings.signed_out_status));
+         mSignInStatus.Text = (GetString(R.String.signed_out_status));
       }
    }
 }

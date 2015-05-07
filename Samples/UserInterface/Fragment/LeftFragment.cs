@@ -1,6 +1,4 @@
-﻿using Android.App;
-using Android.Os;
-using Android.View;
+﻿using Android.App;using Android.OS;using Android.Views;
 
 namespace SimpleFragment
 {
@@ -8,7 +6,7 @@ namespace SimpleFragment
     {
         public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
         {
-            return inflater.Inflate(R.Layouts.LeftFragment, container, false);
+            return inflater.Inflate(R.Layout.LeftFragment, container, false);
         }
     }
 }

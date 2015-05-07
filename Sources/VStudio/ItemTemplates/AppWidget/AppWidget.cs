@@ -1,7 +1,7 @@
 ﻿using System;
 using Android.App;
 using Android.Appwidget;
-using Android.Os;
+using Android.OS;
 using Android.Widget;
 using Dot42;
 using Dot42.Manifest;

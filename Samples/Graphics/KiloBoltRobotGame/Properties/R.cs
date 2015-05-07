@@ -10,7 +10,7 @@ namespace KiloBoltRobotGame
     public sealed class R
     {
         
-        public sealed class Drawables
+        public sealed class Drawable
         {
             
             public const int ic_launcher = 0x7f020000;
@@ -18,23 +18,23 @@ namespace KiloBoltRobotGame
             public const int icon = 0x7f020001;
         }
         
-        public sealed class Raws
+        public sealed class Raw
         {
             
             public const int map1 = 0x7f030000;
         }
         
-        public sealed class Ids
+        public sealed class Id
         {
         }
         
-        public sealed class Strings
+        public sealed class String
         {
             
             public const int app_name = 0x7f050000;
         }
         
-        public sealed class Styles
+        public sealed class Style
         {
             
             public const int AppBaseTheme = 0x7f060000;

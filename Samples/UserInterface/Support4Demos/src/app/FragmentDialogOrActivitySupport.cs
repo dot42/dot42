@@ -15,10 +15,8 @@
  */
 
 using Support4Demos;
-
-using Android.Os;
-using Android.Support.V4.App;
-using Android.View;
+using Android.OS;
+using Android.Support.V4.App;using Android.Views;
 using Android.Widget;
 
 using Dot42.Manifest;
@@ -30,20 +28,20 @@ namespace com.example.android.supportv4.app
     public class FragmentDialogOrActivitySupport : FragmentActivity {
         protected override void OnCreate(Bundle savedInstanceState) {
             base.OnCreate(savedInstanceState);
-            SetContentView(R.Layouts.fragment_dialog_or_activity);
+            SetContentView(R.Layout.fragment_dialog_or_activity);
 
             if (savedInstanceState == null) {
                 // First-time init; create fragment to embed in activity.
 
                 FragmentTransaction ft = GetSupportFragmentManager().BeginTransaction();
                 DialogFragment newFragment = MyDialogFragment.NewInstance();
-                ft.Add(R.Ids.embedded, newFragment);
+                ft.Add(R.Id.embedded, newFragment);
                 ft.Commit();
 
             }
 
             // Watch for button clicks.
-            Button button = (Button)FindViewById(R.Ids.show_dialog);
+            Button button = (Button)FindViewById(R.Id.show_dialog);
             button.Click += (x,y) => ShowDialog();
         }
 
@@ -63,9 +61,9 @@ namespace com.example.android.supportv4.app
 
             public override View OnCreateView(LayoutInflater Inflater, ViewGroup container,
                     Bundle savedInstanceState) {
-                View v = Inflater.Inflate(R.Layouts.hello_world, container, false);
-                View tv = v.FindViewById(R.Ids.text);
-                ((TextView)tv).SetText("This is an instance of MyDialogFragment");
+                View v = Inflater.Inflate(R.Layout.hello_world, container, false);
+                View tv = v.FindViewById(R.Id.text);
+                ((TextView)tv).Text = ("This is an instance of MyDialogFragment");
                 return v;
             }
         }

@@ -1,6 +1,5 @@
 ﻿using Android.Content;
-using Android.Hardware;
-using Android.View;
+using Android.Hardware;using Android.Views;
 
 namespace SimpleCamera
 {

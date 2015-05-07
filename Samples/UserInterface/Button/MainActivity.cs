@@ -1,5 +1,4 @@
-﻿using Android.App;
-using Android.Os;
+﻿using Android.App;using Android.OS;
 using Android.Widget;
 using Dot42;
 using Dot42.Manifest;
@@ -14,9 +13,9 @@ namespace UsingButton
         protected override void OnCreate(Bundle savedInstance)
         {
             base.OnCreate(savedInstance);
-            SetContentView(R.Layouts.MainLayout);
+            SetContentView(R.Layout.MainLayout);
 
-            var myButton = (Button)FindViewById(R.Ids.myButton);
+            var myButton = (Button)FindViewById(R.Id.myButton);
             myButton.Click += (s, x) => myButton.Text = "I'm clicked";
         }
     }

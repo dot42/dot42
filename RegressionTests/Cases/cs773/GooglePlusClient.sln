@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GooglePlusClient", "GooglePlusClient\GooglePlusClient.csproj", "{51A5F814-A64E-4E32-9CC4-81CEBA74BC25}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GooglePlusClient", "GooglePlusClient.csproj", "{51A5F814-A64E-4E32-9CC4-81CEBA74BC25}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Threading;
 using Android.Content;
-using Android.Graphics;
-using Android.View;
+using Android.Graphics;using Android.Views;
 using Java.Lang;
 
 namespace Orientation
@@ -61,10 +60,10 @@ namespace Orientation
             // Set background color
             canvas.DrawColor(Color.BLUE);
             var paint = new Paint();
-            paint.SetTextAlign(Paint.Align.CENTER);
+            paint.TextAlign =(Paint.Align.CENTER);
 
             // Draw a circle
-            paint.SetColor(Color.ParseColor("#ffd700"));
+            paint.Color =(Color.ParseColor("#ffd700"));
             canvas.DrawCircle((float) x, (float) y, 30, paint);
          }
 

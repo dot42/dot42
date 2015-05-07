@@ -18,10 +18,8 @@ using Support4Demos;
 
 using Android.Support.V4.App;
 
-using Android.Content;
-using Android.Os;
-using Android.Util;
-using Android.View;
+using Android.Content;using Android.OS;
+using Android.Util;using Android.Views;
 using Android.Widget;
 
 using Dot42.Manifest;
@@ -37,20 +35,20 @@ namespace com.example.android.supportv4.app
 
         protected override void OnCreate(Bundle savedInstanceState) {
             base.OnCreate(savedInstanceState);
-            SetContentView(R.Layouts.fragment_dialog);
+            SetContentView(R.Layout.fragment_dialog);
 
-            View tv = FindViewById(R.Ids.text);
-            ((TextView)tv).SetText("Example of displaying an alert dialog with a DialogFragment");
+            View tv = FindViewById(R.Id.text);
+            ((TextView)tv).Text = ("Example of displaying an alert dialog with a DialogFragment");
 
             // Watch for button clicks.
-            Button button = (Button)FindViewById(R.Ids.show);
+            Button button = (Button)FindViewById(R.Id.show);
             button.Click += (x,y) => ShowDialog();
         }
 
 
         void ShowDialog() {
             DialogFragment newFragment = MyAlertDialogFragment.NewInstance(
-                    R.Strings.alert_dialog_two_buttons_title);
+                    R.String.alert_dialog_two_buttons_title);
             newFragment.Show(GetSupportFragmentManager(), "dialog");
         }
 
@@ -80,10 +78,10 @@ namespace com.example.android.supportv4.app
                 int title = GetArguments().GetInt("title");
 
                 return new global::Android.App.AlertDialog.Builder(GetActivity())
-                        .SetIcon(R.Drawables.alert_dialog_icon)
+                        .SetIcon(R.Drawable.alert_dialog_icon)
                         .SetTitle(title)
-                        .SetPositiveButton(R.Strings.alert_dialog_ok, new System.EventHandler<DialogInterfaceClickEventArgs>((o,a)=>{((FragmentAlertDialogSupport)GetActivity()).DoPositiveClick();})) 
-                        .SetNegativeButton(R.Strings.alert_dialog_cancel, new System.EventHandler<DialogInterfaceClickEventArgs>((o,a)=>{((FragmentAlertDialogSupport)GetActivity()).DoNegativeClick();}))
+                        .SetPositiveButton(R.String.alert_dialog_ok, new System.EventHandler<DialogInterfaceClickEventArgs>((o,a)=>{((FragmentAlertDialogSupport)GetActivity()).DoPositiveClick();})) 
+                        .SetNegativeButton(R.String.alert_dialog_cancel, new System.EventHandler<DialogInterfaceClickEventArgs>((o,a)=>{((FragmentAlertDialogSupport)GetActivity()).DoNegativeClick();}))
                         .Create();
             }
         }

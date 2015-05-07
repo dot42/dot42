@@ -1,6 +1,5 @@
 ﻿using System;
-using Android.App;
-using Android.Os;
+using Android.App;using Android.OS;
 using Android.Widget;
 using Dot42;
 using Dot42.Manifest;
@@ -29,41 +28,41 @@ namespace Calculator
         protected override void OnCreate(Bundle savedInstance)
         {
             base.OnCreate(savedInstance);
-            SetContentView(R.Layouts.MainLayout);
+            SetContentView(R.Layout.MainLayout);
 
-            tbValue = (TextView) FindViewById(R.Ids.tbValue);
-            var btn = (Button)FindViewById(R.Ids.cmd0);
+            tbValue = (TextView) FindViewById(R.Id.tbValue);
+            var btn = (Button)FindViewById(R.Id.cmd0);
             btn.Click += BtnOnClick;
-            btn = (Button)FindViewById(R.Ids.cmd1);
+            btn = (Button)FindViewById(R.Id.cmd1);
             btn.Click += BtnOnClick;
-            btn = (Button)FindViewById(R.Ids.cmd2);
+            btn = (Button)FindViewById(R.Id.cmd2);
             btn.Click += BtnOnClick;
-            btn = (Button)FindViewById(R.Ids.cmd3);
+            btn = (Button)FindViewById(R.Id.cmd3);
             btn.Click += BtnOnClick;
-            btn = (Button)FindViewById(R.Ids.cmd4);
+            btn = (Button)FindViewById(R.Id.cmd4);
             btn.Click += BtnOnClick;
-            btn = (Button)FindViewById(R.Ids.cmd5);
+            btn = (Button)FindViewById(R.Id.cmd5);
             btn.Click += BtnOnClick;
-            btn = (Button)FindViewById(R.Ids.cmd6);
+            btn = (Button)FindViewById(R.Id.cmd6);
             btn.Click += BtnOnClick;
-            btn = (Button)FindViewById(R.Ids.cmd7);
+            btn = (Button)FindViewById(R.Id.cmd7);
             btn.Click += BtnOnClick;
-            btn = (Button)FindViewById(R.Ids.cmd8);
+            btn = (Button)FindViewById(R.Id.cmd8);
             btn.Click += BtnOnClick;
-            btn = (Button)FindViewById(R.Ids.cmd9);
+            btn = (Button)FindViewById(R.Id.cmd9);
             btn.Click += BtnOnClick;
 
-            btn = (Button)FindViewById(R.Ids.cmdAdd);
+            btn = (Button)FindViewById(R.Id.cmdAdd);
             btn.Click += (s, x) => Calc(Operations.Add);
-            btn = (Button)FindViewById(R.Ids.cmdSub);
+            btn = (Button)FindViewById(R.Id.cmdSub);
             btn.Click += (s, x) => Calc(Operations.Sub);
-            btn = (Button)FindViewById(R.Ids.cmdMul);
+            btn = (Button)FindViewById(R.Id.cmdMul);
             btn.Click += (s, x) => Calc(Operations.Mul);
-            btn = (Button)FindViewById(R.Ids.cmdDiv);
+            btn = (Button)FindViewById(R.Id.cmdDiv);
             btn.Click += (s, x) => Calc(Operations.Div);
-            btn = (Button)FindViewById(R.Ids.cmdEnter);
+            btn = (Button)FindViewById(R.Id.cmdEnter);
             btn.Click += BtnEnterClick;
-            btn = (Button)FindViewById(R.Ids.cmdClear);
+            btn = (Button)FindViewById(R.Id.cmdClear);
             btn.Click += (s, x) => Clear();
         }
 

@@ -15,11 +15,9 @@
  */
 
 using Support4Demos;
-
-using Android.Os;
+using Android.OS;
 using Android.Support.V4.App;
-using Android.Util;
-using Android.View;
+using Android.Util;using Android.Views;
 
 using Dot42.Manifest;
 
@@ -45,23 +43,23 @@ namespace com.example.android.supportv4.app
 
             public override View OnCreateView(LayoutInflater Inflater, ViewGroup container,
                     Bundle savedInstanceState) {
-                View root = Inflater.Inflate(R.Layouts.fragment_context_menu, container, false);
-                RegisterForContextMenu(root.FindViewById(R.Ids.long_press));
+                View root = Inflater.Inflate(R.Layout.fragment_context_menu, container, false);
+                RegisterForContextMenu(root.FindViewById(R.Id.long_press));
                 return root;
             }
 
             public override void OnCreateContextMenu(IContextMenu menu, View v, IContextMenu_IContextMenuInfo menuInfo) {
                 base.OnCreateContextMenu(menu, v, menuInfo);
-                menu.Add(IMenuConstants.NONE, R.Ids.a_item, IMenuConstants.NONE, "Menu A");
-                menu.Add(IMenuConstants.NONE, R.Ids.b_item, IMenuConstants.NONE, "Menu B");
+                menu.Add(IMenuConstants.NONE, R.Id.a_item, IMenuConstants.NONE, "Menu A");
+                menu.Add(IMenuConstants.NONE, R.Id.b_item, IMenuConstants.NONE, "Menu B");
             }
 
             public override bool OnContextItemSelected(IMenuItem item) {
-                switch (item.GetItemId()) {
-                    case R.Ids.a_item:
+                switch (item.ItemId) {
+                    case R.Id.a_item:
                         Log.I("ContextMenu", "Item 1a was chosen");
                         return true;
-                    case R.Ids.b_item:
+                    case R.Id.b_item:
                         Log.I("ContextMenu", "Item 1b was chosen");
                         return true;
                 }

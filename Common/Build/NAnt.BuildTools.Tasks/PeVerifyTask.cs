@@ -31,7 +31,7 @@ namespace NAnt.BuildTools.Tasks
             foreach (var assembly in Assemblies.Includes)
             {
                 string path = Path.Combine(Assemblies.BaseDirectory.FullName, assembly);
-                string args = string.Format(" {0} /unique /nologo ", path);
+                string args = string.Format(" \"{0}\" /unique /nologo ", path);
 
                 if (!Verbose) args += " /quiet ";
 

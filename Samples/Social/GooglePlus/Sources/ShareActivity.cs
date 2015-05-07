@@ -5,11 +5,9 @@ using Dot42.Manifest;
 using Com.Google.Android.Gms.Common;
 using Com.Google.Android.Gms.Plus;
 using Com.Google.Android.Gms.Plus.Model.People;
-
-using Android.View;
+using Android.Views;
 using Android.Support.V4.App;
-using Android.Widget;
-using Android.Os;
+using Android.Widget;using Android.OS;
 using Android.Content;
 using Android.Util;
 
@@ -40,11 +38,11 @@ namespace GooglePlusClient
       override protected void OnCreate(Bundle savedInstanceState)
       {
          base.OnCreate(savedInstanceState);
-         SetContentView(R.Layouts.share_activity);
-         mSendButton = (Button)FindViewById(R.Ids.send_interactive_button);
+         SetContentView(R.Layout.share_activity);
+         mSendButton = (Button)FindViewById(R.Id.send_interactive_button);
          mSendButton.SetOnClickListener(this);
          mSendButton.SetEnabled(true);
-         mEditSendText = (EditText)FindViewById(R.Ids.share_prefill_edit);
+         mEditSendText = (EditText)FindViewById(R.Id.share_prefill_edit);
          mPlusClientFragment =
                  PlusClientFragment.GetPlusClientFragment(this, MomentUtil.VISIBLE_ACTIVITIES);
          mSharing =
@@ -61,7 +59,7 @@ namespace GooglePlusClient
       {
          switch (view.GetId())
          {
-            case R.Ids.send_interactive_button:
+            case R.Id.send_interactive_button:
                // Set sharing so that the share is started in onSignedIn.
                mSharing = true;
                mPlusClientFragment.SignIn(REQUEST_CODE_PLUS_CLIENT_FRAGMENT);
@@ -129,8 +127,8 @@ namespace GooglePlusClient
          // When the user clicks on the deep link, ParseDeepLinkActivity will
          // immediately parse the deep link, and route to the appropriate resource.
          String action = "/?view=true";
-         Android.Net.Uri callToActionUrl = Android.Net.Uri.Parse(GetString(R.Strings.plus_example_deep_link_url) + action);
-         String callToActionDeepLinkId = GetString(R.Strings.plus_example_deep_link_id) + action;
+         Android.Net.Uri callToActionUrl = Android.Net.Uri.Parse(GetString(R.String.plus_example_deep_link_url) + action);
+         String callToActionDeepLinkId = GetString(R.String.plus_example_deep_link_id) + action;
 
          // Create an interactive post builder.
          PlusShare.Builder builder = new PlusShare.Builder(this, plusClient);
@@ -139,14 +137,14 @@ namespace GooglePlusClient
          builder.AddCallToAction(LABEL_VIEW_ITEM, callToActionUrl, callToActionDeepLinkId);
 
          // Set the target url (for desktop use).
-         builder.SetContentUrl(Android.Net.Uri.Parse(GetString(R.Strings.plus_example_deep_link_url)));
+         builder.SetContentUrl(Android.Net.Uri.Parse(GetString(R.String.plus_example_deep_link_url)));
 
          // Set the target deep-link ID (for mobile use).
-         builder.SetContentDeepLinkId(GetString(R.Strings.plus_example_deep_link_id),
+         builder.SetContentDeepLinkId(GetString(R.String.plus_example_deep_link_id),
                  null, null, null);
 
          // Set the pre-filled message.
-         builder.SetText(mEditSendText.GetText().ToString());
+         builder.Text = (mEditSendText.GetText().ToString());
 
          return builder.GetIntent();
       }

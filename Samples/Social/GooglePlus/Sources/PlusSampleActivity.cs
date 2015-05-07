@@ -4,11 +4,9 @@ using Dot42.Manifest;
 
 using Java.Util;
 
-using Android.Support.V4.App;
-using Android.View;
+using Android.Support.V4.App;using Android.Views;
 using Android.Widget;
-using Android.App;
-using Android.Os;
+using Android.App;using Android.OS;
 using Android.Content;
 
 [assembly: Application("dot42 Google Plus Client", Icon = "Icon")]
@@ -41,20 +39,20 @@ namespace GooglePlusClient
       {
          base.OnCreate(savedInstanceState);
          SetListAdapter(new SimpleAdapter(this, getSamples(),
-                 R.Layouts.main_list_item, new String[] { FROM_TITLE },
+                 R.Layout.main_list_item, new String[] { FROM_TITLE },
                  new int[] { Android.R.Id.Text1 }));
       }
 
       override public bool OnCreateOptionsMenu(IMenu menu)
       {
-         GetMenuInflater().Inflate(R.Menus.main_activity_menu, menu);
+         MenuInflater.Inflate(R.Menu.main_activity_menu, menu);
          return true;
       }
 
       override public bool OnOptionsItemSelected(IMenuItem item)
       {
-         int itemId = item.GetItemId();
-         if (itemId == R.Ids.change_locale)
+         int itemId = item.ItemId;
+         if (itemId == R.Id.change_locale)
          {
             Intent intent = new Intent(Intent.ACTION_MAIN);
             intent.SetAction(Android.Provider.Settings.ACTION_LOCALE_SETTINGS);

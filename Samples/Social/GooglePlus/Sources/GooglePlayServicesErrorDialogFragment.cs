@@ -2,8 +2,7 @@
 
 using Com.Google.Android.Gms.Common;
 
-using Android.Support.V4.App;
-using Android.Os;
+using Android.Support.V4.App;using Android.OS;
 
 namespace GooglePlusClient
 {

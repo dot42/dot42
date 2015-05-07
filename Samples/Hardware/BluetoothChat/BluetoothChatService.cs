@@ -1,9 +1,8 @@
 using System.IO;
 using Android.Bluetooth;
-using Android.Content;
-using Android.Os;
+using Android.Content;using Android.OS;
 using Android.Util;
-using Java.Io;
+using Java.IO;
 using Java.Util;
 
 /*

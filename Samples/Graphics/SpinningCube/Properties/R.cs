@@ -10,13 +10,13 @@ namespace SpinningCube
     public sealed class R
     {
         
-        public sealed class Drawables
+        public sealed class Drawable
         {
             
             public const int Icon = 0x7f020000;
         }
         
-        public sealed class Ids
+        public sealed class Id
         {
         }
     }

@@ -15,12 +15,12 @@ namespace KiloBoltRobotGame.Framework
 
         public int getWidth()
         {
-            return bitmap.GetWidth();
+            return bitmap.Width;
         }
 
         public int getHeight()
         {
-            return bitmap.GetHeight();
+            return bitmap.Height;
         }
 
         public ImageFormat getFormat()

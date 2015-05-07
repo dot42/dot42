@@ -1,6 +1,5 @@
 ﻿using System;
-using Android.App;
-using Android.Os;
+using Android.App;using Android.OS;
 using Android.Widget;
 using Dot42;
 using Dot42.Manifest;
@@ -20,14 +19,14 @@ namespace UsingGoogleMobAds.Sources
         protected override void OnCreate(Bundle savedInstance)
         {
             base.OnCreate(savedInstance);
-			SetContentView(R.Layouts.MainActivity);
+			SetContentView(R.Layout.MainActivity);
 
 			// Create the adView
 			adView = new AdView(this, AdSize.BANNER, MY_AD_UNIT_ID);
 
 			// Lookup your LinearLayout assuming it's been given
 			// the attribute android:id="@+id/mainLayout"
-			var layout = FindViewById<LinearLayout>(UsingGoogleMobAds.R.Ids.mainLayout);
+			var layout = FindViewById<LinearLayout>(UsingGoogleMobAds.R.Id.mainLayout);
 
 			
 			// Add the adView to it

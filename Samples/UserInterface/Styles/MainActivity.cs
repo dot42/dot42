@@ -1,5 +1,4 @@
-﻿using Android.App;
-using Android.Os;
+﻿using Android.App;using Android.OS;
 using Dot42;
 using Dot42.Manifest;
 
@@ -13,7 +12,7 @@ namespace SimpleStyle
         protected override void OnCreate(Bundle savedInstance)
         {
             base.OnCreate(savedInstance);
-            SetContentView(R.Layouts.MainLayout);
+            SetContentView(R.Layout.MainLayout);
         }
     }
 }

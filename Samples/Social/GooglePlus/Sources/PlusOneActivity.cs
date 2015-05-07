@@ -2,8 +2,7 @@
 
 using Dot42.Manifest;
 
-using Android.App;
-using Android.Os;
+using Android.App;using Android.OS;
 
 using Com.Google.Android.Gms.Plus;
 using Com.Google.Android.Gms.Common;
@@ -32,7 +31,7 @@ namespace GooglePlusClient
       override protected void OnCreate(Bundle savedInstanceState)
       {
          base.OnCreate(savedInstanceState);
-         SetContentView(R.Layouts.plus_one_activity);
+         SetContentView(R.Layout.plus_one_activity);
 
          // The +1 button does not require scopes.
          mPlusClient = new PlusClient.Builder(this, this, this)
@@ -44,11 +43,11 @@ namespace GooglePlusClient
          // Example:
          // mPlusOneSmallButton.setAnnotation(PlusOneButton.ANNOTATION_INLINE);
          // mPlusOneSmallButton.setSize(PlusOneButton.SIZE_MEDIUM);
-         mPlusOneSmallButton = (PlusOneButton)FindViewById(R.Ids.plus_one_small_button);
-         mPlusOneMediumButton = (PlusOneButton)FindViewById(R.Ids.plus_one_medium_button);
-         mPlusOneTallButton = (PlusOneButton)FindViewById(R.Ids.plus_one_tall_button);
-         mPlusOneStandardButton = (PlusOneButton)FindViewById(R.Ids.plus_one_standard_button);
-         mPlusOneStandardButtonWithAnnotation = (PlusOneButton)FindViewById(R.Ids.plus_one_standard_ann_button);
+         mPlusOneSmallButton = (PlusOneButton)FindViewById(R.Id.plus_one_small_button);
+         mPlusOneMediumButton = (PlusOneButton)FindViewById(R.Id.plus_one_medium_button);
+         mPlusOneTallButton = (PlusOneButton)FindViewById(R.Id.plus_one_tall_button);
+         mPlusOneStandardButton = (PlusOneButton)FindViewById(R.Id.plus_one_standard_button);
+         mPlusOneStandardButtonWithAnnotation = (PlusOneButton)FindViewById(R.Id.plus_one_standard_ann_button);
       }
 
       override protected void OnStart()

@@ -1,6 +1,5 @@
 ﻿using System;
-
-using Android.Os;
+using Android.OS;
 using Android.Support.V4.App;
 
 using Com.Google.Android.Gms.Plus;

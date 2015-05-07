@@ -1,6 +1,4 @@
-using Android.App;
-using Android.Os;
-using Android.View;
+using Android.App;using Android.OS;using Android.Views;
 using Android.Widget;
 using Dot42;
 using Dot42.Manifest;
@@ -35,7 +33,7 @@ namespace Test.Simple
 
         public void TestForLoop()
         {
-            SetContentView(R.Layouts.main);
+            SetContentView(R.Layout.main);
             for (var i = 0; i < 20; i++)
             {
                 AddContentView(new TextView(this) { Text = "hoi"}, new ViewGroup.LayoutParams(1, 1));
@@ -49,7 +47,7 @@ namespace Test.Simple
 
 	    public void OnClick(View obj0)
 	    {
-            SetContentView(R.Layouts.main);
+            SetContentView(R.Layout.main);
         }
 		
 		public void TryFinallyTest() 

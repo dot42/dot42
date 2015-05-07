@@ -1,10 +1,8 @@
 using System;
 using Android.App;
 using Android.Graphics;
-using Android.Hardware;
-using Android.Os;
-using Android.Util;
-using Android.View;
+using Android.Hardware;using Android.OS;
+using Android.Util;using Android.Views;
 using Dot42.Manifest;
 
 /*
@@ -62,7 +60,7 @@ namespace AccelerometerPlay
 
             // Get an instance of the WindowManager
             mWindowManager = (IWindowManager)GetSystemService(WINDOW_SERVICE);
-            mDisplay = mWindowManager.GetDefaultDisplay();
+            mDisplay = mWindowManager.DefaultDisplay;
 
             // Create a bright wake lock
             mWakeLock = mPowerManager.NewWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, this.GetType().Name);
@@ -372,14 +370,14 @@ namespace AccelerometerPlay
                 mAccelerometer = activity.mSensorManager.GetDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
                 var metrics = new DisplayMetrics();
-                activity.WindowManager.GetDefaultDisplay().GetMetrics(metrics);
+                activity.WindowManager.DefaultDisplay.GetMetrics(metrics);
                 mXDpi = metrics.Xdpi;
                 mYDpi = metrics.Ydpi;
                 mMetersToPixelsX = mXDpi / 0.0254f;
                 mMetersToPixelsY = mYDpi / 0.0254f;
 
                 // rescale the ball so it's about 0.5 cm on screen
-                var ball = BitmapFactory.DecodeResource(Resources, R.Drawables.ball);
+                var ball = BitmapFactory.DecodeResource(Resources, R.Drawable.ball);
                 var dstWidth = (int)(sBallDiameter * mMetersToPixelsX + 0.5f);
                 var dstHeight = (int)(sBallDiameter * mMetersToPixelsY + 0.5f);
                 mBitmap = Bitmap.CreateScaledBitmap(ball, dstWidth, dstHeight, true);
@@ -387,7 +385,7 @@ namespace AccelerometerPlay
                 var opts = new BitmapFactory.Options();
                 opts.InDither = true;
                 opts.InPreferredConfig = Bitmap.Config.RGB_565;
-                mWood = BitmapFactory.DecodeResource(Resources, R.Drawables.wood, opts);
+                mWood = BitmapFactory.DecodeResource(Resources, R.Drawable.wood, opts);
             }
 
             protected override void OnSizeChanged(int w, int h, int oldw, int oldh)

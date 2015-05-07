@@ -167,9 +167,7 @@
   <Import Project="$(Dot42ExtensionsPath)\Dot42.CSharp.targets" />
   <Target Name="BeforeBuild">
   </Target>
-  <!--<Target Name="AfterBuild" DependsOnTargets="$(AfterBuildDependsOn)">
-  </Target>-->
-  <Target Name="AfterBuild" DependsOnTargets="Test">
+  <Target Name="AfterBuild" DependsOnTargets="$(AfterBuildDependsOn)">
   </Target>
   <ProjectExtensions />
 </Project>

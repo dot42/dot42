@@ -1,7 +1,6 @@
 ﻿using System;
 using Android.App;
-using Android.Graphics;
-using Android.Os;
+using Android.Graphics;using Android.OS;
 using Android.Widget;
 using Dot42.Manifest;
 
@@ -21,21 +20,21 @@ namespace FontDemo
         {
             base.OnCreate(savedInstanceState);
 
-            SetContentView(R.Layouts.MainLayout);
+            SetContentView(R.Layout.MainLayout);
 
-            var v = FindViewById<TextView>(R.Ids.fontView); 
+            var v = FindViewById<TextView>(R.Id.fontView); 
             Typeface t = null;
             try
             {
                 // Embedded resources are accesssible as asset.
-                t = Typeface.CreateFromAsset(GetAssets(), "FontDemo.fonts.fontdemo.TTF");
+                t = Typeface.CreateFromAsset(Assets, "FontDemo.fonts.fontdemo.TTF");
             }
             catch (Exception e)
             {
                 ShowDialog(DLG_FONTFAILED);
             }
             v.SetTypeface(t, Typeface.BOLD_ITALIC); 
-            v.SetTextSize(200.0f);
+            v.TextSize = (200.0f);
         }
 
         protected override Dialog OnCreateDialog(int id, Bundle args)
@@ -47,8 +46,8 @@ namespace FontDemo
                         var builder = new AlertDialog.Builder(this);
 
                         builder.SetCancelable(false);
-                        builder.SetTitle(R.Strings.FontFailTitle);
-                        builder.SetMessage(R.Strings.FontFailText);
+                        builder.SetTitle(R.String.FontFailTitle);
+                        builder.SetMessage(R.String.FontFailText);
                         builder.SetNeutralButton("OK", (s, x) => { throw new Exception("Failed to load fonts"); });                                               
 
                         return builder.Create();

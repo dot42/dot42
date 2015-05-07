@@ -57,7 +57,7 @@ namespace com.example.stamware
 		 *            The item id
 		 */
 		public ToDoItem(string text, int id) {
-			this.SetText(text);
+			this.Text = (text);
 			this.SetId(id);
 		}
 	

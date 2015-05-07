@@ -1,6 +1,5 @@
 ﻿using Android.App;
-using Android.Location;
-using Android.Os;
+using Android.Location;using Android.OS;
 using Com.Google.Android.Gms.Maps;
 using Com.Google.Android.Gms.Maps.Model;
 using Dot42.Manifest;
@@ -34,7 +33,7 @@ namespace GoogleMaps
         protected override void OnCreate(Bundle savedInstance)
         {
             base.OnCreate(savedInstance);
-            SetContentView(R.Layouts.MainLayout);
+            SetContentView(R.Layout.MainLayout);
 
             SetUpMapIfNeeded();
 
@@ -61,7 +60,7 @@ namespace GoogleMaps
             // Do a null check to confirm that we have not already instantiated the map.
             if (mMap == null)
             {
-                mMap = ((MapFragment)GetFragmentManager().FindFragmentById(R.Ids.map)).GetMap();
+                mMap = ((MapFragment)FragmentManager.FindFragmentById(R.Id.map)).GetMap();
                 // Check if we were successful in obtaining the map.
                 if (mMap != null)
                 {

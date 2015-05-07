@@ -2,10 +2,8 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using Android.App;
 using Android.Bluetooth;
-using Android.Content;
-using Android.Os;
-using Android.Util;
-using Android.View;
+using Android.Content;using Android.OS;
+using Android.Util;using Android.Views;
 using Android.View.Inputmethod;
 using Android.Widget;
 using Dot42.Manifest;
@@ -92,7 +90,7 @@ namespace BluetoothChat
             }
 
             // Set up the window layout
-            SetContentView(R.Layouts.main);
+            SetContentView(R.Layout.main);
 
             // Get local Bluetooth adapter
             mBluetoothAdapter = BluetoothAdapter.DefaultAdapter;
@@ -161,15 +159,15 @@ namespace BluetoothChat
             Log.D(TAG, "setupChat()");
 
             // Initialize the array adapter for the conversation thread
-            mConversationArrayAdapter = new ArrayAdapter<string>(this, R.Layouts.message);
-            mConversationView = (ListView)FindViewById(R.Ids.@in);
+            mConversationArrayAdapter = new ArrayAdapter<string>(this, R.Layout.message);
+            mConversationView = (ListView)FindViewById(R.Id.@in);
             mConversationView.SetAdapter(mConversationArrayAdapter);
 
             // Initialize the compose field with a listener for the return key
-            mOutEditText = (EditText)FindViewById(R.Ids.edit_text_out);
+            mOutEditText = (EditText)FindViewById(R.Id.edit_text_out);
             mOutEditText.EditorAction += (s, x) => {
                 // If the action is a key-up event on the return key, send the message
-                if (x.ActionId == EditorInfo.IME_NULL && x.Event.GetAction() == KeyEvent.ACTION_UP)
+                if (x.ActionId == EditorInfo.IME_NULL && x.Event.Action == KeyEvent.ACTION_UP)
                 {
                     var message = ((TextView)s).GetText().ToString();
                     SendMessage(message);
@@ -180,10 +178,10 @@ namespace BluetoothChat
             };
 
             // Initialize the send button with a listener that for click events
-            mSendButton = (Button)FindViewById(R.Ids.button_send);
+            mSendButton = (Button)FindViewById(R.Id.button_send);
             mSendButton.Click += (s, x) => {
                 // Send a message using content of the edit text widget
-                var view = (TextView)FindViewById(R.Ids.edit_text_out);
+                var view = (TextView)FindViewById(R.Id.edit_text_out);
                 var message = view.GetText().ToString();
                 SendMessage(message);
             };
@@ -252,7 +250,7 @@ namespace BluetoothChat
             // Check that we're actually connected before trying anything
             if (mChatService.State != BluetoothChatService.STATE_CONNECTED)
             {
-                Toast.MakeText(this, R.Strings.not_connected, Toast.LENGTH_SHORT).Show();
+                Toast.MakeText(this, R.String.not_connected, Toast.LENGTH_SHORT).Show();
                 return;
             }
 
@@ -265,7 +263,7 @@ namespace BluetoothChat
 
                 // Reset out string buffer to zero and clear the edit text field
                 mOutStringBuffer.Length = 0;
-                mOutEditText.SetText(mOutStringBuffer);
+                mOutEditText.Text = (mOutStringBuffer);
             }
         }
 
@@ -301,15 +299,15 @@ namespace BluetoothChat
                         switch (msg.Arg1)
                         {
                             case BluetoothChatService.STATE_CONNECTED:
-                                chat.SetStatus(chat.GetString(R.Strings.title_connected_to, chat.mConnectedDeviceName));
+                                chat.SetStatus(chat.GetString(R.String.title_connected_to, chat.mConnectedDeviceName));
                                 chat.mConversationArrayAdapter.Clear();
                                 break;
                             case BluetoothChatService.STATE_CONNECTING:
-                                chat.SetStatus(R.Strings.title_connecting);
+                                chat.SetStatus(R.String.title_connecting);
                                 break;
                             case BluetoothChatService.STATE_LISTEN:
                             case BluetoothChatService.STATE_NONE:
-                                chat.SetStatus(R.Strings.title_not_connected);
+                                chat.SetStatus(R.String.title_not_connected);
                                 break;
                         }
                         break;
@@ -327,11 +325,11 @@ namespace BluetoothChat
                         break;
                     case MESSAGE_DEVICE_NAME:
                         // save the connected device's name
-                        chat.mConnectedDeviceName = msg.GetData().GetString(DEVICE_NAME);
+                        chat.mConnectedDeviceName = msg.Data.GetString(DEVICE_NAME);
                         Toast.MakeText(chat.GetApplicationContext(), "Connected to " + chat.mConnectedDeviceName, Toast.LENGTH_SHORT).Show();
                         break;
                     case MESSAGE_TOAST:
-                        Toast.MakeText(chat.GetApplicationContext(), msg.GetData().GetString(TOAST), Toast.LENGTH_SHORT).Show();
+                        Toast.MakeText(chat.GetApplicationContext(), msg.Data.GetString(TOAST), Toast.LENGTH_SHORT).Show();
                         break;
                 }
             }
@@ -370,7 +368,7 @@ namespace BluetoothChat
                     {
                         // User did not enable Bluetooth or an error occurred
                         Log.D(TAG, "BT not enabled");
-                        Toast.MakeText(this, R.Strings.bt_not_enabled_leaving, Toast.LENGTH_SHORT).Show();
+                        Toast.MakeText(this, R.String.bt_not_enabled_leaving, Toast.LENGTH_SHORT).Show();
                         Finish();
                     }
                     break;
@@ -389,27 +387,27 @@ namespace BluetoothChat
 
         public override bool OnCreateOptionsMenu(IMenu menu)
         {
-            var inflater = GetMenuInflater();
-            inflater.Inflate(R.Menus.option_menu, menu);
+            var inflater = MenuInflater;
+            inflater.Inflate(R.Menu.option_menu, menu);
             return true;
         }
 
         public override bool OnOptionsItemSelected(IMenuItem item)
         {
             Intent serverIntent = null;
-            switch (item.GetItemId())
+            switch (item.ItemId)
             {
-                case R.Ids.secure_connect_scan:
+                case R.Id.secure_connect_scan:
                     // Launch the DeviceListActivity to see devices and do scan
                     serverIntent = new Intent(this, typeof(DeviceListActivity));
                     StartActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_SECURE);
                     return true;
-                case R.Ids.insecure_connect_scan:
+                case R.Id.insecure_connect_scan:
                     // Launch the DeviceListActivity to see devices and do scan
                     serverIntent = new Intent(this, typeof(DeviceListActivity));
                     StartActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_INSECURE);
                     return true;
-                case R.Ids.discoverable:
+                case R.Id.discoverable:
                     // Ensure this device is discoverable by others
                     EnsureDiscoverable();
                     return true;

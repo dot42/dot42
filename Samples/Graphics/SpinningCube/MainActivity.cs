@@ -1,6 +1,5 @@
 ﻿using Android.App;
-using Android.Opengl;
-using Android.Os;
+using Android.Opengl;using Android.OS;
 using Dot42.Manifest;
 
 [assembly: Application("Spinning Cube", Icon = "Icon")]

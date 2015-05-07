@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Android.App;
-using Android.Os;
+using Android.App;using Android.OS;
 using Android.Widget;
 using Dot42;
 using Dot42.Manifest;
@@ -20,14 +19,14 @@ namespace TestAppDot42Async
         protected override void OnCreate(Bundle savedInstance)
         {
             base.OnCreate(savedInstance);
-            SetContentView(R.Layouts.MainLayout);
+            SetContentView(R.Layout.MainLayout);
 
-            status = FindViewById<TextView>(R.Ids.txtStatus);
+            status = FindViewById<TextView>(R.Id.txtStatus);
 
-            var mySynchronizedButton = FindViewById<Button>(R.Ids.mySynchronizedButton);
+            var mySynchronizedButton = FindViewById<Button>(R.Id.mySynchronizedButton);
             mySynchronizedButton.Click += mySynchronizedButton_Click;
 
-            var myNotSynchronizedButton = FindViewById<Button>(R.Ids.myNotSynchronizedButton);
+            var myNotSynchronizedButton = FindViewById<Button>(R.Id.myNotSynchronizedButton);
             myNotSynchronizedButton.Click += myNotSynchronizedButton_Click;
 
             //Set the static synchronization context of the current/latest 'this', allowing the code after the awit to 

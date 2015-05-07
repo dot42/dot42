@@ -10,23 +10,23 @@ namespace OpenGLES20Basic
     public sealed class R
     {
         
-        public sealed class Drawables
+        public sealed class Drawable
         {
             
             public const int ic_launcher = 0x7f020000;
         }
         
-        public sealed class Layouts
+        public sealed class Layout
         {
             
             public const int main = 0x7f030000;
         }
         
-        public sealed class Ids
+        public sealed class Id
         {
         }
         
-        public sealed class Strings
+        public sealed class String
         {
             
             public const int hello = 0x7f050000;

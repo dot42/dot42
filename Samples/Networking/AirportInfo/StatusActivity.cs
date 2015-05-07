@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Text;
-using Android.App;
-using Android.Os;
+using Android.App;using Android.OS;
 using Android.Widget;
 using Dot42.Manifest;
 
@@ -22,7 +21,7 @@ namespace AirportInfo
         protected override void OnCreate(Bundle savedInstance)
         {
             base.OnCreate(savedInstance);
-            SetContentView(R.Layouts.StatusLayout);
+            SetContentView(R.Layout.StatusLayout);
 
             worker = new BackgroundWorker();
             worker.DoWork += OnDoWork;
@@ -52,7 +51,7 @@ namespace AirportInfo
         /// </summary>
         private void OnRunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            var info = FindViewById<TextView>(R.Ids.airportInfo);
+            var info = FindViewById<TextView>(R.Id.airportInfo);
             if (e.Error != null)
             {
                 info.Text = "Failed to get status because " + e.Error.Message;

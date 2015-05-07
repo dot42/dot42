@@ -61,7 +61,7 @@
 
 	<target name="remove-installed-product" description="remove the files from C:\Program Files (x86)\Microsoft Visual Studio 10.0\Common7\IDE\Extensions">
 		<!-- Remove the installed product -->
-		<delete verbose="true">
+		<delete verbose="true" failonerror="false">
 			<fileset basedir="${devenvdir}\Extensions">
 				<include name="dot42/**" />
 			</fileset>

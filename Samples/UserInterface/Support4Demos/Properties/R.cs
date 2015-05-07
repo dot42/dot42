@@ -10,7 +10,7 @@ namespace Support4Demos
     public sealed class R
     {
         
-        public sealed class Drawables
+        public sealed class Drawable
         {
             
             public const int alert_dialog_icon = 0x7f020000;
@@ -26,7 +26,7 @@ namespace Support4Demos
             public const int yellow = 0x7f020005;
         }
         
-        public sealed class Layouts
+        public sealed class Layout
         {
             
             public const int accessibility_delegate = 0x7f030000;
@@ -78,7 +78,7 @@ namespace Support4Demos
             public const int simple_list_item_checkable_1 = 0x7f030017;
         }
         
-        public sealed class Anims
+        public sealed class Anim
         {
             
             public const int decelerate_quint = 0x7f040000;
@@ -92,113 +92,113 @@ namespace Support4Demos
             public const int fragment_slide_right_exit = 0x7f040004;
         }
         
-        public sealed class Ids
+        public sealed class Id
         {
             
-            public const int accessibility_state = 0x7f050035;
+            public const int accessibility_state = 0x7f050036;
             
-            public const int text = 0x7f050036;
+            public const int text = 0x7f050037;
             
-            public const int embedded = 0x7f050037;
+            public const int embedded = 0x7f050038;
             
-            public const int created = 0x7f050038;
+            public const int created = 0x7f050039;
             
-            public const int embedded_land = 0x7f050039;
+            public const int embedded_land = 0x7f05003a;
             
-            public const int long_press = 0x7f05003a;
+            public const int long_press = 0x7f05003b;
             
-            public const int show = 0x7f05003b;
+            public const int show = 0x7f05003c;
             
-            public const int show_dialog = 0x7f05003c;
+            public const int show_dialog = 0x7f05003d;
             
-            public const int inline_text = 0x7f05003d;
+            public const int inline_text = 0x7f05003e;
             
-            public const int frag1hide = 0x7f05003e;
+            public const int frag1hide = 0x7f05003f;
             
-            public const int fragment1 = 0x7f05003f;
+            public const int fragment1 = 0x7f050040;
             
-            public const int frag2hide = 0x7f050040;
+            public const int frag2hide = 0x7f050041;
             
-            public const int fragment2 = 0x7f050041;
+            public const int fragment2 = 0x7f050042;
             
-            public const int titles = 0x7f050042;
+            public const int titles = 0x7f050043;
             
-            public const int details = 0x7f050043;
+            public const int details = 0x7f050044;
             
-            public const int menu1 = 0x7f050044;
+            public const int menu1 = 0x7f050045;
             
-            public const int menu2 = 0x7f050045;
+            public const int menu2 = 0x7f050046;
             
-            public const int pager = 0x7f050046;
+            public const int pager = 0x7f050047;
             
-            public const int goto_first = 0x7f050047;
+            public const int goto_first = 0x7f050048;
             
-            public const int goto_last = 0x7f050048;
+            public const int goto_last = 0x7f050049;
             
-            public const int progress_horizontal = 0x7f050049;
+            public const int progress_horizontal = 0x7f05004a;
             
-            public const int restart = 0x7f05004a;
+            public const int restart = 0x7f05004b;
             
-            public const int simple_fragment = 0x7f05004b;
+            public const int simple_fragment = 0x7f05004c;
             
-            public const int home = 0x7f05004c;
+            public const int home = 0x7f05004d;
             
-            public const int new_fragment = 0x7f05004d;
+            public const int new_fragment = 0x7f05004e;
             
-            public const int delete_fragment = 0x7f05004e;
+            public const int delete_fragment = 0x7f05004f;
             
-            public const int realtabcontent = 0x7f05004f;
+            public const int realtabcontent = 0x7f050050;
             
-            public const int msg = 0x7f050050;
+            public const int msg = 0x7f050051;
             
-            public const int saved = 0x7f050051;
+            public const int saved = 0x7f050052;
             
-            public const int icon = 0x7f050052;
+            public const int icon = 0x7f050053;
             
-            public const int start = 0x7f050053;
+            public const int start = 0x7f050054;
             
-            public const int stop = 0x7f050054;
+            public const int stop = 0x7f050055;
             
-            public const int callback = 0x7f050055;
+            public const int callback = 0x7f050056;
             
-            public const int results = 0x7f050056;
+            public const int results = 0x7f050057;
             
-            public const int get = 0x7f050057;
+            public const int get = 0x7f050058;
             
-            public const int corky = 0x7f050058;
+            public const int corky = 0x7f050059;
             
-            public const int violet = 0x7f050059;
+            public const int violet = 0x7f05005a;
             
-            public const int app_info = 0x7f05005a;
+            public const int app_info = 0x7f05005b;
             
-            public const int share_text = 0x7f05005b;
+            public const int share_text = 0x7f05005c;
             
-            public const int share_file = 0x7f05005c;
+            public const int share_file = 0x7f05005d;
             
-            public const int share_multiple_file = 0x7f05005d;
+            public const int share_multiple_file = 0x7f05005e;
             
-            public const int invisible_item = 0x7f05005e;
+            public const int invisible_item = 0x7f05005f;
             
-            public const int a_item = 0x7f05005f;
+            public const int a_item = 0x7f050060;
             
-            public const int b_item = 0x7f050060;
+            public const int b_item = 0x7f050061;
             
-            public const int c_item = 0x7f050061;
+            public const int c_item = 0x7f050062;
             
-            public const int d_item = 0x7f050062;
+            public const int d_item = 0x7f050063;
             
-            public const int e_item = 0x7f050063;
+            public const int e_item = 0x7f050064;
             
-            public const int f_item = 0x7f050064;
+            public const int f_item = 0x7f050065;
             
-            public const int g_item = 0x7f050065;
+            public const int g_item = 0x7f050066;
             
-            public const int h_item = 0x7f050066;
+            public const int h_item = 0x7f050067;
             
-            public const int excl_item = 0x7f050067;
+            public const int excl_item = 0x7f050068;
         }
         
-        public sealed class Strings
+        public sealed class String
         {
             
             public const int activity_sample_code = 0x7f060000;
@@ -340,7 +340,7 @@ namespace Support4Demos
             public const int sharing_receiver_title = 0x7f060044;
         }
         
-        public sealed class Styles
+        public sealed class Style
         {
             
             public const int ThemeHolo = 0x7f070000;
@@ -348,13 +348,13 @@ namespace Support4Demos
             public const int ThemeDialogWhenLarge = 0x7f070001;
         }
         
-        public sealed class Menus
+        public sealed class Menu
         {
             
             public const int shortcuts = 0x7f080000;
         }
         
-        public sealed class Styleables
+        public sealed class Styleable
         {
             
             public sealed class FragmentArguments
@@ -362,7 +362,7 @@ namespace Support4Demos
                 
                 public const int label = Android.R.Attr.Label;
                 
-public static readonly int[] AllIds = new[] { Android.R.Attr.Label };
+                public static readonly int[] AllIds = new[] { Android.R.Attr.Label };
             }
         }
     }

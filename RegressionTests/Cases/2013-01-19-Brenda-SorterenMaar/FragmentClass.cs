@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Android.App;
-using Android.View;
-using Android.Os;
+using Android.App;using Android.Views;using Android.OS;
 using SorterenMaar.Games;
 
 namespace SorterenMaar

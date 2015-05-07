@@ -10,16 +10,16 @@ namespace DllImportTest
     public sealed class R
     {
         
-        public sealed class Layouts
+        public sealed class Layout
         {
             
             public const int MainActivityLayout = 0x7f020000;
         }
         
-        public sealed class Ids
+        public sealed class Id
         {
             
-            public const int label = 0x7f030035;
+            public const int label = 0x7f030038;
         }
     }
 }

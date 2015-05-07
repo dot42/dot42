@@ -10,7 +10,7 @@ namespace StartSecondActivity
         protected override void OnCreate(Android.Os.Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
-            SetContentView(R.Layouts.SecondActivity);
+            SetContentView(R.Layout.SecondActivity);
         }
     }
 }

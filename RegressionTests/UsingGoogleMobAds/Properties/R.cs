@@ -10,22 +10,22 @@ namespace UsingGoogleMobAds
     public sealed class R
     {
         
-        public sealed class Layouts
+        public sealed class Layout
         {
             
             public const int MainActivity = 0x7f020000;
         }
         
-        public sealed class Ids
+        public sealed class Id
         {
             
-            public const int mainLayout = 0x7f030035;
+            public const int mainLayout = 0x7f030038;
             
-            public const int label = 0x7f030036;
+            public const int label = 0x7f030039;
             
-            public const int editor = 0x7f030037;
+            public const int editor = 0x7f03003a;
             
-            public const int button = 0x7f030038;
+            public const int button = 0x7f03003b;
         }
     }
 }

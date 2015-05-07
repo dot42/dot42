@@ -5,8 +5,7 @@ using System.ComponentModel;
 using System.ServiceModel;
 using System.ServiceModel.Web;
 
-using Android.App;
-using Android.Os;
+using Android.App;using Android.OS;
 using Android.Widget;
 
 using Dot42;
@@ -37,12 +36,12 @@ namespace WcfClient
 		protected override void OnCreate(Bundle savedInstance)
 		{
 			base.OnCreate(savedInstance);
-			SetContentView(R.Layouts.MainLayout);
+			SetContentView(R.Layout.MainLayout);
 
 			// Find all views and connect to them
-			versionTextView = FindViewById<TextView>(R.Ids.Version);
-			todoListView = FindViewById<ListView>(R.Ids.TodoList);
-			var addButton = FindViewById<Button>(R.Ids.AddButton);
+			versionTextView = FindViewById<TextView>(R.Id.Version);
+			todoListView = FindViewById<ListView>(R.Id.TodoList);
+			var addButton = FindViewById<Button>(R.Id.AddButton);
 			addButton.Click += (s, x) => AddRandomTodo();
 
 			// Prepare async worker to load items
@@ -99,12 +98,12 @@ namespace WcfClient
 		{
 			if ((version != null) && (todoItems != null))
 			{
-				versionTextView.SetText(version);
+				versionTextView.Text = (version);
 				todoListView.SetAdapter(new ArrayAdapter<string>(this, Android.R.Layout.Simple_list_item_1, todoItems.ToArray()));
 				todoListView.InvalidateViews();
 			} else 
 			{
-				versionTextView.SetText("An error occurred: " + errorMessage );
+				versionTextView.Text = ("An error occurred: " + errorMessage );
 			}
 		}
 		

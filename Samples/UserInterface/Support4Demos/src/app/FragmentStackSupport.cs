@@ -17,9 +17,7 @@
 using Support4Demos;
 
 using Android.Support.V4.App;
-
-using Android.Os;
-using Android.View;
+using Android.OS;using Android.Views;
 using Android.Widget;
 
 using Dot42;
@@ -34,13 +32,13 @@ namespace com.example.android.supportv4.app
 
         protected override void OnCreate(Bundle savedInstanceState) {
             base.OnCreate(savedInstanceState);
-            SetContentView(R.Layouts.fragment_stack);
+            SetContentView(R.Layout.fragment_stack);
 
             // Watch for button clicks.
-            Button button = (Button)FindViewById(R.Ids.new_fragment); 
+            Button button = (Button)FindViewById(R.Id.new_fragment); 
             button.Click += (s, x) => AddFragmentToStack();
   
-            button = (Button)FindViewById(R.Ids.home);
+            button = (Button)FindViewById(R.Id.home);
             button.Click += (s, x) =>
             {
                 // If there is a back stack, pop it all.
@@ -56,7 +54,7 @@ namespace com.example.android.supportv4.app
                 // Do first time initialization -- Add initial fragment.
                 Fragment newFragment = CountingFragment.NewInstance(mStackLevel);
                 FragmentTransaction ft = GetSupportFragmentManager().BeginTransaction();
-                ft.Add(R.Ids.simple_fragment, newFragment).Commit();
+                ft.Add(R.Id.simple_fragment, newFragment).Commit();
             } else {
                 mStackLevel = savedInstanceState.GetInt("level");
             }
@@ -78,7 +76,7 @@ namespace com.example.android.supportv4.app
             // Add the fragment to the activity, pushing this transaction
             // on to the back stack.
             FragmentTransaction ft = GetSupportFragmentManager().BeginTransaction();
-            ft.Replace(R.Ids.simple_fragment, newFragment);
+            ft.Replace(R.Id.simple_fragment, newFragment);
             ft.SetTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
             ft.AddToBackStack(null);
             ft.Commit();
@@ -118,10 +116,10 @@ namespace com.example.android.supportv4.app
              */
             public override View OnCreateView(LayoutInflater Inflater, ViewGroup container,
                     Bundle savedInstanceState) {
-                View v = Inflater.Inflate(R.Layouts.hello_world, container, false);
-                View tv = v.FindViewById(R.Ids.text);
-                ((TextView)tv).SetText("Fragment #" + mNum);
-                tv.SetBackgroundDrawable(GetResources().GetDrawable(global::Android.R.Drawable.Gallery_thumb));
+                View v = Inflater.Inflate(R.Layout.hello_world, container, false);
+                View tv = v.FindViewById(R.Id.text);
+                ((TextView)tv).Text = ("Fragment #" + mNum);
+                tv.SetBackgroundDrawable(Resources.GetDrawable(global::Android.R.Drawable.Gallery_thumb));
                 return v;
             }
         }

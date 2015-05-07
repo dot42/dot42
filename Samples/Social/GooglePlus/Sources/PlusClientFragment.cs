@@ -3,8 +3,7 @@
 using Java.Util;
 using Java.Lang;
 
-using Android.Support.V4.App;
-using Android.Os;
+using Android.Support.V4.App;using Android.OS;
 using Android.Content;
 
 using Com.Google.Android.Gms.Plus;
@@ -364,11 +363,11 @@ namespace GooglePlusClient
       private void showProgressDialog()
       {
          DialogFragment progressDialog =
-                 (DialogFragment)GetFragmentManager().FindFragmentByTag(TAG_PROGRESS_DIALOG);
+                 (DialogFragment)FragmentManager.FindFragmentByTag(TAG_PROGRESS_DIALOG);
          if (progressDialog == null)
          {
             progressDialog = ProgressDialogFragment.create();
-            progressDialog.Show(GetFragmentManager(), TAG_PROGRESS_DIALOG);
+            progressDialog.Show(FragmentManager, TAG_PROGRESS_DIALOG);
          }
       }
 
@@ -388,7 +387,7 @@ namespace GooglePlusClient
 
          public static ProgressDialogFragment create()
          {
-            return create(R.Strings.progress_message);
+            return create(R.String.progress_message);
          }
 
          override public Android.App.Dialog OnCreateDialog(Bundle savedInstanceState)
@@ -436,7 +435,7 @@ namespace GooglePlusClient
 
       protected void hideProgressDialog()
       {
-         FragmentManager manager = GetFragmentManager();
+         FragmentManager manager = FragmentManager;
          if (manager != null)
          {
             DialogFragment progressDialog = (DialogFragment)manager
@@ -451,26 +450,26 @@ namespace GooglePlusClient
       private void showErrorDialog(DialogFragment errorDialog)
       {
          DialogFragment oldErrorDialog =
-                 (DialogFragment)GetFragmentManager().FindFragmentByTag(TAG_ERROR_DIALOG);
+                 (DialogFragment)FragmentManager.FindFragmentByTag(TAG_ERROR_DIALOG);
          if (oldErrorDialog != null)
          {
             oldErrorDialog.Dismiss();
          }
 
-         errorDialog.Show(GetFragmentManager(), TAG_ERROR_DIALOG);
+         errorDialog.Show(FragmentManager, TAG_ERROR_DIALOG);
       }
 
       private bool isShowingErrorDialog()
       {
          DialogFragment errorDialog =
-                 (DialogFragment)GetFragmentManager().FindFragmentByTag(TAG_ERROR_DIALOG);
+                 (DialogFragment)FragmentManager.FindFragmentByTag(TAG_ERROR_DIALOG);
          return errorDialog != null && !errorDialog.IsHidden();
       }
 
       private void hideErrorDialog()
       {
          DialogFragment errorDialog =
-                 (DialogFragment)GetFragmentManager().FindFragmentByTag(TAG_ERROR_DIALOG);
+                 (DialogFragment)FragmentManager.FindFragmentByTag(TAG_ERROR_DIALOG);
          if (errorDialog != null)
          {
             errorDialog.Dismiss();

@@ -1,6 +1,5 @@
 ﻿using System;
-using Android.App;
-using Android.Os;
+using Android.App;using Android.OS;
 using Android.Widget;
 using Dot42;
 using Dot42.Manifest;
@@ -22,16 +21,16 @@ namespace Dot42Application1
             button.Text = "Click me";
             button.Click += OnButtonClick;
             SetContentView(button);*/
-            SetContentView(R.Layouts.MainActivityLayout);
-            editor = (EditText) FindViewById(R.Ids.editor);
-            button = (Button) FindViewById(R.Ids.button);
+            SetContentView(R.Layout.MainActivityLayout);
+            editor = (EditText) FindViewById(R.Id.editor);
+            button = (Button) FindViewById(R.Id.button);
             button.Click += OnButtonClick;
-            button.Text = this.GetString(R.Strings.testString);
+            button.Text = this.GetString(R.String.testString);
         }
 
-        public override bool OnCreateOptionsMenu(Android.View.IMenu menu)
+        public override bool OnCreateOptionsMenu(Android.Views.IMenu menu)
         {
-            GetMenuInflater().Inflate(R.Menus.Menu1, menu);
+            MenuInflater.Inflate(R.Menu.Menu1, menu);
             return true;
         }
 

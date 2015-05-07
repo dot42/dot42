@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Android.View;
+using System.Text;using Android.Views;
 using Android.App;
 using Android.Widget;
 
@@ -43,17 +42,17 @@ namespace SorterenMaar.Palette
     public bool OnCreateActionMode(ActionMode mode, IMenu menu)
     {
       //mode.SetTitle("Demo");
-      mainActivity.GetMenuInflater().Inflate(R.Menus.OptionsMenu, menu);
+      mainActivity.MenuInflater.Inflate(R.Menu.OptionsMenu, menu);
       return true;
     }
 
     /** This is called when an item in the context menu is selected */
     public bool OnActionItemClicked(ActionMode mode, IMenuItem item)
     {
-      switch (item.GetItemId())
+      switch (item.ItemId)
       {
-        case R.Ids.submenu:
-          Toast.MakeText(mainActivity.GetBaseContext(), "Selected Action1 ", Toast.LENGTH_LONG).Show();
+        case R.Id.submenu:
+          Toast.MakeText(mainActivity.BaseContext, "Selected Action1 ", Toast.LENGTH_LONG).Show();
           mode.Finish();    // Automatically exists the action mode, when the user selects this action
           break;
       }

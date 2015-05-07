@@ -19,10 +19,8 @@ using Support4Demos;
 
 using Android.Support.V4.App;
 
-using Android.Content;
-using Android.Os;
-using Android.Text;
-using Android.View;
+using Android.Content;using Android.OS;
+using Android.Text;using Android.Views;
 using Android.Widget;
 
 using Dot42.Manifest;
@@ -39,14 +37,14 @@ namespace com.example.android.supportv4.app
                     ViewGroup.LayoutParams.FILL_PARENT,
                     ViewGroup.LayoutParams.FILL_PARENT);
             FrameLayout frame = new FrameLayout(this);
-            frame.SetId(R.Ids.simple_fragment);
+            frame.SetId(R.Id.simple_fragment);
             SetContentView(frame, lp);
 
             if (savedInstanceState == null) {
                 // Do first time initialization -- Add fragment.
                 Fragment newFragment = new ReceiveResultFragment();
                 FragmentTransaction ft = GetSupportFragmentManager().BeginTransaction();
-                ft.Add(R.Ids.simple_fragment, newFragment).Commit();
+                ft.Add(R.Id.simple_fragment, newFragment).Commit();
             }
         }
 
@@ -66,16 +64,16 @@ namespace com.example.android.supportv4.app
 
             public override View OnCreateView(LayoutInflater Inflater, ViewGroup container,
                     Bundle savedInstanceState) {
-                View v = Inflater.Inflate(R.Layouts.receive_result, container, false);
+                View v = Inflater.Inflate(R.Layout.receive_result, container, false);
 
                 // Retrieve the TextView widget that will display results.
-                mResults = (TextView)v.FindViewById(R.Ids.results);
+                mResults = (TextView)v.FindViewById(R.Id.results);
 
                 // This allows us to later extend the text buffer.
                 mResults.SetText(mResults.GetText(), TextView.BufferType.EDITABLE);
 
                 // Watch for button clicks.
-                Button getButton = (Button)v.FindViewById(R.Ids.get);
+                Button getButton = (Button)v.FindViewById(R.Id.get);
                 getButton.Click += (o, a) =>
                 {
                     // Start the activity whose result we want to retrieve.  The
@@ -113,7 +111,7 @@ namespace com.example.android.supportv4.app
                         text.Append(int.ToString(resultCode));
                         text.Append(") ");
                         if (data != null) {
-                            text.Append(data.GetAction());
+                            text.Append(data.Action);
                         }
                     }
 

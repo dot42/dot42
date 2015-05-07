@@ -1,6 +1,4 @@
-﻿using Android.App;
-using Android.Os;
-using Android.View;
+﻿using Android.App;using Android.OS;using Android.Views;
 using Android.Widget;
 using Dot42.Manifest;
 
@@ -19,8 +17,8 @@ namespace SimpleMenu
         protected override void OnCreate(Bundle savedInstance)
         {
             base.OnCreate(savedInstance);
-            SetContentView(R.Layouts.MainLayout);
-            tbLog = FindViewById<TextView>(R.Ids.tbLog);
+            SetContentView(R.Layout.MainLayout);
+            tbLog = FindViewById<TextView>(R.Id.tbLog);
         }
 
         /// <summary>
@@ -28,7 +26,7 @@ namespace SimpleMenu
         /// </summary>
         public override bool OnCreateOptionsMenu(IMenu menu)
         {
-            MenuInflater.Inflate(R.Menus.Menu, menu);
+            MenuInflater.Inflate(R.Menu.Menu, menu);
             return true;
         }
 
@@ -37,15 +35,15 @@ namespace SimpleMenu
         /// </summary>
         public override bool OnOptionsItemSelected(IMenuItem item)
         {
-            switch (item.GetItemId())
+            switch (item.ItemId)
             {
-                case R.Ids.item1:
+                case R.Id.item1:
                     tbLog.Text = "item1 has been clicked";
                     break;
-                case R.Ids.groupItem1:
+                case R.Id.groupItem1:
                     tbLog.Text = "groupItem1 has been clicked";
                     break;
-                case R.Ids.submenu_item1:
+                case R.Id.submenu_item1:
                     tbLog.Text = "submenu_item1 has been clicked";
                     break;
 

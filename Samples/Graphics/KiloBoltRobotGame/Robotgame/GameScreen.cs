@@ -83,16 +83,16 @@ namespace KiloBoltRobotGame.Robotgame
 
             // Defining a paint object
             paint1 = new Paint();
-            paint1.SetTextSize(30);
-            paint1.SetTextAlign(Paint.Align.CENTER);
-            paint1.SetAntiAlias(true);
-            paint1.SetColor(Color.WHITE);
+            paint1.TextSize=(30);
+            paint1.TextAlign =(Paint.Align.CENTER);
+            paint1.IsAntiAlias = (true);
+            paint1.Color =(Color.WHITE);
 
             paint2 = new Paint();
-            paint2.SetTextSize(100);
-            paint2.SetTextAlign(Paint.Align.CENTER);
-            paint2.SetAntiAlias(true);
-            paint2.SetColor(Color.WHITE);
+            paint2.TextSize=(100);
+            paint2.TextAlign =(Paint.Align.CENTER);
+            paint2.IsAntiAlias = (true);
+            paint2.Color =(Color.WHITE);
 
         }
 
@@ -103,7 +103,7 @@ namespace KiloBoltRobotGame.Robotgame
             int height = 0;
 
             var scanner = new Scanner(SampleGame.map);
-            while (scanner.HasNextLine())
+            while (scanner.HasNextLine)
             {
                 string line = scanner.NextLine();
 

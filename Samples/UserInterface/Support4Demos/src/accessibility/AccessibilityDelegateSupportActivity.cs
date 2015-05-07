@@ -17,12 +17,10 @@
 using Support4Demos;
 
 using Android.App;
-using Android.Content;
-using Android.Os;
+using Android.Content;using Android.OS;
 using Android.Support.V4.View;
 using Android.Support.V4.View.Accessibility;
-using Android.Util;
-using Android.View;
+using Android.Util;using Android.Views;
 using Android.View.Accessibility;
 
 using Dot42;
@@ -47,7 +45,7 @@ namespace com.example.android.supportv4.accessibility
          */
         protected override void OnCreate(Bundle savedInstanceState) {
             base.OnCreate(savedInstanceState);
-            SetContentView(R.Layouts.accessibility_delegate);
+            SetContentView(R.Layout.accessibility_delegate);
         }
 
         /**
@@ -71,8 +69,8 @@ namespace com.example.android.supportv4.accessibility
                     // Note that View.onPopulateAccessibilityEvent was introduced in
                     // ICS and we would like to tweak a bit the text that is reported to
                     // accessibility services via the AccessibilityEvent.
-                    @event.GetText().Add(host.GetContext().GetString(
-                            R.Strings.accessibility_delegate_custom_text_added));
+                    @event.GetText().Add(host.Context.GetString(
+                            R.String.accessibility_delegate_custom_text_added));
                 }
 
                 public override void OnInitializeAccessibilityNodeInfo(View host,
@@ -82,8 +80,8 @@ namespace com.example.android.supportv4.accessibility
                     // Note that View.onInitializeAccessibilityNodeInfo was introduced in
                     // ICS and we would like to tweak a bit the text that is reported to
                     // accessibility services via the AccessibilityNodeInfo.
-                    info.SetText(host.GetContext().GetString(
-                            R.Strings.accessibility_delegate_custom_text_added));
+                    info.Text = (host.Context.GetString(
+                            R.String.accessibility_delegate_custom_text_added));
                 }
             }
 

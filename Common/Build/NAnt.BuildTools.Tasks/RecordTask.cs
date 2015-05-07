@@ -70,6 +70,7 @@ namespace NAnt.BuildTools.Tasks
                 try
                 {
                     log.Value.WriteLine(msg);
+                    log.Value.Flush();
                 }
                 catch (Exception)
                 {

@@ -9,11 +9,9 @@ using Com.Google.Android.Gms.Common;
 using Com.Google.Android.Gms.Plus;
 using Com.Google.Android.Gms.Plus.Model.People;
 using Com.Google.Android.Gms.Plus.Model.Moments;
-
-using Android.View;
+using Android.Views;
 using Android.Support.V4.App;
-using Android.Widget;
-using Android.Os;
+using Android.Widget;using Android.OS;
 using Android.Content;
 using Android.Util;
 
@@ -37,12 +35,12 @@ namespace GooglePlusClient
       override protected void OnCreate(Bundle savedInstanceState)
       {
          base.OnCreate(savedInstanceState);
-         SetContentView(R.Layouts.person_list_activity);
+         SetContentView(R.Layout.person_list_activity);
 
          mListItems = new ArrayList<String>();
          mListAdapter = new ArrayAdapter<String>(this, Android.R.Layout.Simple_list_item_1,
                  mListItems);
-         mPersonListView = (ListView)FindViewById(R.Ids.person_list);
+         mPersonListView = (ListView)FindViewById(R.Id.person_list);
          mPersonListView.SetAdapter(mListAdapter);
          mPlusClientFragment = PlusClientFragment.GetPlusClientFragment(this,
                  MomentUtil.VISIBLE_ACTIVITIES);
@@ -96,7 +94,7 @@ namespace GooglePlusClient
             {
                case RESULT_CANCELED:
                   // User canceled sign in.
-                  Toast.MakeText(this, R.Strings.greeting_status_sign_in_required,
+                  Toast.MakeText(this, R.String.greeting_status_sign_in_required,
                           Toast.LENGTH_LONG).Show();
                   Finish();
                   break;

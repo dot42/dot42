@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using Android.Content.Res;
 using Android.Graphics;
-using Java.Io;
+using Java.IO;
 
 namespace KiloBoltRobotGame.Framework
 {
@@ -85,13 +85,13 @@ namespace KiloBoltRobotGame.Framework
 
         public void drawLine(int x, int y, int x2, int y2, int color)
         {
-            paint.SetColor(color);
+            paint.Color = (color);
             canvas.DrawLine(x, y, x2, y2, paint);
         }
 
         public void drawRect(int x, int y, int width, int height, int color)
         {
-            paint.SetColor(color);
+            paint.Color =(color);
             paint.SetStyle(Paint.Style.FILL);
             canvas.DrawRect(x, y, x + width - 1, y + height - 1, paint);
         }
@@ -152,12 +152,12 @@ namespace KiloBoltRobotGame.Framework
 
         public int getWidth()
         {
-            return frameBuffer.GetWidth();
+            return frameBuffer.Width;
         }
 
         public int getHeight()
         {
-            return frameBuffer.GetHeight();
+            return frameBuffer.Height;
         }
     }
 }

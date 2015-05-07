@@ -1,9 +1,7 @@
 ﻿using System;
 using Android.App;
 using Android.Content;
-using Android.Media;
-using Android.Os;
-using Android.View;
+using Android.Media;using Android.OS;using Android.Views;
 using Android.Widget;
 using Dot42;
 using Dot42.Manifest;
@@ -25,13 +23,13 @@ namespace Dot42Radio
         protected override void OnCreate(Bundle savedInstance)
         {
             base.OnCreate(savedInstance);
-            SetContentView(R.Layouts.MainLayout);
+            SetContentView(R.Layout.MainLayout);
 
             // Initialize list
-            var listView = FindViewById<ListView>(R.Ids.playList);
+            var listView = FindViewById<ListView>(R.Id.playList);
             listView.ItemClick += (s, x) => OnPlay(x.Position);
             listView.ItemLongClick += (s, x) => { OnStopPlayer(); x.IsHandled = true; };
-            listView.SetAdapter(new StationAdapter(this, UrlList));
+            listView.Adapter = (new StationAdapter(this, UrlList));
         }
 
         /// <summary>
@@ -96,7 +94,7 @@ namespace Dot42Radio
         private class StationAdapter : ArrayAdapter<Station>
         {
             public StationAdapter(Context context, Station[] list)
-                : base(context, R.Layouts.PlayItemLayout, list)
+                : base(context, R.Layout.PlayItemLayout, list)
             {
             }
         }

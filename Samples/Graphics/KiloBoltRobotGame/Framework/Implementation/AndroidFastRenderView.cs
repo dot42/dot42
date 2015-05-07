@@ -1,6 +1,5 @@
 using System.Threading;
-using Android.Graphics;
-using Android.View;
+using Android.Graphics;using Android.Views;
 using Java.Lang;
 
 namespace KiloBoltRobotGame.Framework
@@ -18,7 +17,7 @@ namespace KiloBoltRobotGame.Framework
         {
             this.game = game;
             this.framebuffer = framebuffer;
-            this.holder = GetHolder();
+            this.holder = Holder;
 
         }
 
@@ -36,7 +35,7 @@ namespace KiloBoltRobotGame.Framework
             long startTime = Java.Lang.System.NanoTime();
             while (running)
             {
-                if (!holder.GetSurface().IsValid())
+                if (!holder.Surface.IsValid)
                     continue;
 
 

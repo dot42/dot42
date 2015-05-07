@@ -10,7 +10,7 @@ namespace Case670
     public sealed class R
     {
         
-        public sealed class Ids
+        public sealed class Id
         {
         }
     }

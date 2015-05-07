@@ -1,6 +1,5 @@
 ﻿using System;
-using Android.Content;
-using Android.View;
+using Android.Content;using Android.Views;
 
 namespace SorterenMaar.Palette
 {
@@ -22,7 +21,7 @@ namespace SorterenMaar.Palette
         inDrag = true;
         ClipData data = ClipData.NewPlainText("SpeechDragData", "");
         view.StartDrag(data,
-                       new Android.View.View.DragShadowBuilder(view),
+                       new Android.Views.View.DragShadowBuilder(view),
                        (Object)new SpeechDragData { draggedView = view, dragHandler = this }, 0);
       //}
       return true;
@@ -30,9 +29,9 @@ namespace SorterenMaar.Palette
 
     public bool OnDrag(View view, DragEvent dragEvent)
     {
-      if (dragEvent.GetLocalState() is SpeechDragData)
+      if (dragEvent.LocalState is SpeechDragData)
       {
-        if (((SpeechDragData)dragEvent.GetLocalState()).dragHandler != this)
+        if (((SpeechDragData)dragEvent.LocalState).dragHandler != this)
         {
           // Not this object
           return false;
@@ -51,14 +50,14 @@ namespace SorterenMaar.Palette
 
       bool result = true;
 
-      switch (dragEvent.GetAction())
+      switch (dragEvent.Action)
       {
         case DragEvent.ACTION_DRAG_STARTED:
-          //view.SetAlpha(0.3f);
+          //view.Alpha = (0.3f);
           inDrag = true;
           break;
         case DragEvent.ACTION_DRAG_ENDED:
-          //view.SetAlpha(1.00f);
+          //view.Alpha = (1.00f);
           inDrag = false;
           break;
         case DragEvent.ACTION_DRAG_EXITED:

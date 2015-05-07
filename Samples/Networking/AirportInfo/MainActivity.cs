@@ -1,8 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Linq;
 using Android.App;
-using Android.Content;
-using Android.Os;
+using Android.Content;using Android.OS;
 using Android.Widget;
 using Dot42.Manifest;
 using Java.Lang;
@@ -28,10 +27,10 @@ namespace AirportInfo
         protected override void OnCreate(Bundle savedInstance)
         {
             base.OnCreate(savedInstance);
-            SetContentView(R.Layouts.MainLayout);
+            SetContentView(R.Layout.MainLayout);
             airports = AirportCodes.Select(x => new CodeAndName(x)).ToArray();
 
-            codeList = FindViewById<ListView>(R.Ids.codeList);
+            codeList = FindViewById<ListView>(R.Id.codeList);
             codeList.Adapter = new ArrayAdapter<CodeAndName>(this, Android.R.Layout.Simple_list_item_1, airports);
             codeList.ItemClick += OnAirportClick;
 

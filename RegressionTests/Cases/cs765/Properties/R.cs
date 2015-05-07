@@ -10,13 +10,13 @@ namespace dot42parse
     public sealed class R
     {
         
-        public sealed class Layouts
+        public sealed class Layout
         {
             
             public const int MainLayout = 0x7f020000;
         }
         
-        public sealed class Ids
+        public sealed class Id
         {
         }
     }

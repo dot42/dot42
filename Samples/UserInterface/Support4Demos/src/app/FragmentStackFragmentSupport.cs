@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-using Android.Os;
-using Android.Support.V4.App;
-using Android.View;
+using Android.OS;
+using Android.Support.V4.App;using Android.Views;
 using Android.Widget;
 
 using Support4Demos;
@@ -33,7 +31,7 @@ namespace com.example.android.supportv4.app
                 // Do first time initialization -- Add initial fragment.
                 Fragment newFragment = FragmentStackSupport.CountingFragment.NewInstance(mStackLevel);
                 FragmentTransaction ft = GetChildFragmentManager().BeginTransaction();
-                ft.Add(R.Ids.simple_fragment, newFragment).Commit();
+                ft.Add(R.Id.simple_fragment, newFragment).Commit();
             } else {
                 mStackLevel = savedInstanceState.GetInt("level");
             }
@@ -41,16 +39,16 @@ namespace com.example.android.supportv4.app
 
         public override View OnCreateView(LayoutInflater Inflater, ViewGroup container,
                 Bundle savedInstanceState) {
-            View v = Inflater.Inflate(R.Layouts.fragment_stack, container, false);
+            View v = Inflater.Inflate(R.Layout.fragment_stack, container, false);
 
             // Watch for button clicks.
-            Button button = (Button)v.FindViewById(R.Ids.new_fragment);
+            Button button = (Button)v.FindViewById(R.Id.new_fragment);
             button.Click += (o,a) => AddFragmentToStack();
            
-            button = (Button)v.FindViewById(R.Ids.delete_fragment);
+            button = (Button)v.FindViewById(R.Id.delete_fragment);
             button.Click += (o,a) => GetChildFragmentManager().PopBackStack();
    
-            button = (Button)v.FindViewById(R.Ids.home);
+            button = (Button)v.FindViewById(R.Id.home);
             button.Click += (o, a) =>
             {
                 // If there is a back stack, pop it all.
@@ -79,7 +77,7 @@ namespace com.example.android.supportv4.app
             // Add the fragment to the activity, pushing this transaction
             // on to the back stack.
             FragmentTransaction ft = GetChildFragmentManager().BeginTransaction();
-            ft.Replace(R.Ids.simple_fragment, newFragment);
+            ft.Replace(R.Id.simple_fragment, newFragment);
             ft.SetTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
             ft.AddToBackStack(null);
             ft.Commit();

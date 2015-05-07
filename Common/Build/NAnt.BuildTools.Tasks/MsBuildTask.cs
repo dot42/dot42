@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
-using NAnt.BuildTools.Tasks.IPC;
 using NAnt.BuildTools.Tasks.Utils;
 using NAnt.Core;
 using NAnt.Core.Attributes;
+using NAnt.Core.Types;
 
 namespace NAnt.BuildTools.Tasks
 {
@@ -12,7 +12,7 @@ namespace NAnt.BuildTools.Tasks
     ///  this calls msbuild
     /// </summary>
     [TaskName("msbuild")]
-    public class MsBuildTask : Task
+    public class MsBuildTask : ExternalProgramWithWorkingDirectoryBase
     {
         [ElementName("property")]
         public class Property : Element
@@ -25,9 +25,9 @@ namespace NAnt.BuildTools.Tasks
         }
 
         [TaskAttribute("project", Required = true)]
-        public string ProjectPath { get; set; }
+        public FileInfo ProjectPath { get; set; }
 
-        [TaskAttribute("target", Required = true)]
+        [TaskAttribute("target", Required = false)]
         public string Target { get; set; }
 
         [TaskAttribute("verbosity", Required = false)]
@@ -40,28 +40,29 @@ namespace NAnt.BuildTools.Tasks
         {
             BuildProperties = new List<Property>();
         }
+
         protected override void ExecuteTask()
         {
-            var msbuild = "msbuild.exe";
+            ExeName = "msbuild.exe";
 
-            string props = "";
+            Arguments.Add(new Argument("/nologo"));
+            
+            if(Target != null)
+                Arguments.Add(new Argument("/target:" + Target));
 
             if (BuildProperties.Count > 0)
             {
+                string props = "";
                 props = "/p:\"" + string.Join("\";\"", BuildProperties.Select(p => p.PropertyName + "=" + p.PropertyValue)) + "\"";
+                Arguments.Add(new Argument(props));
             }
-            
-            var args = string.Format("/nologo /target:{0} {1} ", Target, props);
 
             if (!string.IsNullOrEmpty(Verbosity))
-                args += " /verbosity:" + Verbosity;
+                Arguments.Add(new Argument("/verbosity:" + Verbosity));
 
-            args += " " + ProjectPath;
+            Arguments.Add(new Argument(ProjectPath));
 
-            var exitCode = Run.RunAndLog(msbuild, args, Log);
-
-            if (exitCode != 0)
-                throw new BuildException("msbuild failed with error code " + exitCode);
+            base.ExecuteTask();
         }
     }
 }

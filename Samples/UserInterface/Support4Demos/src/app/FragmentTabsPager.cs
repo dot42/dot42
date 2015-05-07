@@ -16,11 +16,9 @@
 
 using Support4Demos;
 
-using Android.Content;
-using Android.Os;
+using Android.Content;using Android.OS;
 using Android.Support.V4.App;
-using Android.Support.V4.View;
-using Android.View;
+using Android.Support.V4.View;using Android.Views;
 using Android.Widget;
 
 using Java.Util;
@@ -44,11 +42,11 @@ namespace com.example.android.supportv4.app
         protected override void OnCreate(Bundle savedInstanceState) {
             base.OnCreate(savedInstanceState);
 
-            SetContentView(R.Layouts.fragment_tabs_pager);
+            SetContentView(R.Layout.fragment_tabs_pager);
             mTabHost = (TabHost)FindViewById(global::Android.R.Id.Tabhost);
             mTabHost.Setup();
 
-            mViewPager = (ViewPager)FindViewById(R.Ids.pager);
+            mViewPager = (ViewPager)FindViewById(R.Id.pager);
 
             mTabsAdapter = new TabsAdapter(this, mTabHost, mViewPager);
 

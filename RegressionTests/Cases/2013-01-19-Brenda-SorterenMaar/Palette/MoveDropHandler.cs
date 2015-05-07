@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Android.View;
+using System.Text;using Android.Views;
 using Android.Content;
 using Android.Graphics;
 using Android.Animation;
-using Android.View.Animation;
+using Android.Views.Animations;
 using Android.Widget;
 using SorterenMaar.Checkers;
 using SorterenMaar.Games;
@@ -31,9 +30,9 @@ namespace SorterenMaar.Palette
       bool result = true;
 
       MoveDragData dragData = null;
-      if (dragEvent.GetLocalState() is MoveDragData)
+      if (dragEvent.LocalState is MoveDragData)
       {
-        dragData = dragEvent.GetLocalState() as MoveDragData;
+        dragData = dragEvent.LocalState as MoveDragData;
       }
       else
       {
@@ -43,13 +42,13 @@ namespace SorterenMaar.Palette
         }
       }
 
-      switch (dragEvent.GetAction())
+      switch (dragEvent.Action)
       {
         case DragEvent.ACTION_DRAG_STARTED:
           break;
         case DragEvent.ACTION_DRAG_ENTERED:
 
-          view.SetBackgroundColor(view.GetContext().GetResources().GetColor(R.Colors.accent_blue));
+          view.SetBackgroundColor(view.Context.Resources.GetColor(R.Color.accent_blue));
           //float[] single = { 1.0F, 0.5F };
           //anim = ObjectAnimator.OfFloat((Object)view, "alpha", single);
           //anim.SetInterpolator(new CycleInterpolator(40));
@@ -58,7 +57,7 @@ namespace SorterenMaar.Palette
           break;
         case DragEvent.ACTION_DRAG_ENDED:
         case DragEvent.ACTION_DRAG_EXITED:
-          view.SetBackgroundColor(view.GetContext().GetResources().GetColor(R.Colors.light_blue));
+          view.SetBackgroundColor(view.Context.Resources.GetColor(R.Color.light_blue));
           //if (anim != null)
           //{
           //  anim.End();
@@ -66,7 +65,7 @@ namespace SorterenMaar.Palette
           //}
           break;
         case DragEvent.ACTION_DROP:
-          view.SetBackgroundColor(view.GetContext().GetResources().GetColor(R.Colors.light_blue));
+          view.SetBackgroundColor(view.Context.Resources.GetColor(R.Color.light_blue));
           //if (anim != null)
           //{
           //  anim.End();
@@ -75,12 +74,12 @@ namespace SorterenMaar.Palette
 
           // Dropped, reassign View to ViewGroup
           var dragedView = dragData.draggedView;
-          ViewGroup owner = (ViewGroup)dragedView.GetParent();
+          ViewGroup owner = (ViewGroup)dragedView.Parent;
           owner.RemoveView(dragedView);
           //LinearLayout container = (LinearLayout)view;
           HorizontalFlowLayout container = (HorizontalFlowLayout)view;
           container.AddView(dragedView);
-          dragedView.SetVisibility(View.VISIBLE);
+          dragedView.Visibility = (View.VISIBLE);
 
           // Inform all listeners
           OnMoveDropAccepted(dragData.dragHandler.CurrentContainer, Id, (dragData as MoveDragData).dragHandler.CheckerData);

@@ -3,10 +3,9 @@ using System.Runtime.CompilerServices;
 using Android.Content;
 using Android.Content.Res;
 using Android.Graphics;
-using Android.Graphics.Drawable;
-using Android.Os;
-using Android.Util;
-using Android.View;
+using Android.Graphics.Drawables;
+using Android.OS;
+using Android.Util;using Android.Views;
 using Android.Widget;
 using Dot42;
 using Java.Lang;
@@ -241,13 +240,13 @@ namespace LunarLander
 
 				Resources res = context.Resources;
 				// cache handles to our key sprites & other drawables
-				mLanderImage = context.Resources.GetDrawable(R.Drawables.lander_plain);
-				mFiringImage = context.Resources.GetDrawable(R.Drawables.lander_firing);
-				mCrashedImage = context.GetResources().GetDrawable(R.Drawables.lander_crashed);
+				mLanderImage = context.Resources.GetDrawable(R.Drawable.lander_plain);
+				mFiringImage = context.Resources.GetDrawable(R.Drawable.lander_firing);
+				mCrashedImage = context.Resources.GetDrawable(R.Drawable.lander_crashed);
 
 				// load background image as a Bitmap instead of a Drawable b/c
 				// we don't need to transform it and it's faster to draw this way
-				mBackgroundImage = BitmapFactory.DecodeResource(res, R.Drawables.earthrise);
+				mBackgroundImage = BitmapFactory.DecodeResource(res, R.Drawable.earthrise);
 
 				// Use the regular lander image as the model size for all sprites
 				mLanderWidth = mLanderImage.IntrinsicWidth;
@@ -255,11 +254,11 @@ namespace LunarLander
 
 				// Initialize paints for speedometer
 				mLinePaint = new Paint();
-				mLinePaint.SetAntiAlias(true);
+				mLinePaint.IsAntiAlias = (true);
 				mLinePaint.SetARGB(255, 0, 255, 0);
 
 				mLinePaintBad = new Paint();
-				mLinePaintBad.SetAntiAlias(true);
+				mLinePaintBad.IsAntiAlias = (true);
 				mLinePaintBad.SetARGB(255, 120, 180, 0);
 
 				mScratchRect = new RectF(0, 0, 0, 0);
@@ -539,19 +538,19 @@ namespace LunarLander
 						ICharSequence str = "";
 						if (mMode == STATE_READY)
 						{
-							str = res.GetText(R.Strings.mode_ready);
+							str = res.GetText(R.String.mode_ready);
 						}
 						else if (mMode == STATE_PAUSE)
 						{
-							str = res.GetText(R.Strings.mode_pause);
+							str = res.GetText(R.String.mode_pause);
 						}
 						else if (mMode == STATE_LOSE)
 						{
-							str = res.GetText(R.Strings.mode_lose);
+							str = res.GetText(R.String.mode_lose);
 						}
 						else if (mMode == STATE_WIN)
 						{
-							str = res.GetString(R.Strings.mode_win_prefix) + mWinsInARow + " " + res.GetString(R.Strings.mode_win_suffix);
+							str = res.GetString(R.String.mode_win_prefix) + mWinsInARow + " " + res.GetString(R.String.mode_win_suffix);
 						}
 
 						if (message != null)
@@ -869,15 +868,15 @@ namespace LunarLander
 					}
 					else if (!onGoal)
 					{
-						message = res.GetText(R.Strings.message_off_pad);
+						message = res.GetText(R.String.message_off_pad);
 					}
 					else if (!(mHeading <= mGoalAngle || mHeading >= 360 - mGoalAngle))
 					{
-						message = res.GetText(R.Strings.message_bad_angle);
+						message = res.GetText(R.String.message_bad_angle);
 					}
 					else if (speed > mGoalSpeed)
 					{
-						message = res.GetText(R.Strings.message_too_fast);
+						message = res.GetText(R.String.message_too_fast);
 					}
 					else
 					{
@@ -913,7 +912,7 @@ namespace LunarLander
 			// create thread only; it's started in surfaceCreated()
 			thread = new LunarThread(this, holder, context, new MessageHandler(this));
 
-			SetFocusable(true); // make sure we get key events
+			IsFocusable = (true); // make sure we get key events
 		}
 
         private class MessageHandler : Handler
@@ -927,8 +926,8 @@ namespace LunarLander
 
             public override void HandleMessage(Message m)
             {
-                view.mStatusText.SetVisibility(m.GetData().GetInt("viz"));
-                view.mStatusText.SetText(m.GetData().GetString("text"));
+                view.mStatusText.Visibility = (m.Data.GetInt("viz"));
+                view.mStatusText.Text = (m.Data.GetString("text"));
             }
         }
 

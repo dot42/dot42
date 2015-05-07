@@ -1,6 +1,5 @@
 ﻿using Android.App;
-using Android.Content;
-using Android.View;
+using Android.Content;using Android.Views;
 using Android.Widget;
 
 using Test1; 
@@ -38,21 +37,21 @@ namespace com.example.stamware
 			ToDoItem currentItem = GetItem(position);
 	
 			if (row == null) {
-				LayoutInflater inflater = ((Activity) mContext).GetLayoutInflater();
+				LayoutInflater inflater = ((Activity) mContext).LayoutInflater;
 				row = inflater.Inflate(mLayoutResourceId, parent, false);
 			}
 	
-			row.SetTag(currentItem);
-			CheckBox checkBox = (CheckBox) row.FindViewById(R.Ids.checkToDoItem);
-			checkBox.SetText(currentItem.GetText());
-			checkBox.SetChecked(false);
-			checkBox.SetEnabled(true);
+			row.Tag = currentItem;
+			CheckBox checkBox = (CheckBox) row.FindViewById(R.Id.checkToDoItem);
+			checkBox.Text = currentItem.GetText();
+			checkBox.IsChecked = (false);
+			checkBox.IsEnabled = (true);
 
 		    checkBox.Click += (sender, args) =>
 		        {
-		            if (checkBox.IsChecked())
+		            if (checkBox.IsChecked)
 		            {
-		                checkBox.SetEnabled(false);
+		                checkBox.IsEnabled = false;
 		                if (mContext is ToDoActivity)
 		                {
 		                    ToDoActivity activity = (ToDoActivity) mContext;

@@ -1,7 +1,6 @@
 ﻿using System;
 using Android.Content;
-using Android.Util;
-using Android.View;
+using Android.Util;using Android.Views;
 using Android.Widget;
 
 namespace SorterenMaar.UserControls
@@ -39,9 +38,9 @@ namespace SorterenMaar.UserControls
       int height = MeasureSpec.GetSize(heightMeasureSpec);
 
       // increment the x position as we progress through a line
-      int xpos = GetPaddingLeft();
+      int xpos = PaddingLeft;
       // increment the y position as we progress through the lines
-      int ypos = GetPaddingTop();
+      int ypos = PaddingTop;
       // the height of the current line
       int line_height = 0;
 
@@ -56,19 +55,19 @@ namespace SorterenMaar.UserControls
       MarginLayoutParams childMarginLayoutParams;
       int childWidth, childHeight, childMarginLeft, childMarginRight, childMarginTop, childMarginBottom;
 
-      for (int i = 0; i < GetChildCount(); i++)
+      for (int i = 0; i < ChildCount; i++)
       {
         child = GetChildAt(i);
 
-        if (child.GetVisibility() != GONE)
+        if (child.Visibility!= GONE)
         {
-          childWidth = child.GetMeasuredWidth();
-          childHeight = child.GetMeasuredHeight();
+          childWidth = child.MeasuredWidth;
+          childHeight = child.MeasuredHeight;
 
-          if (child.GetLayoutParams() != null
-              && child.GetLayoutParams() is MarginLayoutParams)
+          if (child.LayoutParameters != null
+              && child.LayoutParameters is MarginLayoutParams)
           {
-            childMarginLayoutParams = (MarginLayoutParams)child.GetLayoutParams();
+            childMarginLayoutParams = (MarginLayoutParams)child.LayoutParameters;
 
             childMarginLeft = childMarginLayoutParams.LeftMargin;
             childMarginRight = childMarginLayoutParams.RightMargin;
@@ -83,11 +82,11 @@ namespace SorterenMaar.UserControls
             childMarginBottom = 0;
           }
 
-          if (xpos + childMarginLeft + childWidth + childMarginRight + GetPaddingRight() > width)
+          if (xpos + childMarginLeft + childWidth + childMarginRight + PaddingRight > width)
           {
             // this child will need to go on a new line
 
-            xpos = GetPaddingLeft();
+            xpos = PaddingLeft;
             ypos += line_height;
 
             line_height = childMarginTop + childHeight + childMarginBottom;
@@ -102,7 +101,7 @@ namespace SorterenMaar.UserControls
         }
       }
 
-      ypos += line_height + GetPaddingBottom();
+      ypos += line_height + PaddingBottom;
 
       if (MeasureSpec.GetMode(heightMeasureSpec) == MeasureSpec.UNSPECIFIED)
         // set height as measured since there's no height restrictions
@@ -118,9 +117,9 @@ namespace SorterenMaar.UserControls
     protected override void OnLayout(bool changed, int l, int t, int r, int b)
     {
       // increment the x position as we progress through a line
-      int xpos = GetPaddingLeft();
+      int xpos = PaddingLeft;
       // increment the y position as we progress through the lines
-      int ypos = GetPaddingTop();
+      int ypos = PaddingTop;
       // the height of the current line
       int line_height = 0;
 
@@ -128,19 +127,19 @@ namespace SorterenMaar.UserControls
       MarginLayoutParams childMarginLayoutParams;
       int childWidth, childHeight, childMarginLeft, childMarginRight, childMarginTop, childMarginBottom;
 
-      for (int i = 0; i < GetChildCount(); i++)
+      for (int i = 0; i < ChildCount; i++)
       {
         child = GetChildAt(i);
 
-        if (child.GetVisibility() != GONE)
+        if (child.Visibility != GONE)
         {
-          childWidth = child.GetMeasuredWidth();
-          childHeight = child.GetMeasuredHeight();
+          childWidth = child.MeasuredWidth;
+          childHeight = child.MeasuredHeight;
 
-          if (child.GetLayoutParams() != null
-              && child.GetLayoutParams() is MarginLayoutParams)
+          if (child.LayoutParameters != null
+              && child.LayoutParameters is MarginLayoutParams)
           {
-            childMarginLayoutParams = (MarginLayoutParams)child.GetLayoutParams();
+            childMarginLayoutParams = (MarginLayoutParams)child.LayoutParameters;
 
             childMarginLeft = childMarginLayoutParams.LeftMargin;
             childMarginRight = childMarginLayoutParams.RightMargin;
@@ -155,11 +154,11 @@ namespace SorterenMaar.UserControls
             childMarginBottom = 0;
           }
 
-          if (xpos + childMarginLeft + childWidth + childMarginRight + GetPaddingRight() > r - l)
+          if (xpos + childMarginLeft + childWidth + childMarginRight + PaddingRight > r - l)
           {
             // this child will need to go on a new line
 
-            xpos = GetPaddingLeft();
+            xpos = PaddingLeft;
             ypos += line_height;
 
             line_height = childHeight + childMarginTop + childMarginBottom;

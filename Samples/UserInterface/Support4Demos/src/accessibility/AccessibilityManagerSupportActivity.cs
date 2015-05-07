@@ -17,8 +17,7 @@ using System.Text;
 
 using Android.Accessibilityservice;
 using Android.App;
-using Android.Content.Pm;
-using Android.Os;
+using Android.Content.Pm;using Android.OS;
 using Android.Support.V4.Accessibilityservice;
 using Android.Support.V4.View.Accessibility;
 using Android.View.Accessibility;
@@ -61,7 +60,7 @@ namespace com.example.android.supportv4.accessibility
             public override void OnAccessibilityStateChanged(bool enabled) 
             {
                 Toast.MakeText(accessibilityManagerSupportActivity,
-                            accessibilityManagerSupportActivity.GetString(R.Strings.accessibility_manager_accessibility_state, enabled),
+                            accessibilityManagerSupportActivity.GetString(R.String.accessibility_manager_accessibility_state, enabled),
                             Toast.LENGTH_SHORT).Show();
             }
         }
@@ -78,10 +77,10 @@ namespace com.example.android.supportv4.accessibility
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
-            SetContentView(R.Layouts.accessibility_manager);
+            SetContentView(R.Layout.accessibility_manager);
             mAccessibilityManager = (AccessibilityManager) GetSystemService(
                     Service.ACCESSIBILITY_SERVICE);
-            mAccessibilityStateView = (TextView) FindViewById(R.Ids.accessibility_state);
+            mAccessibilityStateView = (TextView) FindViewById(R.Id.accessibility_state);
             RegisterAccessibilityStateChangeListener();
         }
 
@@ -128,18 +127,18 @@ namespace com.example.android.supportv4.accessibility
                     // an accessibility service. Again accessed them via the support library.
                     ResolveInfo resolveInfo = AccessibilityServiceInfoCompat.GetResolveInfo(service);
                     string serviceDescription = GetString(
-                            R.Strings.accessibility_manager_enabled_service,
+                            R.String.accessibility_manager_enabled_service,
                             resolveInfo.LoadLabel(GetPackageManager()),
                             AccessibilityServiceInfoCompat.FeedbackTypeToString(service.FeedbackType),
                             AccessibilityServiceInfoCompat.GetDescription(service),
                             AccessibilityServiceInfoCompat.GetSettingsActivityName(service));
                     builder.Append(serviceDescription);
                 }
-                mAccessibilityStateView.SetText(builder);
+                mAccessibilityStateView.Text = (builder);
             } else {
                 // Either no services or the platform API version is not high enough.
-                mAccessibilityStateView.SetText(GetString(
-                        R.Strings.accessibility_manager_no_enabled_services));
+                mAccessibilityStateView.Text = (GetString(
+                        R.String.accessibility_manager_no_enabled_services));
             }
         }
     }

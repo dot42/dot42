@@ -20,10 +20,8 @@ using com.example.android.supportv4;
 using Android.Support.V4.App;
 
 using Android.Content;
-using Android.Content.Res;
-using Android.Os;
-using Android.Util;
-using Android.View;
+using Android.Content.Res;using Android.OS;
+using Android.Util;using Android.Views;
 using Android.Widget;
 
 using Dot42;
@@ -43,7 +41,7 @@ namespace com.example.android.supportv4.app
         protected override void OnCreate(Bundle savedInstanceState) {
             base.OnCreate(savedInstanceState);
 
-            SetContentView(R.Layouts.fragment_layout_support);
+            SetContentView(R.Layout.fragment_layout_support);
         }
 
 
@@ -58,7 +56,7 @@ namespace com.example.android.supportv4.app
             protected override void OnCreate(Bundle savedInstanceState) {
                 base.OnCreate(savedInstanceState);
 
-                if (GetResources().GetConfiguration().Orientation
+                if (Resources.Configuration.Orientation
                         == Configuration.ORIENTATION_LANDSCAPE) {
                     // If the screen is now in landscape mode, we can show the
                     // dialog in-line with the list so we don't need this activity.
@@ -93,13 +91,13 @@ namespace com.example.android.supportv4.app
 
                 // Populate list with our static array of titles.
                 SetListAdapter(new ArrayAdapter<string>(GetActivity(),
-                        R.Layouts.simple_list_item_checkable_1,
+                        R.Layout.simple_list_item_checkable_1,
                         global::Android.R.Id.Text1, Shakespeare.TITLES));
 
                 // Check to see if we have a frame in which to embed the details
                 // fragment directly in the containing UI.
-                View detailsFrame = GetActivity().FindViewById(R.Ids.details);
-                mDualPane = detailsFrame != null && detailsFrame.GetVisibility() == View.VISIBLE;
+                View detailsFrame = GetActivity().FindViewById(R.Id.details);
+                mDualPane = detailsFrame != null && detailsFrame.Visibility == View.VISIBLE;
 
                 if (savedInstanceState != null) {
                     // Restore last state for checked position.
@@ -138,18 +136,18 @@ namespace com.example.android.supportv4.app
 
                     // Check what fragment is currently shown, Replace if needed.
                     DetailsFragment details = (DetailsFragment)
-                            GetFragmentManager().FindFragmentById(R.Ids.details);
+                            FragmentManager.FindFragmentById(R.Id.details);
                     if (details == null || details.GetShownIndex() != index) {
                         // Make new fragment to show this selection.
                         details = DetailsFragment.NewInstance(index);
 
                         // Execute a transaction, replacing any existing fragment
                         // with this one inside the frame.
-                        FragmentTransaction ft = GetFragmentManager().BeginTransaction();
+                        FragmentTransaction ft = FragmentManager.BeginTransaction();
                         //if (index == 0) {
-                            ft.Replace(R.Ids.details, details);
+                            ft.Replace(R.Id.details, details);
                         /*} else {
-                            ft.Replace(R.Ids.a_item, details);
+                            ft.Replace(R.Id.a_item, details);
                         }*/
                         ft.SetTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
                         ft.Commit();
@@ -209,10 +207,10 @@ namespace com.example.android.supportv4.app
                 ScrollView scroller = new ScrollView(GetActivity());
                 TextView text = new TextView(GetActivity());
                 int pAdding = (int)TypedValue.ApplyDimension(TypedValue.COMPLEX_UNIT_DIP,
-                        4, GetActivity().GetResources().GetDisplayMetrics());
+                        4, GetActivity().Resources.GetDisplayMetrics());
                 text.SetPadding(pAdding, pAdding, pAdding, pAdding);
                 scroller.AddView(text);
-                text.SetText(Shakespeare.DIALOGUE[GetShownIndex()]);
+                text.Text = (Shakespeare.DIALOGUE[GetShownIndex()]);
                 return scroller;
             }
         }

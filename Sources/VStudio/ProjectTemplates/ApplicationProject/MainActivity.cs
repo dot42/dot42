@@ -15,7 +15,7 @@ namespace $safeprojectname$
         protected override void OnCreate(Bundle savedInstance) 
         {
             base.OnCreate(savedInstance);
-            SetContentView(R.Layouts.MainLayout);
+            SetContentView(R.Layout.MainLayout);
         }
    }
 }

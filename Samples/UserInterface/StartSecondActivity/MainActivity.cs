@@ -1,7 +1,5 @@
 ﻿using Android.App;
-using Android.Content;
-using Android.Os;
-using Android.View;
+using Android.Content;using Android.OS;using Android.Views;
 using Dot42;
 using Dot42.Manifest;
 
@@ -15,7 +13,7 @@ namespace StartSecondActivity
         protected override void OnCreate(Bundle savedInstance)
         {
             base.OnCreate(savedInstance);
-            SetContentView(R.Layouts.MainLayout);
+            SetContentView(R.Layout.MainLayout);
         }
 
         [Include]

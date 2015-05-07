@@ -1,5 +1,4 @@
-﻿using Android.App;
-using Android.Os;
+﻿using Android.App;using Android.OS;
 using Dot42.Manifest;
 
 [assembly: Application("dot42 Simple Fragment Sample")]
@@ -12,7 +11,7 @@ namespace SimpleFragment
         protected override void OnCreate(Bundle savedInstance)
         {
             base.OnCreate(savedInstance);
-            SetContentView(R.Layouts.MainLayout);
+            SetContentView(R.Layout.MainLayout);
         }
     }
 }

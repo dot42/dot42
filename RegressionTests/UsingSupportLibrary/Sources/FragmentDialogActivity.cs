@@ -1,6 +1,5 @@
 ﻿using System;
-using Android.App;
-using Android.Os;
+using Android.App;using Android.OS;
 using Android.Widget;
 using Dot42;
 using Dot42.Manifest;
@@ -14,7 +13,7 @@ namespace UsingSuportLibrary.Sources
         protected override void OnCreate(Bundle savedInstance)
         {
             base.OnCreate(savedInstance);
-            SetContentView(R.Layouts.FragmentDialogActivity_Layout);
+            SetContentView(R.Layout.FragmentDialogActivity_Layout);
         }
     }
 }

@@ -3,8 +3,7 @@ using System.Net;
 using System.Threading;
 
 using Android.App;
-using Android.Graphics;
-using Android.Os;
+using Android.Graphics;using Android.OS;
 using Android.Widget;
 
 using Dot42.Manifest;
@@ -21,7 +20,7 @@ namespace dot42AppNUnit
         protected override void OnCreate(Bundle savedInstance)
         {
             base.OnCreate(savedInstance);
-            SetContentView(R.Layouts.MainLayout);
+            SetContentView(R.Layout.MainLayout);
 
             SynchronizationContext.SetSynchronizationContext(this);
 
@@ -35,24 +34,24 @@ namespace dot42AppNUnit
                 var webClient = new WebClient();
                 var data = await webClient.DownloadDataTaskAsync("http://www.dot42.com/dot42/img/logo.png").ConfigureAwait(this);
 
-                var textView = FindViewById<TextView>(R.Ids.MyText);
+                var textView = FindViewById<TextView>(R.Id.MyText);
 
                 var bitmap = BitmapFactory.DecodeByteArray(data, 0, data.Length);
                 if (bitmap == null)
                 {
-                    textView.SetText("BitmapFactory cannot convert bytes into Bitmap");
+                    textView.Text = ("BitmapFactory cannot convert bytes into Bitmap");
                 }
                 else
                 {
-                    textView.SetText("Ready:");
-                    var imageView = FindViewById<ImageView>(R.Ids.MyImage);
+                    textView.Text = ("Ready:");
+                    var imageView = FindViewById<ImageView>(R.Id.MyImage);
                     imageView.SetImageBitmap(bitmap);
                 }
             }
             catch (Exception ex)
             {
-                var textView = FindViewById<TextView>(R.Ids.MyText);
-                textView.SetText("Exception: " + ex.Message);
+                var textView = FindViewById<TextView>(R.Id.MyText);
+                textView.Text = ("Exception: " + ex.Message);
             }
         }
     }

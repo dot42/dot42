@@ -16,8 +16,7 @@
 
 using Android.Content;
 using Android.Database;
-using Android.Net;
-using Android.Os;
+using Android.Net;using Android.OS;
 using Android.Util;
 
 using System.IO;
@@ -72,7 +71,7 @@ namespace com.example.android.supportv4.content
                     (path.Equals("/foo.txt") || path.Equals("/bar.txt"))) {
                 try {
                     return ParcelFileDescriptor.Open(
-                            new Java.Io.File(GetContext().GetFilesDir() + path),
+                            new Java.Io.File(Context.GetFilesDir() + path),
                             ParcelFileDescriptor.MODE_READ_ONLY);
                 } catch (FileNotFoundException) {
                     Log.E(TAG, "Bad file " + uri);
