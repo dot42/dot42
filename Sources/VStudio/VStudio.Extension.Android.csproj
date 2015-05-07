@@ -186,4 +186,7 @@
   <PropertyGroup>
     <!--PostBuildEvent>xcopy /Y /C $(TargetDir)*.* $(SolutionDir)\Build\Application</PostBuildEvent-->
   </PropertyGroup>
+  <PropertyGroup>
+    <PostBuildEvent>copy $(TargetDir)$(TargetName).vsix $(ProjectDir)..\..\Build\Application\dot42.Android.vsix</PostBuildEvent>
+  </PropertyGroup>
 </Project>

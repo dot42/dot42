@@ -32,7 +32,7 @@ namespace Dot42.FrameworkBuilder
             ShowHelp |= (string.IsNullOrEmpty(SourceProperties));
             ShowHelp |= (string.IsNullOrEmpty(OutputFolder));
             ShowHelp |= (string.IsNullOrEmpty(ForwardAssembliesFolder));
-            ShowHelp |= (string.IsNullOrEmpty(PublicKeyToken));
+            //ShowHelp |= (string.IsNullOrEmpty(PublicKeyToken));
         }
 
         public bool ShowHelp { get; private set; }

@@ -6,12 +6,17 @@
 	<property name="basedir" value="${project::get-base-directory()}" />
 	<include buildfile="${basedir}\Common\Build\Common.build"/>
 	<include buildfile="${basedir}\Common\Build\Common-Release.build"/>
-	<property name="vs10comntools" value="${environment::get-variable('VS100COMNTOOLS')}"/>
+	<!--property name="vs10comntools" value="${environment::get-variable('VS100COMNTOOLS')}"/-->
 	<property name="vs11comntools" value="${environment::get-variable('VS110COMNTOOLS')}"/>
-	<property name="devenvdir" value="${path::get-full-path(path::combine(vs10comntools, '..\ide'))}"/>
+	<property name="vs12comntools" value="${environment::get-variable('VS120COMNTOOLS')}"/>	
+	<!--property name="devenvdir" value="${path::get-full-path(path::combine(vs10comntools, '..\ide'))}"/-->
 	<property name="devenv11dir" value="${path::get-full-path(path::combine(vs11comntools, '..\ide'))}"/>
-	<property name="devenv" value="${devenvdir}\devenv.com"/>
+	<property name="devenv12dir" value="${path::get-full-path(path::combine(vs12comntools, '..\ide'))}"/>
+	<property name="devenvdir" value="${devenv12dir}"/>
+	<!--property name="devenv" value="${devenvdir}\devenv.com"/-->
 	<property name="devenv11" value="${devenv11dir}\devenv.com"/>
+	<property name="devenv12" value="${devenv12dir}\devenv.com"/>
+	<property name="devenv" value="${devenv12}"/>
 	<property name="adb" value="${basedir}\Binaries\Platform-tools\adb.exe"/>
 
 	<property name="product" value="dot42"/>
@@ -84,9 +89,9 @@
 		<msbuild project="${basedir}\Tools.sln" target="Rebuild">
 			<property name="Configuration" value="${configuration}"/>
 		</msbuild>
-		<msbuild project="${basedir}\VStudio11.sln" target="Rebuild">
+		<!--msbuild project="${basedir}\VStudio11.sln" target="Rebuild">
 			<property name="Configuration" value="${configuration}"/>
-		</msbuild>
+		</msbuild-->
 		<msbuild project="${basedir}\VStudio.Android.sln" target="Rebuild">
 			<property name="Configuration" value="${configuration}"/>
 		</msbuild>
@@ -179,8 +184,8 @@
 		<!-- Test all verififability -->
 		<peverify>
 			<assemblies basedir="${appdir}">
-				<include name="ApkSpy.exe"/>
-				<include name="dot42DevCenter.exe"/>
+				<include name="dot42ApkSpy.exe"/>
+				<include name="Android\dot42DevCenter.exe"/>
 				<include name="dot42Check.exe"/>
 				<include name="dot42Compiler.exe"/>
 				<exclude name="dot42.VStudio10.dll"/>
@@ -191,7 +196,7 @@
 		<assembly-reference-check>
 			<assemblies basedir="${appdir}">
 				<include name="dot42ApkSpy.exe"/>
-				<include name="dot42DevCenter.exe"/>
+				<include name="Android\dot42DevCenter.exe"/>
 				<include name="dot42Check.exe"/>
 				<include name="dot42Compiler.exe"/>
 				<exclude name="dot42.VStudio10.dll"/>
@@ -288,7 +293,6 @@
 				<arg value="-sp=${folder}\source.properties"/>
 				<arg value="-out=${srcdir}\Framework\Generated"/>
 				<arg value="-doxygenxml=${srcdir}\Android\Docs\xml"/>
-				<arg value="-publickeytoken=0a72796057571e65"/>
 				<arg value="-forwardassembliesfolder=${srcdir}\Framework\ForwardAssemblies\"/>
 			</exec>	
 		</foreach>
@@ -388,7 +392,7 @@
 		</exec>
 
 		<!-- Compile various libraries into dlls -->
-		<msbuild project="${basedir}\Libraries.sln" target="Rebuild" verbosity="Quiet">
+		<!--msbuild project="${basedir}\Libraries.sln" target="Rebuild" verbosity="Quiet">
 			<property name="Dot42ExtensionsPath" value="${basedir}\Build\Application\Scripts\Android" />
 			<property name="Dot42Folder" value="${basedir}\Build\Application" />
 			<property name="Dot42ReferenceAssembliesFolder" value="${basedir}\Build\Application\Frameworks" />
@@ -399,7 +403,7 @@
 			<property name="FrameworksDirectory" value="${srcdir}\Framework\Generated"/>
 			<property name="OutputPath" value="${outfolder}"/>
 			<property name="VersionFile" value="${folder}\Version.cs"/>
-		</msbuild>
+		</msbuild-->
 
 		<!-- Compare API -->
 		<foreach item="File" property="dllfile">

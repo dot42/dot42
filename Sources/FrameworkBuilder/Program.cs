@@ -68,7 +68,7 @@ namespace Dot42.FrameworkBuilder
                         ToolOptions.InputSourceProperties.CreateArg(Path.Combine(platformFolder, "source.properties")),
                         ToolOptions.OutputFolder.CreateArg(folder),
                         //ToolOptions.DoxygenXmlFolder.CreateArg(xmlFolder),
-                        ToolOptions.PublicKeyToken.CreateArg("0a72796057571e65"),
+                        //ToolOptions.PublicKeyToken.CreateArg("0a72796057571e65"),
                         ToolOptions.ForwardAssembliesFolder.CreateArg(forwardAssembliesFolder)
                     };
                 }
