@@ -54,8 +54,20 @@ namespace Dot42.ImportJarLib.Model
                             NetTypeDefinition @class;
                             if (owner.target.TypeNameMap.TryGetByJavaClassName(x.DeclaringClass.ClassName, out @class) && (!@class.IsInterface))
                             {
+                                // This code is a fallback for when we override a method from
+                                // another assembly that has been renamed, e.g. because it has
+                                // been transformed into a getter/setter. For some reasons 
+                                // unknown to me it also allows us to detect "ToString()" 
+                                // overrides.
+
+                                var overridenMethod = @class.Methods.FirstOrDefault(m => m.javaMethod == x);
+                                if (overridenMethod != null && !owner.IsSignConverted /* don't know what exactly happens, but without this sign check 
+                                                                                       * we get compile errors for methods with byte[]/sbyte[] return values.*/)
+                                {
+                                    newOverrides.Add(overridenMethod);
+                                }
+
                                 visitedTypes.Add(@class);
-                                //@class.Methods.First().
                             }
                         }
                     }

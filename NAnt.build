@@ -352,6 +352,7 @@
 				<include name="base.apk"/>
 				<include name="Version.cs"/>
 				<include name="Framework.ini"/>
+				<include name="dot42.typemap"/>
 				<include name="**/FrameworkList.xml"/>
 			</fileset>
 		</copy>
@@ -392,7 +393,9 @@
 		</exec>
 
 		<!-- Compile various libraries into dlls -->
-		<!--msbuild project="${basedir}\Libraries.sln" target="Rebuild" verbosity="Quiet">
+		<!-- Note: google play services don't compile atm -->
+		<!-- msbuild project="${basedir}\Libraries.sln" target="Rebuild" verbosity="Quiet"-->
+		<msbuild project="${basedir}\Sources\SupportLibrary\SupportLibrary.csproj" target="Rebuild" verbosity="Quiet">
 			<property name="Dot42ExtensionsPath" value="${basedir}\Build\Application\Scripts\Android" />
 			<property name="Dot42Folder" value="${basedir}\Build\Application" />
 			<property name="Dot42ReferenceAssembliesFolder" value="${basedir}\Build\Application\Frameworks" />
@@ -403,7 +406,7 @@
 			<property name="FrameworksDirectory" value="${srcdir}\Framework\Generated"/>
 			<property name="OutputPath" value="${outfolder}"/>
 			<property name="VersionFile" value="${folder}\Version.cs"/>
-		</msbuild-->
+		</msbuild>
 
 		<!-- Compare API -->
 		<foreach item="File" property="dllfile">
