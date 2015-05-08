@@ -20,12 +20,17 @@ namespace Dot42.DebuggerLib.Model
         private readonly ConcurrentDictionary<string, DalvikClassPrepareCookie> _preparers = new ConcurrentDictionary<string, DalvikClassPrepareCookie>();
         private readonly ConcurrentDictionary<ReferenceTypeId, int> _eventRequests = new ConcurrentDictionary<ReferenceTypeId, int>();
         private volatile bool _wasPrepared;
-        
-        // Do not report Dalvik/Java internal exceptions to the user. These 
-        // are be used for control flow(!) by the class libaries. They are 
-        // of no interest whatsover to the user. While these will all be 
-        // caught by the framework, they will be more than distracting if
-        // first chance exception are enabled.
+
+        private FieldId _throwableDetailedMessageFieldId;
+        private bool _failedToFindThrowableDetailedMessageField;
+
+        private const string ThrowableClassSignature = "Ljava/lang/Throwable;";
+        private const string ThrowableDetailMessageFieldName = "detailMessage";
+
+        // Do not report Dalvik/Java internal exception. These are be used for control flow(!) 
+        // by the class libaries. They are  of no interest whatsover to the user. They will 
+        // all be caught by the framework, and be more than distracting if first chance exception 
+        // are enabled.
         private static readonly Regex CaughtExceptionClassExcludePattern = new Regex(@"^libcore\..*", RegexOptions.CultureInvariant|RegexOptions.IgnoreCase);
         protected static readonly Regex CaughtExceptionLocationExcludePattern = new Regex(@"^libcore\..*", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
 
@@ -35,6 +40,51 @@ namespace Dot42.DebuggerLib.Model
         protected internal DalvikExceptionManager(DalvikProcess process)
             : base(process)
         {
+        }
+
+        /// <summary>
+        /// Gets the map that controls the behavior for specifc exceptions.
+        /// </summary>
+        public ExceptionBehaviorMap ExceptionBehaviorMap
+        {
+            get { return _exceptionBehaviorMap; }
+        }
+
+        public Task<string> GetExceptionMessageAsync(TaggedObjectId exceptionObject)
+        {
+            if (_failedToFindThrowableDetailedMessageField)
+                return null;
+            // TODO: this logic could be factored out into a "ReferenceTypeFieldValueRetriever" (find
+            //       a better name...) class, and could also be used to directly show List<T> as
+            //       array type in the watch window and similar fancy things.
+            return Task.Factory.StartNew(() =>
+            {
+                if (_throwableDetailedMessageFieldId == null)
+                {
+                    Process.ReferenceTypeManager.RefreshClassesWithSignatureAsync(ThrowableClassSignature)
+                                                .Await(DalvikProcess.VmTimeout);
+                    var refType = Process.ReferenceTypeManager.FindBySignature(ThrowableClassSignature);
+                    if (refType == null)
+                    {
+                        _failedToFindThrowableDetailedMessageField = true;
+                        return null;
+                    }
+                    var fieldInfo = Debugger.ReferenceType.FieldsAsync(refType.Id).Await(DalvikProcess.VmTimeout)
+                                                          .FirstOrDefault(f => f.Name == ThrowableDetailMessageFieldName);
+                    if (fieldInfo == null)
+                    {
+                        _failedToFindThrowableDetailedMessageField = true;
+                        return null;
+                    }
+                    _throwableDetailedMessageFieldId = fieldInfo.Id;
+                }
+
+                var val = Debugger.ObjectReference.GetValuesAsync(exceptionObject.Object, new[] { _throwableDetailedMessageFieldId })
+                                                  .Await(DalvikProcess.VmTimeout).First();
+                var ret = Debugger.StringReference.ValueAsync((ObjectId) val.ValueObject).Await(DalvikProcess.VmTimeout);
+                return ret;
+            });
+
         }
 
         /// <summary>
@@ -62,13 +112,7 @@ namespace Dot42.DebuggerLib.Model
             return SetupBehaviors(_exceptionBehaviorMap.Behaviors);
         }
 
-        /// <summary>
-        /// Gets the map that controls the behavior for specifc exceptions.
-        /// </summary>
-        public ExceptionBehaviorMap ExceptionBehaviorMap
-        {
-            get { return _exceptionBehaviorMap; }
-        }
+
 
         public void SetExceptionBehavior(ExceptionBehaviorMap newMap)
         {

@@ -72,6 +72,7 @@ namespace Dot42.VStudio.Debugger
             bool caught;
             string exceptionName = "(unknown)";
             string callStackTypeName="(unknown)";
+            string exceptionMessage = null;
 
             try
             {
@@ -112,6 +113,7 @@ namespace Dot42.VStudio.Debugger
                 
                 base.OnExceptionEvent(@event, thread);
 
+                exceptionMessage = GetExceptionMessageAsync(@event.ExceptionObject).Await(DalvikProcess.VmTimeout);
             }
             catch(System.Exception ex)
             {
@@ -134,6 +136,9 @@ namespace Dot42.VStudio.Debugger
             info.guidType = GuidList.Guids.guidDot42DebuggerId;
 
             string description = info.bstrExceptionName;
+
+            if (exceptionMessage != null)
+                description += ": \"" + exceptionMessage + "\"";
             
             if (caught)
                 description += "\n(first chance, caught by debuggee)";
