@@ -19,7 +19,9 @@ namespace Dot42.BuildTools.CheckForwarders
         {
             // Load dot42.dll
             var resolver = new AssemblyResolver(new[] { Path.GetDirectoryName(assemblyPath) }) { ShowLoading = false };
-            var dot42 = resolver.Resolve(Path.GetFileNameWithoutExtension(assemblyPath), new ReaderParameters(ReadingMode.Immediate) { ReadSymbols = false });
+            var readerParameters = new ReaderParameters(ReadingMode.Immediate) { ReadSymbols = false, AssemblyResolver = resolver};
+
+            var dot42 = resolver.Resolve(Path.GetFileNameWithoutExtension(assemblyPath), readerParameters);
 
             // Load forward assemblies
             var fwAssemblies = new List<AssemblyDefinition>();
@@ -30,7 +32,7 @@ namespace Dot42.BuildTools.CheckForwarders
                 if (string.Equals(name, dot42.Name.Name, StringComparison.OrdinalIgnoreCase))
                     continue;
 
-                var fwAssembly = resolver.Resolve(name, new ReaderParameters(ReadingMode.Immediate) {ReadSymbols = false});
+                var fwAssembly = resolver.Resolve(name, readerParameters);
                 fwAssemblies.Add(fwAssembly);
             }
 
