@@ -393,9 +393,7 @@
 		</exec>
 
 		<!-- Compile various libraries into dlls -->
-		<!-- Note: google play services don't compile atm -->
-		<!-- msbuild project="${basedir}\Libraries.sln" target="Rebuild" verbosity="Quiet"-->
-		<msbuild project="${basedir}\Sources\SupportLibrary\SupportLibrary.csproj" target="Rebuild" verbosity="Quiet">
+		<msbuild project="${basedir}\Libraries.sln" target="Rebuild" verbosity="Quiet">
 			<property name="Dot42ExtensionsPath" value="${basedir}\Build\Application\Scripts\Android" />
 			<property name="Dot42Folder" value="${basedir}\Build\Application" />
 			<property name="Dot42ReferenceAssembliesFolder" value="${basedir}\Build\Application\Frameworks" />

@@ -22,9 +22,13 @@ namespace MapsTest
             var mapView = FindViewById<MapView>(R.Id.theMap);
         }
 
-        protected internal override bool IsRouteDisplayed()
+        protected internal override bool IsRouteDisplayed
         {
-            return true;
+            get
+            {
+                return true;    
+            }
+            
         }
     }
 }

@@ -203,7 +203,7 @@ namespace Dot42.ImportJarLib
         /// <summary>
         /// Find the first matching set method.
         /// </summary>
-        protected virtual NetMethodDefinition FindSetter(NetMethodDefinition getMethod, IEnumerable<NetMethodDefinition> setters)
+        protected virtual NetMethodDefinition FindSetter(NetMethodDefinition getMethod, IEnumerable<NetMethodDefinition> setters, bool findOverriden=false)
         {
             var getName = getMethod.Name;
             var getPrefix = GetNamePrefix(getName);
@@ -214,12 +214,27 @@ namespace Dot42.ImportJarLib
             if(getPrefix != null)
                 getName = getName.Substring(getPrefix.Length);
 
-            var name1 = "Set" + getName;
-            var name2 = "set_" + getName;
+            var possibleSetterNames = new List<string>
+            {
+                "Set" + getName, 
+                "set_" + getName
+            };
+
+            if (findOverriden && getPrefix == "get_")
+            {
+                // We need special handling for previously imported getters
+                // to handle everything that might have been done to them in
+                // "GetPropertyName". E.g. for get_IsEnabled, we want to find 
+                // "SetEnabled" as well. This might be a hack. 
+                if(getName.StartsWith("Is"))
+                    possibleSetterNames.Add("Set" + getName.Substring(2));
+                else if (getName.StartsWith("_"))
+                    possibleSetterNames.Add("Set" + getName.Substring(1));
+            }
 
             var type = getMethod.ReturnType;
 
-            var possibleMatch = setters.Where(x => (x.Name == name1 || x.Name == name2)
+            var possibleMatch = setters.Where(x => possibleSetterNames.Contains(x.Name)
                                                 && x.Parameters[0].ParameterType.AreSame(type)
                                                 && x.InterfaceType.AreSame(getMethod.InterfaceType)
                                                 && x.HasSameVisibility(getMethod))
@@ -296,7 +311,7 @@ namespace Dot42.ImportJarLib
                     NetPropertyDefinition bestProp = null;
                     foreach (var baseProp in allBaseProperties.Where(g => g.Getter != null && g.Setter != null))
                     {
-                        if (FindSetter(baseProp.Getter, new[] {prop.Setter}) != null)
+                        if (FindSetter(baseProp.Getter, new[] {prop.Setter}, true) != null)
                         {
                             if (baseProp.Setter.IsVirtual)
                             {
