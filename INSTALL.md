@@ -7,6 +7,7 @@ Before building, make sure you have
 - `git` in your path, e.g. msysgit. This dependency is not crucial, and could be easily removed from the buildfile.
 - have `msbuild.exe` in your path, i.e. have called `VsDevCmd.bat` (Developer command prompt).
 - if you want to compile the Visual Studio extension you will need the VS 2013 SDK installed (and probably VS 2013 as well). If you want the extension to work with VS2010 or VS 2012 see below. You might have to adjust the build files if you don't want the extension to be compiled, I did not test this.
+- to build the setup, you will need to have InnoSetup installed.
 - In the original dot42 GitHub-repository, some "Buildtools" where missing, making it impossible to compile the project with `nant`. I wrote a replacement that handles the most important usages and is a noop for others. To enable it, call `set BUILDTOOLS={path-to-dot42-root-folder}\Common\Build\NAnt.BuildTools.Tasks.dll`. You can compile it yourself by invoking `nant` in `.\Common\Build\NAnt.BuildTools.Tasks`.
   It would of course be better if the original Buildtools where available.
 
