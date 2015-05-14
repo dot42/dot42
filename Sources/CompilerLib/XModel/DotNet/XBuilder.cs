@@ -263,7 +263,7 @@ namespace Dot42.CompilerLib.XModel.DotNet
 
         private static string GetScopePrefix(TypeReference typeRef)
         {
-            // always resolve, to fix forwared types.
+            // always resolve, to fix forwarded types.
             var type = typeRef.Resolve();
 
             if (type == null)

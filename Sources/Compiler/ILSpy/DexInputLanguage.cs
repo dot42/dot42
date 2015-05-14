@@ -1,5 +1,10 @@
-﻿using System.ComponentModel.Composition;
-using Dot42.Compiler.Code;
+﻿extern alias ilspy;
+
+using System.ComponentModel.Composition;
+using Dot42.CompilerLib;
+using Dot42.CompilerLib.Target;
+using Dot42.CompilerLib.XModel;
+using ilspy::Mono.Cecil;
 using ICSharpCode.ILSpy;
 
 namespace Dot42.Compiler.ILSpy
@@ -8,7 +13,7 @@ namespace Dot42.Compiler.ILSpy
     /// Shows the ILAst that is used to compile to dex.
     /// </summary>
     [Export(typeof(Language))]
-    public class DexInputLanguage : Language
+    public class DexInputLanguage : CompiledLanguage
     {
         public override string Name
         {
@@ -20,9 +25,14 @@ namespace Dot42.Compiler.ILSpy
             get { return ".il"; }
         }
 
-        public override void DecompileMethod(Mono.Cecil.MethodDefinition method, ICSharpCode.Decompiler.ITextOutput output, DecompilationOptions options)
+        public override void DecompileMethod(ilspy::Mono.Cecil.MethodDefinition method, ICSharpCode.Decompiler.ITextOutput output, DecompilationOptions options)
         {
-            var node = MethodBodyCompiler.CreateOptimizedAst(method);
+            var cMethod = GetCompiledMethod(method);
+            var xMethod = GetXMethodDefinition(method);
+            
+            var methodSource= new MethodSource(xMethod, cMethod.ILSource);
+            
+            var node = MethodBodyCompiler.CreateOptimizedAst(AssemblyCompiler, methodSource, false);
             node.WriteTo(new TextOutputBridge(output));
         }
     }

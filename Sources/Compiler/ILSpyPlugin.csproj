@@ -36,15 +36,19 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ICSharpCode.Decompiler, Version=2.0.0.1486, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="ICSharpCode.Decompiler, Version=2.3.0.1827, Culture=neutral, PublicKeyToken=d4bfe873e7598c49, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\Binaries\ILSpy\ICSharpCode.Decompiler.dll</HintPath>
     </Reference>
-    <Reference Include="ILSpy">
+    <Reference Include="ILSpy, Version=2.3.0.1827, Culture=neutral, PublicKeyToken=d4bfe873e7598c49, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\Binaries\ILSpy\ILSpy.exe</HintPath>
+      <Aliases>global</Aliases>
     </Reference>
-    <Reference Include="Mono.Cecil">
+    <Reference Include="Mono.Cecil, Version=0.9.5.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\Binaries\ILSpy\Mono.Cecil.dll</HintPath>
+      <Aliases>ilspy</Aliases>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
@@ -59,6 +63,18 @@
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Mono.Cecil\Mono.Cecil.DeepSea.csproj">
+      <Project>{13F162A6-BB55-40B6-BB77-22D5C0B4A386}</Project>
+      <Name>Mono.Cecil.DeepSea</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ApkLib\ApkLib.csproj">
+      <Project>{13F1BB11-ABB6-B755-CC77-7AD5C0B4BB22}</Project>
+      <Name>ApkLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CompilerLib\CompilerLib.csproj">
+      <Project>{13f162a6-dd45-fdb3-1234-7ad5c0b23486}</Project>
+      <Name>CompilerLib</Name>
+    </ProjectReference>
     <ProjectReference Include="..\DexLib\DexLib.csproj">
       <Project>{CAF03EFC-1CF0-49DA-8C2E-684949E08833}</Project>
       <Name>DexLib</Name>
@@ -66,6 +82,14 @@
     <ProjectReference Include="..\FrameworkDefinitions\FrameworkDefinitions.csproj">
       <Project>{13F162A6-AA66-BB55-CC77-7AD5C0B4BB22}</Project>
       <Name>FrameworkDefinitions</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\JvmClassLib\JvmClassLib.csproj">
+      <Project>{13F162A6-F530-40B6-A258-7AD5C0B4A386}</Project>
+      <Name>JvmClassLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\LoaderLib\LoaderLib.csproj">
+      <Project>{13F162A6-DD45-F343-1234-7ADBD4323486}</Project>
+      <Name>LoaderLib</Name>
     </ProjectReference>
     <ProjectReference Include="..\Utility\Utility.csproj">
       <Project>{13F162A6-F530-40B3-1234-7AD5C0B4A386}</Project>
@@ -75,125 +99,11 @@
   <ItemGroup>
     <Compile Include="..\Version.cs" />
     <Compile Include="AssemblyInfo.cs" />
-    <Compile Include="Code\AssemblyResolver.cs" />
-    <Compile Include="Code\AssemblyCompiler.cs" />
-    <Compile Include="Code\CompiledMethod.cs" />
-    <Compile Include="Code\DelegateInstanceType.cs" />
-    <Compile Include="Code\DelegateInstanceTypeBuilder.cs" />
-    <Compile Include="Code\DelegateType.cs" />
-    <Compile Include="Code\DelegateTypeBuilder.cs" />
-    <Compile Include="Code\Extensions\Reachable.cs" />
-    <Compile Include="Code\Extensions\ReachableResolver.cs" />
-    <Compile Include="Code\ReachableContext.cs" />
-    <Compile Include="Code\ReachableWalker.cs" />
-    <Compile Include="Code\RL\Transformations\InvokeTypeTransformation.cs" />
-    <Compile Include="Code\SkipTypeBuilder.cs" />
-    <Compile Include="Code\StandardTypeBuilder.cs" />
-    <Compile Include="Code\DexCompiler\DexCompiler.cs" />
-    <Compile Include="Code\DexCompiler\Optimizer\BranchOptimizer.cs" />
-    <Compile Include="Code\DexCompiler\Optimizer\DexOptimizer.cs" />
-    <Compile Include="Code\DexCompiler\Optimizer\IDexTransformation.cs" />
-    <Compile Include="Code\DexCompiler\Optimizer\InstructionOptimizer.cs" />
-    <Compile Include="Code\DexCompiler\RegisterMapper.cs" />
-    <Compile Include="Code\ILAst\Extensions\ExceptionHandling.cs" />
-    <Compile Include="Code\ILAst\Extensions\ILCode.cs" />
-    <Compile Include="Code\ILAst\Extensions\ILExpression.cs" />
-    <Compile Include="Code\ILAst\ILOptimizers\BranchOptimizer.cs" />
-    <Compile Include="Code\ILAst\ILOptimizers\DelegateConverter.cs" />
-    <Compile Include="Code\ILAst\ILOptimizers\ILAstOptimizerVisitor.cs" />
-    <Compile Include="Code\ILAst\Optimizer\ILAstOptimizationStep.cs" />
-    <Compile Include="Code\DexCompiler\Extensions\DexInstructions.cs" />
-    <Compile Include="Code\Extensions\MethodDefinition.cs" />
-    <Compile Include="Code\Extensions\AreSame.cs" />
-    <Compile Include="Code\Extensions\Cecil.cs" />
-    <Compile Include="Code\Extensions\JRef.cs" />
-    <Compile Include="Code\Extensions\Dex.cs" />
-    <Compile Include="Code\FlowAnalisys\ControlFlowEdge.cs" />
-    <Compile Include="Code\FlowAnalisys\ControlFlowGraph.cs" />
-    <Compile Include="Code\FlowAnalisys\ControlFlowNode.cs" />
-    <Compile Include="Code\ILAst\DecompilerContext.cs" />
-    <Compile Include="Code\ILAst\DefaultDictionary.cs" />
-    <Compile Include="Code\ILAst\DisassemblerHelpers.cs" />
-    <Compile Include="Code\ILAst\ILBasicBlock.cs" />
-    <Compile Include="Code\ILAst\ILBlock.cs" />
-    <Compile Include="Code\ILAst\ILExpression.cs" />
-    <Compile Include="Code\ILAst\ILExpressionPrefix.cs" />
-    <Compile Include="Code\ILAst\ILLabel.cs" />
-    <Compile Include="Code\ILAst\ILRange.cs" />
-    <Compile Include="Code\ILAst\ILSwitch.cs" />
-    <Compile Include="Code\ILAst\ILTryCatchBlock.cs" />
-    <Compile Include="Code\ILAst\ILVariable.cs" />
-    <Compile Include="Code\ILAst\Optimizer\GotoRemoval.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Code\ILAst\ILAstBuilder.cs" />
-    <Compile Include="Code\ILAst\Optimizer\ILAstOptimizer.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Code\ILAst\ILNode.cs" />
-    <Compile Include="Code\ILAst\ILCodes.cs" />
-    <Compile Include="Code\ILAst\Optimizer\ILInlining.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Code\ILAst\ILNodeVisitor.cs" />
-    <Compile Include="Code\ILAst\Optimizer\InitializerPeepholeTransforms.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Code\ILAst\Optimizer\LiftedOperators.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Code\ILAst\PatternMatching.cs" />
-    <Compile Include="Code\ILAst\Optimizer\PeepholeTransform.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Code\ILAst\Optimizer\SimpleControlFlow.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Code\ILAst\Optimizer\TypeAnalysis.cs" />
-    <Compile Include="Code\DexCompiler\Extensions\ILCompilerExtensions.cs" />
-    <Compile Include="Code\MethodBodyCompiler.cs" />
-    <Compile Include="Code\MethodBuilder.cs" />
-    <Compile Include="Code\FieldBuilder.cs" />
-    <Compile Include="Code\Extensions\Extensions.cs" />
-    <Compile Include="Code\RL\BasicBlock.cs" />
-    <Compile Include="Code\RL\Catch.cs" />
-    <Compile Include="Code\RL\ExceptionHandler.cs" />
-    <Compile Include="Code\RL\Extensions\InstructionRange.cs" />
-    <Compile Include="Code\RL\Extensions\Registers.cs" />
-    <Compile Include="Code\RL\Extensions\RLExtensions.cs" />
-    <Compile Include="Code\RL\Extensions\RCode.cs" />
-    <Compile Include="Code\RL\IInstructionRange.cs" />
-    <Compile Include="Code\RL\ILAstCompiler\ArgumentRegisterSpec.cs" />
-    <Compile Include="Code\RL\ILAstCompiler\DexRange.cs" />
-    <Compile Include="Code\RL\ILAstCompiler\Extensions\RCode.cs" />
-    <Compile Include="Code\RL\ILAstCompiler\ILAstCompilerVisitor.cs" />
-    <Compile Include="Code\RL\ILAstCompiler\InvocationFrame.cs" />
-    <Compile Include="Code\RL\ILAstCompiler\LabelManager.cs" />
-    <Compile Include="Code\RL\ILAstCompiler\RegisterSpec.cs" />
-    <Compile Include="Code\RL\ILAstCompiler\VariableRegisterSpec.cs" />
-    <Compile Include="Code\RL\Instruction.cs" />
-    <Compile Include="Code\RL\InstructionList.cs" />
-    <Compile Include="Code\RL\InstructionRange.cs" />
-    <Compile Include="Code\RL\IRLTransformation.cs" />
-    <Compile Include="Code\RL\MethodBody.cs" />
-    <Compile Include="Code\RL\RCategory.cs" />
-    <Compile Include="Code\RL\RFlags.cs" />
-    <Compile Include="Code\RL\Transformations\BranchRerouter.cs" />
-    <Compile Include="Code\RL\Transformations\ConstPropagationTransformation.cs" />
-    <Compile Include="Code\RL\Transformations\FlattenExceptionsTransformation.cs" />
-    <Compile Include="Code\RL\Transformations\ShareRegistersTransformation.cs" />
-    <Compile Include="Code\RL\Transformations\InvokeRangeTransformation.cs" />
-    <Compile Include="Code\RL\Transformations\NopRemoveTransformation.cs" />
-    <Compile Include="Code\RL\Transformations\RLTransformations.cs" />
-    <Compile Include="Code\RL\RCode.cs" />
-    <Compile Include="Code\RL\Register.cs" />
+    <Compile Include="ILSpy\CompiledLanguage.cs" />
     <Compile Include="ILSpy\RLLanguage.cs" />
     <Compile Include="ILSpy\DexInputLanguage.cs" />
     <Compile Include="ILSpy\DexLanguage.cs" />
     <Compile Include="ILSpy\TextOutputBridge.cs" />
-    <Compile Include="NamespaceConverter.cs" />
-    <Compile Include="Code\PrototypeBuilder.cs" />
-    <Compile Include="Code\TypeBuilder.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

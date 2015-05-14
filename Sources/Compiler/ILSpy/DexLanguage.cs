@@ -1,16 +1,15 @@
-﻿using System.ComponentModel.Composition;
+﻿extern alias ilspy;
+
+using System.ComponentModel.Composition;
 using System.Linq;
-using Dot42.Compiler.Code;
 using Dot42.DexLib.Instructions;
 using ICSharpCode.ILSpy;
 
 namespace Dot42.Compiler.ILSpy
 {
     [Export(typeof(Language))]
-    public class DexLanguage : Language
+    public class DexLanguage : CompiledLanguage
     {
-        private AssemblyCompiler compiler;
-
         public override string Name
         {
             get { return "Dex Output"; }
@@ -21,20 +20,10 @@ namespace Dot42.Compiler.ILSpy
             get { return ".dexasm"; }
         }
 
-        public override void DecompileMethod(Mono.Cecil.MethodDefinition method, ICSharpCode.Decompiler.ITextOutput output, DecompilationOptions options)
+        public override void DecompileMethod(ilspy::Mono.Cecil.MethodDefinition method, ICSharpCode.Decompiler.ITextOutput output, DecompilationOptions options)
         {
-            var declaringType = method.DeclaringType;
-            var assembly = declaringType.Module.Assembly;
+            var cmethod = GetCompiledMethod(method);
 
-            if ((compiler == null) || (compiler.Assembly != assembly))
-            {
-                compiler = null;
-                var c = new AssemblyCompiler(assembly, new NamespaceConverter("pkg.name", ""));
-                c.Compile();
-                compiler = c;
-            }
-
-            var cmethod = compiler.GetMethod(method);
             if ((cmethod != null) && (cmethod.DexMethod != null))
             {
                 var body = cmethod.DexMethod.Body;

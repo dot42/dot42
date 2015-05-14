@@ -93,6 +93,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BarDeployLib", "Sources\Bar
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceLib", "Sources\DeviceLib\DeviceLib.csproj", "{13F1BB11-B71A-A349-4BEE-7AD5C023BB22}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ILSpyPlugin", "Sources\Compiler\ILSpyPlugin.csproj", "{13F162A6-FF66-F61A-A258-7AD5C0B4A386}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -493,6 +495,16 @@ Global
 		{13F1BB11-B71A-A349-4BEE-7AD5C023BB22}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{13F1BB11-B71A-A349-4BEE-7AD5C023BB22}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{13F1BB11-B71A-A349-4BEE-7AD5C023BB22}.Release|x86.ActiveCfg = Release|Any CPU
+		{13F162A6-FF66-F61A-A258-7AD5C0B4A386}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{13F162A6-FF66-F61A-A258-7AD5C0B4A386}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{13F162A6-FF66-F61A-A258-7AD5C0B4A386}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{13F162A6-FF66-F61A-A258-7AD5C0B4A386}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{13F162A6-FF66-F61A-A258-7AD5C0B4A386}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{13F162A6-FF66-F61A-A258-7AD5C0B4A386}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{13F162A6-FF66-F61A-A258-7AD5C0B4A386}.Release|Any CPU.Build.0 = Release|Any CPU
+		{13F162A6-FF66-F61A-A258-7AD5C0B4A386}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{13F162A6-FF66-F61A-A258-7AD5C0B4A386}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{13F162A6-FF66-F61A-A258-7AD5C0B4A386}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

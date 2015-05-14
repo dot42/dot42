@@ -330,9 +330,16 @@ namespace Dot42.CompilerLib
             }
         }
 
+        internal CompiledMethod GetCompiledMethod(XMethodDefinition method)
+        {
+            return ((Target.Dex.DexTargetPackage) targetPackage).GetMethod(method);
+        }
+
+
         public static IDisposable Profile(string msg, bool isSummary=false)
         {
             return Profiler.Profile(x => Console.WriteLine("{2}{0} ms {1}", x.TotalMilliseconds.ToString("#,000", CultureInfo.InvariantCulture).PadLeft(6), msg, isSummary?"------\n":""));
         }
+
     }
 }

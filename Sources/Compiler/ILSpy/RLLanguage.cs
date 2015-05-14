@@ -1,16 +1,18 @@
-﻿using System.ComponentModel.Composition;
+﻿extern alias ilspy;
+
+using System.ComponentModel.Composition;
 using System.Linq;
-using Dot42.Compiler.Code;
-using Dot42.Compiler.Code.RL;
+using Dot42.CompilerLib.RL;
+using ICSharpCode.Decompiler;
 using ICSharpCode.ILSpy;
+
+
 
 namespace Dot42.Compiler.ILSpy
 {
     [Export(typeof(Language))]
-    public class RLLanguage : Language
+    public class RLLanguage : CompiledLanguage
     {
-        private AssemblyCompiler compiler;
-
         public override string Name
         {
             get { return "RL Output"; }
@@ -21,20 +23,10 @@ namespace Dot42.Compiler.ILSpy
             get { return ".rl"; }
         }
 
-        public override void DecompileMethod(Mono.Cecil.MethodDefinition method, ICSharpCode.Decompiler.ITextOutput output, DecompilationOptions options)
+        public override void DecompileMethod(ilspy::Mono.Cecil.MethodDefinition method, ITextOutput output, DecompilationOptions options)
         {
-            var declaringType = method.DeclaringType;
-            var assembly = declaringType.Module.Assembly;
+            var cmethod = GetCompiledMethod(method);
 
-            if ((compiler == null) || (compiler.Assembly != assembly))
-            {
-                compiler = null;
-                var c = new AssemblyCompiler(assembly, new NamespaceConverter("pkg.name", ""));
-                c.Compile();
-                compiler = c;
-            }
-
-            var cmethod = compiler.GetMethod(method);
             if ((cmethod != null) && (cmethod.RLBody != null))
             {
                 var body = cmethod.RLBody;
@@ -85,5 +77,7 @@ namespace Dot42.Compiler.ILSpy
                 output.WriteLine();
             }
         }
+
+        
     }
 }

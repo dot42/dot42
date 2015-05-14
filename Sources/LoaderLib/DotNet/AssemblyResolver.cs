@@ -97,6 +97,9 @@ namespace Dot42.LoaderLib.DotNet
                     }
                     if (loadingTasks.TryGetValue(assemblyFilename, out loadingTask))
                     {
+                        if (loadingTask == loadingTaskSource.Task)
+                            break;
+
                         ret = loadingTask.Result;
                         return ret;
                     }

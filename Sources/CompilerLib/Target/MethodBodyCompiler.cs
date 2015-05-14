@@ -17,7 +17,7 @@ namespace Dot42.CompilerLib.Target
         /// <summary>
         /// Convert the given method into optimized Ast format.
         /// </summary>
-        protected static AstNode CreateOptimizedAst(AssemblyCompiler compiler, MethodSource source, bool generateSetNextInstructionCode)
+        internal protected static AstNode CreateOptimizedAst(AssemblyCompiler compiler, MethodSource source, bool generateSetNextInstructionCode)
         {
             // Build AST
             DecompilerContext context;
