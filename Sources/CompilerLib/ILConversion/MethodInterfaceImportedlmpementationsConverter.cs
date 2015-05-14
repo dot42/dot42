@@ -46,8 +46,8 @@ namespace Dot42.CompilerLib.ILConversion
                                                                    .Where(e=>e.Item2.IsReachable)
                                                                    .ToLookup(e=>e.Item2, e=>e.Item1);
 
-                // TODO: i don't think the we cover all possible cases here yet.
-                //       what about methods overriding imported methods?
+                // TODO: I don't think the we cover all possible cases here yet.
+                //       What about methods overriding imported methods?
 
                 foreach (var intf in reachableInterfaces)
                 foreach(var iMethod in intf.Methods)
@@ -73,7 +73,7 @@ namespace Dot42.CompilerLib.ILConversion
 
                         // TODO: automatically create a redirecting stub.
                         
-                        DLog.Error(DContext.CompilerILConverter, "Type '{0}' implements interface method '{1}' using imported method '{2}'. This will not work. Create a 'new' or explicit implementation, that redirects to the imported.", type.FullName, iMethod.FullName, impl.FullName);
+                        DLog.Error(DContext.CompilerILConverter, "Type '{0}' implements interface method '{1}' using imported method '{2}'. This is not supported at the moment. As a workaround, create a 'new' or explicit implementation of the interface, that redirects to the imported.", type.FullName, iMethod.FullName, impl.FullName);
                     }
                 }
             }
