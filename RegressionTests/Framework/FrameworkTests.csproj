@@ -105,6 +105,7 @@
     <Compile Include="System.Xml.Linq\TestXDocument.cs" />
     <Compile Include="System\BufferTest_Mono.cs" />
     <None Include="System\ConvertTest_Mono.cs" />
+    <Compile Include="System\DateTimeOffsetTest_Mono.cs" />
     <Compile Include="System\TestByte.cs" />
     <Compile Include="System\TestException.cs" />
     <Compile Include="System\RandomTest.cs" />
