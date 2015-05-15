@@ -1,80 +1,46 @@
 ﻿extern alias ilspy;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using Dot42.ApkLib.Resources;
-using Dot42.CompilerLib;
-using Dot42.CompilerLib.CompilerCache;
-using Dot42.CompilerLib.XModel;
-using Dot42.LoaderLib.DotNet;
-using Dot42.LoaderLib.Java;
-using ICSharpCode.ILSpy;
-using Mono.Cecil;
-using TypeDefinition = ilspy::Mono.Cecil.TypeDefinition;
+using Dot42.CompilerLib;
+using Dot42.CompilerLib.XModel;
+using ilspy::Mono.Cecil;
+using ICSharpCode.ILSpy;
+
 
 namespace Dot42.Compiler.ILSpy
 {
     public abstract class CompiledLanguage : Language
     {
-        private AssemblyCompiler compiler;
+        private static CachedCompiler compiler = new CachedCompiler();
 
-        public AssemblyCompiler AssemblyCompiler { get { return compiler; } }
+        public AssemblyCompiler AssemblyCompiler { get { return compiler.AssemblyCompiler; } }
 
-
-        protected CompiledMethod GetCompiledMethod(ilspy::Mono.Cecil.MethodDefinition method)
+        protected CompiledMethod GetCompiledMethod(MethodDefinition method)
         {
             var declaringType = method.DeclaringType;
             var assembly = declaringType.Module.Assembly;
 
-            CompileIfRequired(assembly);
-
-            var cmethod = AssemblyCompiler.GetCompiledMethod(GetXMethodDefinitionAfterCompile( method));
+            compiler.CompileIfRequired(assembly);
+            var xMethod = GetXMethodDefinitionAfterCompilerSetup( method);
+            var cmethod = AssemblyCompiler.GetCompiledMethod(xMethod);
 
             return cmethod;
         }
 
-        protected XMethodDefinition GetXMethodDefinition(ilspy::Mono.Cecil.MethodDefinition method)
+        protected XMethodDefinition GetXMethodDefinition(MethodDefinition method)
         {
             var declaringType = method.DeclaringType;
             var assembly = declaringType.Module.Assembly;
 
-            CompileIfRequired(assembly);
+            compiler.CompileIfRequired(assembly, true);
 
-            return GetXMethodDefinitionAfterCompile(method);        }
-        protected void CompileIfRequired(ilspy::Mono.Cecil.AssemblyDefinition assembly)
-        {
-            if ((compiler == null) || (compiler.Assemblies.All(a => a.FullName != assembly.FullName)))
-            {
-                compiler = null;
-
-                // FIXME
-                var refFolders = new List<string>() { @"c:\Program Files\dot42\Android\Frameworks\v4.3" };
-
-                var module = new XModule();
-                var classLoader = new AssemblyClassLoader(module.OnClassLoaded);
-                var resolver = new AssemblyResolver(refFolders, classLoader, module.OnAssemblyLoaded);
-                var parameter = new ReaderParameters(ReadingMode.Immediate) { AssemblyResolver = resolver};
-
-                var assemblies = new[] { resolver.Load(assembly.MainModule.FullyQualifiedName, parameter) }.ToList();
-                var references = assemblies.ToList();
-                references.Clear();
-
-                var c = new AssemblyCompiler(CompilationMode.All, assemblies, references, new Table("pkg.name"),
-                    new NameConverter("pkg.name", ""), true, new AssemblyClassLoader(file => { }), definition => null,
-                    new DexMethodBodyCompilerCache(), new HashSet<string>(), module, false);
-
-                
-                c.Compile();
-                compiler = c;
-            }
-        }
-
-        private XMethodDefinition GetXMethodDefinitionAfterCompile(ilspy::Mono.Cecil.MethodDefinition method)
+            return GetXMethodDefinitionAfterCompilerSetup(method);        }
+
+        private XMethodDefinition GetXMethodDefinitionAfterCompilerSetup(MethodDefinition method)
         {
             XTypeDefinition tdef;
             var xFullName = GetXFullName(method.DeclaringType);
 
-            if (!compiler.Module.TryGetType(xFullName, out tdef))
+            if (!AssemblyCompiler.Module.TryGetType(xFullName, out tdef))
             {
                 throw new Exception("type not found: " + xFullName);
             }

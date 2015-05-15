@@ -4,11 +4,39 @@ using System.Linq;
 using Dot42.CompilerLib.Ast;
 using Dot42.CompilerLib.Ast.Converters;
 using Dot42.CompilerLib.Ast.Optimizer;
-using Dot42.CompilerLib.Extensions;
 using Dot42.CompilerLib.XModel;
 
 namespace Dot42.CompilerLib.Target
 {
+    public enum StopAstConversion
+    {
+        None,
+        AfterILConversion,
+        AfterOptimizing,
+        AfterIntPtrConverter,
+        AfterTypeOfConverter,
+        AfterBranchOptimizer,
+        AfterCompoundAssignmentConverter,
+        AfterInterlockedConverter,
+        AfterByReferenceParamConverter,
+        AfterCompareUnorderedConverter,
+        AfterEnumConverter,
+        AfterEnumOptimizer,
+        AfterNullableConverter,
+        AfterPrimitiveAddressOfConverter,
+        AfterStructCallConverter,
+        AfterInitializeStructVariablesConverter,
+        AfterDelegateConverter,
+        AfterLdcWideConverter,
+        AfterLdLocWithConversionConverter,
+        AfterConvertAfterLoadConversionConverter,
+        AfterConvertBeforeStoreConversionConverter,
+        AfterCleanupConverter,
+        AfterGenericsConverter,
+        AfterCastConverter,
+        AfterGenericInstanceConverter,
+    }
+
     /// <summary>
     /// Compile IL to Dex code.
     /// </summary>
@@ -17,7 +45,7 @@ namespace Dot42.CompilerLib.Target
         /// <summary>
         /// Convert the given method into optimized Ast format.
         /// </summary>
-        internal protected static AstNode CreateOptimizedAst(AssemblyCompiler compiler, MethodSource source, bool generateSetNextInstructionCode)
+        internal protected static AstNode CreateOptimizedAst(AssemblyCompiler compiler, MethodSource source, bool generateSetNextInstructionCode, StopAstConversion debugStop = StopAstConversion.None)
         {
             // Build AST
             DecompilerContext context;
@@ -55,12 +83,16 @@ namespace Dot42.CompilerLib.Target
                 throw new NotSupportedException("Unknown source");
             }
 
+            if (debugStop == StopAstConversion.AfterILConversion) return ast;
+
             // Optimize AST
             var astOptimizer = new AstOptimizer(context, ast);
             astOptimizer.Optimize();
 
+            if (debugStop == StopAstConversion.AfterOptimizing) return ast;
+
             // Optimize AST towards the target
-            TargetConverters.Convert(context, ast, source, compiler);
+            TargetConverters.Convert(context, ast, source, compiler, debugStop);
 
             if(generateSetNextInstructionCode)
                 SetNextInstructionGenerator.Convert(ast, source, compiler);

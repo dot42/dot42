@@ -1,10 +1,9 @@
 ﻿extern alias ilspy;
-
+using System;
 using System.ComponentModel.Composition;
 using Dot42.CompilerLib;
 using Dot42.CompilerLib.Target;
-using Dot42.CompilerLib.XModel;
-using ilspy::Mono.Cecil;
+using Dot42.CompilerLib.XModel.DotNet;
 using ICSharpCode.ILSpy;
 
 namespace Dot42.Compiler.ILSpy
@@ -15,6 +14,8 @@ namespace Dot42.Compiler.ILSpy
     [Export(typeof(Language))]
     public class DexInputLanguage : CompiledLanguage
     {
+        internal static StopAstConversion StopConversion { get; set; }
+
         public override string Name
         {
             get { return "Dex Input"; }
@@ -27,12 +28,26 @@ namespace Dot42.Compiler.ILSpy
 
         public override void DecompileMethod(ilspy::Mono.Cecil.MethodDefinition method, ICSharpCode.Decompiler.ITextOutput output, DecompilationOptions options)
         {
-            var cMethod = GetCompiledMethod(method);
+            
             var xMethod = GetXMethodDefinition(method);
-            
-            var methodSource= new MethodSource(xMethod, cMethod.ILSource);
-            
-            var node = MethodBodyCompiler.CreateOptimizedAst(AssemblyCompiler, methodSource, false);
+            var ilMethod = xMethod as XBuilder.ILMethodDefinition;
+            if (ilMethod == null || !ilMethod.OriginalMethod.HasBody)
+            {
+                output.Write("not an il method or method without body.");
+                return;
+            }
+
+            var methodSource = new MethodSource(xMethod, ilMethod.OriginalMethod);
+            var node = MethodBodyCompiler.CreateOptimizedAst(AssemblyCompiler, methodSource, false, StopConversion);
+
+            if (StopConversion != StopAstConversion.None)
+            {
+                output.Write("// Stop " + StopConversion);
+                output.WriteLine();
+                output.WriteLine();
+            }
+
+
             node.WriteTo(new TextOutputBridge(output));
         }
     }

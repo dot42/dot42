@@ -50,14 +50,18 @@
       <HintPath>..\..\Binaries\ILSpy\Mono.Cecil.dll</HintPath>
       <Aliases>ilspy</Aliases>
     </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
@@ -100,6 +104,8 @@
     <Compile Include="..\Version.cs" />
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="ILSpy\CompiledLanguage.cs" />
+    <Compile Include="ILSpy\CachedCompiler.cs" />
+    <Compile Include="ILSpy\DexInputLanguageOptions.cs" />
     <Compile Include="ILSpy\RLLanguage.cs" />
     <Compile Include="ILSpy\DexInputLanguage.cs" />
     <Compile Include="ILSpy\DexLanguage.cs" />

@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using Dot42.ApkSpy.Disassembly;
 using Dot42.ApkSpy.IPC;
 using Dot42.ApkSpy.Tree;
+using Dot42.Utility;
 using Ookii.Dialogs;
 using TallComponents.Common.Util;
 using Node = Dot42.ApkSpy.Tree.Node;
@@ -30,6 +31,7 @@ namespace Dot42.ApkSpy
 #if !DEBUG && !ENABLE_SHOW_AST
             miDebug.Visible = false;
 #elif DEBUG
+            Locations.SetTarget(null);
             miShowAst.Checked = true;
 #endif
             miEnableBaksmali.Checked = SettingsPersitor.EnableBaksmali;

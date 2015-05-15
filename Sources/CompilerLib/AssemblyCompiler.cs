@@ -44,7 +44,13 @@ namespace Dot42.CompilerLib
         private readonly DexMethodBodyCompilerCache methodBodyCompilerCache;
 
         /// <summary>
-        /// Default ctor
+        /// If true, the compiler will stop compilation just before
+        /// generating code. Useful for debugging the compiler.
+        /// </summary>
+        public bool IsCompileStopBeforeGeneratingCode { get; set; }
+
+        /// <summary>
+        /// TODO: the list of parameters has gotten way to long.
         /// </summary>
         public AssemblyCompiler(CompilationMode mode, List<AssemblyDefinition> assemblies, 
                                 List<AssemblyDefinition> references, Table resources, NameConverter nameConverter, 
@@ -145,6 +151,9 @@ namespace Dot42.CompilerLib
                                              .ThenBy(x => x.FullName)
                                              .ToList();
             }
+
+            if (IsCompileStopBeforeGeneratingCode)
+                return;
 
             using (Profile("for generating code"))
                 classBuilders.ForEachWithExceptionMessage(x => x.GenerateCode(targetPackage));
