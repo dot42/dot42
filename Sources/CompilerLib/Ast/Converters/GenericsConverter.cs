@@ -116,6 +116,15 @@ namespace Dot42.CompilerLib.Ast.Converters
             if (unbox == null)
                 return;
 
+            // TODO: Of course we need to unbox generic instances as well,
+            //       but at the moment the GenericInstanceConverter does
+            //       not look at 'node.StoreByRefExpression' and thus
+            //       does not add the required argument, resulting
+            //       in unverifyable code. This should be fixed, and
+            //       then these lines can be removed.
+            if (resultType.IsGenericInstance)
+                return;
+
             ConvertUnboxStruct(unbox, resultType, typeSystem);
         }
 
