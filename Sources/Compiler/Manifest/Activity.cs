@@ -56,6 +56,8 @@ namespace Dot42.Compiler.Manifest
         /// </summary>
         private void CreateActivity(XElement application)
         {
+            bool isFirst = true;
+
             // Create activities
             foreach (var tuple in FindActivities())
             {
@@ -91,9 +93,14 @@ namespace Dot42.Compiler.Manifest
                 activity.AddAttrIfNotDefault("uiOptions", Namespace, attr.GetValue<int>("UIOptions"), 0, uiOptions.Format);
                 activity.AddAttrIfNotDefault("windowSoftInputMode", Namespace, attr.GetValue<int>("WindowSoftInputMode"), 0, windowSoftInputModeOptions.Format);
 
-                var visibleInLauncher = attr.GetValue("VisibleInLauncher", true);
+                var visibleInLauncher = isFirst 
+                                     || attr.GetValue("VisibleInLauncher", false) 
+                                     || attr.GetValue("MainLauncher", false);
+
                 CreateIntentFilter(activity, type, visibleInLauncher, false);
                 CreateMetaData(activity, type);
+
+                isFirst = false;
             }
         }
 
@@ -103,9 +110,10 @@ namespace Dot42.Compiler.Manifest
         private IEnumerable<Tuple<TypeDefinition, CustomAttribute>> FindActivities()
         {
             return assembly.MainModule.GetTypes()
-                    .Select(x => Tuple.Create(x, x.GetAttributes(ActivityAttribute).FirstOrDefault()))
-                    .Where(x => x.Item2 != null)
-                    .OrderByDescending(x => x.Item2.GetValue("VisibleInLauncher", true));
+                .Select(x => Tuple.Create(x, x.GetAttributes(ActivityAttribute).FirstOrDefault()))
+                .Where(x => x.Item2 != null)
+                .OrderByDescending(x => x.Item2.GetValue("MainLauncher", false))
+                .ThenByDescending(x => x.Item2.GetValue("VisibleInLauncher", false));
         }
     }
 }
