@@ -18,6 +18,8 @@
   I believe it would be better if Dot42 would put the generated `.cs` files into a "Generated" folder of the project (or right next to the `.jar`s in VS), and compile it from there. The user should be able to adjust the imported file in case the Dot42 `.jar` import did not work seamless.
 - Java doesn't support Ephemerons. These are e.g. used by `ConditionalWeakTable` to attach properties to objects in a GC friendly way. No workaround available.
 
+- Dot42 seems not to support resources in other than the main assembly. The same holds for activities / android services, etc. Everything that needs to go into the manifest needs to be in the main assembly.  
+
 ### Structs
 
 In CLR/C# structs are usually employed when performance matters. `CancellationToken` might be the prime example, a lightweight wrapper around a `CancellationTokenSource` that is extensively employed when working with  `Task`s.
@@ -32,7 +34,8 @@ There are some limitations where the emulation is not yet fully implemented:
 - Equals & GetHashCode are not automatically implemented for structs. Therefore, structs will not work as a key in a Dictionary or HashTable or similar things, if you don't explicitly override these methods (which you should do for performance reasons anyway).
   (note: Dot42 could do this automatically either at the compiler level, or implement it in `ValueType`, based on reflection, in the Framework; the latter approach is probably more compatible to BCL).
 - **Bug:** When structs are passed as arguments as a generic instance parameter, at the moment they are not cloned as they should be. This will make no difference with immutable structs, but breaks struct semantics with mutable structs.
-- **Bug:** Creating arrays of generic structs will fail at runtime with a dalvik verification error. Arrays of generic classes will work just fine. 
+- **Bug:** Creating arrays of generic structs will fail at runtime with a dalvik verification error. Arrays of generic classes will work just fine.
+- **Bug:** When passing a generic struct by reference as generic parameter, and the calling function assigns default(T) to the reference before returning, a NullPointerException might occur.   
 
 ### Generics  
 
