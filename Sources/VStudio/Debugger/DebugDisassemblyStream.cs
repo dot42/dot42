@@ -50,10 +50,10 @@ namespace Dot42.VStudio.Debugger
                     insd.dwFields |= enum_DISASSEMBLY_STREAM_FIELDS.DSF_ADDRESS;
                 }
 
-                insd.dwFields = enum_DISASSEMBLY_STREAM_FIELDS.DSF_OPCODE 
-                              | enum_DISASSEMBLY_STREAM_FIELDS.DSF_OPERANDS 
-                              | enum_DISASSEMBLY_STREAM_FIELDS.DSF_CODELOCATIONID
-                              | enum_DISASSEMBLY_STREAM_FIELDS.DSF_FLAGS;
+                insd.dwFields |= enum_DISASSEMBLY_STREAM_FIELDS.DSF_OPCODE 
+                              |  enum_DISASSEMBLY_STREAM_FIELDS.DSF_OPERANDS 
+                              |  enum_DISASSEMBLY_STREAM_FIELDS.DSF_CODELOCATIONID
+                              |  enum_DISASSEMBLY_STREAM_FIELDS.DSF_FLAGS;
 
                 insd.bstrOpcode = _method.FormatOpCode(ins);
                 insd.bstrOperands = _method.FormatOperands(ins);
@@ -78,13 +78,12 @@ namespace Dot42.VStudio.Debugger
 
                     if(source != null && !source.IsSpecial)
                     {
-                        bool isSameDocAsPrevious = _prevSource != null && _prevSource.Document.Path == source.Document.Path;
+                        var isSameDocAsPrevious = _prevSource != null 
+                                              && !_prevSource.IsSpecial 
+                                              &&  _prevSource.Document.Path == source.Document.Path;
 
                         if (!isSameDocAsPrevious)
-                        {
-                            _prevSource = null;
                             insd.dwFlags |= enum_DISASSEMBLY_FLAGS.DF_DOCUMENTCHANGE;
-                        }
 
                         if (wantsDocumentUrl || wantsPosition)
                         {
@@ -98,7 +97,7 @@ namespace Dot42.VStudio.Debugger
                             insd.dwFields |= enum_DISASSEMBLY_STREAM_FIELDS.DSF_BYTEOFFSET;
                         
                         var pos = source.Position;
-                        if (_prevSource == null || !_prevSource.Position.Start.Equals(pos.Start) || !_prevSource.Position.End.Equals(pos.End))
+                        if (!isSameDocAsPrevious || !_prevSource.Position.Start.Equals(pos.Start) || !_prevSource.Position.End.Equals(pos.End))
                         {
                             if (wantsPosition)
                             {
@@ -109,7 +108,7 @@ namespace Dot42.VStudio.Debugger
                                 insd.posBeg.dwLine = (uint)(pos.Start.Line - 1);
                                 insd.posBeg.dwColumn = 0;
                                 insd.posEnd.dwLine = (uint)(pos.End.Line - 1);
-                                insd.posEnd.dwColumn = uint.MaxValue;
+                                insd.posEnd.dwColumn = 0;
                                 if (insd.posEnd.dwLine - insd.posBeg.dwLine > 3) // never show more then 3 lines.
                                     insd.posEnd.dwLine = insd.posBeg.dwLine + 3;
                                 
@@ -133,25 +132,23 @@ namespace Dot42.VStudio.Debugger
                             insd.dwByteOffset = (uint) (ins.Offset - _prevSourceInstructionOffset);
                         }
                     }
-                    else
+                    else // no valid source
                     {
-                        // no valid source
-                        if (_prevSource != null)
+                        if (source != null && (_prevSource == null || !_prevSource.IsSpecial))
                         {
-                            _prevSource = source;
-                            insd.dwFlags |= enum_DISASSEMBLY_FLAGS.DF_DOCUMENTCHANGE;
-
-                            if (source != null)
+                            if ((dwFields & enum_DISASSEMBLY_STREAM_FIELDS.DSF_OPERANDS_SYMBOLS) != 0)
                             {
-                                if ((dwFields & enum_DISASSEMBLY_STREAM_FIELDS.DSF_OPERANDS_SYMBOLS) != 0)
-                                {
-                                    insd.dwFields |= enum_DISASSEMBLY_STREAM_FIELDS.DSF_OPERANDS_SYMBOLS;
-                                    insd.bstrSymbol = "(special instruction(s))";
-                                }
+                                insd.dwFields |= enum_DISASSEMBLY_STREAM_FIELDS.DSF_OPERANDS_SYMBOLS;
+                                insd.bstrSymbol = "(generated instructions)";
                             }
+
+                            insd.bstrDocumentUrl = "";
+                            insd.dwFields |= enum_DISASSEMBLY_STREAM_FIELDS.DSF_DOCUMENTURL;
+                            insd.dwFlags |= enum_DISASSEMBLY_FLAGS.DF_DOCUMENTCHANGE;
                         }
 
                         _prevSourceInstructionOffset = ins.Offset;
+                        _prevSource = source;
                     }
                 }
 
