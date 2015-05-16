@@ -81,7 +81,12 @@ namespace Dot42.DebuggerLib.Model
 
                 var val = Debugger.ObjectReference.GetValuesAsync(exceptionObject.Object, new[] { _throwableDetailedMessageFieldId })
                                                   .Await(DalvikProcess.VmTimeout).First();
-                var ret = Debugger.StringReference.ValueAsync((ObjectId) val.ValueObject).Await(DalvikProcess.VmTimeout);
+
+                var objectId = (ObjectId)val.ValueObject;
+                if(objectId.IsNull)
+                    return null;
+
+                var ret = Debugger.StringReference.ValueAsync(objectId).Await(DalvikProcess.VmTimeout);
                 return ret;
             });
 
