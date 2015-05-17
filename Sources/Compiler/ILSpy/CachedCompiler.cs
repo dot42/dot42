@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Dot42.ApkLib.Resources;
 using Dot42.CompilerLib;
@@ -30,9 +31,10 @@ namespace Dot42.Compiler.ILSpy
                 return;
 
             _compiler = null;
-            
-            string framework = Frameworks.Instance.GetNewestVersion().Folder;
-            var refFolders = new List<string> { framework };
+
+            var framework = Frameworks.Instance.GetNewestVersion();
+            string frameworkFolder = framework.Folder;
+            var refFolders = new List<string> { frameworkFolder };
 
             var module = new XModule();
             var classLoader = new AssemblyClassLoader(module.OnClassLoaded);
@@ -40,8 +42,7 @@ namespace Dot42.Compiler.ILSpy
             var parameter = new ReaderParameters(ReadingMode.Immediate) { AssemblyResolver = resolver };
 
             var assemblies = new[] { resolver.Load(assembly.MainModule.FullyQualifiedName, parameter) }.ToList();
-            var references = assemblies.ToList();
-            references.Clear();
+            var references = new[] { resolver.Load(AssemblyConstants.SdkAssemblyName, parameter) }.ToList();
 
             var c = new AssemblyCompiler(CompilationMode.All, assemblies, references, new Table("pkg.name"),
                                          new NameConverter("pkg.name", ""), true, 

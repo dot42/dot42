@@ -27,6 +27,7 @@ namespace Dot42.CompilerLib.Ast.Converters
                         break;
                     case AstCode.Ret:
                         {
+                            // TODO: whats the difference between this and RLBuilder.ConvertTypeBeforeStore?
                             if (node.Arguments.Count > 0)
                             {
                                 var varType = node.Arguments[0].ExpectedType;

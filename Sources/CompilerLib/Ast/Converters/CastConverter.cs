@@ -20,33 +20,35 @@ namespace Dot42.CompilerLib.Ast.Converters
         {
             var typeSystem = compiler.Module.TypeSystem;
 
-            // Expand instanceof
-            foreach (var node in ast.GetSelfAndChildrenRecursive<AstExpression>(x => x.Code == AstCode.InstanceOf))
+            foreach (var node in ast.GetSelfAndChildrenRecursive<AstExpression>())
             {
-                ConvertInstanceOf(compiler, node, typeSystem);
+                switch (node.Code)
+                {
+                    case AstCode.InstanceOf:
+                        ConvertInstanceOf(compiler, node, typeSystem);
+                        break;
+                    case AstCode.Isinst:
+                        ConvertIsInst(compiler, node, typeSystem);
+                        break;
+                    case AstCode.Castclass:
+                        ConvertCastclass(compiler, node, typeSystem);
+                        break;
+                    case AstCode.Callvirt:
+                        ConvertCallvirtIEnumerable(compiler, node, typeSystem);
+                        break;
+                    // TODO: this might better be handled in RLBuilder.ConvertTypeBeforeStore()
+                    case AstCode.Ret:
+                        ConvertRetOrStfldOrStsfld(compiler, currentMethod.Method.ReturnType, node, typeSystem);
+                        break;
+                    // TODO: this appears to be handled in RLBuilder.ConvertTypeBeforeStore(),
+                    //       but is not. why?
+                    case AstCode.Stfld:
+                    case AstCode.Stsfld:
+                        ConvertRetOrStfldOrStsfld(compiler, ((XFieldReference)node.Operand).FieldType, node, typeSystem);
+                        break;
+                }
             }
 
-            // Expand isinst
-            foreach (var node in ast.GetSelfAndChildrenRecursive<AstExpression>(x => x.Code == AstCode.Isinst))
-            {
-                ConvertIsInst(compiler, node, typeSystem);
-            }
-
-            // Expand Castclass
-            foreach (var node in ast.GetSelfAndChildrenRecursive<AstExpression>(x => x.Code == AstCode.Castclass))
-            {
-                ConvertCastclass(compiler, node, typeSystem);
-            }
-
-            foreach (var node in ast.GetSelfAndChildrenRecursive<AstExpression>(x => x.Code == AstCode.Callvirt))
-            {
-                ConvertCallvirtIEnumerable(compiler, node, typeSystem);
-            }
-
-            foreach (var node in ast.GetSelfAndChildrenRecursive<AstExpression>(x => x.Code == AstCode.Ret))
-            {
-                ConvertRet(compiler, node, typeSystem, currentMethod);
-            }
         }
 
         /// <summary>
@@ -135,21 +137,11 @@ namespace Dot42.CompilerLib.Ast.Converters
                 return;
             }
 
-            string asMethod = null;
-            if (type.IsSystemCollectionsIEnumerable() ||
-                type.IsSystemCollectionsIEnumerableT())
+            string asMethod = GetCollectionConvertMethodName(type);
+
+            if (asMethod != null)
             {
-                asMethod = "AsEnumerable";
-            }
-            else if (type.IsSystemCollectionsICollection()||
-                     type.IsSystemCollectionsICollectionT())
-            {
-                asMethod = "AsCollection";
-            }
-            else if (type.IsSystemCollectionsIList() ||
-                     type.IsSystemCollectionsIListT())
-            {
-                asMethod = "AsList";
+                asMethod = "As" + asMethod;
             }
             else if (type.IsSystemIFormattable())
             {
@@ -207,7 +199,7 @@ namespace Dot42.CompilerLib.Ast.Converters
         /// <summary>
         /// Convert node with code Callvirt. 
         /// 
-        /// for arrays: intercepts call to IEnumerable.IEnumerable_GetEnumerator generated 
+        /// For arrays: intercepts call to IEnumerable.IEnumerable_GetEnumerator generated 
         /// by foreach statements and swaps them out to System.Array.GetEnumerator.
         /// 
         /// This call will then at a later compilation stage be replaced with the final destination.
@@ -236,48 +228,30 @@ namespace Dot42.CompilerLib.Ast.Converters
         }
 
         /// <summary>
-        /// Convert node with code ret. 
+        /// Convert  ret or store field node.
         /// 
-        /// converts to IEnumerable, ICollection or IList if return value 
-        /// is currently an Array.
+        /// converts to IEnumerable, ICollection or IList if required.
         /// </summary>
-        private static void ConvertRet(AssemblyCompiler compiler, AstExpression node, XTypeSystem typeSystem, MethodSource currentMethod)
+        private static void ConvertRetOrStfldOrStsfld(AssemblyCompiler compiler, XTypeReference targetType, AstExpression node, XTypeSystem typeSystem)
         {
-            var type = currentMethod.Method.ReturnType;
+            var argument = node.Arguments.LastOrDefault();
             
-            string asMethod = null;
-            if (type.IsSystemCollectionsIEnumerable() ||
-                type.IsSystemCollectionsIEnumerableT())
-            {
-                asMethod = "AsEnumerable";
-            }
-            else if (type.IsSystemCollectionsICollection() ||
-                     type.IsSystemCollectionsICollectionT())
-            {
-                asMethod = "AsCollection";
-            }
-            else if (type.IsSystemCollectionsIList() ||
-                     type.IsSystemCollectionsIListT())
-            {
-                asMethod = "AsList";
-            }
-
-            if (asMethod == null) 
+            if (argument == null)
                 return;
-
-            if (node.Arguments.Count != 1) return;
-
-            var argument = node.Arguments[0];
 
             if (argument.InferredType == null || !argument.InferredType.IsArray)
                 return;
 
+            var methodName = GetCollectionConvertMethodName(targetType);
+            if (methodName == null) 
+                return;
+            
             // Call "ret asMethod(x)"
             var arrayHelper = compiler.GetDot42InternalType(InternalConstants.CompilerHelperName).Resolve();
-            var asArray = arrayHelper.Methods.First(x => x.Name == asMethod);
+            var asArray = arrayHelper.Methods.First(x => x.Name == "As" + methodName);
 
             // AsX(x)
-            var asXExpr = new AstExpression(node.SourceLocation, AstCode.Call, asArray, node.Arguments[0]).SetType(typeSystem.Object);
+            var asXExpr = new AstExpression(node.SourceLocation, AstCode.Call, asArray, argument).SetType(typeSystem.Object);
 
             // replace argument.
             node.Arguments[0] = asXExpr;
@@ -325,8 +299,8 @@ namespace Dot42.CompilerLib.Ast.Converters
             }
 
             if (type.IsSystemCollectionsIEnumerableT() ||
-                            type.IsSystemCollectionsICollectionT() ||
-                            type.IsSystemCollectionsIListT())
+                type.IsSystemCollectionsICollectionT() ||
+                type.IsSystemCollectionsIListT())
             {
                 // TODO: implement InstanceOf with type check for array types.
                 // (is that even possible here?)
@@ -352,6 +326,24 @@ namespace Dot42.CompilerLib.Ast.Converters
 
             // Normal instanceof
             node.Code = AstCode.SimpleInstanceOf;            
+        }
+
+        private static string GetCollectionConvertMethodName(XTypeReference targetType)
+        {
+            if (targetType.IsSystemCollectionsIEnumerable())
+                return "Enumerable";
+            if (targetType.IsSystemCollectionsIEnumerableT())
+                return "EnumerableOfObject";
+            if (targetType.IsSystemCollectionsICollection())
+                return "Collection";
+            if (targetType.IsSystemCollectionsICollectionT())
+                return "CollectionOfObject";
+            if (targetType.IsSystemCollectionsIList())
+                return "List";
+            if (targetType.IsSystemCollectionsIListT())
+                return "ListOfObject";
+
+            return null;
         }
     }
 }
