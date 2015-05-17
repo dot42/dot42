@@ -93,7 +93,7 @@ namespace Dot42.ApkSpy.Disassembly
                         if (source != null && lastSource != null && source.Document.Path != lastSource.Document.Path)
                         {
                             // print document name.
-                            sb.Append(" // ----- Source Code: ");
+                            sb.Append(" // ----- ");
                             sb.Append(source.Document.Path);
                             sb.Append(nl);
                             lastSource = null;

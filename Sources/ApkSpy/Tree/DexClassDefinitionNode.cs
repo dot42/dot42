@@ -50,13 +50,17 @@ namespace Dot42.ApkSpy.Tree
                 sb.AppendFormat("FullName: {0}{1}", classDef.Fullname, nl);
                 sb.AppendFormat("SuperClass: {0}{1}",
                     (classDef.SuperClass != null) ? classDef.SuperClass.Fullname : "<none>", nl);
+
                 foreach (var intf in classDef.Interfaces)
                 {
                     sb.AppendFormat("Implements: {0}{1}", intf.Fullname, nl);
                 }
+
                 sb.AppendFormat("AccessFlags: {0}{1}", AccessFlagsAsString(classDef.AccessFlags), nl);
+                
                 if (classDef.SourceFile != null)
-                    sb.AppendFormat("SourceFile : {0}", classDef.SourceFile);
+                    sb.AppendFormat("Source file: {0}{1}", classDef.SourceFile, nl);
+
                 sb.AppendFormat("Annotations: {0}{1}", LoadAnnotations(classDef), nl);
                 return sb.ToString();
             }
