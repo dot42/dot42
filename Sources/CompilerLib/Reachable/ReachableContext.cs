@@ -124,6 +124,50 @@ namespace Dot42.CompilerLib.Reachable
         }
 
         /// <summary>
+        /// Mark all matching [assembly: Include(Pattern="...")] included types.
+        /// </summary>
+        /// <param name="assemblies"></param>
+        public void MarkPatternIncludes(IList<AssemblyDefinition> assemblies)
+        {
+            List<PatternInclude> globals = new List<PatternInclude>();
+            Dictionary<AssemblyDefinition, List<PatternInclude>> locals = new Dictionary<AssemblyDefinition, List<PatternInclude>>();
+
+            foreach (var assembly in assemblies)
+            {
+                var incl = FindPatternIncludes(assembly);
+                globals.AddRange(incl.Where(p=>p.IsGlobal));
+                locals[assembly] = incl.Where(p => !p.IsGlobal).ToList();
+            }
+
+            if (globals.Count == 0 && locals.All(l => l.Value.Count == 0))
+                return;
+
+            var dot42Assembly = assemblies.First(a => a.Name.Name.Equals(AssemblyConstants.SdkAssemblyName));
+            var dot42IncludeType = dot42Assembly.MainModule.Types.First(t=>t.Namespace ==  AttributeConstants.Dot42AttributeNamespace && t.Name == AttributeConstants.IncludeAttributeName);
+
+            assemblies.AsParallel().ForAll(assembly =>
+            {
+                var patterns = globals.Concat(locals[assembly])
+                    .OrderByDescending(p => p.AppliesToMembers)
+                    .ToList();
+
+                if (patterns.Count == 0)
+                    return;
+
+                foreach (var typeDef in assembly.MainModule.GetTypes())
+                {
+                    foreach (var pattern in patterns)
+                    {
+                        if (!pattern.AppliesToMembers && typeDef.IsReachable)
+                            break;
+
+                        pattern.IncludeIfNeeded(this, typeDef, dot42IncludeType);
+                    }
+                }
+            });
+        }
+
+        /// <summary>
         /// Mark all elements of the given class reachable.
         /// </summary>
         internal void MarkAsRoot(ClassFile javaClass)
@@ -462,6 +506,36 @@ namespace Dot42.CompilerLib.Reachable
             return target;
         }
 
+        /// <summary>
+        /// Find the [Include(Pattern="...")] includes in the given assembly. 
+        /// </summary>
+        private static List<PatternInclude> FindPatternIncludes(AssemblyDefinition member)
+        {
+            var target = new List<PatternInclude>();
+            foreach (var attr in member.GetIncludeAttributes())
+            {
+                bool isGlobal = attr.Properties.Where(x => x.Name == AttributeConstants.IncludeAttributeIsGlobalName)
+                                         .Select(x => (bool)x.Argument.Value)
+                                         .FirstOrDefault();
+
+                var pattern = attr.Properties.Where(x => x.Name == AttributeConstants.IncludeAttributePatternName)
+                                             .Select(x => (string)x.Argument.Value)
+                                             .FirstOrDefault();
+
+                if (!string.IsNullOrEmpty(pattern))
+                {
+                    bool applyToMembers = attr.Properties.Where(x => x.Name == AttributeConstants.IncludeAttributeApplyToMembersName)
+                                             .Select(x => (bool)x.Argument.Value)
+                                             .FirstOrDefault();
+
+                    var patternIncl = new PatternInclude(pattern, applyToMembers, isGlobal);
+
+                    if (!patternIncl.IsEmpty)
+                        target.Add(patternIncl);
+                }
+            }
+            return target;
+        }
         /// <summary>
         /// Is the given type reference part of the "product" that should be included in the reachables search?
         /// </summary>

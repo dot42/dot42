@@ -123,10 +123,14 @@ namespace Dot42.CompilerLib
             const bool includeAllJavaCode = false;
 
             using (Profile("for marking roots"))
+            {
                 assemblies.Concat(references.Where(IsLibraryProject))
                           .ToList()
-                          .AsParallel().WithDegreeOfParallelism(4)
-                          .ForAll(assembly=>reachableContext.MarkRoots(assembly, includeAllJavaCode));
+                          .AsParallel()
+                          .ForAll(assembly => reachableContext.MarkRoots(assembly, includeAllJavaCode));
+
+                reachableContext.MarkPatternIncludes(assemblies.Concat(references).ToList());
+            }
 
             using (Profile("for finding reachables"))
                 reachableContext.Complete();

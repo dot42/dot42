@@ -28,6 +28,8 @@
         public const string JavaImportAttributeName = "JavaImportAttribute";
         public const string IncludeAttributeTypeConditionName = "TypeCondition";
         public const string IncludeAttributeInstanceOfConditionName = "InstanceOfCondition";
+        public const string IncludeAttributeIsGlobalName = "IsGlobal";
+        public const string IncludeAttributePatternName = "Pattern";
         public const string IncludeAttributeApplyToMembersName = "ApplyToMembers";
         public const string IncludeAttributeTypeName = "Type";
         public const string FrameworkLibraryAttributeName = "FrameworkLibraryAttribute";
