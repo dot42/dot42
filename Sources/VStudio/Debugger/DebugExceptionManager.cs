@@ -58,11 +58,15 @@ namespace Dot42.VStudio.Debugger
                    @event.ThreadId, @event.ExceptionObject, prev.ThreadId, prev.ExceptionObject);
 
                 Debugger.VirtualMachine.ResumeAsync();
-                // I have no idea why we have to resume twice, but if we dont, the debuggee will hang.
-                Debugger.Process.ResumeAsync();
+                return;
 
-                if(cancelProcessing != null)
-                    cancelProcessing.Cancel();
+                // This cancelling might not be neccessary any more; check this.
+
+                //// I have no idea why we have to resume twice, but if we dont, the debuggee will hang.
+                //Debugger.Process.ResumeAsync();
+
+                //if(cancelProcessing != null)
+                //    cancelProcessing.Cancel();
             }
 
             cancelProcessing = new CancellationTokenSource();
@@ -71,7 +75,7 @@ namespace Dot42.VStudio.Debugger
             
             bool caught;
             string exceptionName = "(unknown)";
-            string callStackTypeName="(unknown)";
+            string catchingClass = "(unknown)";
             string exceptionMessage = null;
 
             try
@@ -87,24 +91,21 @@ namespace Dot42.VStudio.Debugger
 
                 if (!ShouldHandle(exceptionName, caught))
                 {
+                    DLog.Debug(DContext.VSDebuggerMessage, "not handling exception {0}", exceptionName);
                     Debugger.VirtualMachine.ResumeAsync();
                     return;
                 }
 
-                if (caught && thread != null)
+                if (caught && @event.CatchLocation != null)
                 {
-                    // don't handle excluded locations.
-                    // check the first two stackframes.
-                    foreach (var frame in thread.GetCallStack().Take(2))
+                    // filter out internal exceptions, that are used for control flow.
+                    catchingClass = Process.ReferenceTypeManager[@event.CatchLocation.Class].GetNameAsync()
+                                                                  .Await(DalvikProcess.VmTimeout, cancelToken);
+                    if (CaughtExceptionLocationExcludePattern.IsMatch(catchingClass))
                     {
-                        callStackTypeName = frame.GetReferenceType().GetNameAsync()
-                                                                    .Await(DalvikProcess.VmTimeout, cancelToken);
-
-                        if (CaughtExceptionLocationExcludePattern.IsMatch(callStackTypeName))
-                        {
-                            Debugger.VirtualMachine.ResumeAsync();
-                            return;
-                        }
+                        DLog.Debug(DContext.VSDebuggerMessage, "not handling exception {0}, catching class={1}", exceptionName, catchingClass);
+                        Debugger.VirtualMachine.ResumeAsync();
+                        return;
                     }
                 }
 
@@ -117,7 +118,7 @@ namespace Dot42.VStudio.Debugger
             }
             catch(System.Exception ex)
             {
-                DLog.Error(DContext.VSDebuggerMessage, "Exception in debugger while processing exception: {0}. involved thread: {1}; exception.object={2}; exception type: {3}; callstack pos: {4}", ex.Message, GetThreadId(thread), @event.ExceptionObject.Object, exceptionName, callStackTypeName);
+                DLog.Error(DContext.VSDebuggerMessage, "Exception in debugger while processing exception: {0}. involved thread: {1}; exception.object={2}; exception type: {3}; ccatching class: {4}", ex.Message, GetThreadId(thread), @event.ExceptionObject.Object, exceptionName, catchingClass);
                 Debugger.VirtualMachine.ResumeAsync();
                 return;
             }

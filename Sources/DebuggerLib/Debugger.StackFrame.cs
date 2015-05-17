@@ -38,6 +38,14 @@ namespace Dot42.DebuggerLib
                         data.SetInt(slots.Length);
                         foreach (var slot in slots)
                         {
+                            if (slot.Slot == 1000)
+                            {
+                                // I have seen this crash the VM on a CyanogenMod Android 4.4.4
+                                // Samsung GT-I9195. Might be a bug in CyanogenMod.
+                                // https://android.googlesource.com/platform/art/+/ffcd9d25199a944625bd3c9a766349c23dcbdb66/runtime/debugger.cc
+                                DLog.Debug(DContext.DebuggerLibEvent, "accessing variable with Slot=1000");
+                            }
+
                             data.SetInt(slot.Slot);
                             data.SetByte((byte) slot.Tag);
                         }
