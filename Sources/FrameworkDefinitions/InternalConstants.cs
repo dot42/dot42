@@ -50,5 +50,12 @@
         /// Interface for annotation that indicates a method parameter as the generic type information for the class.
         /// </summary>
         public const string GenericTypeParameterAnnotation = "IGenericTypeParameter";
+
+        /// <summary>
+        /// Annotation that preserves reflection information that would be lost in Java.
+        /// </summary>
+        public const string ReflectionInfoAnnotation = "IReflectionInfo";
+        public const string ReflectionInfoAccessFlagsField = "AccessFlags";
+        public const string ReflectionInfoParameterNamesField = "ParameterNames";
     }
 }

@@ -60,7 +60,7 @@ namespace Dot42.CompilerLib.Extensions
         public static Annotation GetGenericDefinitionAnnotationForType(XTypeReference xtype, bool forceTypeDefinition, AssemblyCompiler compiler, DexTargetPackage targetPackage)
         {
             var genericsDefAnnotationClass = compiler.GetDot42InternalType(InternalConstants.GenericDefinitionAnnotation)
-                .GetClassReference(targetPackage);
+                                                     .GetClassReference(targetPackage);
             var annotation = new Annotation {Type = genericsDefAnnotationClass, Visibility = AnnotationVisibility.Runtime};
 
             if (xtype.IsGenericInstance)

@@ -10,6 +10,7 @@ using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel;
 using Dot42.CompilerLib.XModel.DotNet;
 using Dot42.DexLib;
+using Dot42.FrameworkDefinitions;
 using Dot42.Mapping;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -229,15 +230,59 @@ namespace Dot42.CompilerLib.Structure.DotNet
                         targetPackage);
                 }
             }
-            //else if (method.IsConstructor)
-            //{
-            //    for (int i = 0; i < xMethod.Parameters.Count; ++i)
-            //    {
-            //        var dp = dmethod.Prototype.Parameters[i];
-            //        dp.AddGenericDefinitionAnnotationIfGeneric(xMethod.Parameters[i].ParameterType, compiler,
-            //            targetPackage);
-            //    }
-            //}
+            else if (method.IsConstructor && !method.IsStatic)
+            {
+                // Add parameter names and original access flags, as these might be important
+                // in serialization and/or dependency injection.
+
+                var reflectionInfo = compiler.GetDot42InternalType(InternalConstants.ReflectionInfoAnnotation)
+                                             .GetClassReference(targetPackage);
+                var annotation = new Annotation { Type = reflectionInfo, Visibility = AnnotationVisibility.Runtime };
+
+                bool isPublic = (method.OriginalAttributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Public;
+
+                // Not sure if it makes any sense to remap the access flags.
+                bool isProtected = (method.OriginalAttributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Family
+                                || (method.OriginalAttributes & MethodAttributes.MemberAccessMask) == MethodAttributes.FamANDAssem
+                                || (method.OriginalAttributes & MethodAttributes.MemberAccessMask) == MethodAttributes.FamORAssem;
+
+                bool isInternal =  (method.OriginalAttributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Assembly
+                                || (method.OriginalAttributes & MethodAttributes.MemberAccessMask) == MethodAttributes.FamANDAssem
+                                || (method.OriginalAttributes & MethodAttributes.MemberAccessMask) == MethodAttributes.FamORAssem;
+
+                bool isPrivate = (method.OriginalAttributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Private;
+
+                // only create accessFlags if they differs from java's
+                if (isPublic       != dmethod.IsPublic
+                    || isProtected != dmethod.IsProtected
+                    || isPrivate   != dmethod.IsPrivate
+                    || isInternal)
+                {
+                    
+                    int accessFlags = 0;
+                    if (isPublic)    accessFlags |= 0x01;
+                    if (isProtected) accessFlags |= 0x02;
+                    if (isPrivate)   accessFlags |= 0x04;
+                    if (isInternal)  accessFlags |= 0x08;
+                    annotation.Arguments.Add(new AnnotationArgument(InternalConstants.ReflectionInfoAccessFlagsField, accessFlags));
+                }
+                
+                if (method.Parameters.Count > 0)
+                {
+                    annotation.Arguments.Add(new AnnotationArgument(InternalConstants.ReflectionInfoParameterNamesField,
+                                             method.Parameters.Select(p => p.Name).ToArray()));
+                }
+
+                if(annotation.Arguments.Count > 0 )
+                    dmethod.Annotations.Add(annotation);
+
+                //for (int i = 0; i < xMethod.Parameters.Count; ++i)
+                //{
+                //    var dp = dmethod.Prototype.Parameters[i];
+                //    dp.AddGenericDefinitionAnnotationIfGeneric(xMethod.Parameters[i].ParameterType, compiler,
+                //        targetPackage);
+                //}
+            }
         }
 
         /// <summary>

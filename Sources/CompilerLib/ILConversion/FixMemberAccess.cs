@@ -10,9 +10,12 @@ namespace Dot42.CompilerLib.ILConversion
     /// <summary>
     /// Will make fields and methods public when they are private or family and
     /// accessed from a subclass.
-    /// 
-    /// uses the marker "IsFamilyOrAssembly" to mark members that can be protected
+    /// <para/>
+    /// Uses the marker "IsFamilyOrAssembly" to mark members that can be protected
     /// because they reside in the same namespace, and "IsPublic" otherwise.
+    /// <para/>
+    /// TODO: this logic would better be had somewhere just writing the dex,
+    ///       not modifying the original assembly.
     /// </summary>
     [Export(typeof(ILConverterFactory))]
     internal class FixMemberAccess : ILConverterFactory
@@ -87,6 +90,8 @@ namespace Dot42.CompilerLib.ILConversion
 
                         bool isSameNamespace = IsSameNamespace(isMethodInDexImport, isMemberInDexImport, memberDeclaringType, methodDeclaringType);
 
+                        field.OriginalAttributes = field.Attributes;
+
                         // reset member access mask
                         field.Attributes &= ~FieldAttributes.FieldAccessMask;
                         if (isSameNamespace) field.IsFamilyOrAssembly  = true;
@@ -105,6 +110,8 @@ namespace Dot42.CompilerLib.ILConversion
                             continue;
 
                         bool isSameNamespace = IsSameNamespace(isMethodInDexImport, isMemberInDexImport, memberDeclaringType, methodDeclaringType);
+
+                        method.OriginalAttributes = method.Attributes;
 
                         // reset member access mask
                         method.Attributes &= ~MethodAttributes.MemberAccessMask;

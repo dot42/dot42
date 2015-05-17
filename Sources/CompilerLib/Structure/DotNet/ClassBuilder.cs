@@ -611,6 +611,22 @@ namespace Dot42.CompilerLib.Structure.DotNet
                     AnnotationVisibility.System, new AnnotationArgument("value", defValue));
                 Class.Annotations.Add(defAnnotation);
             }
+
+            // Add annotation defaults
+            if ((Type.Namespace == InternalConstants.Dot42InternalNamespace)
+                && (Type.Name == InternalConstants.ReflectionInfoAnnotation))
+            {
+                var annotationClass = compiler.GetDot42InternalType(InternalConstants.ReflectionInfoAnnotation)
+                                              .GetClassReference(targetPackage);
+
+                var defValue = new Annotation(annotationClass, AnnotationVisibility.Runtime,
+                    new AnnotationArgument(InternalConstants.ReflectionInfoAccessFlagsField, 0),
+                    new AnnotationArgument(InternalConstants.ReflectionInfoParameterNamesField, new string[0]));
+
+                var defAnnotation = new Annotation(new ClassReference("dalvik.annotation.AnnotationDefault"),
+                    AnnotationVisibility.System, new AnnotationArgument("value", defValue));
+                Class.Annotations.Add(defAnnotation);
+            }
         }
 
         /// <summary>
