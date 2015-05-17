@@ -50,6 +50,10 @@ namespace Dot42.ApkSpy
             this.miConfigureBaksmali = new System.Windows.Forms.ToolStripMenuItem();
             this.miDebug = new System.Windows.Forms.ToolStripMenuItem();
             this.miShowAst = new System.Windows.Forms.ToolStripMenuItem();
+            this.miSearch = new System.Windows.Forms.ToolStripMenuItem();
+            this.miFindClass = new System.Windows.Forms.ToolStripMenuItem();
+            this.miFindNext = new System.Windows.Forms.ToolStripMenuItem();
+            this.miFindPrevious = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.mainContainer)).BeginInit();
             this.mainContainer.Panel1.SuspendLayout();
             this.mainContainer.SuspendLayout();
@@ -104,6 +108,7 @@ namespace Dot42.ApkSpy
             // 
             this.menuBar.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.miFile,
+            this.miSearch,
             this.optionsToolStripMenuItem,
             this.miDebug});
             this.menuBar.Location = new System.Drawing.Point(0, 0);
@@ -228,6 +233,42 @@ namespace Dot42.ApkSpy
             this.miShowAst.Size = new System.Drawing.Size(123, 22);
             this.miShowAst.Text = "Show Ast";
             // 
+            // miSearch
+            // 
+            this.miSearch.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.miFindClass,
+            this.miFindNext,
+            this.miFindPrevious});
+            this.miSearch.Name = "miSearch";
+            this.miSearch.Size = new System.Drawing.Size(54, 20);
+            this.miSearch.Text = "Search";
+            // 
+            // miFindClass
+            // 
+            this.miFindClass.Name = "miFindClass";
+            this.miFindClass.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.F)));
+            this.miFindClass.Size = new System.Drawing.Size(196, 22);
+            this.miFindClass.Text = "Find class...";
+            this.miFindClass.Click += new System.EventHandler(this.miFindClass_Click);
+            // 
+            // miFindNext
+            // 
+            this.miFindNext.Name = "miFindNext";
+            this.miFindNext.ShortcutKeys = System.Windows.Forms.Keys.F3;
+            this.miFindNext.Size = new System.Drawing.Size(196, 22);
+            this.miFindNext.Text = "Find next";
+            this.miFindNext.Click += new System.EventHandler(this.miFindNext_Click);
+            // 
+            // miFindPrevious
+            // 
+            this.miFindPrevious.Name = "miFindPrevious";
+            this.miFindPrevious.ShortcutKeyDisplayString = "Shift+F3";
+            this.miFindPrevious.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.F3)));
+            this.miFindPrevious.Size = new System.Drawing.Size(196, 22);
+            this.miFindPrevious.Text = "Find previous";
+            this.miFindPrevious.Visible = false;
+            this.miFindPrevious.Click += new System.EventHandler(this.miFindPrevious_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -270,5 +311,9 @@ namespace Dot42.ApkSpy
         private System.Windows.Forms.ToolStripMenuItem miEmbedSourceCode;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
         private System.Windows.Forms.ToolStripMenuItem miShowControlFlow;
+        private System.Windows.Forms.ToolStripMenuItem miSearch;
+        private System.Windows.Forms.ToolStripMenuItem miFindClass;
+        private System.Windows.Forms.ToolStripMenuItem miFindNext;
+        private System.Windows.Forms.ToolStripMenuItem miFindPrevious;
     }
 }

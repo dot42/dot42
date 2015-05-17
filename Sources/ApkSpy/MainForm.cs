@@ -21,6 +21,7 @@ namespace Dot42.ApkSpy
         private string originalPath;
 
         private bool initialized;
+        private string lastSearchString;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MainForm"/> class.
@@ -245,18 +246,7 @@ namespace Dot42.ApkSpy
         {
             get
             {
-                var node = treeView.SelectedNode;
-                if (node == null)
-                    return string.Empty;
-                var sb = new StringBuilder();
-                while (node != null)
-                {
-                    if (sb.Length > 0)
-                        sb.Insert(0, '|');
-                    sb.Insert(0, node.Text);
-                    node = node.Parent;
-                }
-                return sb.ToString();
+                return GetTreePath(treeView.SelectedNode);
             }
             set
             {
@@ -291,6 +281,21 @@ namespace Dot42.ApkSpy
             }
         }
 
+        private static string GetTreePath(TreeNode node)
+        {
+            if (node == null)
+                return string.Empty;
+            var sb = new StringBuilder();
+            while (node != null)
+            {
+                if (sb.Length > 0)
+                    sb.Insert(0, '|');
+                sb.Insert(0, node.Text);
+                node = node.Parent;
+            }
+            return sb.ToString();
+        }
+
         /// <summary>
         /// Show abstract syntax tree
         /// </summary>
@@ -316,18 +321,30 @@ namespace Dot42.ApkSpy
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
             bool bHandled = false;
-            // switch case is the easy way, a hash or map would be better, 
-            // but more work to get set up.
-            switch (keyData)
+
+            if (keyData == Keys.F5)
             {
-                case Keys.F5:
+                if(originalPath != null)
+                    Open(originalPath);
 
-                    if(originalPath != null)
-                        Open(originalPath);
-
-                    bHandled = true;
-                    break;
+                bHandled = true;
             }
+            else if (keyData == Keys.F3)
+            {
+                miFindNext_Click(this, new EventArgs());
+                bHandled = true; 
+            }
+            else if ((keyData & Keys.KeyCode) == Keys.F3 &&  (keyData & Keys.Shift) != 0)
+            {
+                miFindPrevious_Click(this, new EventArgs());
+                bHandled = true;
+            }
+            else if ((keyData & Keys.KeyCode) == Keys.F && (keyData & Keys.Control) != 0)
+            {
+                miFindClass_Click(this, new EventArgs());
+                bHandled = true;
+            }
+
             return bHandled;
         }
 
@@ -415,6 +432,46 @@ namespace Dot42.ApkSpy
             SettingsPersitor.ShowControlFlow = ShowControlFlow;
             UpdateView();
         }
+
+        private void miFindClass_Click(object sender, EventArgs e)
+        {
+            using (var dlg = new SearchDialog())
+            {
+                dlg.SearchText = lastSearchString;
+
+                if (dlg.ShowDialog(this) == DialogResult.OK)
+                {
+                    lastSearchString = dlg.SearchText;
+
+                    if(!string.IsNullOrEmpty(lastSearchString))
+                        miFindNext_Click(sender, e);
+                }
+            }
+        }
+
+        private void miFindNext_Click(object sender, EventArgs e)
+        {
+            if (treeView.Nodes.Count == 0) return;
+
+            var searchString = lastSearchString;
+
+            if (string.IsNullOrEmpty(searchString))
+            {
+                miFindClass_Click(sender, e);
+                return;
+            }
+
+            var nextNode = treeView.FindNextNode(searchString);
+            if(nextNode != null)
+                TreePath = GetTreePath(nextNode);
+        }
+
+        private void miFindPrevious_Click(object sender, EventArgs e)
+        {
+            if (treeView.Nodes.Count == 0) return;
+            // TODO...
+        }
+        
     }
 }
  

@@ -48,6 +48,7 @@
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
@@ -112,6 +113,12 @@
     </Compile>
     <Compile Include="..\Version.cs" />
     <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="SearchDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SearchDialog.Designer.cs">
+      <DependentUpon>SearchDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="Disassembly\MethodBodyDisassemblyFormatter.cs" />
     <Compile Include="IPC\AsyncLineReader.cs" />
     <Compile Include="IPC\AsyncStreamReader.cs" />
@@ -159,6 +166,7 @@
     <Compile Include="Tree\TableFileNode.cs" />
     <Compile Include="Tree\TextFileNode.cs" />
     <Compile Include="Tree\TreeExtensions.cs" />
+    <Compile Include="Tree\TreeSearch.cs" />
     <Compile Include="Tree\XmlFileNode.cs" />
     <Compile Include="Tree\FileNode.cs" />
     <Compile Include="Tree\UnknownFileNode.cs" />
@@ -175,6 +183,9 @@
     <Compile Include="Tree\NodeBuilders.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="SearchDialog.resx">
+      <DependentUpon>SearchDialog.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
