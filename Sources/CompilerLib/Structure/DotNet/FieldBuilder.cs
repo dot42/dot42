@@ -91,7 +91,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
                                  "the same static field, contrary on how CLR operates. A workaround is to " +
                                  "use ConcurrentDictionaries to access the values dependent on the type. " +
                                  "You can suppress this warning with a [SuppressMessage(\"dot42\"," +
-                                 " \"StaticFieldInGenericType\"] attribute, either on the field or on the class.";
+                                 " \"StaticFieldInGenericType\")] attribute, either on the field or on the class.";
                     DLog.Warning(DContext.CompilerILConverter, msg, field.Name, declaringType.FullName);
                 }
                 

@@ -250,7 +250,7 @@ namespace Dot42.CompilerLib.Ast.Converters
                         if(currentMethod.IsDotNet && !currentMethod.ILMethod.DeclaringType.HasSuppressMessageAttribute("StaticConstructorUsesGenericParameter"))
                         {
                             var msg = "Class (static) constructor of {0} tries to use generic parameter. This will always yield Object. " +
-                                      "You can suppress this warning with a [SuppressMessage(\"dot42\", \"StaticConstructorUsesGenericParameter\"] " +
+                                      "You can suppress this warning with a [SuppressMessage(\"dot42\", \"StaticConstructorUsesGenericParameter\")] " +
                                       "attribute on the class.";
                             DLog.Warning(DContext.CompilerCodeGenerator, msg, currentMethod.DeclaringTypeFullName);
                         }

@@ -101,7 +101,7 @@ namespace Dot42.CompilerLib.Reachable.DotNet
                     }
                 }
 
-                // If is an an attribute include related types
+                // If this is an attribute, include related types
                 if (typeDef.IsAttribute())
                 {
                     GetDot42InternalType(context, "IAttribute").MarkReachable(context);

@@ -127,10 +127,17 @@ namespace Dot42.CompilerLib.Ast.Extensions
         /// </summary>
         public static MethodDefinition FindDefaultCtor(this TypeDefinition type)
         {
-            return type.HasMethods
-                       ? type.Methods.FirstOrDefault(
-                           ctor => (ctor.IsConstructor) && (ctor.Name == ".ctor") && (!ctor.HasParameters))
-                       : null;
+            if (!type.HasMethods) 
+                return null;
+            // We've got to ensure that the type can be created through reflection /
+            // dependency injection. We are interested in any public constructor,
+            // and private/protected default constructors.
+            return type.Methods.Where(ctor => ctor.IsConstructor 
+                                          && ctor.Name == ".ctor" 
+                                          && (ctor.IsPublic || !ctor.HasParameters))
+                               .OrderByDescending(ctor => ctor.IsPublic)
+                               .ThenBy(ctor => ctor.HasParameters)
+                               .FirstOrDefault();
         }
 
         /// <summary>
