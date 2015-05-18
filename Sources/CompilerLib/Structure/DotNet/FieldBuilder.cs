@@ -87,14 +87,32 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 if (!field.HasSuppressMessageAttribute("StaticFieldInGenericType")
                  && !field.DeclaringType.HasSuppressMessageAttribute("StaticFieldInGenericType"))
                 {
-                    string msg = "Static field {0} in generic type {1}: All generic instances will share " +
-                                 "the same static field, contrary on how CLR operates. A workaround is to " +
-                                 "use ConcurrentDictionaries to access the values dependent on the type. " +
-                                 "You can suppress this warning with a [SuppressMessage(\"dot42\"," +
-                                 " \"StaticFieldInGenericType\")] attribute, either on the field or on the class.";
-                    DLog.Warning(DContext.CompilerILConverter, msg, field.Name, declaringType.FullName);
+                    string msg;
+                    if (field.Name.Contains("CachedAnonymousMethodDelegate"))
+                        msg = "The compiler generated a static field '{0}' in generic type '{1}'. This is not supported " +
+                              "in Dot42 if the anonymous delegate accesses a generic class parameter. A workaround " +
+                              "is to convert the anonymous static delegate to a normal method.\n";
+                    else
+                        msg = "Static field '{0}' in generic type {1}: All generic instances will share " +
+                              "the same static field, contrary on how CLR operates. A workaround is to " +
+                              "use ConcurrentDictionaries to access the values dependent on the type.\n";
+                    
+                    msg += "You can suppress this warning with a [SuppressMessage(\"dot42\"," +
+                           " \"StaticFieldInGenericType\")] attribute, either on the field or on the class.";
+
+                    var body = field.DeclaringType.Methods.Select(m => m.Body)
+                                                          .FirstOrDefault(m => m != null 
+                                                                            && m.Instructions.Any(i => i.SequencePoint != null));
+                    if (body != null)
+                    {
+                        var seqPoint = body.Instructions.Select(i=>i.SequencePoint).First(i => i != null);
+                        DLog.Warning(DContext.CompilerILConverter, seqPoint.Document.Url, seqPoint.StartColumn, seqPoint.StartLine, msg, field.Name, declaringType.FullName);
+                    }
+                    else
+                    {
+                        DLog.Warning(DContext.CompilerILConverter, msg, field.Name, declaringType.FullName);
+                    }
                 }
-                
             }
         }
 

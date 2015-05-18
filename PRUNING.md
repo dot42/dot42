@@ -74,8 +74,8 @@ class MyClass2
 #### Using `[Dot42.Include]` on the assembly level
 ###### Including types
 ```
+// Note that ApplyToMembers is ignored.
 [assembly: Include(Type=typeof(MyClass))]
-[assembly: Include(Type=typeof(MyClass), ApplyToMembers=true)]
 ``` 
 ###### Inheritance condition
 ```

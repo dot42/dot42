@@ -249,10 +249,14 @@ namespace Dot42.CompilerLib.Ast.Converters
                         // Return Object instead
                         if(currentMethod.IsDotNet && !currentMethod.ILMethod.DeclaringType.HasSuppressMessageAttribute("StaticConstructorUsesGenericParameter"))
                         {
-                            var msg = "Class (static) constructor of {0} tries to use generic parameter. This will always yield Object. " +
+                            var msg = "Class (static) constructor of '{0}' tries to use generic parameter. This will always yield Object. " +
                                       "You can suppress this warning with a [SuppressMessage(\"dot42\", \"StaticConstructorUsesGenericParameter\")] " +
                                       "attribute on the class.";
-                            DLog.Warning(DContext.CompilerCodeGenerator, msg, currentMethod.DeclaringTypeFullName);
+
+                            if(seqp != null && seqp.Document != null)
+                                DLog.Warning(DContext.CompilerCodeGenerator, seqp.Document, seqp.StartColumn,seqp.StartLine, msg, currentMethod.DeclaringTypeFullName);
+                            else
+                                DLog.Warning(DContext.CompilerCodeGenerator, msg, currentMethod.DeclaringTypeFullName);
                         }
                         return new AstExpression(seqp, AstCode.TypeOf, typeSystem.Object) { ExpectedType = typeSystem.Type };
                     }

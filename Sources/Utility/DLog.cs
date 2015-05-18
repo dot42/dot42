@@ -75,6 +75,11 @@ namespace Dot42.Utility
             GetContext(context).Write(Levels.Warning, context, null, -1, -1, msg, null, args);
         }
 
+        public static void Warning(DContext context, string url, int column, int lineNr, string msg, params object[] args)
+        {
+            GetContext(context).Write(Levels.Warning, context, url, column, lineNr, msg, null, args);
+        }
+
         /// <summary>
         /// Log the given warning.
         /// </summary>
