@@ -5,6 +5,7 @@ using System.Text;
 using System.Windows.Forms;
 using Dot42.DexLib;
 using Dot42.JvmClassLib.Attributes;
+using Dot42.Utility;
 using ICSharpCode.TextEditor;
 
 namespace Dot42.ApkSpy.Tree
@@ -32,11 +33,18 @@ namespace Dot42.ApkSpy.Tree
         private TextEditorControl CreateTextBox()
         {
             var tb = new TextEditorControl();
-            tb.IsReadOnly = true;
-            tb.Font = new Font(tb.Font.OriginalFontName, 9);
+            tb.IsReadOnly = true;            
+            
             // TODO: set proper highlighting.
             tb.SetHighlighting("C#");
-            tb.ShowLineNumbers = true;
+
+            var high = (ICSharpCode.TextEditor.Document.DefaultHighlightingStrategy)tb.Document.HighlightingStrategy;
+            var def = high.Rules.First();
+            var delim = " ,().:\t\n\r";
+            for(int i = 0; i < def.Delimiters.Length; ++i)
+                def.Delimiters[i] = delim.Contains((char)i);
+
+            tb.ShowLineNumbers = false;
             tb.ShowInvalidLines = false;
             tb.ShowVRuler = false;
             tb.ActiveTextAreaControl.TextArea.ToolTipRequest += OnToolTipRequest;

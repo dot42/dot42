@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using Dot42.ApkSpy.Disassembly;
 using Dot42.DebuggerLib;
@@ -16,7 +19,10 @@ namespace Dot42.ApkSpy.Tree
         private readonly MethodDefinition _methodDef;
         private MethodBodyDisassemblyFormatter _formatter;
         private static readonly DalvikOpcodeHelpLookup Opcodes = new DalvikOpcodeHelpLookup();
-        private TextMarker markedLine;
+
+        private readonly List<TextMarker> _jumpMarkers= new List<TextMarker>();
+        private readonly List<TextMarker> _registerMarkers = new List<TextMarker>();
+
         private string previousWord = null;
 
         /// <summary>
@@ -93,7 +99,7 @@ namespace Dot42.ApkSpy.Tree
             var lineSegment = text.Document.GetLineSegment(e.LogicalPosition.Line);
             var lineText = text.Document.GetText(lineSegment);
 
-            string word = GetWordByWhitespace(lineText, e.LogicalPosition.Column);
+            string word = GetWordByWhitespaceAndCommas(lineText, e.LogicalPosition.Column);
 
             if (word == null)
                 return;
@@ -139,75 +145,195 @@ namespace Dot42.ApkSpy.Tree
             var lineSegment = document.GetLineSegment(pos.Line);
             var lineText = document.GetText(lineSegment);
 
-            var words = GetWordAndPreviousByWhitespace(lineText, pos.Column);
+            string word = GetWordByWhitespaceAndCommas(lineText, pos.Column);
 
-            //Console.WriteLine("{0} {1} {2}", pos.Line, pos.Column, words==null?"(null)": words[1]);
-
-            var word = words == null ? null : words[1];
             if (word == previousWord)
                 return;
+            
+            previousWord = word;
 
-            if (markedLine != null)
+            MarkJumpTarget(word, lineText, pos, document, text);
+            MarkRegisterUsage(word, document, text);
+        }
+
+        private void MarkJumpTarget(string word, string lineText, TextLocation pos, IDocument document, TextArea text)
+        {
+            if (_jumpMarkers.Count > 0)
             {
-                document.MarkerStrategy.RemoveMarker(markedLine);
-                markedLine = null;
+                foreach(var marker in _jumpMarkers)
+                    document.MarkerStrategy.RemoveMarker(marker);
+                _jumpMarkers.Clear();
                 text.Refresh();
             }
-
-            previousWord = word;
 
             if (word == null)
                 return;
 
-            // jump target?
-            if (words[0] == MethodDisassembly.JumpMarker)
-            {
-                foreach (var line in document.LineSegmentCollection)
-                {
-                    if (line.Offset + 5 >= document.TextLength)
-                        break;
+            bool couldBeJump = Regex.IsMatch(word, "^[0-9a-fA-F]{3,4}$");
+            
+            if (!couldBeJump)
+                return;
+            
+            int wordIdx;
+            GetWordByWhitespaceAndCommas(lineText, pos.Column, out wordIdx);
 
-                    var lineBeginning = document.GetText(line.Offset, 5).Trim();
-                    if (lineBeginning == word)
+            bool isFirstWord = lineText.IndexOf(word, StringComparison.Ordinal) == wordIdx;
+            bool isJumpInstruction = false;
+
+            if (!isFirstWord)
+            {
+                var words = GetWordAndPreviousByWhitespaceAndCommas(lineText, pos.Column);
+                isJumpInstruction = words != null && words[0] == MethodDisassembly.JumpMarker;
+            }
+
+            if (!isFirstWord && !isJumpInstruction)
+                return;
+
+            LineSegment mainLine = null;
+            int jumpMarkerLen = MethodDisassembly.JumpMarker.Length;
+            // jump target?
+            foreach (var line in document.LineSegmentCollection)
+            {
+                bool isLineFirstWord = true;
+
+                string curLine = document.GetText(line);
+
+                int curOffset = 0;
+                foreach (var curWord in SplitAndKeep(curLine, "\n\r \t:,().\\".ToCharArray()))
+                {
+                    if (curWord.Trim() == "")
                     {
-                        // found jump target.
-                        // better would be to mark the whole line, not only the words.
-                        markedLine = new TextMarker(line.Offset, line.TotalLength, TextMarkerType.SolidBlock, 
-                                                    Color.Gold);
-                        document.MarkerStrategy.AddMarker(markedLine);
-                        text.Refresh();
-                        return;
+                        curOffset += curWord.Length;
+                        continue;
                     }
+                    // mark all words matching the jump instruction
+                    if (curWord == word)
+                    {
+                        if (isLineFirstWord && mainLine == null)
+                        {
+                            mainLine = line;
+                        }
+                        else
+                        {
+                            // add marker.
+                            if (curOffset > 4 && curLine.Substring(curOffset - jumpMarkerLen - 1, jumpMarkerLen) == MethodDisassembly.JumpMarker)
+                            {
+                                AddJumpMarker(document, line.Offset + curOffset - jumpMarkerLen - 1,
+                                              curWord.Length + jumpMarkerLen + 1);
+                            }
+                            else
+                            {
+                                AddJumpMarker(document, line.Offset + curOffset, curWord.Length);
+                            }
+                        }
+                    }
+                    
+                    curOffset += curWord.Length;
+                    isLineFirstWord = false;
                 }
+            }
+
+            if (mainLine != null && _jumpMarkers.Count > 0)
+            {
+                // better would be to mark the whole line, not only the words.
+                AddJumpMarker(document, mainLine.Offset, mainLine.TotalLength);
+            }
+            
+            if(_jumpMarkers.Count > 0)
+                text.Refresh();
+        }
+
+        public static IEnumerable<string> SplitAndKeep(string s, char[] delims)
+        {
+            int start = 0, index;
+
+            while ((index = s.IndexOfAny(delims, start)) != -1)
+            {
+                if (index - start > 0)
+                    yield return s.Substring(start, index - start);
+                yield return s.Substring(index, 1);
+                start = index + 1;
+            }
+
+            if (start < s.Length)
+            {
+                yield return s.Substring(start);
             }
         }
 
-        private string GetWordByWhitespace(string lineText, int column)
+        private void AddJumpMarker(IDocument document, int offset, int length)
         {
-            int wordIdx;
-            return GetWordByWhitespace(lineText, column, out wordIdx);
+            var marker = new TextMarker(offset, length, TextMarkerType.SolidBlock, Color.Gold);
+            document.MarkerStrategy.AddMarker(marker);
+            _jumpMarkers.Add(marker);
         }
 
-        private string GetWordByWhitespace(string lineText, int column, out int startIdx)
+        private void MarkRegisterUsage(string word, IDocument document, TextArea text)
+        {
+            if (_formatter == null) return;
+
+            var hadRegisterMarks = _registerMarkers.Count > 0;
+            if (hadRegisterMarks)
+            {
+                foreach(var m in _registerMarkers)
+                    document.MarkerStrategy.RemoveMarker(m);
+            }
+
+            if (word == null || !Regex.IsMatch(word, "^[rp][0-9]+$"))
+            {
+                if (hadRegisterMarks)
+                    text.Refresh();
+                return;
+            }
+
+            foreach (var line in document.LineSegmentCollection)
+            foreach (var w in line.Words)
+            {
+                if (w.Word != word)
+                    continue;
+
+                var marker = new TextMarker(line.Offset + w.Offset, w.Length, TextMarkerType.SolidBlock,
+                                            Color.LightSalmon);
+                document.MarkerStrategy.AddMarker(marker);
+                _registerMarkers.Add(marker);
+            }
+
+            if (_registerMarkers.Count > 0 || hadRegisterMarks)
+            {
+                text.Refresh();
+            }
+
+        }
+
+        private string GetWordByWhitespaceAndCommas(string lineText, int column)
+        {
+            int wordIdx;
+            return GetWordByWhitespaceAndCommas(lineText, column, out wordIdx);
+        }
+
+        private string GetWordByWhitespaceAndCommas(string lineText, int column, out int startIdx)
         {
             startIdx = -1;
 
             if (column >= lineText.Length)
                 return null;
 
-            if (char.IsWhiteSpace(lineText[column]))
+            var c = lineText[column];
+            if (char.IsWhiteSpace(c) || c == ',')
                 return null;
 
             int idxAfterEnd = column + 1;
             for (; idxAfterEnd < lineText.Length ; ++idxAfterEnd)
             {
-                if (char.IsWhiteSpace(lineText[idxAfterEnd]))
+                c = lineText[idxAfterEnd];
+                if (char.IsWhiteSpace(c) || c == ',')
                     break;
             }
             int idxBeforeStart = column - 1;
             for (; idxBeforeStart >= 0; --idxBeforeStart)
             {
-                if (char.IsWhiteSpace(lineText[idxBeforeStart]))
+                c = lineText[idxBeforeStart];
+                if (char.IsWhiteSpace(c) || c == ',')
                     break;
             }
 
@@ -215,24 +341,25 @@ namespace Dot42.ApkSpy.Tree
             return lineText.Substring(startIdx, idxAfterEnd - idxBeforeStart - 1);
         }
 
-        private string[] GetWordAndPreviousByWhitespace(string lineText, int column)
+        private string[] GetWordAndPreviousByWhitespaceAndCommas(string lineText, int column)
         {
             int wordIdx, wordIdx2;
-            string word = GetWordByWhitespace(lineText, column, out wordIdx);
+            string word = GetWordByWhitespaceAndCommas(lineText, column, out wordIdx);
 
             if (word == null)
                 return null;
 
             for (--wordIdx; wordIdx >= 0; --wordIdx)
             {
-                if (!char.IsWhiteSpace(lineText[wordIdx]))
+                var c = lineText[wordIdx];
+                if (!char.IsWhiteSpace(c) && c != ',' )
                     break;
             }
 
             if (wordIdx == -1)
                 return null;
 
-            return new [] { GetWordByWhitespace(lineText, wordIdx, out wordIdx2), word };
+            return new [] { GetWordByWhitespaceAndCommas(lineText, wordIdx, out wordIdx2), word };
         }
 
         private string AccessFlagsAsString(AccessFlags accessFlags)
