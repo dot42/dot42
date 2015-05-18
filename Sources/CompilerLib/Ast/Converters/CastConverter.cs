@@ -254,7 +254,7 @@ namespace Dot42.CompilerLib.Ast.Converters
             var asXExpr = new AstExpression(node.SourceLocation, AstCode.Call, asArray, argument).SetType(typeSystem.Object);
 
             // replace argument.
-            node.Arguments[0] = asXExpr;
+            node.Arguments[node.Arguments.Count-1] = asXExpr;
         }
 
         /// <summary>

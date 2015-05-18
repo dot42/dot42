@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using Dot42.CompilerLib.RL2DexCompiler;
-using Dot42.DebuggerLib.Model;
+using Dot42.DebuggerLib;
 using Dot42.DexLib;
 using Dot42.Mapping;
 
@@ -15,6 +16,8 @@ namespace Dot42.ApkSpy.Disassembly
         private readonly MapFileLookup _mapFile;
         private readonly Lazy<string[]> _sourceDocument;
         private readonly MethodDisassembly _dissassembly;
+
+        private Dictionary<string, string> _registersToVariableNames;
 
         public MethodBodyDisassemblyFormatter(MethodDefinition methodDef, MapFileLookup mapFile)
         {
@@ -149,13 +152,19 @@ namespace Dot42.ApkSpy.Disassembly
                     var methodEntry = typeEntry.FindDexMethod(_methodDef.Name, _methodDef.Prototype.ToSignature());
                     if (methodEntry != null)
                     {
+                        _registersToVariableNames = new Dictionary<string, string>();
+
                         var validParameters = methodEntry.Parameters.Where(x => !string.IsNullOrEmpty(x.Name)).ToList();
                         if (validParameters.Any())
                         {
                             sb.AppendLine("Parameters:");
                             foreach (var p in validParameters)
                             {
-                                sb.AppendFormat("\t{0} (r{1}) -> {2}{3}", _dissassembly.FormatRegister(p.Register), p.Register, p.Name, nl);
+                                var registerName = _dissassembly.FormatRegister(p.Register);
+                                sb.AppendFormat("\t{0} (r{1}) -> {2}{3}", registerName, p.Register, p.Name, nl);
+                                
+                                if(!string.IsNullOrEmpty(p.Name))
+                                    _registersToVariableNames.Add(registerName, p.Name);
                             }
                             sb.AppendLine();
                         }
@@ -166,7 +175,10 @@ namespace Dot42.ApkSpy.Disassembly
                             sb.AppendLine("Variables:");
                             foreach (var p in validVariables)
                             {
-                                sb.AppendFormat("\t{0} -> {1}{2}", _dissassembly.FormatRegister(p.Register), p.Name, nl);
+                                var registerName = _dissassembly.FormatRegister(p.Register);
+                                sb.AppendFormat("\t{0} -> {1}{2}", registerName, p.Name, nl);
+                                if (!string.IsNullOrEmpty(p.Name))
+                                    _registersToVariableNames.Add(registerName, p.Name);
                             }
                             sb.AppendLine();
                         }
@@ -187,6 +199,20 @@ namespace Dot42.ApkSpy.Disassembly
                 }
             }
             return sb.ToString();
+        }
+
+        public string GetVariableByRegisterName(string registerName)
+        {
+            if (_registersToVariableNames == null)
+                return null;
+
+            string ret;
+            _registersToVariableNames.TryGetValue(registerName, out ret);
+            
+            if (!_methodDef.IsStatic && registerName == "p0")
+                return "this";
+
+            return ret;
         }
 
         private string[] GetSourceCodeLines(SourceCodePosition source)

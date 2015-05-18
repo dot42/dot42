@@ -108,7 +108,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\DebuggerLib\Model\MethodDisassembly.cs">
+    <Compile Include="..\DebuggerLib\MethodDisassembly.cs">
       <Link>Disassembly\MethodDisassembly.cs</Link>
     </Compile>
     <Compile Include="..\Version.cs" />
@@ -218,6 +218,7 @@
   <ItemGroup>
     <Content Include="Images\Spy.ico" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy /Y /C $(TargetDir)*.* $(SolutionDir)\Build\Application\</PostBuildEvent>

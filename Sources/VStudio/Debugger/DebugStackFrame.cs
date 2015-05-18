@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Dot42.DebuggerLib;
 using Dot42.DebuggerLib.Model;
+using Dot42.DexLib.OpcodeHelp;
 using Dot42.Utility;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Debugger.Interop;
@@ -12,6 +13,8 @@ namespace Dot42.VStudio.Debugger
 {
     public class DebugStackFrame : DalvikStackFrame, IDebugStackFrame2, IDebugExpressionContext2
     {
+        private static readonly DalvikOpcodeHelpLookup Opcodes = new DalvikOpcodeHelpLookup();
+
         private DebugDocumentContext documentContext;
         private List<DalvikValue> values;
 
@@ -123,6 +126,13 @@ namespace Dot42.VStudio.Debugger
                 return VSConstants.S_OK;                
             }
 
+            // try to match opcode help (in disassembly)
+            var opHelp = Opcodes.Lookup(pszCode);
+            if (opHelp != null)
+            {
+                ppExpr = new DebugExpression(new DebugConstProperty(pszCode, opHelp.Syntax + "\r\n\r\n" + opHelp.Arguments + "\r\n\r\n" + opHelp.Description, "(opcode)", null));
+                return VSConstants.S_OK;                
+            }
 
             return VSConstants.E_FAIL;
         }

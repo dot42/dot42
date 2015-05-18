@@ -75,7 +75,7 @@
     <Compile Include="Model\DalvikStackFrameValue.cs" />
     <Compile Include="Model\DocumentLocation.cs" />
     <Compile Include="Model\ExceptionBehavior.cs" />
-    <Compile Include="Model\MethodDisassembly.cs" />
+    <Compile Include="MethodDisassembly.cs" />
     <Compile Include="Model\StepRequest.cs" />
     <Compile Include="Model\SuspendReason.cs" />
     <Compile Include="SlotValue.cs" />
@@ -182,6 +182,7 @@
   <ItemGroup>
     <Content Include="Model\Readme.txt" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy /Y $(TargetDir)*.* $(SolutionDir)\Build\Application\</PostBuildEvent>

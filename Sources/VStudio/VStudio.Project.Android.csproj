@@ -205,6 +205,7 @@
     <Compile Include="Debugger\DebugExpression.cs" />
     <Compile Include="Debugger\Properties\DebugRegistersProperty.cs" />
     <Compile Include="Debugger\Properties\DebugStackFrameValue.cs" />
+    <Compile Include="Debugger\Properties\DebugConstProperty.cs" />
     <Compile Include="Debugger\Properties\DebugValueProperty.cs" />
     <Compile Include="Debugger\Breakpoints\DebugBoundBreakpoint.cs" />
     <Compile Include="Debugger\Breakpoints\DebugBreakpointManager.cs" />

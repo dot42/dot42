@@ -123,6 +123,10 @@
     <Compile Include="Metadata\ValueFormats.cs" />
     <Compile Include="MethodReference.cs" />
     <Compile Include="FieldReference.cs" />
+    <Compile Include="OpcodeHelp\CSV\CSVFileStream.cs" />
+    <Compile Include="OpcodeHelp\CSV\DialectAndColumnDeterminer.cs" />
+    <Compile Include="OpcodeHelp\DalvikOpcodeHelp.cs" />
+    <Compile Include="OpcodeHelp\DalvikOpcodeHelpLookup.cs" />
     <Compile Include="PrimitiveType.cs" />
     <Compile Include="DebugCodes.cs" />
     <Compile Include="Instructions\DebugInfo.cs" />
@@ -150,6 +154,9 @@
       <Project>{13f162a6-f530-40b3-1234-7ad5c0b4a386}</Project>
       <Name>Utility</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="OpcodeHelp\DalvikOpcodes.csv" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

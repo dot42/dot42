@@ -3,7 +3,7 @@ using Dot42.DexLib;
 using Dot42.DexLib.Instructions;
 using Dot42.Mapping;
 
-namespace Dot42.DebuggerLib.Model
+namespace Dot42.DebuggerLib
 {
     /// <summary>
     /// Provides a disassembled method and helps with formatting.
@@ -12,6 +12,8 @@ namespace Dot42.DebuggerLib.Model
     //       without ApkSpy needing a reference to the DebuggerLib.
     public class MethodDisassembly
     {
+        public static string JumpMarker { get { return "->"; } }
+
         private readonly TypeEntry _typeEntry;
         private readonly MethodEntry _methodEntry;
         private readonly MethodDefinition _methodDef;
@@ -21,6 +23,7 @@ namespace Dot42.DebuggerLib.Model
         public MethodDefinition Method { get { return _methodDef; } }
         public MethodEntry MethodEntry { get { return _methodEntry; } }
         public TypeEntry TypeEntry { get { return _typeEntry; } }
+        
 
         public MethodDisassembly(MethodDefinition methodDef, MapFileLookup mapFile = null, TypeEntry typeEntry = null, MethodEntry methodEntry = null)
         {
@@ -120,7 +123,8 @@ namespace Dot42.DebuggerLib.Model
                 else if (ins.Operand is Instruction)
                 {
                     var target = (Instruction)ins.Operand;
-                    ops.Append("-> ");
+                    ops.Append(JumpMarker);
+                    ops.Append(" ");
                     ops.Append(target.Offset.ToString("X3"));
 
                     int targetIdx = body.Instructions.IndexOf(target);

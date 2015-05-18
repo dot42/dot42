@@ -29,7 +29,7 @@ namespace Dot42.ApkSpy.Tree
             return tb;
         }
 
-        private static TextEditorControl CreateTextBox()
+        private TextEditorControl CreateTextBox()
         {
             var tb = new TextEditorControl();
             tb.IsReadOnly = true;
@@ -39,35 +39,29 @@ namespace Dot42.ApkSpy.Tree
             tb.ShowLineNumbers = true;
             tb.ShowInvalidLines = false;
             tb.ShowVRuler = false;
+            tb.ActiveTextAreaControl.TextArea.ToolTipRequest += OnToolTipRequest;
+            tb.ActiveTextAreaControl.TextArea.MouseMove += OnTextAreaMouseMove;
 
-            //var tb = new TextBox();
-            //tb.ReadOnly = true;
-            //tb.MaxLength = 64*1024*1024;
-            //tb.Multiline = true;
-            //tb.ScrollBars = ScrollBars.Both;
-            //tb.WordWrap = false;
-            //tb.ShortcutsEnabled = true;
-            //tb.BackColor = Color.White;
+            string[] tryFonts = new[] { "Consolas", "Lucida Console" };
 
-            //string[] tryFonts = new[] {"Lucida Console", "Consolas"};
+            foreach (var fontName in tryFonts)
+            {
+                tb.Font = new Font(fontName, 9, FontStyle.Regular);
+                if (tb.Font.Name == fontName) break;
+            }
 
-            //foreach (var fontName in tryFonts)
-            //{
-            //    tb.Font = new Font(fontName, 8, FontStyle.Regular);
-            //    if (tb.Font.Name == fontName) break;
-            //}
-
-            //if(!tryFonts.Contains(tb.Font.Name))
-            //    tb.Font = new Font(FontFamily.GenericMonospace, 9);
+            if (!tryFonts.Contains(tb.Font.Name))
+                tb.Font = new Font(FontFamily.GenericMonospace, 9);
             
-            //tb.KeyDown += (sender, e) =>
-            //{
-            //    // as per http://stackoverflow.com/questions/14429445/how-can-i-allow-things-such-as-ctrl-a-and-ctrl-backspace-in-a-c-sharp-textbox
-            //    if (e.Control & e.KeyCode == Keys.A)
-            //        ((TextBox)sender).SelectAll();
-            //};
-
             return tb;
+        }
+
+        protected virtual void OnTextAreaMouseMove(object sender, MouseEventArgs e)
+        {
+        }
+
+        protected virtual void OnToolTipRequest(object sender, ToolTipRequestEventArgs e)
+        {
         }
 
         /// <summary>
