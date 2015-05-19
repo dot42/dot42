@@ -38,7 +38,7 @@ namespace Dot42.CompilerLib
         private int lastMapFileId;
         private readonly Dictionary<string, XTypeReference> internalTypeReferences = new Dictionary<string, XTypeReference>();
         private string freeAppsKey;
-        private bool? addPropertyAnnotations;
+        private bool? addPropertyAnnotations, addFrameworkPropertyAnnotations;
         private bool? addAssemblyTypesAnnotation;
         private readonly ITargetPackage targetPackage;
         private readonly DexMethodBodyCompilerCache methodBodyCompilerCache;
@@ -167,6 +167,8 @@ namespace Dot42.CompilerLib
             if (AddAssemblyTypesAnnotations())
                 AssemblyTypesBuilder.CreateAssemblyTypesAnnotations(this, (Target.Dex.DexTargetPackage)targetPackage, reachableContext.ReachableTypes);
 
+            if (AddFrameworkPropertyAnnotations())
+                DexImportClassBuilder.FinalizeFrameworkPropertyAnnotations(this, (Target.Dex.DexTargetPackage)targetPackage);
 
             // Compile all methods
             using (Profile("for compiling to target"))
@@ -298,13 +300,32 @@ namespace Dot42.CompilerLib
         /// <summary>
         /// Should property annotations be added?
         /// </summary>
+        internal bool AddFrameworkPropertyAnnotations()
+        {
+            if (!addFrameworkPropertyAnnotations.HasValue)
+            {
+                if (!AddPropertyAnnotations())
+                    addFrameworkPropertyAnnotations = false;
+                else
+                {
+                    var fpRef = GetDot42InternalType("Dot42", "IncludeFrameworkProperties");
+                    XTypeDefinition typeDef;
+                    addFrameworkPropertyAnnotations = fpRef.TryResolve(out typeDef) && typeDef.IsReachable;
+                }
+            }
+            return addFrameworkPropertyAnnotations.Value;
+        }
+
+        /// <summary>
+        /// Should property annotations be added?
+        /// </summary>
         internal bool AddAssemblyTypesAnnotations()
         {
             if (!addAssemblyTypesAnnotation.HasValue)
             {
-                var properyInfoRef = GetDot42InternalType("AssemblyTypes");
+                var assemblyTypes = GetDot42InternalType("AssemblyTypes");
                 XTypeDefinition typeDef;
-                addAssemblyTypesAnnotation = properyInfoRef.TryResolve(out typeDef) && typeDef.IsReachable;
+                addAssemblyTypesAnnotation = assemblyTypes.TryResolve(out typeDef) && typeDef.IsReachable;
             }
             return addAssemblyTypesAnnotation.Value;
         }
