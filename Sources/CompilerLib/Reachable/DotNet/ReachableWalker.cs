@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Dot42.CecilExtensions;
+using Dot42.CompilerLib.Ast;
 using Dot42.CompilerLib.Ast.Extensions;
 using Dot42.CompilerLib.Ast2RLCompiler.Extensions;
 using Dot42.CompilerLib.Extensions;
@@ -10,6 +11,7 @@ using Dot42.LoaderLib.Extensions;
 using Dot42.Utility;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using AstCodeUtil = Dot42.CompilerLib.IL2Ast.AstCodeUtil;
 using ExceptionHandler = Mono.Cecil.Cil.ExceptionHandler;
 using FieldDefinition = Mono.Cecil.FieldDefinition;
 using MethodDefinition = Mono.Cecil.MethodDefinition;
@@ -191,7 +193,7 @@ namespace Dot42.CompilerLib.Reachable.DotNet
             else if ((typeSpec = type as TypeSpecification) != null)
             {
                 // Element
-                typeSpec.ElementType.MarkReachable(context);
+                typeSpec.ElementType.MarkReachable(context, typeSpec.IsUsedInSerialization);
 
                 // Generic instance
                 GenericInstanceType git;
@@ -226,6 +228,8 @@ namespace Dot42.CompilerLib.Reachable.DotNet
             }
             else if ((genericParam = type as GenericParameter) != null)
             {
+                genericParam.IsSerializedParameter = genericParam.HasSerializedParameterAttribute();
+
                 // Owner
                 var owner = (MemberReference)genericParam.Owner;
                 owner.MarkReachable(context);
@@ -316,14 +320,12 @@ namespace Dot42.CompilerLib.Reachable.DotNet
         {
             method.ReturnType.MarkReachable(context);
 
-            bool isSerializationMethod = context.IsUsedInSerialization(method);
-
             // All parameters
             if (method.HasParameters)
             {
                 foreach (ParameterDefinition param in method.Parameters)
                 {
-                    Walk(context, (ParameterReference)param, isSerializationMethod);
+                    Walk(context, (ParameterReference)param);
                 }
             }
 
@@ -341,7 +343,7 @@ namespace Dot42.CompilerLib.Reachable.DotNet
                 // Overrides
                 foreach (MethodReference methodRef in methodDef.Overrides)
                 {
-                    methodRef.MarkReachable(context, isSerializationMethod);
+                    methodRef.MarkReachable(context);
                 }
 
                 // Base methods
@@ -352,7 +354,7 @@ namespace Dot42.CompilerLib.Reachable.DotNet
                     {
                         if (context.Contains(baseMethod.DeclaringType))
                         {
-                            baseMethod.MarkReachable(context, isSerializationMethod);
+                            baseMethod.MarkReachable(context);
                         }
                     }
                 }
@@ -392,19 +394,26 @@ namespace Dot42.CompilerLib.Reachable.DotNet
             else if ((methodSpec = method as MethodSpecification) != null)
             {
                 // Method
-                methodSpec.ElementMethod.MarkReachable(context);
+                var elementRef = methodSpec.ElementMethod;
+                elementRef.MarkReachable(context);
 
                 // Generic arguments
                 var gim = methodSpec as GenericInstanceMethod;
                 if (gim != null)
                 {
-                    Walk(context, (IGenericInstance)gim, isSerializationMethod);
+                    var elementDef = elementRef.Resolve();
+
+                    for (int i = 0; i < gim.GenericArguments.Count; ++i)
+                    {
+                        bool isSerialized = elementDef.GenericParameters[i].IsSerializedParameter;
+                        gim.GenericArguments[i].MarkReachable(context, isSerialized);
+                    }
                 }
             }
             else
             {
                 // Try to resolve
-                method.Resolve(context).MarkReachable(context, isSerializationMethod);
+                method.Resolve(context).MarkReachable(context);
             }
         }
 
@@ -452,8 +461,7 @@ namespace Dot42.CompilerLib.Reachable.DotNet
                             {
                                 if (!ExcludeFromWalking(context, ins, memberRef))
                                 {
-                                    var useInSerialization = methodRef != null && context.IsUsedInSerialization(methodRef);
-                                    memberRef.MarkReachable(context, useInSerialization);
+                                    memberRef.MarkReachable(context);
                                 }
                             }
                             else if ((paramRef = operand as ParameterReference) != null)
@@ -486,24 +494,26 @@ namespace Dot42.CompilerLib.Reachable.DotNet
 
                                 if (methodRef.DeclaringType.IsSystemThreadingInterlocked())
                                 {
-                                    var ilseq = new ILSequence();
-                                    foreach (var i in body.Instructions)
-                                    {
-                                        ilseq.Append(i);
-                                        if (i == ins)
-                                            break;
-                                    }
-                                    Instruction[] args = ins.GetCallArguments(ilseq, false);
+                                    var args = GetCallArguments(body, ins);
                                     var field = args[0].Operand as FieldReference;
                                     if (field != null)
                                     {
                                         field.Resolve().IsUsedInInterlocked = true;
-                                        //var ai = GetDot42InternalType(context, "Java.Util.Concurrent.Atomic", "AtomicIntegerFieldUpdater`1");
-                                        //ai.MarkReachable(context);ai.Methods.ForEach(m=>m.MarkReachable(context));
-                                        //var al = GetDot42InternalType(context, "Java.Util.Concurrent.Atomic", "AtomicLongFieldUpdater`1");
-                                        //al.MarkReachable(context); al.Methods.ForEach(m => m.MarkReachable(context));
-                                        //var ar = GetDot42InternalType(context, "Java.Util.Concurrent.Atomic", "AtomicReferenceFieldUpdater`2");
-                                        //ar.MarkReachable(context); ar.Methods.ForEach(m => m.MarkReachable(context));
+                                    }
+                                }
+
+                                if (context.HasSerializedParameters(methodRef))
+                                {
+                                    var method = methodRef.Resolve();
+                                    var args = GetCallArguments(body, ins);
+
+                                    for (int i = 0; i < method.Parameters.Count; i++)
+                                    {
+                                        // ReSharper disable once PossibleInvalidOperationException
+                                        if (!method.Parameters[i].IsSerializedParameter.Value)
+                                            continue;
+
+                                        MarkReachableForSerialization(context, args[i], body);
                                     }
                                 }
                             }
@@ -535,6 +545,45 @@ namespace Dot42.CompilerLib.Reachable.DotNet
                 }
                 //Debug.WriteLine(string.Format("Walk body took: {0}ms", sw.ElapsedMilliseconds));
             }
+        }
+
+        private static void MarkReachableForSerialization(ReachableContext context, Instruction arg, MethodBody body)
+        {
+            object operand = arg.Operand;
+            AstCode astCode = (AstCode) arg.OpCode.Code;
+            AstCodeUtil.ExpandMacro(ref astCode, ref operand, body);
+
+
+            FieldReference fieldRef;
+            MethodReference methodRef;
+            TypeReference typeRef;
+            VariableReference varRef;
+            ParameterReference paramRef;
+
+            if ((fieldRef = operand as FieldReference) != null)
+            {
+                fieldRef.FieldType.MarkReachable(context, true);
+            }
+            else if ((methodRef = operand as MethodReference) != null)
+            {
+                if (arg.OpCode == OpCodes.Newobj)
+                    methodRef.DeclaringType.MarkReachable(context, true);
+                else
+                    methodRef.ReturnType.MarkReachable(context, true);
+            }
+            else if ((typeRef = operand as TypeReference) != null)
+            {
+                typeRef.SetReachable(context, true);
+            }
+            else if ((paramRef = operand as ParameterReference) != null)
+            {
+                paramRef.ParameterType.MarkReachable(context, true);
+            }
+            else if ((varRef = operand as VariableReference) != null)
+            {
+                varRef.VariableType.MarkReachable(context, true);
+            }
+            // don't know what to do!
         }
 
         /// <summary>
@@ -593,7 +642,7 @@ namespace Dot42.CompilerLib.Reachable.DotNet
             {
                 foreach (ParameterDefinition param in prop.Parameters)
                 {
-                    Walk(context, (ParameterReference)param, prop.IsUsedInSerialization);
+                    Walk(context, (ParameterReference)param);
                 }
             }
 
@@ -626,9 +675,9 @@ namespace Dot42.CompilerLib.Reachable.DotNet
         /// <summary>
         /// Mark all reachable items in argument as such.
         /// </summary>
-        private static void Walk(ReachableContext context, ParameterReference param, bool usedInSerialization=false)
+        private static void Walk(ReachableContext context, ParameterReference param)
         {
-            param.ParameterType.MarkReachable(context, usedInSerialization);
+            param.ParameterType.MarkReachable(context);
 
             var paramDef = param as ParameterDefinition;
             if (paramDef != null)
@@ -742,13 +791,13 @@ namespace Dot42.CompilerLib.Reachable.DotNet
         /// <summary>
         /// Mark all eachable items in argument as such.
         /// </summary>
-        private static void Walk(ReachableContext context, IGenericInstance instance, bool usedInSerializazion=false)
+        private static void Walk(ReachableContext context, IGenericInstance instance)
         {
             if (instance.HasGenericArguments)
             {
                 foreach (TypeReference typeRef in instance.GenericArguments)
                 {
-                    typeRef.MarkReachable(context, usedInSerializazion);
+                    typeRef.MarkReachable(context);
                 }
             }
         }
@@ -766,6 +815,19 @@ namespace Dot42.CompilerLib.Reachable.DotNet
         {
             var typeRef = context.Compiler.GetDot42InternalType(@namespace, typeName);
             return (TypeDefinition)typeRef.Resolve().OriginalTypeDefinition;
+        }
+
+        private static Instruction[] GetCallArguments(MethodBody body, Instruction callInstruction)
+        {
+            var ilseq = new ILSequence();
+            foreach (var i in body.Instructions)
+            {
+                ilseq.Append(i);
+                if (i == callInstruction)
+                    break;
+            }
+            Instruction[] args = callInstruction.GetCallArguments(ilseq, false);
+            return args;
         }
     }
 }

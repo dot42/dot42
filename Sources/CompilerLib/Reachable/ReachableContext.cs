@@ -35,7 +35,6 @@ namespace Dot42.CompilerLib.Reachable
         private bool newReachablesDetected;
         private readonly List<AssemblyNameDefinition> assemblyNames;
         private readonly HashSet<string> rootClassNames;
-        private readonly ConcurrentDictionary<MethodDefinition, bool> hasSerializationMethodAttribute = new ConcurrentDictionary<MethodDefinition, bool>();
 
         private static readonly IEnumerable<IIncludeFieldTester> IncludeFieldTesters = CompositionRoot.CompositionContainer.GetExportedValues<IIncludeFieldTester>();
         private static readonly IEnumerable<IIncludeMethodTester> IncludeMethodTesters = CompositionRoot.CompositionContainer.GetExportedValues<IIncludeMethodTester>();
@@ -726,26 +725,57 @@ namespace Dot42.CompilerLib.Reachable
             return IncludeMethodTesters.Any(x => x.Include(method, this));
         }
 
-        internal bool IsUsedInSerialization(MethodReference @ref)
+        /// <summary>
+        /// Checks whether any normal parameters have an [SerializedParameter]-Attribute
+        /// </summary>
+        /// <param name="ref"></param>
+        /// <returns></returns>
+        internal bool HasSerializedParameters(MethodReference @ref)
         {
-            if (@ref.IsUsedInSerialization)
-                return true;
-            
             var method = @ref.Resolve();
             if (method == null)
                 return false;
 
-            if (method.IsUsedInSerialization)
-                return true;
+            if (method.HasSerializedParameters.HasValue)
+                return method.HasSerializedParameters.Value;
 
-            bool hasAttribute;
-            if (!hasSerializationMethodAttribute.TryGetValue(method, out hasAttribute))
+            // evaluate all parameters, so that the results are available
+            bool ret = method.Parameters.Aggregate(false, (prev,p)=>IsSerializedParameter(method, p) || prev);
+            method.HasSerializedParameters = ret;
+            return ret;
+        }
+
+        private bool IsSerializedParameter(MethodDefinition method, ParameterReference @ref)
+        {
+            var paramDef = @ref.Resolve();
+            if (paramDef == null)
+                return false;
+
+            if (paramDef.IsSerializedParameter.HasValue)
+                return paramDef.IsSerializedParameter.Value;
+
+            bool isSerialized = paramDef.HasSerializedParameterAttribute();
+
+            if (!isSerialized)
             {
-                hasAttribute = method.HasSerializationMethodAttribute();
-                hasSerializationMethodAttribute.TryAdd(method, hasAttribute);
+                // check inheritance 
+                var baseMethod = method.GetBaseMethod();
+
+                if (baseMethod != null)
+                {
+                    isSerialized = IsSerializedParameter(baseMethod, baseMethod.Parameters[@ref.Index]);
+                }
+            }
+            
+            if (!isSerialized)
+            {
+                // check interfaces.
+                isSerialized = method.GetBaseInterfaceMethods()
+                                     .Any(im => IsSerializedParameter(im, im.Parameters[@ref.Index]));    
             }
 
-            return hasAttribute;
+            paramDef.IsSerializedParameter = isSerialized;
+                return isSerialized;
         }
 
         /// <summary>

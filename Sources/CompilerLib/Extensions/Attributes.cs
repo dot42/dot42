@@ -43,11 +43,18 @@ namespace Dot42.CompilerLib.Extensions
             return provider.GetIncludeAttributes().Any();
         }
 
-        internal static bool HasSerializationMethodAttribute(this MethodDefinition method)
+        internal static bool HasSerializedParameterAttribute(this ParameterDefinition @param)
         {
-            return method.CustomAttributes
+            return @param.CustomAttributes
                 .Any(a => a.AttributeType.Namespace == AttributeConstants.Dot42AttributeNamespace
-                       && a.AttributeType.Name == AttributeConstants.SerializationMethodAttributeName);
+                       && a.AttributeType.Name == AttributeConstants.SerializedParameterAttributeName);
+        }
+
+        internal static bool HasSerializedParameterAttribute(this GenericParameter @param)
+        {
+            return @param.CustomAttributes
+                .Any(a => a.AttributeType.Namespace == AttributeConstants.Dot42AttributeNamespace
+                       && a.AttributeType.Name == AttributeConstants.SerializedParameterAttributeName);
         }
 
         /// <summary>

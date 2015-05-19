@@ -15,7 +15,7 @@ namespace Dot42.CompilerLib.Ast.Extensions
     public static partial class AssemblyCompilerExtensions
     {
         /// <summary>
-        /// Gets the first method the given method overrides.
+        /// Gets the method the given method overrides.
         /// </summary>
         public static MethodDefinition GetBaseMethod(this MethodDefinition method)
         {

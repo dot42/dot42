@@ -36,21 +36,30 @@ class WillAlwaysBeIncluded3
 }
 ```
 
-#### Using `[SerializationMethod]`-Attribute
-When applied to a method, all parameters passed passed into this method, including generic arguments, will have all their fields and properties preserved and not pruned. This applies recursively to the types of fields and properties.  
+#### Using `[SerializedParameter]`-Attribute
+
+Specifies that a parameter is used in serialization. Types and objects passed as this parameter will have all their public fields and public and private properties preserved and not pruned.
 
 ```
 
 public class JsonConvert
 {
-	[SerializationMethod]
-	public static T Deserialize<T>(string json) 
+	public static T Deserialize<[SerializedParameter] T>(string json) 
+	{
+		...
+	}
+
+	public static object Deserialize([SerializedParameter] Type type, string json) 
 	{
 		...
 	}
 	
-	[SerializationMethod]
-	public string Serialize(object obj)
+	public string Serialize([SerializedParameter] object obj)
+	{
+		...
+	}
+
+	public string Serialize<[SerializedParameter] T>(T obj)
 	{
 		...
 	}
@@ -58,6 +67,7 @@ public class JsonConvert
 
 // MyClass1 will have all fields and properties preserved.
 >> var class1 = JsonConvert.Deserialize<MyClass1>(json);
+>> var obj    = JsonConvert.Deserialize(typeof(MyClass1), json);
 
 class MyClass2
 {
@@ -65,8 +75,7 @@ class MyClass2
 	...
 }
 
-// MyClass2 and MyClass3 will have all their 
-// fields and properties preserved.
+// MyClass2 and MyClass3 will have all their fields and properties preserved.
 >> var class2 = new MyClass2 { ... }
 >> string json = JsonConvert.Serialize(class2);
 

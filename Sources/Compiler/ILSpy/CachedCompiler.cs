@@ -31,8 +31,11 @@ namespace Dot42.Compiler.ILSpy
                 return;
 
             _compiler = null;
-
+#if DEBUG
+            var framework = Frameworks.Instance.GetBySdkVersion(18);
+#else
             var framework = Frameworks.Instance.GetNewestVersion();
+#endif
             string frameworkFolder = framework.Folder;
             var refFolders = new List<string> { frameworkFolder };
 
