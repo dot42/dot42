@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Dot42.CompilerLib.Ast.Extensions;
@@ -48,7 +49,7 @@ namespace Dot42.CompilerLib.Reachable.PatternMatching
             return true;
         }
 
-        private readonly Dictionary<string, Regex> _matchRex = new Dictionary<string, Regex>();
+        private readonly ConcurrentDictionary<string, Regex> _matchRex = new ConcurrentDictionary<string, Regex>();
 
         public bool MatchesWildcard(string wildcardExpression, string name)
         {
