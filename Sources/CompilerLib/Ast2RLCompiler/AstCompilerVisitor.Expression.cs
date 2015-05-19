@@ -371,34 +371,6 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                                            this.Add(node.SourceLocation, node.UShr2Addr(), localReg, args[0].Result),
                                            localReg);
                     }
-                case AstCode.Conditional: // arg[0] ? arg[1] : arg[2]
-                    {
-                        var valueType = (XTypeReference) node.Operand;
-                        var result = frame.AllocateTemp(valueType.GetReference(targetPackage));
-                        var move = node.Arguments[1].Move();
-                        var move2 = node.Arguments[2].Move();
-                        if (move2 == RCode.Move_object) move = move2;
-
-                        // condition
-                        var gotoArg2 = this.Add(node.SourceLocation, RCode.If_eqz, (object)null, args[0].Result.Registers);
-
-                        // Generate code for arg[1]
-                        var arg1 = node.Arguments[1].Accept(this, node);
-                        this.Add(node.SourceLocation, move, result, arg1.Result);
-                        var gotoEnd = this.Add(node.SourceLocation, RCode.Goto, (object)null);
-
-                        // Generate code for arg[2]
-                        var arg2Start = this.Add(node.SourceLocation, RCode.Nop);
-                        var arg2 = node.Arguments[2].Accept(this, node);
-                        this.Add(node.SourceLocation, move, result, arg2.Result);
-
-                        var end = this.Add(node.SourceLocation, RCode.Nop);
-                        // Set branch targets
-                        gotoArg2.Operand = arg2Start;
-                        gotoEnd.Operand = end;
-
-                        return new RLRange(gotoArg2, end, result);
-                    }
 
                     #endregion
 
@@ -703,13 +675,45 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                         var @switch = this.Add(node.SourceLocation, RCode.Sparse_switch, targetPairs, args[0].Result);
                         return new RLRange(@switch, null);
                     }
-                case AstCode.NullCoalescing:
+
+                case AstCode.Conditional: // arg[0] ? arg[1] : arg[2]
                     {
+                        var valueType = (XTypeReference)node.Operand;
+                        var result = frame.AllocateTemp(valueType.GetReference(targetPackage));
+                        var move = node.Arguments[1].Move();
+                        var move2 = node.Arguments[2].Move();
+                        if (move2 == RCode.Move_object) move = move2;
+
+                        // condition
+                        var gotoArg2 = this.Add(node.SourceLocation, RCode.If_eqz, (object)null, args[0].Result.Registers);
+
+                        // Generate code for arg[1]
+                        var arg1 = node.Arguments[1].Accept(this, node);
+                        this.Add(node.SourceLocation, move, result, arg1.Result);
+                        var gotoEnd = this.Add(node.SourceLocation, RCode.Goto, (object)null);
+
+                        // Generate code for arg[2]
+                        var arg2Start = this.Add(node.SourceLocation, RCode.Nop);
+                        var arg2 = node.Arguments[2].Accept(this, node);
+                        this.Add(node.SourceLocation, move, result, arg2.Result);
+
+                        var end = this.Add(node.SourceLocation, RCode.Nop);
+                        // Set branch targets
+                        gotoArg2.Operand = arg2Start;
+                        gotoEnd.Operand = end;
+
+                        return new RLRange(gotoArg2, end, result);
+                    }
+
+                case AstCode.NullCoalescing: // arg[0] ?? arg[1]
+                {
                         var r = frame.AllocateTemp(node.InferredType.GetReference(targetPackage));
                         var first = this.Add(node.SourceLocation, RCode.Move_object, r, args[0].Result);
-                        // r := leftExpr
                         var if_nez = this.Add(node.SourceLocation, RCode.If_nez, r); // if r not null, skip
-                        this.Add(node.SourceLocation, RCode.Move_object, r, args[1].Result); // r := rightExpr
+
+                        // generate code for arg[1]
+                        var arg1 = node.Arguments[1].Accept(this, node);
+                        this.Add(node.SourceLocation, RCode.Move_object, r, arg1.Result);
                         var end = this.Add(node.SourceLocation, RCode.Nop);
                         if_nez.Operand = end;
                         return new RLRange(first, end, r);

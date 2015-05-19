@@ -130,6 +130,7 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
             switch (node.Code)
             {
                 case AstCode.Conditional:
+                case AstCode.NullCoalescing:
                     args = node.Arguments.Take(1).Select(x => x.Accept(this, node)).ToList();
                     break;
                 default:

@@ -48,6 +48,16 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DebugAndTest|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\DebugAndTest\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;DOT42</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+	<AfterBuildDependsOn>Test</AfterBuildDependsOn>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Dot42" />
     <Reference Include="mscorlib" />
@@ -138,7 +148,7 @@
   <Import Project="$(Dot42ExtensionsPath)\Dot42.CSharp.targets" />
   <Target Name="BeforeBuild">
   </Target>
-  <Target Name="AfterBuild">
+  <Target Name="AfterBuild" DependsOnTargets="$(AfterBuildDependsOn)">
   </Target>
   <ProjectExtensions />
 </Project>
