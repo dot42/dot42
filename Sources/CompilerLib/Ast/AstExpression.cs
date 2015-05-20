@@ -197,7 +197,7 @@ namespace Dot42.CompilerLib.Ast
         /// <summary>
         /// Write human readable output.
         /// </summary>
-        public override void WriteTo(ITextOutput output)
+        public override void WriteTo(ITextOutput output, FormattingOptions format)
         {
             if (Operand is AstVariable && ((AstVariable)Operand).IsGenerated)
             {
@@ -205,7 +205,7 @@ namespace Dot42.CompilerLib.Ast
                 {
                     output.Write(((AstVariable)Operand).Name);
                     output.Write(" = ");
-                    Arguments.First().WriteTo(output);
+                    Arguments.First().WriteTo(output, format);
                     return;
                 }
                 if (Code == AstCode.Ldloc)
@@ -254,6 +254,7 @@ namespace Dot42.CompilerLib.Ast
                 output.Write(']');
             }
             output.Write('(');
+
             var first = true;
             if (Operand != null)
             {
@@ -305,13 +306,30 @@ namespace Dot42.CompilerLib.Ast
                 }
                 first = false;
             }
+
+            bool firstArg = true;
             foreach (var arg in Arguments)
             {
                 if (!first) output.Write(", ");
-                arg.WriteTo(output);
+
+                if ((format & FormattingOptions.BreakExpressions) != 0)
+                {
+                    if (firstArg)
+                        output.Indent();
+
+                    output.WriteLine();
+                }
+
+                arg.WriteTo(output, format);
                 first = false;
+                firstArg = false;
             }
             output.Write(')');
+
+            if ((format & FormattingOptions.BreakExpressions) != 0 && !firstArg)
+            {
+                output.Unindent();
+            }
         }
 
         /// <summary>

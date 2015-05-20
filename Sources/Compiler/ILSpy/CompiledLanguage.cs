@@ -1,5 +1,6 @@
 ﻿extern alias ilspy;
 using System;
+using System.Windows.Automation.Peers;
 using Dot42.CompilerLib;
 using Dot42.CompilerLib.XModel;
 using ilspy::Mono.Cecil;
@@ -34,6 +35,22 @@
             compiler.CompileIfRequired(assembly, true);
 
             return GetXMethodDefinitionAfterCompilerSetup(method);        }
+
+        protected XTypeDefinition GetXTypeDefinition(TypeDefinition type)
+        {
+            var assembly = type.Module.Assembly;
+
+            compiler.CompileIfRequired(assembly, true);
+
+            var xFullName = GetXFullName(type);
+
+            XTypeDefinition tdef;
+            if (!AssemblyCompiler.Module.TryGetType(xFullName, out tdef))
+            {
+                throw new Exception("type not found: " + xFullName);
+            }
+            return tdef;
+        }
 
         private XMethodDefinition GetXMethodDefinitionAfterCompilerSetup(MethodDefinition method)
         {
@@ -49,9 +66,18 @@
             return tdef.GetMethodByScopeId(methodIdx.ToString());
         }        protected static string GetXFullName(TypeDefinition type)
         {
-            return GetScopePrefix(type) + type.Namespace + "." + type.Name;        }
+            return GetScopePrefix(type) + GetNamespace(type) + "." + type.Name;        }
 
-        private static string GetScopePrefix(TypeDefinition type)
+        private static string GetNamespace(TypeDefinition type)
+        {
+            if (!type.IsNested)
+                return type.Namespace;
+
+            return GetNamespace(type.DeclaringType) + "." + type.DeclaringType.Name;
+        }
+
+
+        private static string GetScopePrefix(TypeDefinition type)
         {
             var scope = type.Scope.Name;
             if (scope.ToLowerInvariant().EndsWith(".dll"))
@@ -60,7 +86,7 @@
             if (scope.ToLowerInvariant() == "dot42")
                 return "";
 
-            return scope.Replace(".", "_") + ((type.Namespace.Length == 0) ? "" : ".");        }
+            return scope.Replace(".", "_") + ((type.Namespace.Length == 0 && !type.IsNested) ? "" : ".");        }
             
 
     }

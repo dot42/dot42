@@ -159,7 +159,7 @@ namespace Dot42.CompilerLib.Ast
 		/// <summary>
 		/// Write human readable output.
 		/// </summary>
-		public abstract void WriteTo(ITextOutput output);
+		public abstract void WriteTo(ITextOutput output, FormattingOptions format = FormattingOptions.Default);
 
         /// <summary>
         /// Accept a visit by the given visitor.

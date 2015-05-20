@@ -30,7 +30,15 @@ namespace Dot42.CompilerLib.Ast
 		/// </summary>
 		ShortTypeName
 	}
-	
+
+    [Flags]
+    public enum FormattingOptions
+    {
+        Default,
+        SimpleNames = 0x01,
+        BreakExpressions = 0x02,
+    }
+
 	public static class DisassemblerHelpers
 	{
 		public static void WriteOffsetReference(ITextOutput writer, ILInstruction instruction)
@@ -333,7 +341,9 @@ namespace Dot42.CompilerLib.Ast
 
         public static void WriteTo(this XTypeReference type, ITextOutput writer, AstNameSyntax syntax = AstNameSyntax.Signature)
         {
-            var syntaxForElementTypes = syntax == AstNameSyntax.SignatureNoNamedTypeParameters ? syntax : AstNameSyntax.Signature;
+            var syntaxForElementTypes = syntax == AstNameSyntax.ShortTypeName ? AstNameSyntax.ShortTypeName
+                                      : syntax == AstNameSyntax.SignatureNoNamedTypeParameters ? syntax 
+                                      : AstNameSyntax.Signature;
             if (type is XArrayType)
             {
                 var at = (XArrayType)type;
