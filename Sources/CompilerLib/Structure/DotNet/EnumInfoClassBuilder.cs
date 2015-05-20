@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using Dot42.CompilerLib.Ast;
 using Dot42.CompilerLib.Extensions;
-using Dot42.CompilerLib.Target;
 using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel;
 using Dot42.CompilerLib.XModel.Synthetic;
@@ -133,10 +132,15 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// </summary>
         private AstBlock CreateCtorBody()
         {
+            // here we could also preserve the original underlying type.
+            bool isWide = Type.GetEnumUnderlyingType().Resolve().IsWide();
+            var underlying = isWide ? Compiler.Module.TypeSystem.Long : Compiler.Module.TypeSystem.Int;
+
             return AstBlock.CreateOptimizedForTarget(
                 // Call base ctor
                 new AstExpression(AstNode.NoSource, AstCode.CallBaseCtor, 0,
-                    new AstExpression(AstNode.NoSource, AstCode.Ldthis, null)),
+                    new AstExpression(AstNode.NoSource, AstCode.Ldthis, null),
+                    new AstExpression(AstNode.NoSource, AstCode.TypeOf, underlying)),
                 // Return
                 new AstExpression(AstNode.NoSource, AstCode.Ret, null));
         }

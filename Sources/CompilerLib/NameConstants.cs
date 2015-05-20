@@ -7,13 +7,11 @@
     {
         public static class Enum
         {
-            internal const string InfoFieldName = "info__";
+            internal const string InfoFieldName = "info$";
             internal const string ValueFieldName = "value__";
             internal const string DefaultFieldName = "default$";
 
             internal const string UnboxMethodName = "unbox";
-            internal const string ValueOfMethodName = "valueOf";
-            internal const string ValuesMethodName = "values";
         }
 
         public static class Struct

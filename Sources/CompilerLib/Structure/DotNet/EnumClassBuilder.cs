@@ -112,7 +112,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
             var underlyingEnumType = Type.GetEnumUnderlyingType();
             var isWide = underlyingEnumType.IsWide();
             var xValueType = isWide ? module.TypeSystem.Long : module.TypeSystem.Int;
-            var valueField = XSyntheticFieldDefinition.Create(XType, XSyntheticFieldFlags.Protected, NameConstants.Enum.ValueFieldName, xValueType);
+            var valueField = XSyntheticFieldDefinition.Create(XType, XSyntheticFieldFlags.Protected | XSyntheticFieldFlags.ReadOnly, NameConstants.Enum.ValueFieldName, xValueType);
             Class.Fields.Add(valueField.GetDexField(Class, targetPackage));
 
             // Create normal members
@@ -128,11 +128,11 @@ namespace Dot42.CompilerLib.Structure.DotNet
 
             // Build enumInfo field
             var internalEnumInfoType = Compiler.GetDot42InternalType("EnumInfo");
-            var enumInfoField = XSyntheticFieldDefinition.Create(XType, XSyntheticFieldFlags.Static, NameConstants.Enum.InfoFieldName, internalEnumInfoType/* enumInfoClassBuilder.Class*/);
+            var enumInfoField = XSyntheticFieldDefinition.Create(XType, XSyntheticFieldFlags.Static | XSyntheticFieldFlags.ReadOnly, NameConstants.Enum.InfoFieldName, internalEnumInfoType/* enumInfoClassBuilder.Class*/);
             Class.Fields.Add(enumInfoField.GetDexField(Class, targetPackage));
 
-            // Build default__ field
-            var defaultField = XSyntheticFieldDefinition.Create(XType, XSyntheticFieldFlags.Static, NameConstants.Enum.DefaultFieldName, XType);
+            // Build default$ field
+            var defaultField = XSyntheticFieldDefinition.Create(XType, XSyntheticFieldFlags.Static | XSyntheticFieldFlags.ReadOnly, NameConstants.Enum.DefaultFieldName, XType);
             Class.Fields.Add(defaultField.GetDexField(Class, targetPackage));
 
             // Build class ctor
@@ -154,16 +154,6 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 longValue.Body = CreateIntOrLongValueBody();
                 Class.Methods.Add(longValue.GetDexMethod(Class, targetPackage));
             }
-
-            // Build values() method
-            var valuesMethod = XSyntheticMethodDefinition.Create(XType, XSyntheticMethodFlags.Static, NameConstants.Enum.ValuesMethodName, null, new XArrayType(XType));
-            valuesMethod.Body = CreateValuesBody();
-            Class.Methods.Add(valuesMethod.GetDexMethod(Class, targetPackage));
-
-            // Build valueOf(string) method
-            var valueOfMethod = XSyntheticMethodDefinition.Create(XType, XSyntheticMethodFlags.Static, NameConstants.Enum.ValueOfMethodName, null, XType, XParameter.Create("name", module.TypeSystem.String));
-            valueOfMethod.Body = CreateValueOfBody(valueOfMethod, module.TypeSystem);
-            Class.Methods.Add(valueOfMethod.GetDexMethod(Class, targetPackage));
 
             // Build Unbox(object) method
             unboxMethod = XSyntheticMethodDefinition.Create(XType, XSyntheticMethodFlags.Static, NameConstants.Enum.UnboxMethodName, null, XType, XParameter.Create("value", Compiler.Module.TypeSystem.Object));
@@ -217,10 +207,15 @@ namespace Dot42.CompilerLib.Structure.DotNet
             var valueToFieldMap = new Dictionary<object, XFieldDefinition>();
             var ldc = isWide ? AstCode.Ldc_I8 : AstCode.Ldc_I4;
 
+            var nameVar     = new AstGeneratedVariable("enumName", null) {Type = typeSystem.String};
+            var enumInfoVar = new AstGeneratedVariable("enumInfo", null) {Type = internalEnumInfoType};
+            var valVar      = new AstGeneratedVariable("val", null) { Type = enumInfoField.FieldType };
+
             var ast = AstBlock.CreateOptimizedForTarget(
                 // Instantiate enum info field
                 new AstExpression(AstNode.NoSource, AstCode.Stsfld, enumInfoField,
-                    new AstExpression(AstNode.NoSource, AstCode.Newobj, enumInfoCtor)));
+                    new AstExpression(AstNode.NoSource, AstCode.Stloc, enumInfoVar,
+                        new AstExpression(AstNode.NoSource, AstCode.Newobj, enumInfoCtor))));
 
             // Instantiate values for each field
             var ordinal = 0;
@@ -245,22 +240,26 @@ namespace Dot42.CompilerLib.Structure.DotNet
 
                     // Call ctor
                     valueExpr = new AstExpression(AstNode.NoSource, AstCode.Newobj, ctor,
-                        new AstExpression(AstNode.NoSource, AstCode.Ldstr, field.Name),
+                        new AstExpression(AstNode.NoSource, AstCode.Stloc, nameVar,
+                            new AstExpression(AstNode.NoSource, AstCode.Ldstr, field.Name)),
                         new AstExpression(AstNode.NoSource, AstCode.Ldc_I4, ordinal),
-                        new AstExpression(AstNode.NoSource, ldc, value));
+                        new AstExpression(AstNode.NoSource, AstCode.Stloc, valVar,
+                            new AstExpression(AstNode.NoSource, ldc, value)));
                 }
 
                 // Initialize static field
-                ast.Body.Add(new AstExpression(AstNode.NoSource, AstCode.Stsfld, field, valueExpr));
+                var storeExpression = new AstExpression(AstNode.NoSource, AstCode.Stsfld, field, valueExpr);
 
                 // Add to info
                 var addMethod = new XMethodReference.Simple("Add", true, typeSystem.Void, internalEnumInfoType,
                     XParameter.Create("value", valueType),
+                    XParameter.Create("name", typeSystem.String),
                     XParameter.Create("instance", internalEnumType));
                 ast.Body.Add(new AstExpression(AstNode.NoSource, AstCode.Call, addMethod,
-                    new AstExpression(AstNode.NoSource, AstCode.Ldsfld, enumInfoField),
-                    new AstExpression(AstNode.NoSource, ldc, value),
-                    new AstExpression(AstNode.NoSource, AstCode.Ldsfld, field)));
+                    new AstExpression(AstNode.NoSource, AstCode.Ldloc, enumInfoVar),
+                    new AstExpression(AstNode.NoSource, AstCode.Ldloc, valVar),
+                    new AstExpression(AstNode.NoSource, AstCode.Ldloc, nameVar),
+                    storeExpression));
 
                 // Increment ordinal
                 ordinal++;
@@ -268,7 +267,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
 
             // Initialize default field
             var getValueMethod = new XMethodReference.Simple("GetValue", true, internalEnumType, internalEnumInfoType,
-                XParameter.Create("value", valueType));
+                                                             XParameter.Create("value", valueType));
             ast.Body.Add(new AstExpression(AstNode.NoSource, AstCode.Stsfld, defaultField,
                 new AstExpression(AstNode.NoSource, AstCode.SimpleCastclass, XType,
                     new AstExpression(AstNode.NoSource, AstCode.Call, getValueMethod,
@@ -291,68 +290,6 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 new AstExpression(AstNode.NoSource, AstCode.Ret, null,
                     new AstExpression(AstNode.NoSource, AstCode.Ldfld, valueField,
                         new AstExpression(AstNode.NoSource, AstCode.Ldthis, null))));
-        }
-
-        /// <summary>
-        /// Create the body of the values() method.
-        /// </summary>
-        private AstBlock CreateValuesBody()
-        {
-            var fields = XType.Fields.Where(x => x.IsStatic && !(x is XSyntheticFieldDefinition)).ToList();
-
-            // Allocate array
-            var arrVar = new AstGeneratedVariable("array", "array") { Type = new XArrayType(XType) };
-            var createArr = new AstExpression(AstNode.NoSource, AstCode.Stloc, arrVar,
-                new AstExpression(AstNode.NoSource, AstCode.Newarr, XType,
-                    new AstExpression(AstNode.NoSource, AstCode.Ldc_I4, fields.Count)));
-            var ast = AstBlock.CreateOptimizedForTarget(createArr);
-
-            // Initialize array
-            var index = 0;
-            foreach (var field in fields)
-            {
-                ast.Body.Add(new AstExpression(AstNode.NoSource, AstCode.Stelem_Any, null,
-                    new AstExpression(AstNode.NoSource, AstCode.Ldloc, arrVar),
-                    new AstExpression(AstNode.NoSource, AstCode.Ldc_I4, index),
-                    new AstExpression(AstNode.NoSource, AstCode.Ldsfld, field)));
-                index++;
-            }
-
-            // Return array
-            ast.Body.Add(new AstExpression(AstNode.NoSource, AstCode.Ret, null,
-                new AstExpression(AstNode.NoSource, AstCode.Ldloc, arrVar)));
-            return ast;
-        }
-
-        /// <summary>
-        /// Create the body of the valueOf(string) method.
-        /// </summary>
-        private AstBlock CreateValueOfBody(XSyntheticMethodDefinition method, XTypeSystem typeSystem)
-        {
-            var fields = XType.Fields.Where(x => x.IsStatic && !(x is XSyntheticFieldDefinition)).ToList();
-            var ast = AstBlock.Create<AstExpression>();
-
-            // Find name
-            foreach (var field in fields)
-            {
-                var notEqualLabel = new AstLabel(AstNode.NoSource, "not_equal_to" + field.Name);
-                var equalsExpr = new AstExpression(AstNode.NoSource, AstCode.Call, FrameworkReferences.StringEquals(typeSystem),
-                    new AstExpression(AstNode.NoSource, AstCode.Ldstr, field.Name),
-                    new AstExpression(AstNode.NoSource, AstCode.Ldloc, method.AstParameters[0]));
-
-                // If !equals(name, field.name) goto notEqualLabel
-                ast.Body.Add(new AstExpression(AstNode.NoSource, AstCode.Brfalse, notEqualLabel, equalsExpr));
-                // Return field object
-                ast.Body.Add(new AstExpression(AstNode.NoSource, AstCode.Ret, null,
-                    new AstExpression(AstNode.NoSource, AstCode.Ldsfld, field)));
-                // notEqualLabel:
-                ast.Body.Add(notEqualLabel);
-            }
-
-            // Return null
-            ast.Body.Add(new AstExpression(AstNode.NoSource, AstCode.Ret, null,
-                new AstExpression(AstNode.NoSource, AstCode.Ldnull, null)));
-            return ast;
         }
 
         /// <summary>
