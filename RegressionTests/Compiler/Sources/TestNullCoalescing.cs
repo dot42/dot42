@@ -1,6 +1,6 @@
 ﻿using Junit.Framework;
 
-namespace dot42.CompilerBugTesting
+namespace Dot42.Tests.Compiler.Sources
 {
     public class TestNullCoalescing : TestCase
     {

@@ -209,9 +209,9 @@ namespace Dot42.Tests.System.Threading.Tasks
             sw.Stop();
             Debug.WriteLine("elapsed: {0}ms", sw.ElapsedMilliseconds);
 
-            Assert.IsTrue(sw.ElapsedMilliseconds > 1999 && sw.ElapsedMilliseconds < 2250, "Expected time between 1999 and 2250 ms however was: " + sw.ElapsedMilliseconds.ToString());
+            Assert.IsTrue(sw.ElapsedMilliseconds > 1999 && sw.ElapsedMilliseconds < 2490, "Expected time between 1999 and 2250 ms however was: " + sw.ElapsedMilliseconds.ToString());
             Assert.IsTrue(cts.IsCancellationRequested, "Expected IsCancellationRequested");
-            Assert.AreEqual(TaskStatus.RanToCompletion, task.Status, "Expected TaskStatus.Canceled");
+            Assert.AreEqual(TaskStatus.RanToCompletion, task.Status, "Expected TaskStatus.RanToCompletion");
         }
 
         [Test]

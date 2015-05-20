@@ -116,10 +116,15 @@ namespace Dot42.CompilerLib.Ast.Converters
                     // Need to value type?
                     var inferredType = node.InferredType;
                     var expectedType = node.ExpectedType;
+
                     if ((inferredType != null) && (expectedType != null) && !inferredType.IsSame(expectedType))
                     {
                         // don't convert if either one is the abstract base class.
                         if (inferredType.IsInternalEnum() || expectedType.IsInternalEnum())
+                            continue;
+
+                        // don't convert if either one is a reference type
+                        if (inferredType.IsByReference || expectedType.IsByReference)
                             continue;
 
                         XTypeDefinition expectedTypeDef;

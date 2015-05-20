@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using Junit.Framework;
 
 namespace Dot42.Tests.Compiler.Sources
@@ -112,6 +113,38 @@ namespace Dot42.Tests.Compiler.Sources
             new GC<Mutable>().DefaultT(out m2);
             AssertNotNull(m2);
             AssertEquals(default(Mutable), m2);
+        }
+
+        public void testOverrideGenericWithEnum()
+        {
+            int cv = (int)new TestValueConverterEnum().Convert(TwoFields.Noot, typeof(int), null, null);
+            AssertEquals((int)TwoFields.Noot, cv);
+        }
+
+        public abstract class MvxValueConverter<TFrom, TTo>
+        {
+            public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+            {
+                return Convert((TFrom)value, targetType, parameter, culture);
+            }
+
+            protected virtual TTo Convert(TFrom value, Type targetType, object parameter, CultureInfo culture)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class TestValueConverterEnum : MvxValueConverter<TwoFields, int>
+        {
+            protected override int Convert(TwoFields value, Type targetType, object parameter, CultureInfo culture)
+            {
+                return Convert(value);
+            }
+
+            private int Convert(TwoFields value)
+            {
+                return (int)value;
+            }
         }
 
         class GC<T>
