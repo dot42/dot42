@@ -2,6 +2,7 @@
 using System.CodeDom;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -114,15 +115,16 @@ namespace Dot42.Compiler.Resources
                         styleableTypeDef.Members.Add(typeDef);
 
                         // Array
-                        var list = string.Join(", ", declaration.AttributeNames.Select(x => FormatAttributeName(x, null)));
+                        var list = string.Join(", ", declaration.AttributeNames.Select(FormatAttributeName));
                         var arrayField = new CodeSnippetTypeMember("                public static readonly int[] AllIds = new[] { " + list + " };");
-                        typeDef.Members.Add(arrayField);                        
+                        typeDef.Members.Add(arrayField);
 
+                        int idx = 0;
                         foreach (var attr in declaration.AttributeNames)
                         {
                             var field = new CodeMemberField(typeof(int), UnfixResourceName(attr));
                             field.Attributes = MemberAttributes.Public | MemberAttributes.Const;
-                            field.InitExpression = new CodeSnippetExpression(FormatAttributeName(attr, 0xFFFF));
+                            field.InitExpression = new CodeSnippetExpression( (idx++).ToString());
                             typeDef.Members.Add(field);
                         }
                     }                    
@@ -131,7 +133,7 @@ namespace Dot42.Compiler.Resources
             return compileUnit;
         }
 
-        private static string FormatAttributeName(string x, int? mask)
+        private static string FormatAttributeName(string x)
         {
             string result;
             if (x.StartsWith(androidPrefix))
@@ -141,10 +143,7 @@ namespace Dot42.Compiler.Resources
                 return string.Format("Android.R.Attr.{0}", x); // Never a mask
             }
             result = string.Format("R.Attr.{0}", x);
-            if (mask.HasValue)
-            {
-                result += string.Format(" & 0x{0:x}", mask.Value);
-            }
+           
             return result;
         }
 
