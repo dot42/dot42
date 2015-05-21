@@ -644,18 +644,43 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// <summary>
         /// Generate code for all methods.
         /// </summary>
-        void IClassBuilder.GenerateCode(ITargetPackage targetPackage)
+        void IClassBuilder.GenerateCode(ITargetPackage targetPackage, bool stopAtFirstError)
         {
-            GenerateCode((DexTargetPackage)targetPackage);
+            GenerateCode((DexTargetPackage)targetPackage, stopAtFirstError);
         }
 
         /// <summary>
         /// Generate code for all methods.
         /// </summary>
-        public virtual void GenerateCode(DexTargetPackage targetPackage)
+        public virtual void GenerateCode(DexTargetPackage targetPackage, bool stopAtFirstError)
         {
-            if (nestedBuilders != null) nestedBuilders.ForEach(x => x.GenerateCode(targetPackage));
-            if (methodBuilders != null) methodBuilders.ForEach(x => x.GenerateCode(classDef, targetPackage));
+            if (nestedBuilders != null) nestedBuilders.ForEach(x => x.GenerateCode(targetPackage, stopAtFirstError));
+            if (methodBuilders != null)
+            {
+                if(stopAtFirstError)
+                    methodBuilders.ForEach(x => x.GenerateCode(classDef, targetPackage));
+                else
+                {
+                    List<Exception> exs = new List<Exception>();
+
+                    foreach (var methodBuilder in methodBuilders)
+                    {
+                        try
+                        {
+                            methodBuilder.GenerateCode(classDef, targetPackage);
+                        }
+                        catch (Exception ex)
+                        {
+                            methodBuilder.GenerateFaultBody("compilation error");
+                            exs.Add(new Exception("Error while compiling method " + methodBuilder.DexMethod.Name + ": " + ex.Message, ex));
+                        }
+                    }
+
+                    if(exs.Count > 0)
+                        throw new AggregateException(exs);
+                    
+                }
+            }
         }
 
         /// <summary>

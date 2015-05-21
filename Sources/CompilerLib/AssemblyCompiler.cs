@@ -166,27 +166,31 @@ namespace Dot42.CompilerLib
             if (StopCompilationBeforeGeneratingCode)
                 return;
 
+            List<Exception> errors = new List<Exception>() ;
+
             using (Profile("for generating code"))
             {
                 if (StopAtFirstError)
-                    classBuilders.ForEachWithExceptionMessage(x => x.GenerateCode(targetPackage));
+                    classBuilders.ForEachWithExceptionMessage(x => x.GenerateCode(targetPackage, StopAtFirstError));
                 else
                 {
-                    List<Exception> exs = new List<Exception>();
                     foreach (var classBuilder in classBuilders)
                     {
                         try
                         {
-                            classBuilder.GenerateCode(targetPackage);
+                            classBuilder.GenerateCode(targetPackage, StopAtFirstError);
+                        }
+                        catch (AggregateException ex)
+                        {
+                            errors.Add(new Exception("Error while compiling class " + classBuilder.FullName + ": " 
+                                                    + string.Join("; ", ex.Flatten().InnerExceptions.Select(e=>e.Message)), 
+                                                    ex));
                         }
                         catch (Exception ex)
                         {
-                            exs.Add(new Exception("Error while handling " + classBuilder.FullName + ": " + ex.Message, ex));
+                            errors.Add(new Exception("Error while compiling " + classBuilder.FullName + ": " + ex.Message, ex));
                         }
                     }
-
-                    if(exs.Count > 0)
-                        throw new AggregateException(exs);
                 }
             }
 
@@ -213,6 +217,9 @@ namespace Dot42.CompilerLib
             optimizedMapFile = false;
             RecordScopeMapping(reachableContext);
             classBuilders.ForEachWithExceptionMessage(x => x.RecordMapping(mapFile));
+
+            if (errors.Count > 0)
+                throw new AggregateException(errors);
         }
 
         /// <summary>

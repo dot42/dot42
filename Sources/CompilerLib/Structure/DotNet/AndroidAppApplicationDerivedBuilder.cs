@@ -59,7 +59,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
             }
         }
 
-        public override void GenerateCode(DexTargetPackage targetPackage)
+        public override void GenerateCode(DexTargetPackage targetPackage, bool stopAtFirstError)
         {
             if(!IsDot42InternalApplication())
             {
@@ -80,7 +80,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
                     }
                 }
             }
-            base.GenerateCode(targetPackage);
+            base.GenerateCode(targetPackage, stopAtFirstError);
         }
 
         private bool IsDot42InternalApplication()

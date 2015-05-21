@@ -21,6 +21,8 @@ namespace Dot42.ApkSpy
         private const string EMBED_SOURCE_CODE_POSITIONS = "embed_source_code_positions";
         private const string EMBED_SOURCE_CODE = "embed_source_code";
         private const string SHOW_CONTROL_FLOW = "show_control_flow";
+        private const string FULL_TYPE_NAMES = "full_type_names";
+        
         private const int maxNumberOfFiles = 10;
         private const string registryPath = @"Software\TallComponents\Dot42\Mru";
         private static readonly Size DefaultWindowSize = new Size(972, 567);
@@ -162,6 +164,12 @@ namespace Dot42.ApkSpy
         {
             get { return GetValue(SHOW_CONTROL_FLOW, "0") != "0"; }
             set { SetValue(SHOW_CONTROL_FLOW, value ? "1" : "0"); }
+        }
+
+        public static bool FullTypeNames
+        {
+            get { return GetValue(FULL_TYPE_NAMES, "0") != "0"; }
+            set { SetValue(FULL_TYPE_NAMES, value ? "1" : "0"); }
         }
 
         /// <summary>

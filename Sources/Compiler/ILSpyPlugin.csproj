@@ -36,6 +36,10 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ICSharpCode.AvalonEdit, Version=5.0.1.0, Culture=neutral, PublicKeyToken=9cc39be672370310, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Binaries\ILSpy\ICSharpCode.AvalonEdit.dll</HintPath>
+    </Reference>
     <Reference Include="ICSharpCode.Decompiler, Version=2.3.0.1827, Culture=neutral, PublicKeyToken=d4bfe873e7598c49, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\Binaries\ILSpy\ICSharpCode.Decompiler.dll</HintPath>
@@ -95,12 +99,22 @@
       <Project>{13F162A6-DD45-F343-1234-7ADBD4323486}</Project>
       <Name>LoaderLib</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Mapping\MappingLib.csproj">
+      <Project>{13f162a6-f530-40f2-1234-7ad5123aa386}</Project>
+      <Name>MappingLib</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Utility\Utility.csproj">
       <Project>{13F162A6-F530-40B3-1234-7AD5C0B4A386}</Project>
       <Name>Utility</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\ApkSpy\Disassembly\MethodBodyDisassemblyFormatter.cs">
+      <Link>Disassembly\MethodBodyDisassemblyFormatter.cs</Link>
+    </Compile>
+    <Compile Include="..\DebuggerLib\MethodDisassembly.cs">
+      <Link>Disassembly\MethodDisassembly.cs</Link>
+    </Compile>
     <Compile Include="..\Version.cs" />
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="ILSpy\CompiledLanguage.cs" />

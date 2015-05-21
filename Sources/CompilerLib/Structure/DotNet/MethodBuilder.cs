@@ -200,6 +200,12 @@ namespace Dot42.CompilerLib.Structure.DotNet
             DexMethodBodyCompiler.TranslateToRL(compiler, targetPackage, source, dmethod, generateSetNextInstructionCode, out compiledMethod);
         }
 
+        public void GenerateFaultBody(string msg)
+        {
+            // TODO: throw an exception or something.
+            dmethod.Body = new DexLib.Instructions.MethodBody(dmethod, 0);
+        }
+
         /// <summary>
         /// Create all annotations for this method
         /// </summary>

@@ -94,8 +94,8 @@ namespace Dot42.Mapping
                         if (m.Id != 0)
                             _typesByMethodId[m.Id] = entry;
 
-                        _methodsByFullSignature.Add(Tuple.Create(typeDexName, m.DexName, m.DexSignature), m);
-                        _methodsByFullSignature.Add(Tuple.Create(typeDexSignature, m.DexName, m.DexSignature), m);
+                        _methodsByFullSignature[Tuple.Create(typeDexName, m.DexName, m.DexSignature)] = m;
+                        _methodsByFullSignature[Tuple.Create(typeDexSignature, m.DexName, m.DexSignature)] = m;
                     }
                 }
             }

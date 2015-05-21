@@ -40,7 +40,7 @@ namespace Dot42.CompilerLib.Structure
         /// <summary>
         /// Generate code for all methods.
         /// </summary>
-        void GenerateCode(ITargetPackage targetPackage);
+        void GenerateCode(ITargetPackage targetPackage, bool stopAtFirstError);
 
         /// <summary>
         /// Create all annotations for this class and it's members

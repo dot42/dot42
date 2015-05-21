@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -20,8 +21,10 @@ namespace Dot42.ApkSpy.Tree
         private MethodBodyDisassemblyFormatter _formatter;
         private static readonly DalvikOpcodeHelpLookup Opcodes = new DalvikOpcodeHelpLookup();
 
-        private readonly List<TextMarker> _jumpMarkers= new List<TextMarker>();
+        private readonly List<TextMarker> _branchMarkers= new List<TextMarker>();
         private readonly List<TextMarker> _registerMarkers = new List<TextMarker>();
+
+        private readonly char[] SplitCharacters = "\n\r \t:,()[].\\!".ToCharArray();
 
         private string previousWord = null;
 
@@ -61,7 +64,17 @@ namespace Dot42.ApkSpy.Tree
                 sb.AppendLine();
 
                 _formatter = _formatter ?? new MethodBodyDisassemblyFormatter(_methodDef, settings.MapFile);
-                var code = _formatter.Format(settings.EmbedSourceCodePositions, settings.EmbedSourceCode, settings.ShowControlFlow);
+                
+                FormatOptions format = FormatOptions.Default;
+                if(settings.EmbedSourceCode)
+                    format |= FormatOptions.EmbedSourceCode;
+                if (settings.EmbedSourceCodePositions)
+                    format |= FormatOptions.EmbedSourcePositions;
+                if (settings.ShowControlFlow)
+                    format |= FormatOptions.ShowControlFlow;
+                if (settings.FullTypeNames)
+                    format |= FormatOptions.FullTypeNames;
+                var code = _formatter.Format(format);
                 sb.AppendLine(code);
 
 #if DEBUG
@@ -99,7 +112,7 @@ namespace Dot42.ApkSpy.Tree
             var lineSegment = text.Document.GetLineSegment(e.LogicalPosition.Line);
             var lineText = text.Document.GetText(lineSegment);
 
-            string word = GetWordByWhitespaceAndCommas(lineText, e.LogicalPosition.Column);
+            string word = GetWordAtColumn(lineText, e.LogicalPosition.Column);
 
             if (word == null)
                 return;
@@ -145,24 +158,24 @@ namespace Dot42.ApkSpy.Tree
             var lineSegment = document.GetLineSegment(pos.Line);
             var lineText = document.GetText(lineSegment);
 
-            string word = GetWordByWhitespaceAndCommas(lineText, pos.Column);
+            string word = GetWordAtColumn(lineText, pos.Column);
 
             if (word == previousWord)
                 return;
             
             previousWord = word;
 
-            MarkJumpTarget(word, lineText, pos, document, text);
+            MarkBranchTargets(word, lineText, pos, document, text);
             MarkRegisterUsage(word, document, text);
         }
 
-        private void MarkJumpTarget(string word, string lineText, TextLocation pos, IDocument document, TextArea text)
+        private void MarkBranchTargets(string word, string lineText, TextLocation pos, IDocument document, TextArea text)
         {
-            if (_jumpMarkers.Count > 0)
+            if (_branchMarkers.Count > 0)
             {
-                foreach(var marker in _jumpMarkers)
+                foreach(var marker in _branchMarkers)
                     document.MarkerStrategy.RemoveMarker(marker);
-                _jumpMarkers.Clear();
+                _branchMarkers.Clear();
                 text.Refresh();
             }
 
@@ -175,19 +188,36 @@ namespace Dot42.ApkSpy.Tree
                 return;
             
             int wordIdx;
-            GetWordByWhitespaceAndCommas(lineText, pos.Column, out wordIdx);
+            GetWordAtColumn(lineText, pos.Column, out wordIdx);
 
             bool isFirstWord = lineText.IndexOf(word, StringComparison.Ordinal) == wordIdx;
             bool isJumpInstruction = false;
 
             if (!isFirstWord)
             {
-                var words = GetWordAndPreviousByWhitespaceAndCommas(lineText, pos.Column);
+                var words = GetWordAndPrevious(lineText, pos.Column);
                 isJumpInstruction = words != null && words[0] == MethodDisassembly.JumpMarker;
             }
 
             if (!isFirstWord && !isJumpInstruction)
                 return;
+
+            HashSet<string> exceptionTargetOffsets = new HashSet<string>();
+
+            if (isFirstWord)
+            {
+                int offset = int.Parse(word, NumberStyles.HexNumber);
+                foreach (var ex in _methodDef.Body.Exceptions)
+                {
+                    if (offset >= ex.TryStart.Offset && offset <= ex.TryEnd.Offset)
+                    {
+                        foreach(var c in ex.Catches)
+                            exceptionTargetOffsets.Add(MethodDisassembly.FormatOffset(c.Instruction.Offset).Trim());
+                        if(ex.CatchAll != null)
+                            exceptionTargetOffsets.Add(MethodDisassembly.FormatOffset(ex.CatchAll.Offset).Trim());
+                    }
+                }
+            }
 
             LineSegment mainLine = null;
             int jumpMarkerLen = MethodDisassembly.JumpMarker.Length;
@@ -199,7 +229,8 @@ namespace Dot42.ApkSpy.Tree
                 string curLine = document.GetText(line);
 
                 int curOffset = 0;
-                foreach (var curWord in SplitAndKeep(curLine, "\n\r \t:,().\\".ToCharArray()))
+                
+                foreach (var curWord in SplitAndKeep(curLine, SplitCharacters))
                 {
                     if (curWord.Trim() == "")
                     {
@@ -218,13 +249,24 @@ namespace Dot42.ApkSpy.Tree
                             // add marker.
                             if (curOffset > 4 && curLine.Substring(curOffset - jumpMarkerLen - 1, jumpMarkerLen) == MethodDisassembly.JumpMarker)
                             {
-                                AddJumpMarker(document, line.Offset + curOffset - jumpMarkerLen - 1,
+                                AddBranchMarker(document, line.Offset + curOffset - jumpMarkerLen - 1,
                                               curWord.Length + jumpMarkerLen + 1);
                             }
                             else
                             {
-                                AddJumpMarker(document, line.Offset + curOffset, curWord.Length);
+                                AddBranchMarker(document, line.Offset + curOffset, curWord.Length);
                             }
+                        }
+                    }
+                    else if (/*isLineFirstWord &&*/ exceptionTargetOffsets.Contains(curWord))
+                    {
+                        if (!isLineFirstWord)
+                        {
+                            AddBranchMarker(document, line.Offset + curOffset, curWord.Length, true);
+                        }
+                        else
+                        {
+                            AddBranchMarker(document, line.Offset, line.TotalLength, true);
                         }
                     }
                     
@@ -233,13 +275,13 @@ namespace Dot42.ApkSpy.Tree
                 }
             }
 
-            if (mainLine != null && _jumpMarkers.Count > 0)
+            if (mainLine != null && _branchMarkers.Count > 0)
             {
                 // better would be to mark the whole line, not only the words.
-                AddJumpMarker(document, mainLine.Offset, mainLine.TotalLength);
+                AddBranchMarker(document, mainLine.Offset, mainLine.TotalLength);
             }
             
-            if(_jumpMarkers.Count > 0)
+            if(_branchMarkers.Count > 0)
                 text.Refresh();
         }
 
@@ -261,11 +303,21 @@ namespace Dot42.ApkSpy.Tree
             }
         }
 
-        private void AddJumpMarker(IDocument document, int offset, int length)
+        private void AddBranchMarker(IDocument document, int offset, int length, bool exTarget=false)
         {
-            var marker = new TextMarker(offset, length, TextMarkerType.SolidBlock, Color.Gold);
+            TextMarker marker ;
+
+            if (exTarget)
+            {
+                marker = new TextMarker(offset, length, TextMarkerType.SolidBlock, Color.Firebrick, Color.White);    
+            }
+            else
+            {
+                marker = new TextMarker(offset, length, TextMarkerType.SolidBlock, Color.Gold);    
+            }
+            
             document.MarkerStrategy.AddMarker(marker);
-            _jumpMarkers.Add(marker);
+            _branchMarkers.Add(marker);
         }
 
         private void MarkRegisterUsage(string word, IDocument document, TextArea text)
@@ -305,13 +357,13 @@ namespace Dot42.ApkSpy.Tree
 
         }
 
-        private string GetWordByWhitespaceAndCommas(string lineText, int column)
+        private string GetWordAtColumn(string lineText, int column)
         {
             int wordIdx;
-            return GetWordByWhitespaceAndCommas(lineText, column, out wordIdx);
+            return GetWordAtColumn(lineText, column, out wordIdx);
         }
 
-        private string GetWordByWhitespaceAndCommas(string lineText, int column, out int startIdx)
+        private string GetWordAtColumn(string lineText, int column, out int startIdx)
         {
             startIdx = -1;
 
@@ -319,21 +371,21 @@ namespace Dot42.ApkSpy.Tree
                 return null;
 
             var c = lineText[column];
-            if (char.IsWhiteSpace(c) || c == ',')
+            if (char.IsWhiteSpace(c) || SplitCharacters.Contains(c))
                 return null;
 
             int idxAfterEnd = column + 1;
             for (; idxAfterEnd < lineText.Length ; ++idxAfterEnd)
             {
                 c = lineText[idxAfterEnd];
-                if (char.IsWhiteSpace(c) || c == ',')
+                if (char.IsWhiteSpace(c) || SplitCharacters.Contains(c))
                     break;
             }
             int idxBeforeStart = column - 1;
             for (; idxBeforeStart >= 0; --idxBeforeStart)
             {
                 c = lineText[idxBeforeStart];
-                if (char.IsWhiteSpace(c) || c == ',')
+                if (char.IsWhiteSpace(c) || SplitCharacters.Contains(c))
                     break;
             }
 
@@ -341,10 +393,10 @@ namespace Dot42.ApkSpy.Tree
             return lineText.Substring(startIdx, idxAfterEnd - idxBeforeStart - 1);
         }
 
-        private string[] GetWordAndPreviousByWhitespaceAndCommas(string lineText, int column)
+        private string[] GetWordAndPrevious(string lineText, int column)
         {
             int wordIdx, wordIdx2;
-            string word = GetWordByWhitespaceAndCommas(lineText, column, out wordIdx);
+            string word = GetWordAtColumn(lineText, column, out wordIdx);
 
             if (word == null)
                 return null;
@@ -359,7 +411,7 @@ namespace Dot42.ApkSpy.Tree
             if (wordIdx == -1)
                 return null;
 
-            return new [] { GetWordByWhitespaceAndCommas(lineText, wordIdx, out wordIdx2), word };
+            return new [] { GetWordAtColumn(lineText, wordIdx, out wordIdx2), word };
         }
 
         private string AccessFlagsAsString(AccessFlags accessFlags)

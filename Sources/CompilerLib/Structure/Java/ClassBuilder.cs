@@ -321,7 +321,7 @@ namespace Dot42.CompilerLib.Structure.Java
         /// <summary>
         /// Generate code for all methods.
         /// </summary>
-        void IClassBuilder.GenerateCode(ITargetPackage targetPackage)
+        void IClassBuilder.GenerateCode(ITargetPackage targetPackage, bool stopAtFirstError)
         {
             GenerateCode((DexTargetPackage) targetPackage);
         }

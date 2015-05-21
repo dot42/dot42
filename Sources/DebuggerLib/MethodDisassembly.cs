@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using Dot42.DexLib;
 using Dot42.DexLib.Instructions;
@@ -5,11 +8,24 @@ using Dot42.Mapping;
 
 namespace Dot42.DebuggerLib
 {
+    [Flags]
+    public enum FormatOptions
+    {
+        Default = ShowJumpTargets,
+        EmbedSourceCode = 0x01,
+        EmbedSourcePositions = 0x02,
+        ShowControlFlow = 0x04,
+        ShowJumpTargets = 0x08,
+        DebugOperandTypes = 0x10,
+        FullTypeNames = 0x20,
+    }
+
     /// <summary>
     /// Provides a disassembled method and helps with formatting.
     /// </summary>
     // TODO: move to a place where it is available from ApkSpy as well,
     //       without ApkSpy needing a reference to the DebuggerLib.
+    //       (maybe a DisassemblyLib?)
     public class MethodDisassembly
     {
         public static string JumpMarker { get { return "->"; } }
@@ -23,7 +39,12 @@ namespace Dot42.DebuggerLib
         public MethodDefinition Method { get { return _methodDef; } }
         public MethodEntry MethodEntry { get { return _methodEntry; } }
         public TypeEntry TypeEntry { get { return _typeEntry; } }
-        
+
+        public FormatOptions Format { get; set; }
+
+        public ISet<int> JumpTargetOffsets { get; private set; }
+        public ISet<int> ExceptionHandlerOffsets { get; private set; }
+
 
         public MethodDisassembly(MethodDefinition methodDef, MapFileLookup mapFile = null, TypeEntry typeEntry = null, MethodEntry methodEntry = null)
         {
@@ -31,11 +52,49 @@ namespace Dot42.DebuggerLib
             _methodEntry = methodEntry;
             _methodDef = methodDef;
             _mapFile = mapFile;
+
+            JumpTargetOffsets=new HashSet<int>();
+            ExceptionHandlerOffsets = new HashSet<int>();
+
+            if (methodDef.Body != null)
+            {
+                foreach (var i in methodDef.Body.Instructions)
+                {
+                    var op = i.Operand as Instruction;
+                    if (op != null)
+                        JumpTargetOffsets.Add(op.Offset);
+                }
+                foreach (var e in methodDef.Body.Exceptions)
+                {
+                    foreach(var c in e.Catches)
+                        ExceptionHandlerOffsets.Add(c.Instruction.Offset);
+                    if (e.CatchAll != null)
+                        ExceptionHandlerOffsets.Add(e.CatchAll.Offset);
+                }
+            }
+
+            Format = FormatOptions.Default;
         }
 
         public string FormatAddress(Instruction ins)
         {
-            return ins.Offset.ToString("X3").PadLeft(4);
+            var offset = ins.Offset.ToString("X3").PadLeft(4);
+
+            if(Format.HasFlag(FormatOptions.ShowJumpTargets))
+            {
+                if (ExceptionHandlerOffsets.Contains(ins.Offset))
+                    return offset + "!";
+                if (JumpTargetOffsets.Contains(ins.Offset))
+                    return offset + ":";
+                else 
+                    return offset + " ";
+            }
+            return offset;    
+        }
+
+        public static string FormatOffset(int offset)
+        {
+            return offset.ToString("X3").PadLeft(4);
         }
 
         public string FormatOpCode(Instruction ins)
@@ -45,7 +104,7 @@ namespace Dot42.DebuggerLib
 
         public string FormatOperands(Instruction ins)
         {
-            return FormatOperands(ins, _methodDef.Body);
+            return FormatOperands(ins, _methodDef.Body, Format);
         }
 
         public string FormatInstruction(Instruction ins)
@@ -73,9 +132,11 @@ namespace Dot42.DebuggerLib
             return "r" + r.Index;
         }
 
-        public static string FormatOperands(Instruction ins, MethodBody body)
+        public static string FormatOperands(Instruction ins, MethodBody body, FormatOptions options = FormatOptions.Default)
         {
             StringBuilder ops = new StringBuilder();
+
+            bool fullTypeNames = options.HasFlag(FormatOptions.FullTypeNames);
 
             foreach (var r in ins.Registers)
             {
@@ -134,14 +195,28 @@ namespace Dot42.DebuggerLib
                     int offset = (targetIdx - myIdx);
                     ops.Append(offset.ToString("+0;-0;+0"));
                 }
-                else if (ins.Operand is IMemberReference)
+                else if (ins.Operand is ClassReference)
                 {
-                    ops.Append(ins.Operand);
+                    var m = (ClassReference) ins.Operand;
+                    ops.Append(fullTypeNames ? m.ToString() : m.Name);
+                }
+                else if (ins.Operand is MethodReference)
+                {
+                    var m = (MethodReference)ins.Operand;
+                    ops.Append(fullTypeNames ? m.ToString() : m.Owner.Name + "::" + m.Name + m.Prototype);
+                }
+                else if (ins.Operand is FieldReference)
+                {
+                    var m = (FieldReference)ins.Operand;
+                    ops.Append(fullTypeNames ? m.ToString() : m.Owner.Name + "::" + m.Name + " : " + m.Type);
                 }
                 else
                 {
                     ops.Append(ins.Operand);
                 }
+
+                if (options.HasFlag(FormatOptions.DebugOperandTypes))
+                    ops.AppendFormat(" [{0}]", ins.Operand.GetType().Name);
             }
 
             var bstrOperands = ops.ToString();

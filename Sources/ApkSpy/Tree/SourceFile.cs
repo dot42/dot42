@@ -209,5 +209,6 @@ namespace Dot42.ApkSpy.Tree
         public bool ShowControlFlow { get { return settings.ShowControlFlow; } }
         public bool EmbedSourceCodePositions { get { return settings.EmbedSourceCodePositions; } }
         public bool EmbedSourceCode { get { return settings.EmbedSourceCode; } }
+        public bool FullTypeNames { get { return settings.FullTypeNames; } }
     }
 }

@@ -39,6 +39,7 @@ namespace Dot42.ApkSpy
             miEmbedSourceCode.Checked = SettingsPersitor.EmbedSourceCode;
             miEmbedSourceCodePositions.Checked = SettingsPersitor.EmbedSourceCodePositions;
             miShowControlFlow.Checked = SettingsPersitor.ShowControlFlow;
+            miFullTypeNames.Checked = SettingsPersitor.FullTypeNames;
         }
 
         /// <summary>
@@ -317,6 +318,7 @@ namespace Dot42.ApkSpy
         public bool ShowControlFlow { get { return miShowControlFlow.Checked; } }
         public bool EmbedSourceCodePositions { get { return miEmbedSourceCodePositions.Checked; } }
         public bool EmbedSourceCode { get { return miEmbedSourceCode.Checked; } }
+        public bool FullTypeNames { get { return miFullTypeNames.Checked; } }
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
@@ -430,6 +432,12 @@ namespace Dot42.ApkSpy
         private void miShowControlFlow_Click(object sender, EventArgs e)
         {
             SettingsPersitor.ShowControlFlow = ShowControlFlow;
+            UpdateView();
+        }
+
+        private void miFullTypeNames_Click(object sender, EventArgs e)
+        {
+            SettingsPersitor.FullTypeNames = FullTypeNames;
             UpdateView();
         }
 

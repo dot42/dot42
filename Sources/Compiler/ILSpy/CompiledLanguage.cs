@@ -4,6 +4,7 @@
 using System.Windows.Automation.Peers;
 using Dot42.CompilerLib;
 using Dot42.CompilerLib.XModel;
+using Dot42.Mapping;
 using ilspy::Mono.Cecil;
 using ICSharpCode.Decompiler;
 using ICSharpCode.ILSpy;
@@ -16,6 +17,7 @@
         private static CachedCompiler compiler = new CachedCompiler();
 
         public AssemblyCompiler AssemblyCompiler { get { return compiler.AssemblyCompiler; } }
+        public MapFileLookup MapFile { get { return compiler.MapFile; }  }
 
         public override void DecompileAssembly(LoadedAssembly assembly, ITextOutput output, DecompilationOptions options)
         {

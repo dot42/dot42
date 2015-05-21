@@ -115,9 +115,9 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// <summary>
         /// Generate code for all methods.
         /// </summary>
-        public override void GenerateCode(DexTargetPackage targetPackage)
+        public override void GenerateCode(DexTargetPackage targetPackage, bool stopAtFirstError)
         {
-            base.GenerateCode(targetPackage);
+            base.GenerateCode(targetPackage, stopAtFirstError);
 
             // Create method bodies
             defaultCtor.Body = CreateCtorBody();

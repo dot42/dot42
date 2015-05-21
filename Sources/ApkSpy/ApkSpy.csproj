@@ -113,13 +113,13 @@
     </Compile>
     <Compile Include="..\Version.cs" />
     <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="Disassembly\MethodBodyDisassemblyFormatter.cs" />
     <Compile Include="SearchDialog.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="SearchDialog.Designer.cs">
       <DependentUpon>SearchDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="Disassembly\MethodBodyDisassemblyFormatter.cs" />
     <Compile Include="IPC\AsyncLineReader.cs" />
     <Compile Include="IPC\AsyncStreamReader.cs" />
     <Compile Include="Disassembly\BaksmaliDisassembler.cs" />

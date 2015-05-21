@@ -93,9 +93,9 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// <summary>
         /// Generate code for all methods.
         /// </summary>
-        public override void GenerateCode(DexTargetPackage targetPackage)
+        public override void GenerateCode(DexTargetPackage targetPackage, bool stopAtFirstError)
         {
-            base.GenerateCode(targetPackage);
+            base.GenerateCode(targetPackage, stopAtFirstError);
 
             // Compile synthetic methods
             XType.Methods.OfType<XSyntheticMethodDefinition>().ForEach(x => x.Compile(Compiler, targetPackage));

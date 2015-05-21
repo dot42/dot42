@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Dot42.ApkLib.Resources;
 using Dot42.CompilerLib;
@@ -11,6 +10,7 @@ using Dot42.CompilerLib.XModel;
 using Dot42.FrameworkDefinitions;
 using Dot42.LoaderLib.DotNet;
 using Dot42.LoaderLib.Java;
+using Dot42.Mapping;
 using Dot42.Utility;
 using Mono.Cecil;
 using NameConverter = Dot42.CompilerLib.NameConverter;
@@ -24,6 +24,7 @@ namespace Dot42.Compiler.ILSpy
         public AssemblyCompiler AssemblyCompiler { get { return _compiler; } }
 
         public List<string> CompilationErrors { get; private set; }
+        public MapFileLookup MapFile { get; private set; }
 
         public void CompileIfRequired(ilspy::Mono.Cecil.AssemblyDefinition assembly, bool stopBeforeGeneratingCode = false)
         {
@@ -46,7 +47,7 @@ namespace Dot42.Compiler.ILSpy
             var module = new XModule();
             var classLoader = new AssemblyClassLoader(module.OnClassLoaded);
             var resolver = new AssemblyResolver(refFolders, classLoader, module.OnAssemblyLoaded);
-            var parameter = new ReaderParameters(ReadingMode.Immediate) { AssemblyResolver = resolver };
+            var parameter = new ReaderParameters(ReadingMode.Immediate) { AssemblyResolver = resolver,ReadSymbols = true};
 
             var assemblies = new[] { resolver.Load(assembly.MainModule.FullyQualifiedName, parameter) }.ToList();
             var references = new[] { resolver.Load(AssemblyConstants.SdkAssemblyName, parameter) }.ToList();
@@ -67,7 +68,13 @@ namespace Dot42.Compiler.ILSpy
             }
             catch (AggregateException ex)
             {
-                CompilationErrors = ex.InnerExceptions.Select(e => e.Message).ToList();
+                CompilationErrors = ex.Flatten().InnerExceptions.Select(e => e.Message.Replace(": ", "\n//      ").Replace("; ", "\n//      &  ")).ToList();
+            }
+
+            if (c.MapFile != null)
+            {
+                c.MapFile.Optimize();
+                MapFile = new MapFileLookup(c.MapFile);
             }
 
             _compiler = c;

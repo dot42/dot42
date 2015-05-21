@@ -16,5 +16,7 @@
 
         bool EmbedSourceCodePositions { get; }
         bool EmbedSourceCode { get; }
+
+        bool FullTypeNames { get; }
     }
 }

@@ -57,7 +57,7 @@ namespace Dot42.ApkSpy.Disassembly
             });
         }
 
-        public string Format(bool embedSourcePositions, bool embedSourceCode, bool showControlFlow)
+        public string Format(FormatOptions options)
         {
             var nl = Environment.NewLine;
             var sb = new StringBuilder();
@@ -66,7 +66,10 @@ namespace Dot42.ApkSpy.Disassembly
             var cfg = new ControlFlowGraph(body);
             SourceCodePosition lastSource = null;
 
-            if ((embedSourceCode || embedSourcePositions) && _dissassembly.MethodEntry != null)
+            _dissassembly.Format = options;
+
+            var embedSource = options.HasFlag(FormatOptions.EmbedSourceCode) || options.HasFlag(FormatOptions.EmbedSourcePositions);
+            if (embedSource && _dissassembly.MethodEntry != null)
             {
                 var pos = _mapFile.GetSourceCodePositions(_dissassembly.MethodEntry).FirstOrDefault();
                 if (pos != null)
@@ -79,17 +82,18 @@ namespace Dot42.ApkSpy.Disassembly
 
             foreach (var block in cfg)
             {
-             if (showControlFlow)
+                if (options.HasFlag(FormatOptions.ShowControlFlow))
                 {
                     sb.AppendFormat(" // ----- Entry [{0}] Exit [{1}]{2}",
-                        string.Join(", ", block.EntryBlocks.Select(x => x.Entry.Offset.ToString("X3"))),
-                        string.Join(", ", block.ExitBlocks.Select(x => x.Entry.Offset.ToString("X3"))),
+                        string.Join(", ", block.EntryBlocks.Select(x => _dissassembly.FormatAddress(x.Entry).Trim())),
+                        string.Join(", ", block.ExitBlocks.Select(x => _dissassembly.FormatAddress(x.Entry).Trim())),
                         nl);
                 }
 
+
                 foreach (var i in block.Instructions)
                 {
-                    if (embedSourcePositions || embedSourceCode)
+                    if (embedSource)
                     {
                         var source = _dissassembly.FindSourceCode(i.Offset, false);
 
@@ -102,16 +106,16 @@ namespace Dot42.ApkSpy.Disassembly
                             lastSource = null;
                         }
 
-                        if (embedSourcePositions && source == null && lastSource != null)
+                        if (source == null && lastSource != null)
                         {
                             sb.AppendLine(" // ----- (no source)");
                         }
                         else if (source != null && (lastSource == null || !source.Position.EqualExceptOffset(lastSource.Position)))
                         {
-                            if (embedSourcePositions)
+                            if (options.HasFlag(FormatOptions.EmbedSourcePositions))
                                 sb.AppendFormat(" // ----- Position: {0} - {1}{2}", source.Position.Start, source.Position.End, nl);
 
-                            if (embedSourceCode)
+                            if (options.HasFlag(FormatOptions.EmbedSourceCode))
                             {
                                 string[] lines = GetSourceCodeLines(source);
                                 if (lines != null)
@@ -120,7 +124,7 @@ namespace Dot42.ApkSpy.Disassembly
                         }
                         lastSource = source;
                     }
-                    
+                 
                     sb.AppendLine(_dissassembly.FormatInstruction(i));
                 }
             }
@@ -131,14 +135,14 @@ namespace Dot42.ApkSpy.Disassembly
                 sb.AppendLine("Exception handlers:");
                 foreach (var handler in body.Exceptions)
                 {
-                    sb.AppendFormat("\t{0:x4}-{1:x4}{2}", handler.TryStart.Offset, handler.TryEnd.Offset, nl);
+                    sb.AppendFormat("\t{0} - {1}{2}", _dissassembly.FormatAddress(handler.TryStart), _dissassembly.FormatAddress(handler.TryEnd), nl);
                     foreach (var c in handler.Catches)
                     {
-                        sb.AppendFormat("\t\t{0} => {1:x4}{2}", c.Type, c.Instruction.Offset, nl);
+                        sb.AppendFormat("\t\t{0} => {1}{2}", c.Type, _dissassembly.FormatAddress(c.Instruction), nl);
                     }
                     if (handler.CatchAll != null)
                     {
-                        sb.AppendFormat("\t\t{0} => {1:x4}{2}", "<any>", handler.CatchAll.Offset, nl);
+                        sb.AppendFormat("\t\t{0} => {1}{2}", "<any>", _dissassembly.FormatAddress(handler.CatchAll), nl);
                     }
                 }
                 sb.AppendLine();
@@ -193,7 +197,7 @@ namespace Dot42.ApkSpy.Disassembly
                                 lastDocument = row.Document;
                             }
                             var pos = row.Position;
-                            sb.AppendFormat("\t{0:x4}\t({1},{2}) - ({3},{4}){5}", pos.MethodOffset, pos.Start.Line, pos.Start.Column, pos.End.Line, pos.End.Column, nl);
+                            sb.AppendFormat("\t{0}\t({1},{2}) - ({3},{4}){5}", MethodDisassembly.FormatOffset(pos.MethodOffset), pos.Start.Line, pos.Start.Column, pos.End.Line, pos.End.Column, nl);
                         }
                     }
                 }
