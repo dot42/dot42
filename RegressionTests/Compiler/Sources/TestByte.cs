@@ -83,7 +83,7 @@ namespace Dot42.Tests.Compiler.Sources
             AssertTrue(b == 0);
         }
 
-        public void _testCtrWithGeneric()
+        public void testCtrWithGeneric()
         {
             var creator = new Creator<byte>();
             var b = creator.CreateNew();

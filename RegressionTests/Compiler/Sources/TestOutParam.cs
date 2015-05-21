@@ -826,7 +826,7 @@ namespace Dot42.Tests.Compiler.Sources
             return i != null;
         }
 
-        public void _test2()
+        public void test2()
         {
             var innerClass = new InnerClass<object>();
 

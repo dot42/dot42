@@ -146,6 +146,53 @@ namespace Dot42.Tests.Compiler.Sources
             Assert.AreEqual(default(int?), defaultValue);
         }
 
+        [Test]
+        public void testByRef()
+        {
+            int? val = 0;
+
+            Assert.AreEqual(0, GetValueOrDefault(ref val));
+            Assert.AreEqual(0, GetValue(ref val));
+            Assert.AreEqual(true, HasValue(ref val));
+
+            SetToNull(ref val);
+            Assert.IsFalse(val.HasValue);
+            Assert.AreEqual(0, GetValueOrDefault(ref val));
+            Assert.AreEqual(false, HasValue(ref val));
+
+            SetTo1(ref val);
+            Assert.AreEqual(1, val.Value);
+            Assert.AreEqual(1, GetValueOrDefault(ref val));
+            Assert.AreEqual(true, HasValue(ref val));
+            Assert.AreEqual(1, GetValue(ref val));
+        }
+
+        void SetToNull(ref int? val)
+        {
+            val = null;
+        }
+
+        void SetTo1(ref int? val)
+        {
+            val = 1;
+        }
+
+        bool HasValue(ref int? val)
+        {
+            return val.HasValue;
+        }
+
+        int GetValue(ref int? val)
+        {
+            return val.Value;
+        }
+
+        int GetValueOrDefault(ref int? val)
+        {
+            return val.GetValueOrDefault();
+        }
+
+
         //[Test]
         //public void testIsAssignableFrom_KnownToFail()
         //{

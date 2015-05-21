@@ -81,7 +81,7 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                         if (type.IsPrimitive)
                         {
                             var r = frame.AllocateTemp(type.GetReference(targetPackage));
-                            return new RLRange(args, this.Add(node.SourceLocation, node.Arguments[0].Const(), 0, r), r);
+                            return new RLRange(args, this.Add(node.SourceLocation, type.Const(), 0, r), r);
                         }
                         if (type.IsEnum())
                         {
@@ -707,7 +707,7 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
 
                 case AstCode.NullCoalescing: // arg[0] ?? arg[1]
                 {
-                        var r = frame.AllocateTemp(node.InferredType.GetReference(targetPackage));
+                        var r = frame.AllocateTemp(node.GetResultType().GetReference(targetPackage));
                         var first = this.Add(node.SourceLocation, RCode.Move_object, r, args[0].Result);
                         var if_nez = this.Add(node.SourceLocation, RCode.If_nez, r); // if r not null, skip
 

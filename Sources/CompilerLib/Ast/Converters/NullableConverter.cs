@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using Dot42.CompilerLib.Ast2RLCompiler.Extensions;
 using Dot42.CompilerLib.XModel;
 
 namespace Dot42.CompilerLib.Ast.Converters
@@ -61,6 +60,7 @@ namespace Dot42.CompilerLib.Ast.Converters
                             case AstCode.Ldloc:
                             case AstCode.Ldfld:
                             case AstCode.Ldsfld:
+                            case AstCode.Ldelem_Ref:
                                 ConvertHasValue(node, type, target);
                                 break;
                         }
@@ -78,6 +78,7 @@ namespace Dot42.CompilerLib.Ast.Converters
                                 case AstCode.Ldloc:
                                 case AstCode.Ldfld:
                                 case AstCode.Ldsfld:
+                                case AstCode.Ldelem_Ref:
                                     ConvertPrimitiveGetValue(node, method, type, target, compiler.Module);
                                     break;
                             }
@@ -93,6 +94,7 @@ namespace Dot42.CompilerLib.Ast.Converters
                                 case AstCode.Ldloc:
                                 case AstCode.Ldfld:
                                 case AstCode.Ldsfld:
+                                case AstCode.Ldelem_Ref:
                                     ConvertOtherGetValue(node, method, type, target, compiler.Module);
                                     break;
                             }
@@ -110,8 +112,9 @@ namespace Dot42.CompilerLib.Ast.Converters
                             case AstCode.Ldloc:
                             case AstCode.Ldfld:
                             case AstCode.Ldsfld:
+                            case AstCode.Ldelem_Ref:
                             {
-                               ConvertGetValueOrDefault(node, method, type, target, compiler.Module);
+                               ConvertGetValueOrDefault(node, type, compiler.Module);
                             }
                             break;
                         }
@@ -367,59 +370,61 @@ namespace Dot42.CompilerLib.Ast.Converters
         /// <summary>
         /// Convert a nullable .GetValueOrDefault()
         /// </summary>
-        private static void ConvertGetValueOrDefault(AstExpression node, XMethodReference ilMethod, XTypeReference type, AstExpression target, XModule data)
+        private static void ConvertGetValueOrDefault(AstExpression node,XTypeReference type, XModule module)
         {
-            // Clear node
-            var originalArgs = node.Arguments.ToList();
-            XMethodReference.Simple getValueRef;
+            var defExpr = node.Arguments.Count == 1
+                            ? new AstExpression(node.SourceLocation, AstCode.DefaultValue, type).SetType(type)
+                            : node.Arguments[1];
+            defExpr.ExpectedType = type;
 
-            // note: there used to be some special code handling enums and structs
-            //       that didn't work and that i (olaf) did not understand. 
-            //       TODO: check if my changes have undesired performance and/or
-            //       validity implications.
-
-            if (originalArgs.Count == 1 && type.IsPrimitive)
+            if (type.IsPrimitive)
             {
-                getValueRef = new XMethodReference.Simple("GetValue", false, ilMethod.ReturnType,
-                    ilMethod.DeclaringType, new[] {data.TypeSystem.Object, data.TypeSystem.Bool}, null);
-                node.Operand = getValueRef;
-                node.Arguments.Clear();
-                node.InferredType = type;
-                node.ExpectedType = type;
+                // replace with obj != null ? unbox(obj) : defExpr
+                AstExpression compareExpr, valueExpr;
 
-                AddLoadArgument(node, target, originalArgs[0]);
-                node.Arguments.Add(new AstExpression(node.SourceLocation, AstCode.Ldc_I4, 1)
+                var loadExpr = node.Arguments[0];
+                ConvertLoad(loadExpr);
+                loadExpr.InferredType = module.TypeSystem.Object;
+                loadExpr.ExpectedType = module.TypeSystem.Object;
+
+                if (loadExpr.Code != AstCode.Ldloc)
                 {
-                    InferredType = data.TypeSystem.Bool
-                });
-                return;
-            }
-            if (originalArgs.Count == 1 && !type.IsEnum())
-            {
-                // this might not be the most efficient implementation, but honestly
-                // i don't know how to delay the creation of a value type.
-                var ctor = GetDefaultValueCtor(type.Resolve());
-                var newObj = new AstExpression(node.SourceLocation, AstCode.Newobj, ctor)
-                                                   .SetType(type);
-                originalArgs.Add(newObj);
-            }
-            else if (originalArgs.Count == 1)
-            {
-                // for enums we just load the default value before calling GetValueOrDefault(object, T)
-                originalArgs.Add(new AstExpression(node.SourceLocation, AstCode.DefaultValue, type)
-                                                    .SetType(type));
-            }
-            
-            
-            getValueRef = new XMethodReference.Simple("GetValueOrDefault", false, ilMethod.ReturnType,
-                                    ilMethod.DeclaringType, new[] { data.TypeSystem.Object, ilMethod.ReturnType }, null);
-            node.Operand = getValueRef;
-            node.Arguments.Clear();
-            node.InferredType = type;
-            node.ExpectedType = type;
+                    // TODO: how can we get the backend to remove/combine these variables again?
+                    var tmpVar = new AstGeneratedVariable("tmp$", null) { Type = module.TypeSystem.Object };
+                    compareExpr = new AstExpression(node.SourceLocation, AstCode.Stloc, tmpVar, loadExpr).SetType(module.TypeSystem.Object);
+                    valueExpr = new AstExpression(node.SourceLocation, AstCode.Ldloc, tmpVar).SetType(module.TypeSystem.Object);
+                }
+                else
+                {
+                    compareExpr = loadExpr;
+                    valueExpr = loadExpr;
+                }
+                valueExpr = new AstExpression(node.SourceLocation, AstCode.Unbox, type, valueExpr).SetType(type);
 
-            AddLoadArgument(node, target, originalArgs[0]);
-            node.Arguments.Add(originalArgs[1]);
+                var newNode = new AstExpression(node.SourceLocation, AstCode.Conditional, type, 
+                                                compareExpr, valueExpr, defExpr)
+                                 .SetType(type);
+                node.CopyFrom(newNode);
+
+            }
+            else
+            {
+                // replace with obj ?? defExpr
+
+                var loadExpr = node.Arguments[0];
+                ConvertLoad(loadExpr);
+
+                if(!type.IsSame(loadExpr.InferredType))
+                {
+                    //loadExpr.ExpectedType = type;
+                    // todo: how to get the cast inserted automatically?
+                    loadExpr = new AstExpression(loadExpr.SourceLocation, AstCode.SimpleCastclass, type, loadExpr);
+                }
+
+                var nullCoalescing = new AstExpression(node.SourceLocation, AstCode.NullCoalescing, null, loadExpr, defExpr);
+                nullCoalescing.InferredType = type; 
+                node.CopyFrom(nullCoalescing);
+            }
         }
 
         /// <summary>
@@ -475,6 +480,15 @@ namespace Dot42.CompilerLib.Ast.Converters
                         node.Arguments.Add(new AstExpression(node.SourceLocation, AstCode.Ldsfld, target.Operand) { InferredType = field.FieldType });
                     }
                     break;
+                case AstCode.Ldelem_Ref:
+                    {
+                        var load = new AstExpression(originalLoad);
+                        var type = ((XGenericInstanceType)originalLoad.InferredType).GenericArguments[0];
+                        load.InferredType = type;
+                        load.ExpectedType = type;
+                        node.Arguments.Add(load);
+                    }
+                    break;
             }
         }
 
@@ -519,6 +533,8 @@ namespace Dot42.CompilerLib.Ast.Converters
 
         /// <summary>
         /// Clone the properties of valueArg into node.
+        /// 
+        /// TODO: find a better name and update the summary.
         /// </summary>
         private static void CopyEnumValueOf(AstExpression node, XTypeReference type, AstExpression valueArg)
         {

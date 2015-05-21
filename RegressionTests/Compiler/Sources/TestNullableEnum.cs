@@ -134,6 +134,56 @@ namespace Dot42.Tests.Compiler.Sources
         }
 
         [Test]
+        public void testByRef()
+        {
+            JsonToken? val = default(JsonToken);
+
+            Assert.AreEqual(default(JsonToken), GetValueOrDefault(ref val));
+            Assert.AreEqual(default(JsonToken), GetValue(ref val));
+            Assert.AreEqual(true, HasValue(ref val));
+
+            SetToNull(ref val);
+            Assert.IsFalse(val.HasValue);
+
+            Assert.AreEqual(default(JsonToken), GetValueOrDefault(ref val));
+            Assert.AreEqual(false, HasValue(ref val));
+
+
+            SetToDefault(ref val);
+            Assert.AreEqual(JsonToken.Default, val.Value);
+
+            Assert.AreEqual(JsonToken.Default, GetValueOrDefault(ref val));
+            Assert.AreEqual(JsonToken.Default, GetValue(ref val));
+            Assert.AreEqual(true, HasValue(ref val));
+
+        }
+
+        void SetToNull(ref JsonToken? val)
+        {
+            val = null;
+        }
+
+        void SetToDefault(ref JsonToken? val)
+        {
+            val = JsonToken.Default;
+        }
+
+        bool HasValue(ref JsonToken? val)
+        {
+            return val.HasValue;
+        }
+
+        JsonToken GetValueOrDefault(ref JsonToken? val)
+        {
+            return val.GetValueOrDefault();
+        }
+
+        JsonToken GetValue(ref JsonToken? val)
+        {
+            return val.Value;
+        }
+
+        [Test]
         public void testIsAssignableFrom()
         {
             Assert.IsTrue(typeof(JsonToken?).IsAssignableFrom(typeof(JsonToken)));
@@ -150,14 +200,10 @@ namespace Dot42.Tests.Compiler.Sources
             /// </summary>
             Default = 5,
 
-
-
             /// <summary>
             /// A boolean.
             /// </summary>
             Boolean = 10,
-
-
 
             /// <summary>
             /// An array end token.

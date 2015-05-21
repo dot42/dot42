@@ -146,6 +146,48 @@ namespace Dot42.Tests.Compiler.Sources
             Assert.AreEqual(null, defaultValue);
         }
 
+        [Test]
+        public void testByRef()
+        {
+            DateTime? val = DateTime.MinValue;
+
+            Assert.AreEqual(default(DateTime), GetValueOrDefault(ref val));
+            Assert.AreEqual(true, HasValue(ref val));
+
+            SetToNull(ref val);
+            Assert.IsFalse(val.HasValue);
+
+            Assert.AreEqual(default(DateTime), GetValueOrDefault(ref val));
+            Assert.AreEqual(false, HasValue(ref val));
+
+            SetToMax(ref val);
+            Assert.AreEqual(DateTime.MaxValue, val.Value);
+
+            Assert.AreEqual(DateTime.MaxValue, GetValueOrDefault(ref val));
+            Assert.AreEqual(true, HasValue(ref val));
+
+        }
+
+        void SetToNull(ref DateTime? val)
+        {
+            val = null;
+        }
+
+        void SetToMax(ref DateTime? val)
+        {
+            val = DateTime.MaxValue;
+        }
+
+        bool HasValue(ref DateTime? val)
+        {
+            return val.HasValue;
+        }
+
+        DateTime GetValueOrDefault(ref DateTime? val)
+        {
+            return val.GetValueOrDefault();
+        }
+
         //[Test]
         //public void testIsAssignableFrom_KnownToFail()
         //{

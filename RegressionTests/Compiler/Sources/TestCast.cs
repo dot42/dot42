@@ -201,7 +201,7 @@ namespace Dot42.Tests.Compiler.Sources
             AssertEquals(0x74, us);
         }
 
-        public void _test15()
+        public void test15()
         {
             char c = 't';
             ushort us = ToUInt16(c);

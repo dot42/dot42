@@ -76,7 +76,7 @@ namespace Dot42.CompilerLib.Ast.Converters
             if (type.IsGenericParameter || type.IsGenericParameterArray())
             {
                 var resultType = node.GetResultType();
-                if (!type.IsByReference && resultType.IsByReference)
+                if (resultType.IsByReference && !type.IsByReference)
                 {
                     var elementType = resultType.ElementType;
 
@@ -85,14 +85,14 @@ namespace Dot42.CompilerLib.Ast.Converters
                 }
                 else
                 {
-                    if (!TreatAsStruct(type, resultType))
+                    if (TreatAsStruct(type, resultType))
                     {
-                        var clone = new AstExpression(node);
-                        node.SetCode(AstCode.UnboxFromGeneric).SetArguments(clone).Operand = type;
+                        ConvertUnboxStruct(node, resultType, typeSystem);
                     }
                     else
                     {
-                        ConvertUnboxStruct(node, resultType, typeSystem);
+                        var clone = new AstExpression(node);
+                        node.SetCode(AstCode.UnboxFromGeneric).SetArguments(clone).Operand = type;
                     }
                 }
             }
@@ -160,7 +160,7 @@ namespace Dot42.CompilerLib.Ast.Converters
             // might need generic arguments. These would be difficult to provide at "UnboxFromGeneric",
             // but will be automatically filled in by the GenericInstanceConverter
 
-            // convert to (temp$ = (T)x) != null ? temp$ : new T();
+            // convert to (temp$ = (T)x) != null ? temp$ : default(T)
 
             // replace any unbox, but keep if otherwise.
             var clone = node.Code == AstCode.Unbox ? new AstExpression(node.Arguments[0]) : new AstExpression(node);
@@ -177,9 +177,8 @@ namespace Dot42.CompilerLib.Ast.Converters
             var loadTempVar = new AstExpression(node.SourceLocation, AstCode.Ldloc, tempVar)
                                 .SetType(resultType);
 
-            // new T()
-            var defaultT = new AstExpression(node.SourceLocation, AstCode.DefaultValue, resultType)
-                                   .SetType(resultType);
+            // default (T)
+            var defaultT = new AstExpression(node.SourceLocation, AstCode.DefaultValue, resultType).SetType(resultType);
             var constructor = StructCallConverter.GetDefaultValueCtor(resultType.Resolve());
             StructCallConverter.ConvertDefaultValue(defaultT, constructor);
 

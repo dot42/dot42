@@ -60,7 +60,7 @@ namespace Dot42.Tests.Compiler.Sources
             AssertSame(32, myDerivedClass.Value);
 		}
 
-        public void _test3a()
+        public void test3a()
         {
             var myDerivedClass = new MyDerivedClass();
             AssertSame(42, myDerivedClass.ReturnOnly());
