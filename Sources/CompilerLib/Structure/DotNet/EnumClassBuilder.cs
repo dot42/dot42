@@ -127,12 +127,14 @@ namespace Dot42.CompilerLib.Structure.DotNet
             Class.Methods.Add(ctor.GetDexMethod(Class, targetPackage));
 
             // Build enumInfo field
+            // We don't make this a readonly field, so that FieldInfo.IsLiteral returns false
             var internalEnumInfoType = Compiler.GetDot42InternalType("EnumInfo");
-            var enumInfoField = XSyntheticFieldDefinition.Create(XType, XSyntheticFieldFlags.Static | XSyntheticFieldFlags.ReadOnly, NameConstants.Enum.InfoFieldName, internalEnumInfoType/* enumInfoClassBuilder.Class*/);
+            var enumInfoField = XSyntheticFieldDefinition.Create(XType, XSyntheticFieldFlags.Static, NameConstants.Enum.InfoFieldName, internalEnumInfoType/* enumInfoClassBuilder.Class*/);
             Class.Fields.Add(enumInfoField.GetDexField(Class, targetPackage));
 
             // Build default$ field
-            var defaultField = XSyntheticFieldDefinition.Create(XType, XSyntheticFieldFlags.Static | XSyntheticFieldFlags.ReadOnly, NameConstants.Enum.DefaultFieldName, XType);
+            // We don't make this a readonly field, so that FieldInfo.IsLiteral returns false
+            var defaultField = XSyntheticFieldDefinition.Create(XType, XSyntheticFieldFlags.Static, NameConstants.Enum.DefaultFieldName, XType);
             Class.Fields.Add(defaultField.GetDexField(Class, targetPackage));
 
             // Build class ctor
