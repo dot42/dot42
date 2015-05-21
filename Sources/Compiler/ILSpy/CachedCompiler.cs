@@ -23,6 +23,8 @@ namespace Dot42.Compiler.ILSpy
         private bool _isFullyCompiled = false;
         public AssemblyCompiler AssemblyCompiler { get { return _compiler; } }
 
+        public List<string> CompilationErrors { get; private set; }
+
         public void CompileIfRequired(ilspy::Mono.Cecil.AssemblyDefinition assembly, bool stopBeforeGeneratingCode = false)
         {
             if (_compiler != null
@@ -30,7 +32,9 @@ namespace Dot42.Compiler.ILSpy
              && (_isFullyCompiled || stopBeforeGeneratingCode))
                 return;
 
+            CompilationErrors = null;
             _compiler = null;
+
 #if DEBUG
             var framework = Frameworks.Instance.GetBySdkVersion(18);
 #else
@@ -53,10 +57,19 @@ namespace Dot42.Compiler.ILSpy
                                          new DexMethodBodyCompilerCache(), new HashSet<string>(), 
                                          module, false);
 
-            c.IsCompileStopBeforeGeneratingCode = stopBeforeGeneratingCode;
+            c.StopCompilationBeforeGeneratingCode = stopBeforeGeneratingCode;
+            c.StopAtFirstError = false;
 
-            c.Compile();
             
+            try
+            {
+                c.Compile();
+            }
+            catch (AggregateException ex)
+            {
+                CompilationErrors = ex.InnerExceptions.Select(e => e.Message).ToList();
+            }
+
             _compiler = c;
             _isFullyCompiled = !stopBeforeGeneratingCode;
         }

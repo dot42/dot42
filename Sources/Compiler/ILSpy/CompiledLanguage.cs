@@ -1,9 +1,11 @@
 ﻿extern alias ilspy;
 using System;
+using System.Linq;
 using System.Windows.Automation.Peers;
 using Dot42.CompilerLib;
 using Dot42.CompilerLib.XModel;
 using ilspy::Mono.Cecil;
+using ICSharpCode.Decompiler;
 using ICSharpCode.ILSpy;
 
 
@@ -15,7 +17,24 @@
 
         public AssemblyCompiler AssemblyCompiler { get { return compiler.AssemblyCompiler; } }
 
-        protected CompiledMethod GetCompiledMethod(MethodDefinition method)
+        public override void DecompileAssembly(LoadedAssembly assembly, ITextOutput output, DecompilationOptions options)
+        {
+            compiler.CompileIfRequired(assembly.AssemblyDefinition);
+
+            if (compiler.CompilationErrors != null)
+            {
+                output.WriteLine("// ERRORS: \n// " + string.Join("\n// ", compiler.CompilationErrors));                output.WriteLine();                output.WriteLine();            }
+
+            foreach(var type in compiler.AssemblyCompiler.Assemblies
+                                                         .Select(a=>a.MainModule)
+                                                         .SelectMany(m=>m.GetTypes())
+                                                         .Where(t=>t.IsReachable))
+            { 
+                output.WriteLine(type.FullName);
+            }        }
+
+
+        protected CompiledMethod GetCompiledMethod(MethodDefinition method)
         {
             var declaringType = method.DeclaringType;
             var assembly = declaringType.Module.Assembly;

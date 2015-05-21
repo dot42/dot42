@@ -34,10 +34,21 @@ namespace Dot42.CompilerLib.Structure.DotNet
                     else // ignore other types, these will get the "default" assembly.
                         continue;
                 }
-                var a = new Annotation(iAssemblyType, AnnotationVisibility.Runtime,
-                    new AnnotationArgument("AssemblyName", assemblyName),
-                    new AnnotationArgument("Type", type.GetReference(targetPackage, compiler.Module)));
-                types.Add(a);
+
+                try
+                {
+                    // TODO: with compilationmode=all reachable types contains 
+                    //       types that are not to be included in the output.
+                    //       somehow handle that without an exception.
+                    var tRef = type.GetReference(targetPackage, compiler.Module);    
+                    var a = new Annotation(iAssemblyType, AnnotationVisibility.Runtime,
+                                new AnnotationArgument("AssemblyName", assemblyName),
+                                new AnnotationArgument("Type", tRef));
+                    types.Add(a);
+                }
+                catch
+                {
+                }
             }
 
             var anno = new Annotation(iAssemblyTypes, AnnotationVisibility.Runtime,

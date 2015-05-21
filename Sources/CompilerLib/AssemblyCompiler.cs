@@ -47,7 +47,13 @@ namespace Dot42.CompilerLib
         /// If true, the compiler will stop compilation just before
         /// generating code. Useful for debugging the compiler.
         /// </summary>
-        public bool IsCompileStopBeforeGeneratingCode { get; set; }
+        public bool StopCompilationBeforeGeneratingCode { get; set; }
+
+        /// <summary>
+        /// If false, compilation errors will be accumulated and thrown as
+        /// a AggregateException
+        /// </summary>
+        public bool StopAtFirstError { get; set; }
 
         /// <summary>
         /// TODO: the list of parameters has gotten way to long.
@@ -70,6 +76,7 @@ namespace Dot42.CompilerLib
             this.generateSetNextInstructionCode = generateDebugInfo && generateSetNextInstructionCode;
             targetPackage = new Target.Dex.DexTargetPackage(nameConverter, this);
             methodBodyCompilerCache = ccache;
+            StopAtFirstError = true;
         }
 
         public CompilationMode CompilationMode { get { return mode; } }
@@ -156,11 +163,32 @@ namespace Dot42.CompilerLib
                                              .ToList();
             }
 
-            if (IsCompileStopBeforeGeneratingCode)
+            if (StopCompilationBeforeGeneratingCode)
                 return;
 
             using (Profile("for generating code"))
-                classBuilders.ForEachWithExceptionMessage(x => x.GenerateCode(targetPackage));
+            {
+                if (StopAtFirstError)
+                    classBuilders.ForEachWithExceptionMessage(x => x.GenerateCode(targetPackage));
+                else
+                {
+                    List<Exception> exs = new List<Exception>();
+                    foreach (var classBuilder in classBuilders)
+                    {
+                        try
+                        {
+                            classBuilder.GenerateCode(targetPackage);
+                        }
+                        catch (Exception ex)
+                        {
+                            exs.Add(new Exception("Error while handling " + classBuilder.FullName + ": " + ex.Message, ex));
+                        }
+                    }
+
+                    if(exs.Count > 0)
+                        throw new AggregateException(exs);
+                }
+            }
 
             classBuilders.ForEachWithExceptionMessage(x => x.CreateAnnotations(targetPackage));
 
