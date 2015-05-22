@@ -6,7 +6,8 @@ using Dot42.DexLib.Instructions;
 namespace Dot42.CompilerLib.RL.Transformations
 {
     /// <summary>
-    /// Remove all empty switches and gotos to next address.
+    /// Remove all empty switches, gotos to next address, and redirect branch instructions
+    /// to a goto.
     /// </summary>
     internal sealed class RemoveEmptySwitchAndGotosTransformation : IRLTransformation
     {
@@ -30,29 +31,59 @@ namespace Dot42.CompilerLib.RL.Transformations
                         instructions[i].ConvertToNop();
                     }
                 }
-                else if (ins.Code == RCode.Goto)
+
+                // Eliminate chained and empty gotos, pull return_void
+                if (IsSimpleBranch(ins.Code))
                 {
                     var gotoTarget = (Instruction) ins.Operand;
-
-                    // eliminate chained gotos.
+                    
                     while (gotoTarget.Code == RCode.Goto)
                     {
                         gotoTarget = (Instruction) gotoTarget.Operand;
                         ins.Operand = gotoTarget;
                     }
 
-                    // pull return_void (which can not throw an exception)
-                    if (gotoTarget.Code == RCode.Return_void)
+                    if (ins.Code == RCode.Goto)
                     {
-                        ins.Code = RCode.Return_void;
-                        ins.Operand = null;
-                        ins.Registers.Clear();
-                    }
-                    else if (gotoTarget.Index == i + 1)
-                    {
-                        ins.ConvertToNop();
+                        // pull return_void (which can not throw an exception)
+                        // TODO: check if we would do any harm by pulling return_something as well.
+                        if (gotoTarget.Code == RCode.Return_void)
+                        {
+                            ins.Code = RCode.Return_void;
+                            ins.Operand = null;
+                            ins.Registers.Clear();
+                        }
+                        // remove empty gotos
+                        else if (gotoTarget.Index == i + 1)
+                        {
+                            ins.ConvertToNop();
+                        }
                     }
                 }
+            }
+        }
+
+        public bool IsSimpleBranch(RCode code)
+        {
+            switch (code)
+            {
+                case RCode.Goto:
+                //case RCode.Leave: // what is this?
+                case RCode.If_eq:
+                case RCode.If_eqz:
+                case RCode.If_ge:
+                case RCode.If_gez:
+                case RCode.If_gt:
+                case RCode.If_gtz:
+                case RCode.If_le:
+                case RCode.If_lez:
+                case RCode.If_lt:
+                case RCode.If_ltz:
+                case RCode.If_ne:
+                case RCode.If_nez:
+                    return true;
+                default:
+                    return false;
             }
         }
     }
