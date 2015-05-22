@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Dot42.CompilerLib.RL.Extensions;
 using Dot42.DexLib;
 using Dot42.DexLib.Instructions;
@@ -36,10 +37,17 @@ namespace Dot42.CompilerLib.RL.Transformations
                 if (IsSimpleBranch(ins.Code))
                 {
                     var gotoTarget = (Instruction) ins.Operand;
-                    
+
+                    HashSet<Instruction> visited = new HashSet<Instruction> {ins};
+
                     while (gotoTarget.Code == RCode.Goto)
                     {
                         gotoTarget = (Instruction) gotoTarget.Operand;
+
+                        // this happens e.g. for the generated 'setNextInstruction' instructions.
+                        if (visited.Contains(ins))
+                            break;
+
                         ins.Operand = gotoTarget;
                     }
 

@@ -12,7 +12,7 @@ namespace Dot42.Compiler.ILSpy
 
         public StopMenuCommandAttribute(StopAstConversion code)
         {
-            Menu = "Dot42 _Dex Input";
+            Menu = "Dot42 De_x Input";
             MenuCategory = "Stop";
             Header = code == StopAstConversion.None
                 ? "Full Pocessing" : "Stop after " + code.ToString().Replace("After", "");

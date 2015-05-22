@@ -23,9 +23,16 @@ namespace Dot42.Compiler.ILSpy
         private bool _isFullyCompiled = false;
         public AssemblyCompiler AssemblyCompiler { get { return _compiler; } }
         private ilspy::Mono.Cecil.AssemblyDefinition _previousAssembly;
+        private bool _generateSetNextInstructionCode;
 
         public List<string> CompilationErrors { get; private set; }
         public MapFileLookup MapFile { get; private set; }
+
+        public bool GenerateSetNextInstructionCode
+        {
+            get { return _generateSetNextInstructionCode; }
+            set { _generateSetNextInstructionCode = value; _compiler = null; }
+        }
 
         public void CompileIfRequired(ilspy::Mono.Cecil.AssemblyDefinition assembly, bool stopBeforeGeneratingCode = false)
         {
@@ -56,7 +63,7 @@ namespace Dot42.Compiler.ILSpy
                                          new NameConverter("pkg.name", ""), true, 
                                          new AssemblyClassLoader(file => { }), definition => null,
                                          new DexMethodBodyCompilerCache(), new HashSet<string>(), 
-                                         module, false);
+                                         module, _generateSetNextInstructionCode);
 
             c.StopCompilationBeforeGeneratingCode = stopBeforeGeneratingCode;
             c.StopAtFirstError = false;

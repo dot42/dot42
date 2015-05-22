@@ -19,7 +19,13 @@
         public AssemblyCompiler AssemblyCompiler { get { return compiler.AssemblyCompiler; } }
         public MapFileLookup MapFile { get { return compiler.MapFile; }  }
 
-        public override void DecompileAssembly(LoadedAssembly assembly, ITextOutput output, DecompilationOptions options)
+        public static bool GenerateSetNextInstructionCode
+        {
+            get { return compiler.GenerateSetNextInstructionCode; }
+            set { compiler.GenerateSetNextInstructionCode = value; }
+        }
+
+        public override void DecompileAssembly(LoadedAssembly assembly, ITextOutput output, DecompilationOptions options)
         {
             compiler.CompileIfRequired(assembly.AssemblyDefinition);
 
