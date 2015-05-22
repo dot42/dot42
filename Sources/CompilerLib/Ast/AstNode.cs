@@ -12,7 +12,7 @@ namespace Dot42.CompilerLib.Ast
     {
         public static readonly ISourceLocation NoSource = null;
 
-        private readonly ISourceLocation sourceLocation;
+        private ISourceLocation sourceLocation;
 
         /// <summary>
         /// Default ctor
@@ -25,7 +25,7 @@ namespace Dot42.CompilerLib.Ast
         /// <summary>
         /// Source code reference
         /// </summary>
-        public ISourceLocation SourceLocation { get { return sourceLocation; } }
+        public ISourceLocation SourceLocation { get { return sourceLocation; } protected set { sourceLocation = value; } }
 
         /// <summary>
         /// Return the set of this and all (recursive) children of type T that match the given predicate.

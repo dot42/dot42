@@ -22,7 +22,15 @@ namespace Dot42.Compiler.ILSpy
     public class DexInputLanguage : CompiledLanguage
     {
         internal static StopAstConversion StopConversion { get; set; }
+        internal static bool ShowHasSeqPoint { get; set; }
+        internal static bool BreakExpressionLines { get; set; }
+        internal static bool ShowFullNames { get; set; }
 
+        public DexInputLanguage()
+        {
+            ShowHasSeqPoint = false;
+            BreakExpressionLines = true;
+        }
         public override string Name
         {
             get { return "Dex Input"; }
@@ -123,9 +131,17 @@ namespace Dot42.Compiler.ILSpy
             for(int i = 0; i < indentation; ++i)
                 bridge.Indent();
 
-            var formattingOptions = StopConversion == StopAstConversion.AfterILConversion 
-                                    ?  FormattingOptions.Default
-                                    : FormattingOptions.BreakExpressions|FormattingOptions.SimpleNames;
+            FormattingOptions formattingOptions;
+            if (StopConversion == StopAstConversion.AfterILConversion || !BreakExpressionLines)
+                formattingOptions = FormattingOptions.Default;
+            else
+                formattingOptions = FormattingOptions.BreakExpressions;
+            
+            if(!ShowFullNames)
+                formattingOptions |= FormattingOptions.SimpleNames;
+            if(ShowHasSeqPoint)
+                formattingOptions |= FormattingOptions.ShowHasSeqPoint;
+
             node.WriteTo(bridge, formattingOptions);
 
             for (int i = 0; i < indentation; ++i)

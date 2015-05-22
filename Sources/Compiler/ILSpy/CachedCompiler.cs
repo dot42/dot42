@@ -22,15 +22,15 @@ namespace Dot42.Compiler.ILSpy
         private AssemblyCompiler _compiler;
         private bool _isFullyCompiled = false;
         public AssemblyCompiler AssemblyCompiler { get { return _compiler; } }
+        private ilspy::Mono.Cecil.AssemblyDefinition _previousAssembly;
 
         public List<string> CompilationErrors { get; private set; }
         public MapFileLookup MapFile { get; private set; }
 
         public void CompileIfRequired(ilspy::Mono.Cecil.AssemblyDefinition assembly, bool stopBeforeGeneratingCode = false)
         {
-            if (_compiler != null
-             && _compiler.Assemblies.Any(a => a.FullName == assembly.FullName) 
-             && (_isFullyCompiled || stopBeforeGeneratingCode))
+            if (_compiler != null && _previousAssembly == assembly
+            && (_isFullyCompiled || stopBeforeGeneratingCode))
                 return;
 
             CompilationErrors = null;
@@ -60,7 +60,6 @@ namespace Dot42.Compiler.ILSpy
 
             c.StopCompilationBeforeGeneratingCode = stopBeforeGeneratingCode;
             c.StopAtFirstError = false;
-
             
             try
             {
@@ -78,6 +77,7 @@ namespace Dot42.Compiler.ILSpy
             }
 
             _compiler = c;
+            _previousAssembly = assembly;
             _isFullyCompiled = !stopBeforeGeneratingCode;
         }
 

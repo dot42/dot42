@@ -71,8 +71,11 @@ namespace Dot42.CompilerLib.Ast
         /// <summary>
         /// Copy all setting except source location from source into this.
         /// </summary>
+        /// <param name="source"></param>
+        /// <param name="useBestSourceLocation">if true, copies the source location if 
+        /// the this.SourceLocation is null or IsSpecial</param>
         /// <returns>this</returns>
-        public AstExpression CopyFrom(AstExpression source)
+        public AstExpression CopyFrom(AstExpression source, bool useBestSourceLocation = false)
         {
             Code = source.Code;
             Operand = source.Operand;
@@ -83,6 +86,12 @@ namespace Dot42.CompilerLib.Ast
             StoreByRefExpression = source.StoreByRefExpression;
             ExpectedType = source.ExpectedType;
             InferredType = source.InferredType;
+
+            if (useBestSourceLocation)
+            {
+                if (SourceLocation == null || SourceLocation.IsSpecial)
+                    SourceLocation = source.SourceLocation;
+            }
             return this;
         }
 
@@ -199,6 +208,9 @@ namespace Dot42.CompilerLib.Ast
         /// </summary>
         public override void WriteTo(ITextOutput output, FormattingOptions format)
         {
+            if(format.HasFlag(FormattingOptions.ShowHasSeqPoint) && SourceLocation != NoSource)
+                output.Write(SourceLocation.IsSpecial ? "!" : "~");
+
             if (Operand is AstVariable && ((AstVariable)Operand).IsGenerated)
             {
                 if (Code == AstCode.Stloc && InferredType == null)

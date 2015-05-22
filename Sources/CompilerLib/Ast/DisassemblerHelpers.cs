@@ -37,6 +37,7 @@ namespace Dot42.CompilerLib.Ast
         Default,
         SimpleNames = 0x01,
         BreakExpressions = 0x02,
+        ShowHasSeqPoint = 0x04,
     }
 
 	public static class DisassemblerHelpers

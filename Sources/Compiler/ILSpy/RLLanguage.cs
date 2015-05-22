@@ -13,6 +13,8 @@ namespace Dot42.Compiler.ILSpy
     [Export(typeof(Language))]
     public class RLLanguage : CompiledLanguage
     {
+        internal static bool ShowHasSeqPoint { get; set; }
+
         public override string Name
         {
             get { return "RL Output"; }
@@ -39,6 +41,12 @@ namespace Dot42.Compiler.ILSpy
                     output.Indent();
                     foreach (var ins in block.Instructions)
                     {
+                        if (ShowHasSeqPoint)
+                        {
+                            if(ins.SequencePoint != null)
+                                output.Write(ins.SequencePoint.IsSpecial? "!" : "~");
+                        }
+
                         output.Write(ins.ToString());
                         output.WriteLine();
                     }

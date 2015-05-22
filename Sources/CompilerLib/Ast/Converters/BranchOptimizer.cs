@@ -25,8 +25,8 @@ namespace Dot42.CompilerLib.Ast.Converters
                     {
                         // Simplify
                         var code = (node.Code == AstCode.Brtrue) ? expr.Code : expr.Code.Reverse();
-                        var newExpr = new AstExpression(node.SourceLocation, code.ToBranch(), node.Operand, arg1, arg2);
-                        node.CopyFrom(newExpr);
+                        var newExpr = new AstExpression(expr.SourceLocation, code.ToBranch(), node.Operand, arg1, arg2);
+                        node.CopyFrom(newExpr, true);
                     }
                 }
             }

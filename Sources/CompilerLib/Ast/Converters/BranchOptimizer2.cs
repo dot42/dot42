@@ -26,8 +26,9 @@ namespace Dot42.CompilerLib.Ast.Converters
 
                     // Simplify
                     var code = (node.Code == AstCode.Brtrue) ? expr.Code : expr.Code.Reverse();
-                    var newExpr = new AstExpression(node.SourceLocation, code.ToBranch(), node.Operand, arg1, arg2);
-                    node.CopyFrom(newExpr);
+
+                    var newExpr = new AstExpression(expr.SourceLocation, code.ToBranch(), node.Operand, arg1, arg2);
+                    node.CopyFrom(newExpr, true);
                 }
             }
 
@@ -42,8 +43,8 @@ namespace Dot42.CompilerLib.Ast.Converters
                 var expr = node.Arguments[0];
                 var code = reverse.Value ? expr.Code.Reverse() : expr.Code;
 
-                var newExpr = new AstExpression(node.SourceLocation, code, node.Operand, expr.Arguments[0], expr.Arguments[1]);
-                node.CopyFrom(newExpr);
+                var newExpr = new AstExpression(expr.SourceLocation, code, node.Operand, expr.Arguments[0], expr.Arguments[1]);
+                node.CopyFrom(newExpr, true);
             }
 
             // Optimize beq (cxx(x,x)) expressions
@@ -58,8 +59,8 @@ namespace Dot42.CompilerLib.Ast.Converters
                 var expr = node.Arguments[0];
                 var code = reverse.Value ? expr.Code.Reverse() : expr.Code;
 
-                var newExpr = new AstExpression(node.SourceLocation, code.ToBranch(), node.Operand, expr.Arguments[0], expr.Arguments[1]);
-                node.CopyFrom(newExpr);
+                var newExpr = new AstExpression(expr.SourceLocation, code.ToBranch(), node.Operand, expr.Arguments[0], expr.Arguments[1]);
+                node.CopyFrom(newExpr, true);
 
             }
 
@@ -72,10 +73,11 @@ namespace Dot42.CompilerLib.Ast.Converters
 
                 // comparing with 0 or null.
                 var expr = node.Arguments[0];
-                if (expr.IsBoolean() || expr.IsInt32() || expr.GetResultType().IsDexObject())
+                if (expr.IsBoolean() || expr.IsInt32() || expr.GetResultType().IsDexObject()) // TODO: why not the other primitives?
                 {
-                    node.Code = node.Code == AstCode.__Beq ? AstCode.Brfalse : AstCode.Brtrue;
-                    node.Arguments.RemoveAt(1);
+                    var code = node.Code == AstCode.__Beq ? AstCode.Brfalse : AstCode.Brtrue;
+                    var newExpr = new AstExpression(expr.SourceLocation, code, node.Operand, expr);
+                    node.CopyFrom(newExpr, true);
                 }
             }
         }

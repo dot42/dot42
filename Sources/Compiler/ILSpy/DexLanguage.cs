@@ -14,6 +14,8 @@ namespace Dot42.Compiler.ILSpy
     [Export(typeof(Language))]
     public class DexLanguage : CompiledLanguage
     {
+        public static bool ShowFullNames { get; set; }
+
         public override string Name
         {
             get { return "Dex Output"; }
@@ -42,7 +44,9 @@ namespace Dot42.Compiler.ILSpy
                 try
                 {
                     var f = new MethodBodyDisassemblyFormatter(cmethod.DexMethod, MapFile);
-                    var s = f.Format(FormatOptions.DebugOperandTypes | FormatOptions.EmbedSourceCode | FormatOptions.ShowJumpTargets);
+                    var formatOptions = FormatOptions.DebugOperandTypes | FormatOptions.EmbedSourceCode | FormatOptions.ShowJumpTargets;
+                    if(ShowFullNames) formatOptions |= FormatOptions.FullTypeNames;
+                    var s = f.Format(formatOptions);
                     output.Write(s);
                 }
                 catch (Exception)
