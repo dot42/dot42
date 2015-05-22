@@ -189,7 +189,7 @@ namespace Dot42.VStudio.Debugger
             // find target instruction.
             var targetIns = (Instruction)body.Instructions[idx].Operand;
             idx = body.Instructions.FindIndex(p => p.Offset == targetIns.Offset);
-            idx = GetNextLocationWithSource(disassembly, idx) ?? idx;
+            idx = FindNextLocationWithSource(disassembly, idx) ?? idx;
             targetIns = body.Instructions[idx];
             var targetLoc = loc.Location.GetAtIndex(targetIns.Offset);
 
@@ -319,24 +319,49 @@ namespace Dot42.VStudio.Debugger
         //}
 
         /// <summary>
-        /// Finds the next location with source starting from location; will return
-        /// null if no source is found or if a jump instruction is encountered.
+        /// Finds the next location with source starting from <paramref name="idx"/>.
+        /// Will return null if no source is found. Will follow a single goto. 
+        /// Will return null if multiple gotos or if any other jump instruction is 
+        /// encountered.
         /// </summary>
-        private int? GetNextLocationWithSource(MethodDisassembly disassembly, int idx)
+        private int? FindNextLocationWithSource(MethodDisassembly disassembly, int idx)
         {
             var instructions = disassembly.Method.Body.Instructions;
 
+            var ins = instructions[idx];
+
             // find the next instruction with source code.
-            var loc = disassembly.FindNextSourceCode(instructions[idx].Offset);
+            var loc = disassembly.FindNextSourceCode(ins.Offset);
 
             if (loc == null) 
                 return null;
 
-            for (; idx < loc.Position.MethodOffset; ++idx)
+            int gotos = 0;
+
+            for (; (ins = instructions[idx]).Offset < loc.Position.MethodOffset; ++idx)
             {
-                if (instructions[idx].OpCode.IsJump())
+                // While working as expected, the following code as no effect on 
+                // foreach statements, since the target of the goto is a "IsSpecial"
+                // branch instruction back to the very same goto.
+
+                if (ins.OpCode == OpCodes.Goto || ins.OpCode == OpCodes.Goto_16 || ins.OpCode == OpCodes.Goto_32)
+                {
+                    // follow a single goto. this is typically encountered 
+                    // at the beginning of the loop of foreach statements.
+                    if (gotos++ > 0)
+                        return null;
+                    ins = (Instruction)ins.Operand;
+                    loc = disassembly.FindNextSourceCode(ins.Offset);
+                    if (loc == null)
+                        return null;
+                    idx = instructions.IndexOf(ins) - 1;
+                    continue;
+                }
+
+                if (ins.OpCode.IsJump())
                     return null;
             }
+
             return idx;
         }
 

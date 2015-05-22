@@ -225,7 +225,7 @@ namespace Dot42.Mapping
 
             int idx = loc.FindFirstIndexGreaterThanOrEqualTo(methodOffset, p => p.Position.MethodOffset);
 
-            while (idx != -1 && idx < loc.Count)
+            for (;idx != -1 && idx < loc.Count; ++idx)
             {
                 var ret = loc[idx];
                 if (ret.IsSpecial)
