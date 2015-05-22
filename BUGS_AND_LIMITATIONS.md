@@ -17,8 +17,8 @@
   What worked for me (with Resharper) is to have a dedicated import project that does nothing else but import jar-references. I don't even worry about unused references, since dot42 is smart enough to not compile them into the final `.apk`. Then I don't reference the import project itself, but the assembly it generates. This make IntelliSense to work as expected.
   I believe it would be better if Dot42 would put the generated `.cs` files into a "Generated" folder of the project (or right next to the `.jar`s in VS), and compile it from there. The user should be able to adjust the imported file in case the Dot42 `.jar` import did not work seamless.
 - Java doesn't support Ephemerons. These are e.g. used by `ConditionalWeakTable` to attach properties to objects in a GC friendly way. No workaround available.
-
-- Dot42 seems not to support resources in other than the main assembly. The same holds for activities / android services, etc. Everything that needs to go into the manifest needs to be in the main assembly.  
+- **Bug: ** Arithmetic operations that are not constant with enums are not only slow, but some of them also provoke dalvik verification errors. When `enum E { A=-1, B=0, C=1 }` then  `var a = E.A; var b = (E)(-(int)a);` will fail. 
+- Dot42 seems not to support activities / android services, etc. in other than the main assembly. Everything that needs to go into the manifest needs to be in the main assembly. 
 
 ### Structs
 
@@ -31,7 +31,7 @@ For immutable structs like `DateTime`, `TimeSpan` or the afore-mentioned `Cancel
 
 There are some limitations where the emulation is not yet fully implemented:
 
-- Equals & GetHashCode are not automatically implemented for structs. Therefore, structs will not work as a key in a Dictionary or HashTable or similar things, if you don't explicitly override these methods (which you should do for performance reasons anyway).
+- **Limitation: ** Equals & GetHashCode are not automatically implemented for structs. Therefore, structs will not work as a key in a Dictionary or HashTable or similar things, if you don't explicitly override these methods (which you should do for performance reasons anyway).
   (note: Dot42 could do this automatically either at the compiler level, or implement it in `ValueType`, based on reflection, in the Framework; the latter approach is probably more compatible to BCL).
 - **Bug:** When structs are passed as arguments as a generic instance parameter, at the moment they are not cloned as they should be. This will make no difference with immutable structs, but breaks struct semantics with mutable structs.
 - **Bug:** Creating arrays of generic structs will fail at runtime with a dalvik verification error. Arrays of generic classes will work just fine.

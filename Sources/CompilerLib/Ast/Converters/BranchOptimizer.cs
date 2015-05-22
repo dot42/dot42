@@ -3,7 +3,7 @@
 namespace Dot42.CompilerLib.Ast.Converters
 {
     /// <summary>
-    /// Optimize various branch situations
+    /// Optimize only simple branch situations, as types may change after this step.
     /// </summary>
     internal static class BranchOptimizer 
     {

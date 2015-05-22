@@ -1,46 +1,9 @@
 ### Target Performance
 - There are probably myriads of possibilities to improve target performance, to optimize this and that. Profiling should find out if and where the largest bottlenecks are. 
+
 - One optimization that should be easy to implement is to inline simple getters and setter: http://developer.android.com/training/articles/perf-tips.html#GettersSetters
-- Might be a micro optimization, but when looking through the dex-disassembly, it jumps to the eye that comparisons are not always optimally translated. The JIT compiler will probably rectify the situation, but still a couple of bytes could be saved when these comparisons are replaced with optimized code. Note that this is a debug build, I did not check a release build. The null-coalescing operator `??` in contrast is translated quite optimally. The example is taken from `System.Activator.GetBestMatchingConstructor()` (and, as a side note, one of the rare occasions where using a `goto` seemed to be the best solutions). 
-```
-	 //      if (args[i] == null)
-	 //      {
-	 //      	if (cargs[i].IsValueType)
-	 //         	goto nomatch;
-     //         continue;
-	 //      }
 
-	 // 	if (args[i] == null)
-	 06E          aget_object  r7, p1, r19
-	 070              const_4  r8          0
-	 071             const_16  r20         0
-	 073                if_ne  r7, r8      -> 077 ; +2
-	 075             const_16  r20         1
-	 077              const_4  r11         0
-	 078             const_16  r35         0
-	 07A          move_from16  r0, r20
-	 07C                if_ne  r0, r11     -> 080 ; +2
-	 07E             const_16  r35         1
-	 080               if_nez  r35         -> 09A ; +14
-	 // 	if (cargs[i].IsValueType)
-	 082          aget_object  r9, r16,r19
-	 084        invoke_direct  r9          com.dot42.CompilerBugTesting.__generated::get_IsValueType(java.lang.Class) : Z
-	 087          move_result  r17
-	 088              const_4  r11         0
-	 089             const_16  r36         0
-	 08B          move_from16  r0, r17
-	 08D                if_ne  r0, r11     -> 091 ; +2
-	 08F             const_16  r36         1
-	 091               if_nez  r36         -> 097 ; +3
-	 // goto nomatch;
-     093               if_nez  r34         -> 01B ; -65  // this instruction is inserted by the dot42 compiler to enable "set next instruction" in VS during debugging 
-	 095              goto_16              -> 132 ; +83
-	 //  continue;
-	 097               if_nez  r34         -> 01B ; -67  // this instruction is inserted by the dot42 compiler to enable "set next instruction" in VS during debugging 
-	 099                 goto              -> 103 ; +57 
-```
-
-- There seems to be an issue in the framework builder leading to dot42 not always choosing the better `invoke-virtual` opcode and instead using `invoke-interface`. I have seen this for `ThreadPoolExecutor.execute()`. Not sure if this would have any performance implications whatsoever though.
+- There seems to be an issue in the framework builder leading to Dot42 not always choosing the better `invoke-virtual` opcode and instead using `invoke-interface`. I have seen this for `ThreadPoolExecutor.execute()`. Not sure if this would have any performance implications whatsoever though.
 
 ### Improving the generics implementation
 The following comments refer mainly to the implementation of the `GenericInstanceConverter`.

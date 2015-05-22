@@ -35,6 +35,7 @@ namespace Dot42.CompilerLib.Target
         AfterGenericsConverter,
         AfterCastConverter,
         AfterGenericInstanceConverter,
+        AfterBranchOptimizer2
     }
 
     /// <summary>

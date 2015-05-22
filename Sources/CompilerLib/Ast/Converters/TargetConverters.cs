@@ -30,6 +30,8 @@ namespace Dot42.CompilerLib.Ast.Converters
             TypeOfConverter.Convert(ast, compiler);
             if (stop == StopAstConversion.AfterTypeOfConverter) return;
             
+            // TODO: check if we actually need this optimizer, as we have a more throughoutful
+            //       optimizer as the last step.
             BranchOptimizer.Convert(ast);
             if (stop == StopAstConversion.AfterBranchOptimizer) return;
 
@@ -96,7 +98,10 @@ namespace Dot42.CompilerLib.Ast.Converters
             // Expand generic instance information
             GenericInstanceConverter.Convert(ast, currentMethod, compiler);
             if (stop == StopAstConversion.AfterGenericInstanceConverter) return;
-            // 
+            
+            // run the branch optimizer again. (do we need the first invocation?)
+            BranchOptimizer2.Convert(ast);
+            if (stop == StopAstConversion.AfterBranchOptimizer2) return;
 
         }
     }
