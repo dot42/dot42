@@ -15,6 +15,7 @@ namespace Dot42.Compiler.ILSpy
     public class DexLanguage : CompiledLanguage
     {
         public static bool ShowFullNames { get; set; }
+        public static bool DebugOperandTypes { get; set; }
 
         public override string Name
         {
@@ -44,8 +45,10 @@ namespace Dot42.Compiler.ILSpy
                 try
                 {
                     var f = new MethodBodyDisassemblyFormatter(cmethod.DexMethod, MapFile);
-                    var formatOptions = FormatOptions.DebugOperandTypes | FormatOptions.EmbedSourceCode | FormatOptions.ShowJumpTargets;
+                    var formatOptions = FormatOptions.EmbedSourceCode | FormatOptions.ShowJumpTargets;
                     if(ShowFullNames) formatOptions |= FormatOptions.FullTypeNames;
+                    if(DebugOperandTypes) formatOptions |= FormatOptions.DebugOperandTypes;
+                    
                     var s = f.Format(formatOptions);
                     output.Write(s);
                 }

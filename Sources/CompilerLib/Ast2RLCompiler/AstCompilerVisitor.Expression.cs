@@ -560,17 +560,22 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                         Instruction test;
                         var narg0 = node.Arguments[0];
                         var narg1 = node.Arguments[1];
+
                         if (narg0.IsWide() || narg1.IsWide())
                         {
+                            bool needLBias = node.Code == AstCode.Cgt || node.Code == AstCode.Cge || node.Code == AstCode.Cle_Un || node.Code == AstCode.Clt_Un;
+
                             var r2 = frame.AllocateTemp(PrimitiveType.Int);
-                            var code = narg0.IsDouble() ? RCode.Cmpg_double : RCode.Cmp_long;
+                            var code = narg0.IsDouble() ? (needLBias? RCode.Cmpl_double : RCode.Cmpg_double) : RCode.Cmp_long;
                             this.Add(node.SourceLocation, code, r2, args[0].Result, args[1].Result);
                             test = this.Add(node.SourceLocation, node.Code.Reverse().ToIfTestZ(), r2);
                         }
                         else if (narg0.IsFloat() || narg1.IsFloat())
                         {
+                            bool needLBias = node.Code == AstCode.Cgt || node.Code == AstCode.Cge || node.Code == AstCode.Cle_Un || node.Code == AstCode.Clt_Un;
+
                             var r2 = frame.AllocateTemp(PrimitiveType.Int);
-                            this.Add(node.SourceLocation, RCode.Cmpg_float, r2, args[0].Result, args[1].Result);
+                            this.Add(node.SourceLocation, needLBias ? RCode.Cmpl_float : RCode.Cmpg_float, r2, args[0].Result, args[1].Result);
                             test = this.Add(node.SourceLocation, node.Code.Reverse().ToIfTestZ(), r2);
                         }
                         else

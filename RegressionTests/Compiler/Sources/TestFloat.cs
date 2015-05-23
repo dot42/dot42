@@ -6,6 +6,10 @@ namespace Dot42.Tests.Compiler.Sources
     {
         private const float delta = 0.0001f;
 
+        private float d1 = 1, d1_1 = 1;
+        private float d2 = 2, d5 = 5, d7 = 7;
+        private float dNaN = float.NaN;
+
         public void testSimpleEqual1()
         {
             var i = 5.0f;
@@ -136,6 +140,55 @@ namespace Dot42.Tests.Compiler.Sources
         {
             var i = 0.0f;
             AssertTrue(i % 100.0f == 0.0f);
+        }
+
+        public void testCompare1()
+        {
+            AssertTrue(d5 < d7);
+            AssertTrue(d5 <= d7);
+            AssertTrue(d7 > d5);
+            AssertTrue(d7 >= d5);
+            AssertTrue(d1 >= d1_1);
+            AssertTrue(d1 <= d1_1);
+        }
+
+        public void testCompare2()
+        {
+            AssertFalse(d5 >= d7);
+            AssertFalse(d5 > d7);
+            AssertFalse(d7 <= d5);
+            AssertFalse(d7 < d5);
+            AssertFalse(d1 < d1_1);
+            AssertFalse(d1 > d1_1);
+        }
+
+        public void testCompareNaN()
+        {
+            AssertFalse(dNaN == double.NaN);
+        }
+
+        public void testCompareNaN1()
+        {
+            AssertFalse(d5   <  dNaN);
+            AssertFalse(dNaN <  d5);
+
+            AssertFalse(d5   <= dNaN);
+            AssertFalse(dNaN <= d5);
+
+            AssertFalse(dNaN <  double.NaN);
+            AssertFalse(dNaN <= double.NaN);
+        }
+
+        public void testCompareNaN2()
+        {
+            AssertFalse(d5   >  dNaN);
+            AssertFalse(dNaN >  d5);
+
+            AssertFalse(d5   >= dNaN);
+            AssertFalse(dNaN >= d5);
+
+            AssertFalse(dNaN >  double.NaN);
+            AssertFalse(dNaN >= double.NaN);
         }
     }
 }
