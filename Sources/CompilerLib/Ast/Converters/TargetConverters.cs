@@ -100,7 +100,7 @@ namespace Dot42.CompilerLib.Ast.Converters
             if (stop == StopAstConversion.AfterGenericInstanceConverter) return;
             
             // run the branch optimizer again. (do we need the first invocation?)
-            BranchOptimizer2.Convert(ast);
+            BranchOptimizer2.Convert(ast, compiler);
             if (stop == StopAstConversion.AfterBranchOptimizer2) return;
 
         }

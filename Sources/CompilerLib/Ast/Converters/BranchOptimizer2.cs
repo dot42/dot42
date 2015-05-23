@@ -1,16 +1,22 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Dot42.CompilerLib.Ast.Extensions;
 using Dot42.CompilerLib.Ast2RLCompiler.Extensions;
 using Dot42.CompilerLib.XModel;
 
 namespace Dot42.CompilerLib.Ast.Converters
 {
+    enum PullTarget
+    {
+        Branch,
+        Comparison,
+    }
     /// <summary>
     /// Optimize various branch situations
     /// </summary>
     internal static class BranchOptimizer2 
     {
-        public static void Convert(AstNode ast)
+        public static void Convert(AstNode ast, AssemblyCompiler compiler)
         {
             // Optimize brtrue (cxx(x,x)) expressions
             foreach (var node in ast.GetExpressions(x => (x.Code == AstCode.Brtrue) || (x.Code == AstCode.Brfalse)))
@@ -21,7 +27,7 @@ namespace Dot42.CompilerLib.Ast.Converters
                     var arg1 = expr.Arguments[0];
                     var arg2 = expr.Arguments[1];
 
-                    if (!CanPullComparisonUp(node.Code, arg1.GetResultType(), arg2.GetResultType())) 
+                    if (!CanPullComparisonUp(node.Code, arg1.GetResultType(), arg2.GetResultType(), PullTarget.Branch)) 
                         continue;
 
                     // Simplify
@@ -33,17 +39,21 @@ namespace Dot42.CompilerLib.Ast.Converters
             }
 
             // Optimize ceq (cxx(x,x)) expressions
+            var booleanType = compiler.Module.TypeSystem.Bool;
             foreach (var node in ast.GetExpressions(x => (x.Code == AstCode.Ceq)).Reverse())
             {
-                var reverse = InvertComparisonIfPullComparisonUpOnEquals(node);
+                var reverse = InvertComparisonIfPullComparisonUpToEquals(node, PullTarget.Comparison);
 
                 if (reverse == null)
                     continue;
 
                 var expr = node.Arguments[0];
-                var code = reverse.Value ? expr.Code.Reverse() : expr.Code;
 
-                var newExpr = new AstExpression(expr.SourceLocation, code, node.Operand, expr.Arguments[0], expr.Arguments[1]);
+                AstCode code = reverse.Value ? ReverseCode(expr.Code, expr.Arguments[0].GetResultType()) : expr.Code;
+
+                var newExpr = new AstExpression(expr.SourceLocation, code, node.Operand, expr.Arguments[0], expr.Arguments[1])
+                                    .SetType(booleanType);
+                                        
                 node.CopyFrom(newExpr, true);
             }
 
@@ -51,7 +61,7 @@ namespace Dot42.CompilerLib.Ast.Converters
             // todo check if also  x.Code==AstCode.BrIfEq could apply
             foreach (var node in ast.GetExpressions(x => (x.Code == AstCode.__Beq)).Reverse())
             {
-                var reverse = InvertComparisonIfPullComparisonUpOnEquals(node);
+                var reverse = InvertComparisonIfPullComparisonUpToEquals(node, PullTarget.Branch);
 
                 if (reverse == null)
                     continue;
@@ -82,7 +92,44 @@ namespace Dot42.CompilerLib.Ast.Converters
             }
         }
 
-        private static bool? InvertComparisonIfPullComparisonUpOnEquals(AstExpression node)
+        /// <summary>
+        /// Reverses the code, taking account float/double NaN comparisons
+        /// </summary>
+        private static AstCode ReverseCode(AstCode code, XTypeReference type)
+        {
+            bool isFlt = type.IsDouble() || type.IsFloat();
+
+            if (!isFlt)
+                return code.Reverse();
+
+            switch (code)
+            {
+                case AstCode.Ceq:
+                    return AstCode.Cne;
+                case AstCode.Cne:
+                    return AstCode.Ceq;
+                case AstCode.Cle:
+                    return AstCode.Cgt_Un;
+                case AstCode.Cle_Un:
+                    return AstCode.Cgt;
+                case AstCode.Clt:
+                    return AstCode.Cge_Un;
+                case AstCode.Clt_Un:
+                    return AstCode.Cge;
+                case AstCode.Cgt:
+                    return AstCode.Cle_Un;
+                case AstCode.Cgt_Un:
+                    return AstCode.Cle;
+                case AstCode.Cge:
+                    return AstCode.Clt_Un;
+                case AstCode.Cge_Un:
+                    return AstCode.Clt;
+                default:
+                    throw new ArgumentOutOfRangeException("code", code.ToString());
+            }            
+        }
+
+        private static bool? InvertComparisonIfPullComparisonUpToEquals(AstExpression node, PullTarget target)
         {
             bool? reverse = ReverseCodeOnEqualCollapse(node);
             if (reverse == null)
@@ -96,7 +143,7 @@ namespace Dot42.CompilerLib.Ast.Converters
             var arg1 = expr.Arguments[0];
             var arg2 = expr.Arguments[1];
 
-            if (!CanPullComparisonUp(expr.Code, arg1.GetResultType(), arg2.GetResultType()))
+            if (!CanPullComparisonUp(expr.Code, arg1.GetResultType(), arg2.GetResultType(), target))
                 return null;
 
             return reverse;
@@ -137,7 +184,7 @@ namespace Dot42.CompilerLib.Ast.Converters
             return null ;
         }
 
-        private static bool CanPullComparisonUp(AstCode code, XTypeReference arg1, XTypeReference arg2)
+        private static bool CanPullComparisonUp(AstCode code, XTypeReference arg1, XTypeReference arg2, PullTarget target)
         {
             if (arg1 == null || arg2 == null)
                 return false;
@@ -145,6 +192,9 @@ namespace Dot42.CompilerLib.Ast.Converters
             bool isReference = arg1.IsDexObject() && arg1.IsDexObject();
             if (!isReference && !arg1.IsSame(arg2))
                 return false;
+
+            if (target == PullTarget.Comparison)
+                return true;
 
             if (arg1.Is(XTypeReferenceKind.Float))
                 return false;
