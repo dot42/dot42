@@ -242,6 +242,11 @@ namespace Dot42.ImportJarLib
 
             if (possibleMatch.Count > 1)
             {
+                // try matching by create reason.
+                var singleForSameReason = possibleMatch.SingleOrDefault(s => s.CreateReason == getMethod.CreateReason);
+                if (singleForSameReason != null)
+                    return singleForSameReason;
+
                 Console.Error.WriteLine("Warning: more than one possible setter matches property {0}::{1}. Not generating setter.", typeDef.FullName, getMethod.Name);
                 return null;
             }
@@ -282,7 +287,6 @@ namespace Dot42.ImportJarLib
                         matchingBaseProp = baseProp;
                         break;
                     }
-
 
                     // Check for existing property in base class
                     if (matchingBaseProp == null)
@@ -371,7 +375,7 @@ namespace Dot42.ImportJarLib
                         typeDef.Methods.Remove(prop.Setter);
                         overridingProperties.RemoveAt(i);
                         i -= 1;
-                        continue;
+                        goto continue_outer;
                     }
 
                     if (overridingProperties.Contains(clash))
@@ -393,6 +397,7 @@ namespace Dot42.ImportJarLib
                     typeDef.Methods.Where(x => x != prop.Setter && x != prop.Getter && x.Name == propName)
                                    .ForEach(m => methodRenamer.Rename(m, "Invoke" + m.Name));
                 }
+            continue_outer:;
             }
         }
 
