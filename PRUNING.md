@@ -39,6 +39,7 @@ class WillAlwaysBeIncluded3
 #### Using `[SerializedParameter]`-Attribute
 
 Specifies that a parameter is used in serialization. Types and objects passed as this parameter will have all their public fields and public and private properties preserved and not pruned.
+This preservation propagates recursivly to the types of fields and properties of the passed type.
 
 ```
 
@@ -100,39 +101,36 @@ class MyClass2
 
 This allows you to specify types or members that should be included based on patterns. The syntax is for now loosely based on Eazyfuscators syntax. Use `IsGlobal=true` to apply a rule to all assemblies.
 ```
-// DataBinding needs to see all public INotifyPropertyChanged members; also include private setters.
-// Note that this does not automatically include the type.
+// For INotifyPropertyChanged implementing classes keep all public members to enable method/property databinding
 [assembly: Include(Pattern = "Apply to type * when inherits('INotifyPropertyChanged'): Apply to member * when public: Dot42.Include")]
+// Keep also private properties for use with code-based databinding.
 [assembly: Include(Pattern = "Apply to type * when inherits('INotifyPropertyChanged'): Apply to member set_*: Dot42.Include")]
+[assembly: Include(Pattern = "Apply to type * when inherits('INotifyPropertyChanged'): Apply to member get_*: Dot42.Include")]
 
-// To keep all types that implement INotifyPropertyChanged, the following
-// line would be needed as well.
-// [assembly: Include(Pattern = "Apply to type * when inherits('INotifyPropertyChanged'): Dot42.Include")]
+// Keep all view types in all assemblies, possibly referenced from AXML. Some bytes might be saved
+// if only the actual used types are included.
+[assembly: Include(Pattern = "Apply to type * when extends('Android.Views.View'): Dot42.IncludeType", IsGlobal = true)]
 
-// Keep MvvmCross reflection looked-up ressouces.
+// Keep MvvmCross reflection looked-up ressouce ids.
 [assembly: Include(Pattern = "Apply to type *.R/*Mvx*: Dot42.IncludeType")]
-[assembly: Include(Pattern =" Apply to type *.R/*: Apply to member Mvx*: Dot42.Include")]
+[assembly: Include(Pattern = " Apply to type *.R/*: Apply to member Mvx*: Dot42.Include")]
 
-// keep ValueConverters, possibly referenced from .axml.
+// Keep MvvmCross ValueConverters
 [assembly: Include(Pattern = "Apply to type * when implements('IMvxValueConverter'): Dot42.Include", IsGlobal = true)]
 
-// Keep all view types, bound by MvvmCross through reflection
-[assembly: Include(Pattern = "Apply to type *View: Dot42.Include")]
-[assembly: Include(Pattern = "Apply to type *Dlg: Dot42.Include")]
-[assembly: Include(Pattern = "Apply to type *Fragment: Dot42.Include")]
+// Keep ICommand, including the event which is used by MvvmCross through reflection.
+[assembly: Include(Pattern = "Apply to type System.Windows.Input.ICommand: Dot42.IncludeType", IsGlobal = true)]
 
-// alternativly, keep all ViewTypes in all assemblies. 
-[assembly: Include(Pattern = "Apply to type * when extends('Android.Views.View'): Dot42.Include", IsGlobal = true)]
-
-// Keep setup and bootstrapper.
+// Keep bootstrapper and setup.
 [assembly: Include(Pattern = "Apply to type *.Setup: Dot42.IncludeType")]
 [assembly: Include(Pattern = "Apply to type * when inherits('IMvxBootstrapAction'): Dot42.IncludeType")]
 
-// Include types found through DI
+// make Dot42 preserve property information for framework classes, to enable databinding on them.
+[assembly: Include(Type = typeof(IncludeFrameworkProperties))]
+
+// Include my types found through dependency injection.
 [assembly: Include(Pattern = "Apply to type *Service: Dot42.Include")]
 [assembly: Include(Pattern = "Apply to type *Factory: Dot42.Include")]
 [assembly: Include(Pattern = "Apply to type *Manager: Dot42.Include")]
-
-
 ```
 

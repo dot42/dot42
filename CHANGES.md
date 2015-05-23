@@ -21,6 +21,7 @@ Other improvements include performance and the Visual Studio Debugger.
 	- Fixed mixing generic parameters and delegates in the same function leading to a dalvik verification error.
 	- Fixed dalvik verification errors when using constraints on generic types.
 	- Fixed dalvik verification errors due to primitive boxing/unboxing not handled correctly in all cases.
+	- Fixed dalvik verification errors when implementing a generic override using an Enum.
 	- Fixed generic methods in interfaces crashing the compiler.
 	- Fixed several overload related issues, where different .NET methods would be mapped to the same dex-method, leading to a compiler error, inadvertently overrides or dalvik verification errors. 
 	- Fixed some cases where using structs/enums with generics would beak ValueType semantics, possibly leading to `null`-ValueTypes and `NullPointerException`s.
@@ -82,6 +83,7 @@ Other improvements include performance and the Visual Studio Debugger.
 	* Full support for structs
 	* Full support `ToString()` and `GetValueOrDefault`
 	* Full support for reflection, `is`, and `IsAssignableFrom`
+	* Fixed passing `Nullable<T>` by reference. 
 	* There should only be obscure cases left where differences to CLR's implementation get visible. These should all work as expected:
 ```
 	foreach (PropertyInfo pi in dt.GetType().GetProperties())
@@ -109,6 +111,7 @@ Other improvements include performance and the Visual Studio Debugger.
 - Reworked the Reflection-API to be compatible to BCL.
 	- .NET code will hardly see any difference when compared to running on CLR. (tested with json-net; for generics see above).
 	- Preserve the order of fields, useful for serialization (note: this could be made optional)  
+	- Provide `PropertyInfo` for framework types. This is at the moment an opt-in feature, activated by using `[assembly: IncludeType(typeof(IncludeFrameworkProperties))]`
 	- Emulated assemblies, to allow dependency injection frameworks to find types based on assemblies. 
 	- Improved support for Attributes
 		* Allow null values
@@ -121,6 +124,7 @@ Other improvements include performance and the Visual Studio Debugger.
 - several Enum related fixes
 	- `ToString(string)` working as in CLR 
 	- Allow using `System.Enum` itself as a parameter/field/return value.
+	- better compatibility for enums with the same value. 
 
 - Fixed quite a few of the dreaded dalvik verification errors
 	- in System.Convert
@@ -130,11 +134,13 @@ Other improvements include performance and the Visual Studio Debugger.
 	- in several other places
 
 
-- Fixed using arrays in `foreach` calls and upon method returns (with `IList`, `IList<T>`, `IEnumerable`, `IEnumerable<T>`, `ICollection` and `ICollection<T>` as actual return value)
-
+- Fixed using arrays in `foreach` calls.
+- Fixed using arrays as return value or storing in a field, when the actual field type / return value is `IList`, `IList<T>`, `IEnumerable`, `IEnumerable<T>`, `ICollection` or `ICollection<T>`.
 - `typeof(IEnumerable).AssignableFrom([array type])` and related calls should work.
 
 - Fixed casts leading to expressions evaluated more than once.
+
+- Fixed null coalescing operator `??` always evaluating the second expresion. 
 
 - Fixed nested try/catch/rethrow leading to compiler errors.  
 
@@ -143,14 +149,14 @@ Other improvements include performance and the Visual Studio Debugger.
 
 - Swapped out a broken `decimal` implementation by a wrapper around `java.math.BigDecimal`. The new implementation is largely untested, but  it does not provoke a dalvik verification error when being used. It would be great if someone who actually uses `decimal` could thoroughly test the wrapper and report (or fix) problems.
 
-
 - Added optimizations for immutable structs, preventing them being unnecessary cloned or instantiated. See [BUGS_AND_LIMITATIONS.md](BUGS_AND_LIMITATIONS.md).
 
-- Some code generation optimizations:
+- Code generation optimizations:
+	- significantly reduced the number of generated branch/comparison instructions.
 	- dead code elimination
 	- collapse empty try blocks
 	- collapse goto-chains (how is this called?)
-	- eliminate empty switch statements	
+	- eliminate empty switch statements
 
 - Significant compiler performance optimizations:
 	- Reduced compile time by more than 50% by rewriting several hotspots (measured with CLR only project)
@@ -165,6 +171,8 @@ Other improvements include performance and the Visual Studio Debugger.
 
 - Allow the user to define types in `System` namespace, instead of failing with a nondescript error message.   
   
+- fixed resource id generator generating wrong indices for styleables
+
 ###### Changes to the Framework / API
 
 - Improved `System.Collection.Generics.Dictionary<TKey,TValue>`
@@ -175,22 +183,32 @@ Other improvements include performance and the Visual Studio Debugger.
 - Added `LinkedList<>`, and `Tuple<>` from mono
 - Improved performance for List copying / initialization / AddRange /InsertRange
 - Added `ISet<T>.IntersectWith`
+- Added `List<T>.Sort` and `List<T>.RemoveRange` 
 - Fixed `Enumerable.GroupBy` returning groups in arbitrary order.
 - Fixed `EqualityComparer<T>` and `Comparer<T>` implementations.
+- Fixed `IReadOnlyCollection<T>`
+- Fixed `string.Split()` with a count parameter not returning final part.
 - Added `StringReader`
+- Fixed various `ArrayList` methods to support `IList` and arrays. 
 - Improved `CultureInfo` and related classes. This should allow formatting and parsing with locales. When no locale is specified the current culture is used, not the invariant culture. This matches the way the BCL operates. 
 - Improved `DateTime` compatibility, including parsing and ToString() with custom formats.
+- Added a basis `DataTimeOffset` implementation. Parsing and formatting are not working though.
 - Added `SemaphoreSlim` and `AutoResetEvent`
-- Fixed `Task.Run` and added `Task.WhenAll`, `Task.WhenAny` and  `Task.FromResult`
+- Fixed `Task.Run`
+- Fixed `Task.Delay` with CancellationToken   
+- Added `Task.WhenAll`, `Task.WhenAny`, `Task.FromResult`, and `Task.ContinueWith<Action>`
 - Implemented `System.Threading.Interlocked` based on an automatic implementation of an AtomicXxxFieldUpdater. For limitations when used with static fields see  [BUGS_AND_LIMITATIONS.md](BUGS_AND_LIMITATIONS.md).
 - Added `System.Threading.ThreadPool`
 - Fixed the implementation of `ThreadPoolScheduler` leading to possible deadlocks due to too few threads being available.
 - Added a simple `Lazy<T>` implementation.
 - Added an `[IncludeType]`-Attribute which works like `[Include(ApplyToMembers=true)]`, but is simpler to inject when using automated attribute generators.
-- Added an `[SerializationMethod]`-Attribute (is there a better name?). When applied to a method, all types passed into the method are treated as if they where annotated with `[IncludeType]`. This applies to generic method parameters as well. The automatic `[IncludeType]` propagates recursively to the types of fields and properties of the passed type. 
-	Using the `[SerializationMethod]`-Attribute allows for serialization of anonymous types, and can lead to fewer bugs due to over-pruning of the compiler.
+- Added `[assembly: Include(Pattern="...")]`, to allow inclusion of types and members based on matched patterns. For details and examples, see [PRUNING.md](PRUNING.md).
+- Added an `[SerializedParameter]`-Attribute, that can be applied to normal and generic method parameters. Types and objects passed as this parameter will have all their public fields and public and private properties preserved and not pruned. For details and examples, see [PRUNING.md](PRUNING.md).  
+	Using the `[SerializedParameter]`-Attribute allows serialization of anonymous types, and can lead to fewer bugs due to over-pruning of the compiler.
 - Implemented `Delegate.Method` and `Delegate.Target` to allow certain patterns of weak event binding to be used. 
-- Added `Android.App.Application.Context` and  `Android.App.Application.SynchronizationContext` and automatically initialize them during application startup. This mimics Xamarin.Android's behavior. 
+- Added `Android.App.Application.Context` and  `Android.App.Application.SynchronizationContext` and automatically initialize them during application startup. This mimics Xamarin.Android's behavior.
+- Changes to `Dot42.Manifest.ActivityAttribute`: made `VisibleInLauncher` false by default, added `MainLauncher` property. 
+- Added `Context.StartActivity(Type activityType)`, code-compatible with Xamarin.Android.
 - Quite a few smaller changes, fixes and enhancements
 
 ###### *Breaking changes*
@@ -203,7 +221,7 @@ Other improvements include performance and the Visual Studio Debugger.
 		
 	- Property generation           
 		- Properties are generated for interface members as well.
-		- Readonly properties are generated for `CanXxx` and `HasXxx` named methods. 
+		- Readonly properties are generated for `CanXxx` and `HasXxx` named methods.
 		- **When a property is generated, the original method will no longer be generated**, as this lead to IntelliSense clutter,  confusion about whether to use the property or the setter/getter, and problems when overriding such a method/property.  
 		- Removed the `Type` property on `System.Object`, to reduce warnings and confusion with classes that define a property  `Type`. Also reduces clutter in IntelliSense.
 		- Do not automatically prepend an `Is` to boolean properties, if there wasn't one to begin with. The source code contains comments on this decision. 
@@ -227,18 +245,29 @@ Other improvements include performance and the Visual Studio Debugger.
 - (Hopefully) fixed occasions where exceptions reported by the VM for an already dead thread would lead to freezing of the debuggee.
 - Fixed some cases where the user would have to press "step over"/"step into" multiple times to advance to the next statement.
 
-
-  
 ###### ApkSpy
 - Don't keep a lock on opened .apks
 - Allow loading of .dex files
 - Optionally use an external back end to decompile .dex classes, e.g. baksmali; this proved useful when debugging dalvik verify errors
+- Search for class names / method names.
 - Allow to export the whole disassembly using an external tool.
 - Swapped out the text display control to a syntax highlighting version (preliminiary).
-- Optionally embed source code and/or source code positions in the disassembly.	
+- Optionally embed source code and/or source code positions in the disassembly.
 - For jump instructions, show she jump distance next to the target offset
 - For constants larger than +/- 8, show the hexadecimal value as well.
+- Show opcode help in tooltip, show variable names for registers in tooltip.
+- Highlight jump targets and exception handlers when pointing at them.
+- Highlight register usage when pointing at a register.
 - Improved the formatting.
+
+###### ILSpyPlugin
+- Fixed the ILSpyPlugin to work with current code base
+- Allow Ast conversion to be stopped at an arbitrary step
+- optionally line-break Ast-expression, making long ones readable.
+- added a compilation cache for quick language switching
+- unified 'Dex Output' and ApkSpy formatting
+- don't fail early on method body compilation errors, but allow to show all compilation errors when selecting an assembly.
+- 'Dex Input' language: allow decompilation of whole types, to allow decompilation of generated methods as well. 
 
 ###### Regressions
 
