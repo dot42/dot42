@@ -89,7 +89,7 @@ namespace Dot42.CompilerLib.Ast
 
             if (useBestSourceLocation)
             {
-                if (SourceLocation == null || SourceLocation.IsSpecial)
+                if ((SourceLocation == null || SourceLocation.IsSpecial) && source.SourceLocation != null && !source.SourceLocation.IsSpecial)
                     SourceLocation = source.SourceLocation;
             }
             return this;

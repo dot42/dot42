@@ -151,26 +151,23 @@ namespace Dot42.Tests.Compiler.Sources
             AssertTrue(d7 >  d5);
             AssertTrue(d7 >= d5);
             AssertTrue(d1 >= d1_1);
+            AssertTrue(d1 >= d1_1);
             AssertTrue(d1 <= d1_1);
-        }
+            AssertTrue(d1 == d1_1);
 
-        public void testCompare2()
-        {
             AssertFalse(d5 >= d7);
             AssertFalse(d5 >  d7);
             AssertFalse(d7 <= d5);
             AssertFalse(d7 <  d5);
             AssertFalse(d1 <  d1_1);
             AssertFalse(d1 >  d1_1);
+            AssertFalse(d1 != d1_1);
         }
 
         public void testCompareNaN()
         {
             AssertFalse(dNaN == double.NaN);
-        }
 
-        public void testCompareNaN1()
-        {
             AssertFalse(d5   <  dNaN);
             AssertFalse(dNaN <  d5);
 
@@ -179,10 +176,7 @@ namespace Dot42.Tests.Compiler.Sources
 
             AssertFalse(dNaN <  double.NaN);
             AssertFalse(dNaN <= double.NaN);
-        }
 
-        public void testCompareNaN2()
-        {
             AssertFalse(d5   >  dNaN);
             AssertFalse(dNaN >  d5);
 
@@ -191,6 +185,47 @@ namespace Dot42.Tests.Compiler.Sources
 
             AssertFalse(dNaN >  double.NaN);
             AssertFalse(dNaN >= double.NaN);
+
+            AssertTrue(!(dNaN >= double.NaN));
+        }
+
+        public void testTernary()
+        {
+            AssertEquals(d5 <  d7    ? 5 : 6, 5);
+            AssertEquals(d5 <= d7    ? 5 : 6, 5);
+            AssertEquals(d7 >  d5    ? 5 : 6, 5);
+            AssertEquals(d7 >= d5    ? 5 : 6, 5);
+            AssertEquals(d1 >= d1_1  ? 5 : 6, 5);
+            AssertEquals(d1 <= d1_1  ? 5 : 6, 5);
+            AssertEquals(d1 == d1_1  ? 5 : 6, 5);
+
+            AssertNotSame(d5 >= d7   ? 5 : 6, 5);
+            AssertNotSame(d5 >  d7   ? 5 : 6, 5);
+            AssertNotSame(d7 <= d5   ? 5 : 6, 5);
+            AssertNotSame(d7 <  d5   ? 5 : 6, 5);
+            AssertNotSame(d1 <  d1_1 ? 5 : 6, 5);
+            AssertNotSame(d1 >  d1_1 ? 5 : 6, 5);
+            AssertNotSame(d1 != d1_1 ? 5 : 6, 5);
+
+            AssertNotSame(dNaN == double.NaN ? 5 : 6, 5);
+
+            AssertNotSame(d5 <   dNaN ? 5 : 6, 5);
+            AssertNotSame(dNaN < d5 ? 5 : 6, 5);
+
+            AssertNotSame(d5 <=   dNaN ? 5 : 6, 5);
+            AssertNotSame(dNaN <= d5 ? 5 : 6, 5);
+
+            AssertNotSame(dNaN <  double.NaN ? 5 : 6, 5);
+            AssertNotSame(dNaN <= double.NaN ? 5 : 6, 5);
+
+            AssertNotSame(d5 >   dNaN ? 5 : 6, 5);
+            AssertNotSame(dNaN > d5 ? 5 : 6, 5);
+
+            AssertNotSame(d5 >=   dNaN ? 5 : 6, 5);
+            AssertNotSame(dNaN >= d5 ? 5 : 6, 5);
+
+            AssertNotSame(dNaN >  double.NaN ? 5 : 6, 5);
+            AssertNotSame(dNaN >= double.NaN ? 5 : 6, 5);
         }
     }
 }

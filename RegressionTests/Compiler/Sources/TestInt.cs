@@ -4,6 +4,9 @@ namespace Dot42.Tests.Compiler.Sources
 {
     public class TestInt : TestCase
     {
+        private int d1 = 1, d1_1 = 1;
+        private int d2 = 2, d5 = 5, d7 = 7;
+
         public void testSimpleEqual1()
         {
             var i = 5;
@@ -134,6 +137,45 @@ namespace Dot42.Tests.Compiler.Sources
         {
             var i = 0;
             AssertTrue(i % 100 == 0);
+        }
+
+        public void testCompare1()
+        {
+            AssertTrue(d5 < d7);
+            AssertTrue(d5 <= d7);
+            AssertTrue(d7 > d5);
+            AssertTrue(d7 >= d5);
+            AssertTrue(d1 >= d1_1);
+            AssertTrue(d1 >= d1_1);
+            AssertTrue(d1 <= d1_1);
+            AssertTrue(d1 == d1_1);
+
+            AssertFalse(d5 >= d7);
+            AssertFalse(d5 > d7);
+            AssertFalse(d7 <= d5);
+            AssertFalse(d7 < d5);
+            AssertFalse(d1 < d1_1);
+            AssertFalse(d1 > d1_1);
+            AssertFalse(d1 != d1_1);
+        }
+
+        public void testTernary()
+        {
+            AssertEquals(d5 < d7 ? 5 : 6, 5);
+            AssertEquals(d5 <= d7 ? 5 : 6, 5);
+            AssertEquals(d7 > d5 ? 5 : 6, 5);
+            AssertEquals(d7 >= d5 ? 5 : 6, 5);
+            AssertEquals(d1 >= d1_1 ? 5 : 6, 5);
+            AssertEquals(d1 <= d1_1 ? 5 : 6, 5);
+            AssertEquals(d1 == d1_1 ? 5 : 6, 5);
+
+            AssertNotSame(d5 >= d7 ? 5 : 6, 5);
+            AssertNotSame(d5 > d7 ? 5 : 6, 5);
+            AssertNotSame(d7 <= d5 ? 5 : 6, 5);
+            AssertNotSame(d7 < d5 ? 5 : 6, 5);
+            AssertNotSame(d1 < d1_1 ? 5 : 6, 5);
+            AssertNotSame(d1 > d1_1 ? 5 : 6, 5);
+            AssertNotSame(d1 != d1_1 ? 5 : 6, 5);
         }
     }
 }

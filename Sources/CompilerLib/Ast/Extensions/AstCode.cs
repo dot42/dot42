@@ -121,6 +121,36 @@ namespace Dot42.CompilerLib.Ast.Extensions
         }
 
         /// <summary>
+        /// Convert condition to branch/zero.
+        /// 
+        /// </summary>
+        public static AstCode ToBranchZ(this AstCode code)
+        {
+            switch (code)
+            {
+                case AstCode.Cle:
+                case AstCode.Cle_Un:
+                    return AstCode.BrIfLe;
+                case AstCode.Clt:
+                case AstCode.Clt_Un:
+                    return AstCode.BrIfLt;
+                case AstCode.Ceq:
+                    return AstCode.BrIfEq;
+                case AstCode.Cne:
+                    return AstCode.BrIfNe;
+                case AstCode.Cgt:
+                case AstCode.Cgt_Un:
+                    return AstCode.BrIfGt;
+                case AstCode.Cge:
+                case AstCode.Cge_Un:
+                    return AstCode.BrIfGe;
+                default:
+                    throw new ArgumentOutOfRangeException("code", code.ToString());
+            }
+        }
+
+
+        /// <summary>
         /// Gets the type of stelem code to use for the given element type.
         /// </summary>
         public static AstCode GetStElemCode(this XTypeReference elementType)
