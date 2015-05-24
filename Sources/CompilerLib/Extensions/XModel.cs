@@ -40,6 +40,11 @@ namespace Dot42.CompilerLib.Extensions
                     var prototype = PrototypeBuilder.ParseFieldType(descriptor);
                     return new FieldReference(new ClassReference(className), memberName, prototype);
                 }
+                if (fieldDef.TryGetJavaImportNames(out memberName, out descriptor, out className))
+                {
+                    var prototype = PrototypeBuilder.ParseFieldType(descriptor);
+                    return new FieldReference(new ClassReference(className), memberName, prototype);
+                }
 
                 // Field is in the assembly itself
                 // Use the mapping
