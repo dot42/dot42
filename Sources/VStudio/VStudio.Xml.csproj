@@ -10,7 +10,6 @@
     <RootNamespace>Dot42.VStudio</RootNamespace>
     <AssemblyName>dot42.VStudio.Xml</AssemblyName>
     <SignAssembly>false</SignAssembly>
-    <AssemblyOriginatorKeyFile>..\Dot42.snk</AssemblyOriginatorKeyFile>
     <ProjectGuid>{33F2A9DB-6BB1-49A2-9901-65E6A129A6EB}</ProjectGuid>
     <ApplicationIcon>
     </ApplicationIcon>

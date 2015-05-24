@@ -15,7 +15,7 @@ namespace Dot42.BuildTools.Templates
             var doc = XDocument.Load(path);
 
             // Update wizard assembly elements
-            const string assemblyTemplate = "dot42.VStudio.Project.{0}, Version={1}, Culture=neutral, PublicKeyToken=0a72796057571e65";
+            const string assemblyTemplate = "dot42.VStudio.Project.{0}, Version={1}";
             var assemblyValue = string.Format(assemblyTemplate, target, typeof(Program).Assembly.GetName().Version);
 
             var changed = false;

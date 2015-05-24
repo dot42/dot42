@@ -10,7 +10,6 @@
     <RootNamespace>Dot42.VStudio</RootNamespace>
     <AssemblyName>dot42.VStudio.Project.BlackBerry</AssemblyName>
     <SignAssembly>false</SignAssembly>
-    <AssemblyOriginatorKeyFile>..\Dot42.snk</AssemblyOriginatorKeyFile>
     <ProjectGuid>{3E651A4C-97F4-41FC-123D-7D65A86BD794}</ProjectGuid>
     <ApplicationIcon>
     </ApplicationIcon>

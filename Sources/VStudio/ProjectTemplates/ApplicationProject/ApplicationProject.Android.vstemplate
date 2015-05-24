@@ -20,7 +20,7 @@
     </Project>
   </TemplateContent>
   <WizardExtension>
-    <Assembly>dot42.VStudio.Project.Android, Version=1.0.1.82, Culture=neutral, PublicKeyToken=0a72796057571e65</Assembly>
+    <Assembly>dot42.VStudio.Project.Android, Version=1.0.1.82</Assembly>
     <FullClassName>Dot42.VStudio.Wizards.ApplicationProjectWizard</FullClassName>
   </WizardExtension>
 </VSTemplate>
