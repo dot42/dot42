@@ -135,8 +135,9 @@ namespace Dot42.FrameworkBuilder
                         {
                             using (var zipStream = new ZipOutputStream(fileStream) {UseZip64 = UseZip64.Off})
                             {
+#if !DEBUG
                                 zipStream.SetLevel(9);
-
+#endif
                                 zipStream.PutNextEntry(new ZipEntry("AndroidManifest.xml")
                                 {CompressionMethod = CompressionMethod.Deflated});
                                 zipStream.Write(manifestStream, 0, manifestStream.Length);

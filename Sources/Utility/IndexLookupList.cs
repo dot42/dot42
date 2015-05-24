@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Dot42.Utility
 {
@@ -16,6 +15,12 @@ namespace Dot42.Utility
         
         // use an array, so that we can quickly update values in the dictionary.
         private readonly Dictionary<T, int[]> _indices;
+
+        public IndexLookupList()
+        {
+            _list = new List<T>();
+            _indices = new Dictionary<T, int[]>();
+        }
 
         public IndexLookupList(IList<T> list)
         {

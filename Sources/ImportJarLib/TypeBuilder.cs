@@ -240,7 +240,7 @@ namespace Dot42.ImportJarLib
         /// </summary>
         private static void AddPrivateDefaultCtor(NetTypeDefinition typeDef, TargetFramework target)
         {
-            var ctor = new NetMethodDefinition(".ctor", null, typeDef, target, false, "TypeBuilder.AddPrivateDefaultCtor")
+            var ctor = new NetMethodDefinition(".ctor", null, typeDef, target, SignedByteMode.None, "TypeBuilder.AddPrivateDefaultCtor")
             {
                 Attributes = MethodAttributes.Private, 
                 AccessFlags = (int)MethodAccessFlags.Private
@@ -311,9 +311,9 @@ namespace Dot42.ImportJarLib
                 return;
 
             // Add default ctor
-            var ctor = new NetMethodDefinition(".ctor", null, typeDef, target, false, "TypeBuilder.AddDefaultConstructor")
+            var ctor = new NetMethodDefinition(".ctor", null, typeDef, target, SignedByteMode.None, "TypeBuilder.AddDefaultConstructor")
             {
-                Attributes = MethodAttributes.Assembly,
+                Attributes = MethodAttributes.FamORAssem,
                 AccessFlags = (int) MethodAccessFlags.Protected,
                 EditorBrowsableState = EditorBrowsableState.Never
             };
@@ -426,7 +426,7 @@ namespace Dot42.ImportJarLib
                         continue;
 
                     // Add abstract method
-                    var method = new NetMethodDefinition(iMethod.Name, null, typeDef, target, iMethod.IsSignConverted, "TypeBuilder.AddAbstractInterfaceMethods");
+                    var method = new NetMethodDefinition(iMethod.Name, null, typeDef, target, iMethod.SignConvertMode, "TypeBuilder.AddAbstractInterfaceMethods");
                     method.AccessFlags = iMethod.AccessFlags;
                     method.Attributes = iMethod.Attributes;
                     method.IsAbstract = false;

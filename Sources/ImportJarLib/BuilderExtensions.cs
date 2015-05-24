@@ -454,7 +454,7 @@ namespace Dot42.ImportJarLib
         }
 
         /// <summary>
-        /// Does the given method contain a parameter or return type that contains a signed byte.
+        /// Does the given type contains is a signed byte or a signed byte array?
         /// </summary>
         internal static bool ContainsSignedByte(this TypeReference type)
         {
@@ -470,5 +470,21 @@ namespace Dot42.ImportJarLib
             }
             return false;
         }
+
+        /// <summary>
+        /// Does the given type is an unsigned byte or references on in its
+        /// elements types or generic types?
+        /// </summary>
+        internal static bool ContainsUnsignedByte(this NetTypeReference type)
+        {
+            if (type == null)
+                return false;
+
+            if (type.IsByte())
+                return true;
+
+            return type.GetReferencedTypes().Any(r => r.IsByte());
+        }
+
     }
 }

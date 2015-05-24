@@ -183,7 +183,7 @@ namespace Dot42.ImportJarLib
                     var javaMethod = dexMethod.Resolve(classFile);
 
                     // Create method
-                    var method = new NetMethodDefinition(ilMethod.Name, javaMethod, typeDef, target, false, "DexImport");
+                    var method = new NetMethodDefinition(ilMethod.Name, javaMethod, typeDef, target, SignedByteMode.None, "DexImport");
                     method.Attributes = (MethodAttributes)ilMethod.Attributes;
                     method.AccessFlags = (int)javaMethod.AccessFlags;
 
@@ -202,6 +202,8 @@ namespace Dot42.ImportJarLib
                         var np = new NetParameterDefinition(p.Name, Resolve(p.ParameterType, ilMethod, method), false /*todo*/);
                         method.Parameters.Add(np);
                     }
+
+                    method.IsSignConverted = ContainsUnsignedByte(method);
 
                     // Add custom attribute
                     method.CustomAttributes.Add(BuildCustomAttribute(dexMethod.ImportAttribute));
@@ -246,6 +248,12 @@ namespace Dot42.ImportJarLib
                     prop.Getter = method;
                 else
                     prop.Setter = method;
+            }
+
+            private static bool ContainsUnsignedByte(NetMethodDefinition method)
+            {
+                return method.ReturnType.ContainsUnsignedByte()
+                       || method.Parameters.Any(x => x.ParameterType.ContainsUnsignedByte());
             }
 
             /// <summary>

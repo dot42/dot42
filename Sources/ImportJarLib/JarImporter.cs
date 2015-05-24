@@ -158,7 +158,7 @@ namespace Dot42.ImportJarLib
         /// <summary>
         /// If true, all methods are generated as extern.
         /// </summary>
-        bool ICodeGeneratorContext.GenerateExternalMethods { get { return true; } }
+        bool ICodeGeneratorContext.GenerateExternalMethods { get { return false; } }
 
         /// <summary>
         /// If true, will output debug releated comments

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using Dot42.FrameworkDefinitions;
@@ -19,8 +18,8 @@ namespace Dot42.ImportJarLib
     {
         private readonly MethodDefinition javaMethod;
         private readonly TypeBuilder declaringTypeBuilder;
+        private readonly SignedByteMode signedByteMode;
         private readonly bool addJavaPrefix;
-        private readonly bool convertSignedBytes;
         private NetMethodDefinition method;
         private DocMethod docMethod;
 
@@ -31,28 +30,32 @@ namespace Dot42.ImportJarLib
         {
             bool onlyInReturnType;
             var convertSignedBytes = ContainsSignedByte(javaMethod, out onlyInReturnType) && !AvoidConvertSignedBytes(javaMethod);
-            if (onlyInReturnType && javaMethod.DeclaringClass.IsInterface)
+            if (convertSignedBytes && (javaMethod.DeclaringClass.IsInterface || javaMethod.IsAbstract))
             {
-                yield return new MethodBuilder(javaMethod, declaringTypeBuilder, true, false);
+                yield return new MethodBuilder(javaMethod, declaringTypeBuilder, SignedByteMode.ConvertWithoutPartner);
             }
             else
             {
-                var addJavaPrefix = convertSignedBytes && onlyInReturnType;
-                yield return new MethodBuilder(javaMethod, declaringTypeBuilder, false, addJavaPrefix);
+                var signedByteMode = !convertSignedBytes   ? SignedByteMode.None
+                                        : onlyInReturnType ? SignedByteMode.HasUnsignedPartnerOnlyInReturnType
+                                        : SignedByteMode.HasUnsignedPartner;
+
+                yield return new MethodBuilder(javaMethod, declaringTypeBuilder, signedByteMode);
+
                 if (convertSignedBytes)
-                    yield return new MethodBuilder(javaMethod, declaringTypeBuilder, true, false);
+                    yield return new MethodBuilder(javaMethod, declaringTypeBuilder, SignedByteMode.Convert);
             }
         }
 
         /// <summary>
         /// Default ctor
         /// </summary>
-        private MethodBuilder(MethodDefinition javaMethod, TypeBuilder declaringTypeBuilder, bool convertSignedBytes, bool addJavaPrefix)
+        private MethodBuilder(MethodDefinition javaMethod, TypeBuilder declaringTypeBuilder, SignedByteMode signedByteMode)
         {
             this.javaMethod = javaMethod;
             this.declaringTypeBuilder = declaringTypeBuilder;
-            this.convertSignedBytes = convertSignedBytes;
-            this.addJavaPrefix = addJavaPrefix;
+            this.signedByteMode = signedByteMode;
+            this.addJavaPrefix = signedByteMode == SignedByteMode.HasUnsignedPartnerOnlyInReturnType;
         }
 
         /// <summary>
@@ -96,7 +99,7 @@ namespace Dot42.ImportJarLib
                 var name = nameInfo.Name;
                 if (nameInfo.IsConstructor)
                 {
-                    method = new NetMethodDefinition(".ctor", javaMethod, declaringType, target, convertSignedBytes, "MethodBuilder.Create")
+                    method = new NetMethodDefinition(".ctor", javaMethod, declaringType, target, signedByteMode, "MethodBuilder.Create")
                     {
                         AccessFlags = (int) javaMethod.AccessFlags,
                         EditorBrowsableState = nameInfo.EditorBrowsableState
@@ -104,7 +107,7 @@ namespace Dot42.ImportJarLib
                 }
                 else if (nameInfo.IsDeconstructor)
                 {
-                    method = new NetMethodDefinition("Finalize", javaMethod, declaringType, target, convertSignedBytes, "MethodBuilder.Create")
+                    method = new NetMethodDefinition("Finalize", javaMethod, declaringType, target, signedByteMode, "MethodBuilder.Create")
                     {
                         AccessFlags = (int) javaMethod.AccessFlags,
                         EditorBrowsableState = EditorBrowsableState.Always,
@@ -113,7 +116,7 @@ namespace Dot42.ImportJarLib
                 }
                 else
                 {
-                    method = new NetMethodDefinition(name, javaMethod, declaringType, target, convertSignedBytes, "MethodBuilder.Create")
+                    method = new NetMethodDefinition(name, javaMethod, declaringType, target, signedByteMode, "MethodBuilder.Create")
                     {
                         AccessFlags = (int) javaMethod.AccessFlags,
                         EditorBrowsableState = nameInfo.EditorBrowsableState
@@ -127,12 +130,20 @@ namespace Dot42.ImportJarLib
                     }
                     var javaReturnType = signature.ReturnType;
                     NetTypeReference returnType;
-                    if (!javaReturnType.TryResolve(target, this, convertSignedBytes, out returnType))
+                    if (!javaReturnType.TryResolve(target, this, method.IsSignConverted, out returnType))
                     {
                         method = null;
                         return;
                     }
                     method.ReturnType = returnType;
+
+                    //if (signedByteMode == SignedByteMode.HasUnsignedPartner || signedByteMode == SignedByteMode.HasUnsignedPartnerOnlyInReturnType)
+                    //{
+                    //    // clear virtual status if possible, as this will create problems with overrides.
+                    //    // set to final.
+                    //    method.IsVirtual = false;
+                    //    method.IsFinal = true;
+                    //}
                 }
                 method.OriginalJavaName = javaMethod.Name;
 
@@ -164,7 +175,7 @@ namespace Dot42.ImportJarLib
                         paramType = new ObjectTypeReference("java/lang/Object", null);
                     }
                     NetTypeReference resolvedParamType;
-                    if (!paramType.TryResolve(target, this, convertSignedBytes, out resolvedParamType))
+                    if (!paramType.TryResolve(target, this, method.IsSignConverted, out resolvedParamType))
                     {
                         method = null;
                         return; // Sometimes public methods used parameters with internal types
@@ -180,7 +191,8 @@ namespace Dot42.ImportJarLib
                 }
                 method.Description = (docMethod != null) ? docMethod.Description : null;
                 declaringType.Methods.Add(method);
-                if (!convertSignedBytes)
+
+                if (!method.HasUnsignedPartner)
                 {
                     target.MethodMap.Add(javaMethod, method);
                 }
@@ -203,7 +215,7 @@ namespace Dot42.ImportJarLib
             // Add DexImport attribute
             var ca = new NetCustomAttribute(null, javaMethod.Name, javaMethod.Descriptor);
             ca.Properties.Add(AttributeConstants.DexImportAttributeAccessFlagsName, (int)javaMethod.AccessFlags);
-            if (convertSignedBytes)
+            if (method.HasUnsignedPartner)
             {
                 ca.Properties.Add(AttributeConstants.DexImportAttributeIgnoreFromJavaName, true);
             }
@@ -399,7 +411,7 @@ namespace Dot42.ImportJarLib
                     {
                         var index = signature.TypeParameters.IndexOf(typeParam);
                         var javaType = @class.Signature.SuperClass.Arguments.ElementAt(index).Signature;
-                        return javaType.Resolve(target, this, convertSignedBytes);
+                        return javaType.Resolve(target, this, method.IsSignConverted);
                     }
                 }
                 @class = baseClass;
@@ -543,8 +555,8 @@ namespace Dot42.ImportJarLib
                 case "java/lang/Number":
                     return true;
             }
-            if (javaMethod.DeclaringClass.IsInterface)
-                return true;
+            //if (javaMethod.DeclaringClass.IsInterface)
+            //    return true;
             return false;
         }
     }

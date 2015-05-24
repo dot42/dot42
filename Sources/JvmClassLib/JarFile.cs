@@ -9,9 +9,14 @@ namespace Dot42.JvmClassLib
     public class JarFile : IDisposable, IClassLoader
     {
         private readonly ZipFile zipFile;
+        private Dictionary<string, ZipEntry> zipEntries;
         private readonly Dictionary<string, ClassFile> loadedClasses = new Dictionary<string, ClassFile>();
         private readonly string fileName;
         private readonly IClassLoader nextClassLoader;
+        private List<string> classNames;
+        private List<string> classFileNames;
+        private List<string> packages;
+        
 
         /// <summary>
         /// Open a jar file from the given stream
@@ -36,7 +41,16 @@ namespace Dot42.JvmClassLib
         /// </summary>
         public IEnumerable<string> ClassNames
         {
-            get { return ClassFileNames.Where(x => !x.Contains("$")).Select(x => x.Substring(0, x.Length - ".class".Length)); }
+            get
+            {
+                if(classNames != null)
+                    return classNames;
+
+                classNames = ClassFileNames.Where(x => !x.Contains("$"))
+                                           .Select(x => x.Substring(0, x.Length - ".class".Length))
+                                           .ToList();
+                return classNames;
+            }
         }
 
         /// <summary>
@@ -44,7 +58,16 @@ namespace Dot42.JvmClassLib
         /// </summary>
         public IEnumerable<string> ClassFileNames
         {
-            get { return from ZipEntry entry in zipFile where entry.Name.EndsWith(".class") select entry.Name; }
+            get
+            {
+                if(classFileNames != null)
+                    return classFileNames;
+                classFileNames = (from ZipEntry entry in zipFile 
+                                  where entry.Name.EndsWith(".class") 
+                                  select entry.Name)
+                                 .ToList();
+                return classFileNames;
+            }
         }
 
         /// <summary>
@@ -54,8 +77,13 @@ namespace Dot42.JvmClassLib
         {
             get
             {
+                if(packages != null)
+                    return packages;
+                
                 var fileNames = ClassFileNames;
-                return fileNames.Select(ClassName.GetPackage).Distinct();
+                return packages = fileNames.Select(ClassName.GetPackage)
+                                           .Distinct()
+                                           .ToList();
             }
         }
 
@@ -122,9 +150,19 @@ namespace Dot42.JvmClassLib
         /// </summary>
         public ClassFile OpenClass(string fileName)
         {
-            var entry = zipFile.GetEntry(fileName);
-            if (entry == null)
+            if (zipEntries == null)
+            {
+                var dic = new Dictionary<string, ZipEntry>(StringComparer.InvariantCultureIgnoreCase);
+                foreach (ZipEntry zipEntry in zipFile)
+                    dic.Add(zipEntry.Name, zipEntry);
+                zipEntries = dic;
+            }
+
+            ZipEntry entry;
+
+            if (!zipEntries.TryGetValue(fileName, out entry))
                 return null;
+
             using (var stream = zipFile.GetInputStream(entry))
             {
                 var result = new ClassFile(stream, this);
