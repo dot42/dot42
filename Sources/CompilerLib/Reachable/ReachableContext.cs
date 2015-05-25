@@ -287,6 +287,9 @@ namespace Dot42.CompilerLib.Reachable
                     if (method.IsReachable)
                         return;
 
+                    //if(method.Name == "resetClip")
+                    //    Debugger.Break();
+
                     // Is any base method reachable?
                     if (method.GetBaseMethods().Any(x => x.IsReachable))
                     {

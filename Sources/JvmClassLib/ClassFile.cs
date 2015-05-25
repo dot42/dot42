@@ -167,7 +167,7 @@ namespace Dot42.JvmClassLib
         public IClassLoader Loader { get { return loader; } }
 
         /// <summary>
-        /// Is this class created by the class loaded (instead of being loaded from a normal class)
+        /// Is this class created by the class loader (?) (instead of being loaded from a normal class)
         /// </summary>
         public bool IsCreatedByLoader { get; set; }
 
