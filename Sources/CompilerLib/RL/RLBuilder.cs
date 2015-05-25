@@ -76,6 +76,8 @@ namespace Dot42.CompilerLib.RL
         {
             if(operand is Register)
                 throw new InvalidOperationException("Wrong overload. Please fix me..."); // see above.
+            if(operand is RegisterSpec || operand is RLRange)
+                throw new InvalidOperationException("Wrong kind of argument. Please fix me..."); // see above.
 
             return builder.Add(sequencePoint, opcode, operand, registers);
         }

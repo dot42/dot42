@@ -838,24 +838,40 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                         var arrType = (XTypeReference) node.Operand;
                         var darrType = arrType.GetReference(targetPackage);
                         var compType = arrType;
+
                         // Unwind array type to component type
                         for (var i = 0; i < node.Arguments.Count; i++)
                         {
                             compType = compType.ElementType;
                         }
+
                         var dcompType = new ArrayType(compType.GetReference(targetPackage));
                         var dimArrayR = frame.AllocateTemp(new ArrayType(PrimitiveType.Int));
-                        var lengthR = frame.AllocateTemp(PrimitiveType.Int);
+                        
                         var first = this.Add(node.SourceLocation, RCode.Nop);
-                        // Allocate dimensions array
-                        this.Add(node.SourceLocation, RCode.Const, node.Arguments.Count, lengthR);
-                        this.Add(node.SourceLocation, RCode.New_array, PrimitiveType.Int, dimArrayR, lengthR);
-                        var indexR = lengthR;
-                        // Initialize dimensions array
-                        for (var i = 0; i < node.Arguments.Count; i++)
+
+                        var dimensionsArrayType = new ArrayType(PrimitiveType.Int);
+
+                        if (node.Arguments.Count <= 5)
                         {
-                            this.Add(node.SourceLocation, RCode.Const, i, indexR);
-                            this.Add(node.SourceLocation, RCode.Aput, args[i], dimArrayR, indexR);
+                            this.Add(node.SourceLocation, RCode.Filled_new_array, dimensionsArrayType, args.Select(a=>a.Result.Register));
+                            this.Add(node.SourceLocation, RCode.Move_result_object, (object)null, dimArrayR);
+                        }
+                        else
+                        {
+                            var lengthR = frame.AllocateTemp(PrimitiveType.Int);
+
+                            // Allocate dimensions array
+                            this.Add(node.SourceLocation, RCode.Const, node.Arguments.Count, lengthR);
+                            this.Add(node.SourceLocation, RCode.New_array, dimensionsArrayType, dimArrayR, lengthR);
+
+                            var indexR = lengthR;
+                            // Initialize dimensions array
+                            for (var i = 0; i < node.Arguments.Count; i++)
+                            {
+                                this.Add(node.SourceLocation, RCode.Const, i, indexR);
+                                this.Add(node.SourceLocation, RCode.Aput, null, args[i].Result, dimArrayR, indexR);
+                            }
                         }
 
                         // Load component type
@@ -868,8 +884,8 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                         var methodRef = new MethodReference(reflectArrayType, "newInstance", prototype);
                         var arrayR = frame.AllocateTemp(darrType);
                         this.Add(node.SourceLocation, RCode.Invoke_static, methodRef, compTypeR, dimArrayR);
-                        var last = this.Add(node.SourceLocation, RCode.Move_result_object, arrayR);
-
+                        this.Add(node.SourceLocation, RCode.Move_result_object, arrayR);
+                        var last = this.Add(node.SourceLocation, RCode.Check_cast, darrType, arrayR);
                         return new RLRange(first, last, arrayR);
                     }
                 case AstCode.ByRefArray:
