@@ -606,13 +606,13 @@
 		<call target="generate-framework-versions"/>
 		<if test="${git::is-clean() == false}">
 			<echo message="Commiting changes"/>
-			<git-add>
-				<files basedir="${srcdir}">
+			<git-add path="${srcdir}/Framework">
+				<files basedir="${srcdir}/Framework">
 					<include name="**/*.vstemplate"/>
-					<include name="Framework/Generated/**"/>
+					<include name="Generated/**"/>
 				</files>
 			</git-add>
-			<git-commit message="Update templates and generated files" path="${basedir}" allow-empty="true" />
+			<git-commit message="Update templates and generated files" path="${srcdir}/Framework" allow-empty="true" />
 		</if>
 	</target>
 
