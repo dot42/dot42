@@ -87,7 +87,7 @@ namespace Dot42.LoaderLib.Java
             /// <summary>
             /// Gets all class names found in this loader.
             /// </summary>
-            internal IEnumerable<string> ClassNames
+            internal ICollection<string> ClassNames
             {
                 get { return javaClasses.Keys; }
             }

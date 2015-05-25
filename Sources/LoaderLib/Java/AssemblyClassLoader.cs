@@ -146,5 +146,17 @@ namespace Dot42.LoaderLib.Java
                 }
             }
         }
+
+        public AssemblyDefinition GetAssembly(ClassFile classFile)
+        {
+            AssemblyClasses cl;
+            lock(dataLock)
+                cl = loadedAssemblies.SingleOrDefault(c => c.ClassNames.Contains(classFile.ClassName));
+            
+            if (cl == null)
+                return null;
+
+            return cl.Assembly;
+        }
     }
 }

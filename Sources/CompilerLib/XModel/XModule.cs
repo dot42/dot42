@@ -58,7 +58,9 @@ namespace Dot42.CompilerLib.XModel
         /// </summary>
         internal XTypeDefinition GetTypeByScopeID(string scopeId)
         {
-            return scopeIdCache[scopeId];
+            XTypeDefinition ret;
+            scopeIdCache.TryGetValue(scopeId, out ret);
+            return ret;
         }
 
         internal ReadOnlyCollection<XTypeDefinition> Types { get { return types.AsReadOnly(); } }

@@ -11,6 +11,8 @@ using Dot42.CompilerLib.Structure.DotNet;
 using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel;
 using Dot42.DexLib;
+using Dot42.JvmClassLib;
+using Dot42.LoaderLib.Java;
 using Dot42.Mapping;
 using Dot42.Utility;
 using Mono.Cecil;
@@ -36,7 +38,7 @@ namespace Dot42.CompilerLib.CompilerCache
             Body = body;
             MethodEntry = methodEntry;
             ClassSourceFile = classSourceFile;
-            SourceCodePositions = new ReadOnlyCollection<SourceCodePosition>(sourceCodePositions);
+            SourceCodePositions = sourceCodePositions != null ? new ReadOnlyCollection<SourceCodePosition>(sourceCodePositions) : null;
         }
     }
 
@@ -91,7 +93,6 @@ namespace Dot42.CompilerLib.CompilerCache
                 {
                     if(type.ScopeId == null)
                         continue;
-
                     
                     var typeScopeId = GetTypeScopeId(type);
                     
@@ -149,7 +150,6 @@ namespace Dot42.CompilerLib.CompilerCache
             {
                 return null;
             }
-                
 
             if (IsUnderlyingCodeModified(sourceMethod)) 
                 return null;
@@ -159,10 +159,17 @@ namespace Dot42.CompilerLib.CompilerCache
             string typeScopeId = sourceMethod.DeclaringType.ScopeId;
             string methodScopeId = sourceMethod.ScopeId;
 
-            if (!_methodsByScopeId.TryGetValue(Tuple.Create(typeScopeId, methodScopeId), out entry))
-                return null;
+            MethodDefinition cachedMethod;
 
-            var cachedMethod = _dexLookup.GetMethod(entry.Item1.DexName, entry.Item2.DexName, entry.Item2.DexSignature);
+            if (_methodsByScopeId.TryGetValue(Tuple.Create(typeScopeId, methodScopeId), out entry))
+            {
+                cachedMethod = _dexLookup.GetMethod(entry.Item1.DexName, entry.Item2.DexName, entry.Item2.DexSignature);
+            }
+            else
+            {
+                // try directly in the dexlookup, for jar imports
+                cachedMethod = _dexLookup.GetMethod(typeScopeId.Replace("/", "."), targetMethod.Name, targetMethod.Prototype.ToSignature());
+            }
 
             if (cachedMethod == null)
                 return null;
@@ -186,17 +193,20 @@ namespace Dot42.CompilerLib.CompilerCache
                 var body = DexMethodBodyCloner.Clone(targetMethod, cachedMethod);
                 FixReferences(body, compiler, targetPackage);
 
-                var @class = _dexLookup.GetClass(entry.Item1.DexName);
+                string className = entry != null ? entry.Item1.DexName : body.Owner.Owner.Fullname;
+                var @class = _dexLookup.GetClass(className);
 
-                return new CacheEntry(body, entry.Item2, _map.GetSourceCodePositions(entry.Item2), @class.SourceFile);
+                return new CacheEntry(body, entry != null ? entry.Item2 : null, entry != null ? _map.GetSourceCodePositions(entry.Item2) : null, @class.SourceFile);
             }
             catch (CompilerCacheResolveException ex)
             {
                 // This happens at the moment for methods using fields in the __generated class,
                 // as well as for references to generated methods (mostly explicit interfac stubs)
                 // during the IL conversion phase.
-                // The number of these failures in my test is 800 out of ~9000. We gracefully
-                // handle it by re-compiling the method body.
+                // This also seems to happen for Framework-nested classes, maybe because these do
+                // not get an entry in the map file. This should be fixed.
+                // The number of these failures in my test is 890 out of ~12000. We gracefully
+                // handle errors by re-compiling the method body.
                 Debug.WriteLine(string.Format("Compiler cache: error while converting cached body: {0}: {1}. Not using cached body.", sourceMethod, ex.Message));
                 return null;
             }
@@ -221,10 +231,12 @@ namespace Dot42.CompilerLib.CompilerCache
             }
             else if (javaMethod != null)
             {
-                // TODO: implement this for Java methods as well.
-                //       all that's missing seems to be some kind of
-                //       modification detection.
-                return true;
+                var javaType = (XModel.Java.XBuilder.JavaTypeDefinition)javaMethod.DeclaringType;
+                var classFile = (ClassFile) javaType.OriginalTypeDefinition;
+                var loader = classFile.Loader as AssemblyClassLoader;
+                var assembly = loader == null ? null : loader.GetAssembly(classFile);
+                if (assembly == null || _modifiedDetector.IsModified(assembly))
+                    return true;
             }
             else
             {

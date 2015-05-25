@@ -104,12 +104,24 @@ namespace Dot42.CompilerLib.Structure.Java
                 return;
 
             // Create body (if any)
-            if (method.HasCode)
+            if (!method.HasCode) 
+                return;
+
+            var cachedBody = compiler.MethodBodyCompilerCache.GetFromCache(dmethod, xMethod, compiler, targetPackage);
+
+            if (cachedBody != null)
             {
-                //ExpandSequencePoints(method.Body);
-                var source = new MethodSource(xMethod, method);
-                DexMethodBodyCompiler.TranslateToRL(compiler, targetPackage, source, dmethod, false, out compiledMethod);
+                dmethod.Body = cachedBody.Body;
+                // important to fix the owners source file as early as possible, 
+                // so it can't be changed later. Else we would have to recreate
+                // all cached method bodies debug infos.
+                dmethod.Owner.SetSourceFile(cachedBody.ClassSourceFile);
+                return;
             }
+
+            //ExpandSequencePoints(method.Body);
+            var source = new MethodSource(xMethod, method);
+            DexMethodBodyCompiler.TranslateToRL(compiler, targetPackage, source, dmethod, false, out compiledMethod);
         }
 
         /// <summary>

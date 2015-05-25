@@ -95,7 +95,7 @@ namespace Dot42.DexLib
             builder.Append(")");
             builder.Append(ReturnType.Descriptor);
 
-            if (!IsFrozen)
+            if (IsFrozen)
                 return _signatureCache = builder.ToString();
 
             return builder.ToString();            
