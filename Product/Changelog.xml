@@ -2,8 +2,12 @@
 <versionhistory>
   <product>Dot42</product>
   <latest>
-    <problem>Creating new projects failed because of reference to signed assemblies.</problem>
   </latest>
+  <release>
+    <version>1.0.1.83</version>
+    <date>May 25, 2015</date>
+    <problem>Creating new projects failed because of reference to signed assemblies.</problem>
+  </release>
   <release>
     <version>1.0.1.82</version>
     <date>Januari 15, 2015</date>
