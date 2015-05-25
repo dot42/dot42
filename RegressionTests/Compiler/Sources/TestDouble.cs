@@ -9,6 +9,7 @@ namespace Dot42.Tests.Compiler.Sources
         private double d1 = 1, d1_1 = 1;
         private double d2 = 2, d5 = 5, d7 = 7;
         private double dNaN = double.NaN;
+        private double d0 = 0.0;
 
         public void testSimpleEqual1()
         {
@@ -118,6 +119,13 @@ namespace Dot42.Tests.Compiler.Sources
         {
             var i = 2.0;
             AssertTrue(10.0 / i == 5.0);
+        }
+
+        public void testDiv6()
+        {
+            AssertTrue(double.IsPositiveInfinity(d1 / d0));
+            AssertTrue(double.IsNegativeInfinity(-d1 / d0));
+            AssertTrue(double.IsNaN(d0 / d0));
         }
 
         public void testRem1()

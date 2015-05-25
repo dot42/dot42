@@ -586,6 +586,11 @@ namespace Dot42.Tests.Compiler.Sources
             new EnumConversionFromVariableTests().TestCallSByteMethod1();
         }
 
+        public void testEnumByReference()
+        {
+            new EnumConversionFromVariableTests().TestCallByReference();
+        }
+
         public static IList<object> GetValues(Type enumType)
         {
             if (!enumType.IsEnum)
@@ -640,8 +645,15 @@ namespace Dot42.Tests.Compiler.Sources
             {
                 TwoFields twoFields = TwoFields.Noot;
                 AssertEquals(TwoFields.Noot, WithVarArg(twoFields));
+                AssertTrue(VarArgsIsNoot(twoFields));
             }
 
+
+            public void TestCallByReference()
+            {
+                TwoFields twoFields = TwoFields.Noot;
+                AssertTrue(EnumReferenceIsNoot(ref twoFields));
+            }
             public void TestCallSByteMethod()
             {
                 EnumSByte e = EnumSByte.V1;
@@ -661,6 +673,16 @@ namespace Dot42.Tests.Compiler.Sources
             public static object WithVarArg(params object[] args)
             {
                 return args[0];
+            }
+
+            public static bool VarArgsIsNoot(params object[] args)
+            {
+                return TwoFields.Noot == (TwoFields)args[0];
+            }
+
+            public static bool EnumReferenceIsNoot(ref TwoFields val)
+            {
+                return TwoFields.Noot == val;
             }
 
         }

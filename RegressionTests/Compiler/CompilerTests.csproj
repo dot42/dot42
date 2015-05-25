@@ -58,6 +58,16 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <AfterBuildDependsOn>Test</AfterBuildDependsOn>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ReleaseAndTest|AnyCPU'">
+    <OutputPath>bin\ReleaseAndTest\</OutputPath>
+    <DefineConstants>TRACE;DOT42</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+	<AfterBuildDependsOn>Test</AfterBuildDependsOn>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Dot42" />
     <Reference Include="System" />

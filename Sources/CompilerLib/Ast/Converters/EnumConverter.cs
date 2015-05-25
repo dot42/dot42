@@ -222,6 +222,10 @@ namespace Dot42.CompilerLib.Ast.Converters
             {
                 ConvertNumericToEnum(node, enumType, retType);
             }
+            else
+            {
+                node.InferredType = retType;
+            }
         }
 
         /// <summary>
