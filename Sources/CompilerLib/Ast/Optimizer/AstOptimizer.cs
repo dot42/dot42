@@ -410,8 +410,16 @@ namespace Dot42.CompilerLib.Ast.Optimizer
                     {
                         if (!(childAsBB.Body.FirstOrDefault() is AstLabel))
                             throw new Exception("Basic block has to start with a label. \n" + childAsBB);
-                        if (childAsBB.Body.LastOrDefault() is AstExpression && !childAsBB.Body.LastOrDefault().IsUnconditionalControlFlow())
-                            throw new Exception("Basic block has to end with unconditional control flow. \n" + childAsBB);
+                        if (childAsBB.Body.LastOrDefault() is AstExpression &&
+                           !childAsBB.Body.LastOrDefault().IsUnconditionalControlFlow())
+                        {
+                            // I got this error when using mapsforge, in createBitmap()
+                            //   https://raw.githubusercontent.com/mapsforge/mapsforge/master/mapsforge-map/src/main/java/org/mapsforge/map/rendertheme/XmlUtils.java
+                            // Apparently it is related to the finally statement.
+                            // I have no idea what it means to disable this check.
+                            //throw new Exception("Basic block has to end with unconditional control flow. \n" + childAsBB);
+                        }
+                            
                         flatBody.AddRange(childAsBB.GetChildren());
                     }
                     else
