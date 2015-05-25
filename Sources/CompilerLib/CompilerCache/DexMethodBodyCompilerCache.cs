@@ -316,7 +316,7 @@ namespace Dot42.CompilerLib.CompilerCache
         {
             TypeEntry typeEntry;
             MethodEntry methodEntry = _map.GetMethodByDexSignature(methodRef.Owner.Fullname, methodRef.Name, methodRef.Prototype.ToSignature());
-            string scopeId;
+            string scopeId = null;
 
             if (methodEntry != null)
             {
@@ -335,14 +335,15 @@ namespace Dot42.CompilerLib.CompilerCache
                     var delInstanceType = GetDelegateInstanceType(typeEntry, methodRef.Owner, compiler, targetPackage);
                     return new MethodReference(delInstanceType.InstanceDefinition, methodRef.Name, methodRef.Prototype);
                 }
-                scopeId = methodRef.Name + methodRef.Prototype.ToSignature();
             }
 
-            if(scopeId == null || scopeId == "(none)")
+            if(scopeId == null)
+                scopeId = methodRef.Name + methodRef.Prototype.ToSignature();
+
+            if(scopeId == "(none)")
                 throw new CompilerCacheResolveException("unable to resolve method without scope: " + methodRef);
             
             var xTypeDef =  ResolveToType(typeEntry, methodRef.Owner, compiler);
-
 
             var methodDef = xTypeDef.GetMethodByScopeId(scopeId);
 
@@ -410,6 +411,11 @@ namespace Dot42.CompilerLib.CompilerCache
                 string scopeId = GetTypeScopeId(type);
                 xTypeDef = compiler.Module.GetTypeByScopeID(scopeId);
             }
+            else
+            {
+                string scopeId = sourceRef.Descriptor.Substring(1,sourceRef.Descriptor.Length-2);
+                xTypeDef = compiler.Module.GetTypeByScopeID(scopeId);
+            }
 
             if (xTypeDef == null)
             {
@@ -425,12 +431,12 @@ namespace Dot42.CompilerLib.CompilerCache
 
         private static string GetTypeScopeId(string scope, string scopeId, string typeFullname)
         {
-            return scope == null ? typeFullname : string.Join(":", scope, scopeId);
+            return scope == null || scopeId == null ? typeFullname : string.Join(":", scope, scopeId);
         }
 
         private bool IsDelegateInstance(TypeEntry type)
         {
-            return type.ScopeId != null && type.ScopeId.Contains(":delegate:");
+            return type != null && type.ScopeId != null && type.ScopeId.Contains(":delegate:");
         }
 
     }

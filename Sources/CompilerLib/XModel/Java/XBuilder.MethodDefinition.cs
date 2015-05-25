@@ -145,7 +145,7 @@ namespace Dot42.CompilerLib.XModel.Java
                 get { return !method.IsStatic && (method.IsPrivate || method.IsConstructor); }
             }
 
-            public override string ScopeId { get { return method.Descriptor; } }
+            public override string ScopeId { get { return method.Name + method.Descriptor; } }
 
             /// <summary>
             /// Should this method be called with invoke_interface?

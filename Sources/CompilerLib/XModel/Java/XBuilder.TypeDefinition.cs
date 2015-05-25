@@ -225,7 +225,7 @@ namespace Dot42.CompilerLib.XModel.Java
             /// <summary>
             /// our unique id, constant accross builds.
             /// </summary>
-            public override string ScopeId { get { return FullName; } }
+            public override string ScopeId { get { return type.ClassName; } }
 
             /// <summary>
             /// Is this type reachable?
