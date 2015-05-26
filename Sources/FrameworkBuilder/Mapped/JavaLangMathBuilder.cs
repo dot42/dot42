@@ -34,6 +34,22 @@ namespace Dot42.FrameworkBuilder.Mapped
             {
                 renamer.Rename(method, "Ceiling");
             }
+            else if (method.Name == "IEEEremainder")
+            {
+                renamer.Rename(method, "IEEERemainder");
+            }
+            else if (method.Name == "Abs")
+            {
+                renamer.Rename(method, "JavaAbs");
+            }
+            else if (method.Name == "Round")
+            {
+                renamer.Rename(method, "JavaRound");
+            }
+            else if (method.Name == "Pow")
+            {
+                renamer.Rename(method, "JavaPow");
+            }
         }
     }
 }
