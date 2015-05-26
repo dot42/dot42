@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Dot42.DebuggerLib;
 using Dot42.DebuggerLib.Model;
 using Dot42.DexLib.OpcodeHelp;
@@ -17,6 +18,7 @@ namespace Dot42.VStudio.Debugger
 
         private DebugDocumentContext documentContext;
         private List<DalvikValue> values;
+        private static readonly Regex castRegisterExpression = new Regex(@"^(?:[ ]*\([ ]*([^)]*)[ ]*\))?[ ]*([rRpP])([0-9]+)[ ]*$", RegexOptions.CultureInvariant); 
 
         /// <summary>
         /// Default ctor
@@ -117,13 +119,46 @@ namespace Dot42.VStudio.Debugger
                 ppExpr = new DebugExpression(new DebugRegisterGroupProperty(this, false));
                 return VSConstants.S_OK;
             }
-            
+
             // try to match any of the registers.
-            var reg = GetRegistersAsync().Await(DalvikProcess.VmTimeout).FirstOrDefault(r=>r.Name == pszCode);
-            if (reg != null)
+            var match = castRegisterExpression.Match(pszCode);
+            if (match.Success)
             {
-                ppExpr = new DebugExpression(new DebugStackFrameValueProperty(reg, null, this));
-                return VSConstants.S_OK;                
+                if (match.Groups[1].Success)
+                {
+                    var expr = match.Groups[1].Value.Trim();
+                    var tag = GetTagFromString(expr);
+
+                    int idx = int.Parse(match.Groups[3].Value);
+                    bool isParam = match.Groups[2].Value.ToLower() == "p";
+
+                    if (isParam)
+                    {
+                        if (documentContext == null)
+                            return VSConstants.E_FAIL;
+                        var methodDiss =
+                            Thread.Program.DisassemblyProvider.GetFromLocation(documentContext.DocumentLocation);
+                        if (methodDiss == null)
+                            return VSConstants.E_FAIL;
+                        idx += methodDiss.Method.Body.Registers.Count - methodDiss.Method.Body.IncomingArguments;
+                    }
+
+                    var reg = GetRegistersAsync(false, tag, idx).Await(DalvikProcess.VmTimeout);
+                    if (reg != null && reg.Count > 0)
+                    {
+                        ppExpr = new DebugExpression(new DebugStackFrameValueProperty(reg[0], null, this, pszCode));
+                        return VSConstants.S_OK;
+                    }
+                }
+                else
+                {
+                    var reg = GetRegistersAsync().Await(DalvikProcess.VmTimeout).FirstOrDefault(r => r.Name == pszCode);
+                    if (reg != null)
+                    {
+                        ppExpr = new DebugExpression(new DebugStackFrameValueProperty(reg, null, this));
+                        return VSConstants.S_OK;
+                    }
+                }
             }
 
             // try to match opcode help (in disassembly)
@@ -260,6 +295,52 @@ namespace Dot42.VStudio.Debugger
             if (values != null) return values;
             values = base.GetValuesAsync().Await(DalvikProcess.VmTimeout);
             return values;
+        }
+
+        /// <summary>
+        /// TODO: this belongs somewhere else.
+        /// </summary>
+        private static Jdwp.Tag GetTagFromString(string expr)
+        {
+            Jdwp.Tag tag;
+            switch (expr)
+            {
+                case "double":
+                    tag = Jdwp.Tag.Double;
+                    break;
+                case "float":
+                case "single":
+                    tag = Jdwp.Tag.Float;
+                    break;
+                case "char":
+                    tag = Jdwp.Tag.Char;
+                    break;
+                case "long":
+                    tag = Jdwp.Tag.Long;
+                    break;
+                case "object":
+                    tag = Jdwp.Tag.Object;
+                    break;
+                case "string":
+                    tag = Jdwp.Tag.String;
+                    break;
+                case "byte":
+                    tag = Jdwp.Tag.Byte;
+                    break;
+                case "short":
+                    tag = Jdwp.Tag.Short;
+                    break;
+                case "Type":
+                    tag = Jdwp.Tag.ClassObject;
+                    break;
+                case "int":
+                    tag = Jdwp.Tag.Int;
+                    break;
+                default:
+                    tag = Jdwp.Tag.Int;
+                    break;
+            }
+            return tag;
         }
     }
 }

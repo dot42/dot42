@@ -187,7 +187,14 @@ namespace Dot42.VStudio.Debugger
         private string FormatPrimitive(DalvikValue value, int dwRadix)
         {
             if (dwRadix != 16)
+            {
+                if (value.Tag == Jdwp.Tag.Double)
+                    return ((double)value.Value).ToString("R");
+                if (value.Tag == Jdwp.Tag.Float)
+                    return ((double)value.Value).ToString("R");
                 return value.Value.ToString();
+            }
+                
 
             switch (value.Tag)
             {

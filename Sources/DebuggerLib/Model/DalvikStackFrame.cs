@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Dot42.DexLib.Instructions;
 using TallComponents.Common.Extensions;
 
 namespace Dot42.DebuggerLib.Model
@@ -102,11 +103,11 @@ namespace Dot42.DebuggerLib.Model
         /// Get all local registers for this frame.
         /// </summary>
         /// <returns></returns>
-        public Task<List<DalvikStackFrameValue>> GetRegistersAsync(bool parametersOnly = false)
+        public Task<List<DalvikStackFrameValue>> GetRegistersAsync(bool parametersOnly = false, Jdwp.Tag type = Jdwp.Tag.Int, params int[] indizes)
         {
             if (parametersOnly && parameters != null)
                 return parameters.AsTask();
-            if (!parametersOnly && registers != null) 
+            if (!parametersOnly && registers != null && indizes.Length == 0) 
                 return registers.AsTask();
 
             return Task.Factory.StartNew(() =>
@@ -115,40 +116,59 @@ namespace Dot42.DebuggerLib.Model
 
                 var loc = GetDocumentLocationAsync().Await(DalvikProcess.VmTimeout);
 
-                var methodDiss = thread.Manager.Process.DisassemblyProvider.GetFromLocation(loc);
+                List<Register> regDefs;
+                
+                MethodDisassembly methodDiss = thread.Manager.Process.DisassemblyProvider.GetFromLocation(loc);
 
-                if (methodDiss == null)
-                    return ret;
+                if(indizes.Length == 0)
+                {
+                    if (methodDiss == null)
+                        return ret;
 
-                var process = thread.Manager.Process;
-                var body = methodDiss.Method.Body;
-                var regDefs = (parametersOnly ? body.Registers.Where(r=>body.IsComing(r))
+                    var body = methodDiss.Method.Body;
+                    regDefs = (parametersOnly ? body.Registers.Where(r=>body.IsComing(r))
                                               : body.Registers)
+                              .Where(p => indizes.Length == 0 || indizes.Contains(p.Index))
                               .OrderBy(p=>p.Index)
                               .ToList();
-
-
-                var requests = regDefs.Select(reg =>
+                }
+                else
                 {
-                    //var dataType = reg.IsBits4 ? Jdwp.Tag.Int : Jdwp.Tag.Long; // this doesn't work for unknown reasons.
-                    var dataType = Jdwp.Tag.Int;
-                    return new SlotRequest(reg.Index, dataType);
-                }).ToList();
+                    regDefs = indizes.Select(i => new Register(i)).ToList();
+                }
+
+                var requests = regDefs.Select(reg => new SlotRequest(reg.Index, type)).ToList();
    
                 var regValues = Debugger.StackFrame.GetValuesAsync(thread.Id, Id, requests.ToArray())
                                                    .Await(DalvikProcess.VmTimeout);
 
+                var process = thread.Manager.Process;
                 for (int i = 0; i < regDefs.Count && i < regValues.Count; ++i)
                 {
                     var reg = regDefs[i];
-                    bool isParam = body.IsComing(reg);
+                    if (methodDiss != null)
+                    {
+                        var body = methodDiss.Method.Body;
+                        bool isParam = body.IsComing(reg);
 
-                    string regName = MethodDisassembly.FormatRegister(reg, body);
-                    var valInfo = new VariableInfo(0, regName, null, null, body.Instructions.Count, reg.Index);
+                        string regName = MethodDisassembly.FormatRegister(reg, body);
+                        var valInfo = new VariableInfo(0, regName, null, null, body.Instructions.Count, reg.Index);
 
-                    var val = new DalvikStackFrameValue(regValues[i], valInfo, isParam, process);
-                    ret.Add(val);
+                        DalvikStackFrameValue val = new DalvikStackFrameValue(regValues[i], valInfo, isParam, process);
+                        ret.Add(val);
+                    }
+                    else
+                    {
+                        string regName = "r" + reg.Index;
+                        var valInfo = new VariableInfo(0, regName, null, null, int.MaxValue, reg.Index);
+
+                        var val = new DalvikStackFrameValue(regValues[i], valInfo, false, process);
+                        ret.Add(val);
+                    }
                 }
+
+                if (indizes.Length > 0)
+                    return ret;
 
                 if(parametersOnly)
                     parameters = parameters ?? ret;

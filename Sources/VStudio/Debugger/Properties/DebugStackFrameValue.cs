@@ -9,12 +9,14 @@ namespace Dot42.VStudio.Debugger
     internal sealed class DebugStackFrameValueProperty : DebugValueProperty
     {
         private readonly DebugStackFrame _stackFrame;
+        private readonly string _forceName;
         private readonly bool _forceHex;
 
-        public DebugStackFrameValueProperty(DalvikValue value, DebugProperty parent, DebugStackFrame stackFrame,bool forceHex=false)
+        public DebugStackFrameValueProperty(DalvikValue value, DebugProperty parent, DebugStackFrame stackFrame, string forceName=null, bool forceHex=false)
             : base(value, parent)
         {
             _stackFrame = stackFrame;
+            _forceName = forceName;
             _forceHex = forceHex;
         }
 
@@ -22,6 +24,14 @@ namespace Dot42.VStudio.Debugger
         {
             var info = base.ConstructDebugPropertyInfo(dwFields, _forceHex ? 16:dwRadix);
 
+            if (_forceName != null && info.dwFields.HasFlag(enum_DEBUGPROP_INFO_FLAGS.DEBUGPROP_INFO_NAME))
+            {
+                info.bstrName     = _forceName;
+            }
+            if (_forceName != null && info.dwFields.HasFlag(enum_DEBUGPROP_INFO_FLAGS.DEBUGPROP_INFO_FULLNAME))
+            {
+                info.bstrFullName = _forceName;
+            }
             if (info.dwFields.HasFlag(enum_DEBUGPROP_INFO_FLAGS.DEBUGPROP_INFO_ATTRIB))
             {
                 // allow editing values.
