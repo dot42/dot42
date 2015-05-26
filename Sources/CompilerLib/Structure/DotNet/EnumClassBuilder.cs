@@ -157,6 +157,16 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 Class.Methods.Add(longValue.GetDexMethod(Class, targetPackage));
             }
 
+            // Build values() method
+            var valuesMethod = XSyntheticMethodDefinition.Create(XType, XSyntheticMethodFlags.Static, NameConstants.Enum.ValuesMethodName, null, new XArrayType(XType));
+            valuesMethod.Body = CreateValuesBody(enumInfoField, module.TypeSystem);
+            Class.Methods.Add(valuesMethod.GetDexMethod(Class, targetPackage));
+
+            // Build valueOf(string) method
+            var valueOfMethod = XSyntheticMethodDefinition.Create(XType, XSyntheticMethodFlags.Static, NameConstants.Enum.ValueOfMethodName, null, XType, XParameter.Create("name", module.TypeSystem.String));
+            valueOfMethod.Body = CreateValueOfBody(valueOfMethod, enumInfoField, module.TypeSystem);
+            Class.Methods.Add(valueOfMethod.GetDexMethod(Class, targetPackage));
+
             // Build Unbox(object) method
             unboxMethod = XSyntheticMethodDefinition.Create(XType, XSyntheticMethodFlags.Static, NameConstants.Enum.UnboxMethodName, null, XType, XParameter.Create("value", Compiler.Module.TypeSystem.Object));
             unboxMethod.Body = CreateUnboxBody(unboxMethod, isWide, Compiler);
@@ -292,6 +302,46 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 new AstExpression(AstNode.NoSource, AstCode.Ret, null,
                     new AstExpression(AstNode.NoSource, AstCode.Ldfld, valueField,
                         new AstExpression(AstNode.NoSource, AstCode.Ldthis, null))));
+        }
+
+        /// <summary>
+        /// Create the body of the values() method.
+        /// </summary>
+        private AstBlock CreateValuesBody(XFieldDefinition enumInfoField, XTypeSystem typeSystem)
+        {
+            
+            var internalEnumInfoType = Compiler.GetDot42InternalType("EnumInfo");
+            var valuesMethod = new XMethodReference.Simple("Values", true, typeSystem.Object, internalEnumInfoType);
+
+            var ast = AstBlock.CreateOptimizedForTarget(
+                new AstExpression(AstNode.NoSource, AstCode.Ret, null,
+                    new AstExpression(AstNode.NoSource, AstCode.SimpleCastclass, new XArrayType(XType),
+                        new AstExpression(AstNode.NoSource, AstCode.Call, valuesMethod,
+                            new AstExpression(AstNode.NoSource, AstCode.Ldsfld, enumInfoField)))));
+            return ast;
+        }
+
+        /// <summary>
+        /// Create the body of the valueOf(string) method.
+        /// </summary>
+        private AstBlock CreateValueOfBody(XSyntheticMethodDefinition method, XFieldDefinition enumInfoField, XTypeSystem typeSystem)
+        {
+            var internalEnumType = Compiler.GetDot42InternalType("Enum");
+            var internalEnumInfoType = Compiler.GetDot42InternalType("EnumInfo");
+            var parseMethod = new XMethodReference.Simple("Parse", true, internalEnumType, internalEnumInfoType,
+                                                    XParameter.Create("value", typeSystem.String),
+                                                    XParameter.Create("ignoreCase", typeSystem.Bool),
+                                                    XParameter.Create("throwIfNotFound", typeSystem.Bool));
+
+            var ast = AstBlock.CreateOptimizedForTarget(
+               new AstExpression(AstNode.NoSource, AstCode.Ret, null,
+                   new AstExpression(AstNode.NoSource, AstCode.SimpleCastclass, XType,
+                            new AstExpression(AstNode.NoSource, AstCode.Call, parseMethod,
+                               new AstExpression(AstNode.NoSource, AstCode.Ldsfld, enumInfoField),
+                               new AstExpression(AstNode.NoSource, AstCode.Ldloc, method.AstParameters[0]),
+                               new AstExpression(AstNode.NoSource, AstCode.Ldc_I4, 0),
+                               new AstExpression(AstNode.NoSource, AstCode.Ldc_I4, 1)))));
+            return ast;
         }
 
         /// <summary>

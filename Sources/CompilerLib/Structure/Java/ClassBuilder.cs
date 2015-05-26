@@ -127,6 +127,8 @@ namespace Dot42.CompilerLib.Structure.Java
                 classDef.IsAnnotation = true;
             }
 
+            classDef.IsEnum = typeDef.IsEnum;
+
             if (parent != null)
             {
                 // Add to parent if this is a nested type

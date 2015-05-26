@@ -12,6 +12,8 @@
             internal const string DefaultFieldName = "default$";
 
             internal const string UnboxMethodName = "unbox";
+            internal const string ValuesMethodName = "values";
+            internal const string ValueOfMethodName = "valueOf";
         }
 
         public static class Struct
