@@ -1,20 +1,15 @@
-﻿using System.Diagnostics;
-using System.Linq;
-using System.Linq.Expressions;
-using Dot42.CompilerLib.Extensions;
+﻿using System.Linq;
 using Dot42.CompilerLib.XModel;
 using Dot42.Utility;
 
 namespace Dot42.CompilerLib.Ast.Converters
 {
     /// <summary>
-    /// Will surround all calls to System.Interlocked with a lock.
+    /// For instance fields, Will redirect calls to System.Threading.Interlocked 
+    /// to an AtomicXXXFieldUpdater.
+    /// For static fields, will surround all calls to System.Interlocked with a lock.
     /// It is important keep in mind to also surround the parameter 
     /// reference conversion performed by dot42.
-    /// For instance-field references this lock will be held on the
-    /// containing class, for static fields on the classes type.
-    /// This is only an intermediate solution. See my comments on the
-    /// System.Interlocked class for details.
     /// </summary>
     internal static class InterlockedConverter 
     {
@@ -88,8 +83,8 @@ namespace Dot42.CompilerLib.Ast.Converters
                 replacementMethod = "GetAndSet";
             else if (methodName.StartsWith("CompareExchange"))
             {
-                // the semantics here are slighlty different. Java returns a 'true' on 
-                // success, while BCL return the old value. We have crafted a replacement 
+                // The semantics here are slighlty different. Java returns a 'true' on 
+                // success, while BCL returns the old value. We have crafted a replacement 
                 // method with the BCL semantics though.
                 replacementMethod = "CompareExchange";
             }
