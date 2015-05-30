@@ -5,7 +5,7 @@
 The changes focus on improving compatibility with existing .NET code. Both Json.NET and MvvmCross will run with this release with only minor modifications.
 Other improvements include performance and the Visual Studio Debugger.  
 
-**Changes since the first Github Dot42 release (1.1.0.81/82)**
+**Changes since the first Github Dot42 release (1.1.0.81)**
 
 
 
@@ -127,10 +127,11 @@ Other improvements include performance and the Visual Studio Debugger.
 	- better compatibility for enums with the same value. 
 
 - Fixed quite a few of the dreaded dalvik verification errors
-	- in System.Convert
+	- in `System.Convert`
 	- when implementing an interface using an inherited method
 	- when using `volatile` on primitive types. 
-	- when a base class has protected methods/fields and a subclass of a derived class tries to access these fields/methods 
+	- when a base class has protected methods/fields and a subclass of a derived class tries to access these fields/methods
+	- enums would trigger verify errors in release mode on binary operations when used by reference 
 	- in several other places
 
 
@@ -147,22 +148,23 @@ Other improvements include performance and the Visual Studio Debugger.
 - Fixed compilation errors due to types with same namespace and name being in more than one assembly. This happens regularly to compiler generated classes without namespace, but could also happen due to private classes, especially attributes, being duplicated in assemblies.
   The fix at the moment is to always prepend the scope, i.e. the assembly name, to the namespace. *Note: There should be a better solution.*
 
-- Swapped out a broken `decimal` implementation by a wrapper around `java.math.BigDecimal`. The new implementation is largely untested, but  it does not provoke a dalvik verification error when being used. It would be great if someone who actually uses `decimal` could thoroughly test the wrapper and report (or fix) problems.
+- Fixed `float`/`double` comparison producing wrong result when comparing `>` or  `>=` and one of the operands is `NaN`.
+
+- Swapped out a broken `decimal` implementation by a wrapper around `java.math.BigDecimal`. The new implementation is largely untested, but  it does not provoke a dalvik verification error when being used. It would be great if someone who actually uses `decimal` could thoroughly test the wrapper and report (or fix) potential problems.
 
 - Added optimizations for immutable structs, preventing them being unnecessary cloned or instantiated. See [BUGS_AND_LIMITATIONS.md](BUGS_AND_LIMITATIONS.md).
 
 - Code generation optimizations:
-	- significantly reduced the number of generated branch/comparison instructions.
+	- significantly reduced the number of generated branch/comparison instructions, leading to both reduced code size and improved runtime performance.
 	- dead code elimination
 	- collapse empty try blocks
 	- collapse goto-chains (how is this called?)
 	- eliminate empty switch statements
 
 - Significant compiler performance optimizations:
-	- Reduced compile time by more than 50% by rewriting several hotspots (measured with CLR only project)
+	- Reduced compile time by more than 50% by rewriting several hotspots (measured with CLR only project).
 	- Making use of more than one processor during some of the compilation steps results in another 10% or so reduction, on a dual core system.  
 	- Introduced a compiler cache for incremental builds, leading to up to 50% reduction in compile time. With the other optimizations, depending on the number of assemblies changed, this can lead to a total reduction of compile time of over 75%.
-	The compiler cache is currently only enabled for .NET assemblies, but it should be simple to support imported .jars as well.
 
 - Modified several algorithms to make the compiler output stable and independent of the used .NET runtime. This is valuable when working on the compiler itself to quickly check for regressions with e.g. WinMerge. These changes include: 
 	- FrameworkBuilder/JarImporter generating classes in alphabetical order.
@@ -171,7 +173,15 @@ Other improvements include performance and the Visual Studio Debugger.
 
 - Allow the user to define types in `System` namespace, instead of failing with a nondescript error message.   
   
-- fixed resource id generator generating wrong indices for styleables
+- Fixed resource id generator generating wrong indices for styleables
+- Fixed `.jar`-imported enums not being parsable by `Enum<T>.valueOf`
+- Fixed `.jar` import possibly leading to dalvik verify error due to reachable walker not looking at interfaces of interfaces.
+- Fixed `MultiNewarr` instruction in `.jar` import leading to compiler crash.
+- (hopefully) fixed a problem with `finally` statements in `.jar` imports leading to compiler errors. 
+- Fixed accessing `.jar`-imported fields from .NET code leading to  compiler errors.
+
+- For embedded resources under an "Asset" folder, try to reconstruct an Android-compatible asset path. 
+  
 
 ###### Changes to the Framework / API
 
@@ -181,7 +191,7 @@ Other improvements include performance and the Visual Studio Debugger.
 - Made the collection classes inheritance match .NETs, fixed some signatures.
 - Added `Queue<T>`
 - Added `LinkedList<>`, and `Tuple<>` from mono
-- Improved performance for List copying / initialization / AddRange /InsertRange
+- Improved performance for List copying / initialization / `AddRange` / `InsertRange`
 - Added `ISet<T>.IntersectWith`
 - Added `List<T>.Sort` and `List<T>.RemoveRange` 
 - Fixed `Enumerable.GroupBy` returning groups in arbitrary order.
@@ -189,27 +199,35 @@ Other improvements include performance and the Visual Studio Debugger.
 - Fixed `IReadOnlyCollection<T>`
 - Fixed `string.Split()` with a count parameter not returning final part.
 - Added `StringReader`
-- Fixed various `ArrayList` methods to support `IList` and arrays. 
+- Fixed various `ArrayList` methods to support `IList` and arrays.
+- Fixed `Array.Contains()` to perform a linear search instead of a binary one. 
 - Improved `CultureInfo` and related classes. This should allow formatting and parsing with locales. When no locale is specified the current culture is used, not the invariant culture. This matches the way the BCL operates. 
 - Improved `DateTime` compatibility, including parsing and ToString() with custom formats.
-- Added a basis `DataTimeOffset` implementation. Parsing and formatting are not working though.
+- implemented `IFormattable` on `TimeSpan`, including custom formats.
+- Added a basic `DataTimeOffset` implementation. Parsing and formatting are not implemented yet.
 - Added `SemaphoreSlim` and `AutoResetEvent`
-- Fixed `Task.Run`
-- Fixed `Task.Delay` with CancellationToken   
-- Added `Task.WhenAll`, `Task.WhenAny`, `Task.FromResult`, and `Task.ContinueWith<Action>`
+- Fixed `Task.Run`.
+- Fixed `Task.Delay` with CancellationToken.   
+- Added `Task.WhenAll`, `Task.WhenAny`, `Task.FromResult`, and `Task.ContinueWith(Action)`.
 - Implemented `System.Threading.Interlocked` based on an automatic implementation of an AtomicXxxFieldUpdater. For limitations when used with static fields see  [BUGS_AND_LIMITATIONS.md](BUGS_AND_LIMITATIONS.md).
-- Added `System.Threading.ThreadPool`
+- Added `System.Threading.ThreadPool`.
 - Fixed the implementation of `ThreadPoolScheduler` leading to possible deadlocks due to too few threads being available.
-- Added a simple `Lazy<T>` implementation.
+- Added a simple `Lazy<T>` implementation and `WeakReference<T>`.
 - Added an `[IncludeType]`-Attribute which works like `[Include(ApplyToMembers=true)]`, but is simpler to inject when using automated attribute generators.
 - Added `[assembly: Include(Pattern="...")]`, to allow inclusion of types and members based on matched patterns. For details and examples, see [PRUNING.md](PRUNING.md).
 - Added an `[SerializedParameter]`-Attribute, that can be applied to normal and generic method parameters. Types and objects passed as this parameter will have all their public fields and public and private properties preserved and not pruned. For details and examples, see [PRUNING.md](PRUNING.md).  
 	Using the `[SerializedParameter]`-Attribute allows serialization of anonymous types, and can lead to fewer bugs due to over-pruning of the compiler.
+- Fixed `Delegate.Remove` throwing NullPointerException on event unsubscription if there where no subscribers.
 - Implemented `Delegate.Method` and `Delegate.Target` to allow certain patterns of weak event binding to be used. 
 - Added `Android.App.Application.Context` and  `Android.App.Application.SynchronizationContext` and automatically initialize them during application startup. This mimics Xamarin.Android's behavior.
 - Changes to `Dot42.Manifest.ActivityAttribute`: made `VisibleInLauncher` false by default, added `MainLauncher` property. 
 - Added `Context.StartActivity(Type activityType)`, code-compatible with Xamarin.Android.
-- Quite a few smaller changes, fixes and enhancements
+- Fixed several `System.Math` related issues, including wrong calculations and huge performance increases for `Math.Round`.
+- implemented `Math.Log(double, double)` for arbitrary bases.
+- Fixed several `float`/`double` formatting issues.
+- Significantly improved number formatting performance.
+- Fixed `string.Format` throwing an exception when `obj.ToString()` returns `null`. 
+- Quite a few smaller changes, fixes and enhancements.
 
 ###### *Breaking changes*
 
@@ -225,6 +243,8 @@ Other improvements include performance and the Visual Studio Debugger.
 		- **When a property is generated, the original method will no longer be generated**, as this lead to IntelliSense clutter,  confusion about whether to use the property or the setter/getter, and problems when overriding such a method/property.  
 		- Removed the `Type` property on `System.Object`, to reduce warnings and confusion with classes that define a property  `Type`. Also reduces clutter in IntelliSense.
 		- Do not automatically prepend an `Is` to boolean properties, if there wasn't one to begin with. The source code contains comments on this decision. 
+	
+	- For methods containing `sbyte` (in java: `byte`) parameters or return values, Dot42 generally creates two overloads, one with `byte` parameters, and one with `sbyte`. The default overload is now `byte`, which is the more common semantic. This only makes a difference when overriding such a method.
 	  
 	- When generating the `R` ressource-constants class, don't append an additional 's' to the subtypes.
 	- Many of the changes will improve source code compatibility with Xamarin.Android as well.
@@ -244,6 +264,7 @@ Other improvements include performance and the Visual Studio Debugger.
 - Show the exception message next to the exception type when breaking on an exception; also show information of whether it's a first chance exception.
 - (Hopefully) fixed occasions where exceptions reported by the VM for an already dead thread would lead to freezing of the debuggee.
 - Fixed some cases where the user would have to press "step over"/"step into" multiple times to advance to the next statement.
+- Fixed display of `float`/`double` rounding - and not showing - the least significant digits.
 
 ###### ApkSpy
 - Don't keep a lock on opened .apks
