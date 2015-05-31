@@ -124,41 +124,12 @@ namespace Dot42.VStudio.Debugger
             var match = castRegisterExpression.Match(pszCode);
             if (match.Success)
             {
-                if (match.Groups[1].Success)
-                {
-                    var expr = match.Groups[1].Value.Trim();
-                    var tag = GetTagFromString(expr);
+                var castExpr = match.Groups[1].Value.Trim();
+                var registerType = match.Groups[2].Value;
+                int index = int.Parse(match.Groups[3].Value);
 
-                    int idx = int.Parse(match.Groups[3].Value);
-                    bool isParam = match.Groups[2].Value.ToLower() == "p";
-
-                    if (isParam)
-                    {
-                        if (documentContext == null)
-                            return VSConstants.E_FAIL;
-                        var methodDiss =
-                            Thread.Program.DisassemblyProvider.GetFromLocation(documentContext.DocumentLocation);
-                        if (methodDiss == null)
-                            return VSConstants.E_FAIL;
-                        idx += methodDiss.Method.Body.Registers.Count - methodDiss.Method.Body.IncomingArguments;
-                    }
-
-                    var reg = GetRegistersAsync(false, tag, idx).Await(DalvikProcess.VmTimeout);
-                    if (reg != null && reg.Count > 0)
-                    {
-                        ppExpr = new DebugExpression(new DebugStackFrameValueProperty(reg[0], null, this, pszCode));
-                        return VSConstants.S_OK;
-                    }
-                }
-                else
-                {
-                    var reg = GetRegistersAsync().Await(DalvikProcess.VmTimeout).FirstOrDefault(r => r.Name == pszCode);
-                    if (reg != null)
-                    {
-                        ppExpr = new DebugExpression(new DebugStackFrameValueProperty(reg, null, this));
-                        return VSConstants.S_OK;
-                    }
-                }
+                ppExpr = new DebugRegisterExpression(this, pszCode, registerType, index, castExpr);
+                return VSConstants.S_OK;   
             }
 
             // try to match opcode help (in disassembly)
@@ -295,52 +266,6 @@ namespace Dot42.VStudio.Debugger
             if (values != null) return values;
             values = base.GetValuesAsync().Await(DalvikProcess.VmTimeout);
             return values;
-        }
-
-        /// <summary>
-        /// TODO: this belongs somewhere else.
-        /// </summary>
-        private static Jdwp.Tag GetTagFromString(string expr)
-        {
-            Jdwp.Tag tag;
-            switch (expr)
-            {
-                case "double":
-                    tag = Jdwp.Tag.Double;
-                    break;
-                case "float":
-                case "single":
-                    tag = Jdwp.Tag.Float;
-                    break;
-                case "char":
-                    tag = Jdwp.Tag.Char;
-                    break;
-                case "long":
-                    tag = Jdwp.Tag.Long;
-                    break;
-                case "object":
-                    tag = Jdwp.Tag.Object;
-                    break;
-                case "string":
-                    tag = Jdwp.Tag.String;
-                    break;
-                case "byte":
-                    tag = Jdwp.Tag.Byte;
-                    break;
-                case "short":
-                    tag = Jdwp.Tag.Short;
-                    break;
-                case "Type":
-                    tag = Jdwp.Tag.ClassObject;
-                    break;
-                case "int":
-                    tag = Jdwp.Tag.Int;
-                    break;
-                default:
-                    tag = Jdwp.Tag.Int;
-                    break;
-            }
-            return tag;
         }
     }
 }

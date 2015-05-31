@@ -10,19 +10,20 @@ namespace Dot42.VStudio.Debugger
     {
         private readonly DebugStackFrame _stackFrame;
         private readonly string _forceName;
-        private readonly bool _forceHex;
 
-        public DebugStackFrameValueProperty(DalvikValue value, DebugProperty parent, DebugStackFrame stackFrame, string forceName=null, bool forceHex=false)
+        public bool ForceHexDisplay { get; set; }
+        public bool HasSideEffects { get; set; }
+
+        public DebugStackFrameValueProperty(DalvikValue value, DebugProperty parent, DebugStackFrame stackFrame, string forceName=null)
             : base(value, parent)
         {
             _stackFrame = stackFrame;
             _forceName = forceName;
-            _forceHex = forceHex;
         }
 
         internal override DEBUG_PROPERTY_INFO ConstructDebugPropertyInfo(enum_DEBUGPROP_INFO_FLAGS dwFields, uint dwRadix)
         {
-            var info = base.ConstructDebugPropertyInfo(dwFields, _forceHex ? 16:dwRadix);
+            var info = base.ConstructDebugPropertyInfo(dwFields, ForceHexDisplay ? 16 : dwRadix);
 
             if (_forceName != null && info.dwFields.HasFlag(enum_DEBUGPROP_INFO_FLAGS.DEBUGPROP_INFO_NAME))
             {
@@ -38,6 +39,10 @@ namespace Dot42.VStudio.Debugger
                 if(Value.IsPrimitive && Value is DalvikStackFrameValue)
                     info.dwAttrib &= ~enum_DBG_ATTRIB_FLAGS.DBG_ATTRIB_VALUE_READONLY;
                 info.dwAttrib |= enum_DBG_ATTRIB_FLAGS.DBG_ATTRIB_STORAGE_REGISTER;
+
+                if(HasSideEffects)
+                    info.dwAttrib |= enum_DBG_ATTRIB_FLAGS.DBG_ATTRIB_VALUE_SIDE_EFFECT;
+
             }
             return info;
         }

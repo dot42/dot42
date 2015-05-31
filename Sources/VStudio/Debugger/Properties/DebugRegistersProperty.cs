@@ -37,7 +37,7 @@ namespace Dot42.VStudio.Debugger
 
             var registers = _stackFrame.GetRegistersAsync().Await(DalvikProcess.VmTimeout);
             foreach(var value in registers)
-                list.Insert(0, new DebugStackFrameValueProperty(value, this, _stackFrame, null, _forceHexDisplay));
+                list.Insert(0, new DebugStackFrameValueProperty(value, this, _stackFrame) { ForceHexDisplay = _forceHexDisplay});
             list.Reverse();
             return list;
         }

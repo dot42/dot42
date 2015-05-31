@@ -200,6 +200,7 @@
     <Compile Include="Debugger\AD7Guids.cs" />
     <Compile Include="Debugger\DebugDisassemblyStream.cs" />
     <Compile Include="Debugger\DebugExceptionManager.cs" />
+    <Compile Include="Debugger\DebugRegisterExpression.cs" />
     <Compile Include="Debugger\Properties\DebugArrayLengthProperty.cs" />
     <Compile Include="Debugger\Properties\DebugBaseClassProperty.cs" />
     <Compile Include="Debugger\DebugExpression.cs" />

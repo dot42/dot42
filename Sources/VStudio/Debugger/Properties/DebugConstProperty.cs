@@ -9,6 +9,8 @@ namespace Dot42.VStudio.Debugger
         protected readonly string Name;
         protected readonly string Type;
 
+        public bool HasSideEffects { get; set; }
+
         /// <summary>
         /// Default ctor
         /// </summary>
@@ -77,6 +79,10 @@ namespace Dot42.VStudio.Debugger
             {
                 // all properties readonly by default.
                 info.dwAttrib = enum_DBG_ATTRIB_FLAGS.DBG_ATTRIB_VALUE_READONLY;
+
+                if (HasSideEffects)
+                    info.dwAttrib |= enum_DBG_ATTRIB_FLAGS.DBG_ATTRIB_VALUE_SIDE_EFFECT;
+
                 info.dwFields |= enum_DEBUGPROP_INFO_FLAGS.DEBUGPROP_INFO_ATTRIB;
             }
 
