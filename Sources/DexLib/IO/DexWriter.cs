@@ -1031,7 +1031,13 @@ namespace Dot42.DexLib.IO
                         memoryStream.Position = 0;
                         memoryStream.SetLength(0);
 
-                        WriteValues(memoryWriter, values.Take(lastNonNullIndex + 1).ToArray());
+                        var valueArray = values.Take(lastNonNullIndex + 1).ToArray();
+                        // "The type of each array element must match the declared type of its corresponding field."
+                        for (int i = 0; i < valueArray.Length; ++i)
+                            if (valueArray[i] == null)
+                                valueArray[i] = TypeDescriptor.GetDefaultValue(@class.Fields[i].Type);
+
+                        WriteValues(memoryWriter, valueArray);
                         var buffer = memoryStream.ToArray();
                         var key = GetByteArrayKey(buffer);
 

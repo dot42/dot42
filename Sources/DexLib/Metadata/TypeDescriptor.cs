@@ -136,5 +136,29 @@ namespace Dot42.DexLib.Metadata
 
             return result.ToString();
         }
+
+        public static object GetDefaultValue(TypeReference tref)
+        {
+            switch (tref.TypeDescriptor)
+            {
+                case TypeDescriptors.Boolean:
+                    return false;
+                case TypeDescriptors.Byte:
+                    return (sbyte) 0;
+                case TypeDescriptors.Char:
+                    return (char)0;
+                case TypeDescriptors.Double:
+                    return (double)0;
+                case TypeDescriptors.Float:
+                    return (float)0;
+                case TypeDescriptors.Int:
+                    return (int)0;
+                case TypeDescriptors.Long:
+                    return (long)0;
+                case TypeDescriptors.Short:
+                    return (short)0;
+            }
+            return null;
+        }
     }
 }
