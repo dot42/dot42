@@ -148,7 +148,7 @@ namespace Dot42.VStudio.Flavors
                 var key = libNode.DllName.ToLowerInvariant();
                 if (libNames.Contains(key))
                 {
-                    libNode.Checked = false;
+                    libNode.Checked = true;
                 }
             }
 
