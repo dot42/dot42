@@ -359,13 +359,25 @@ namespace Dot42.ImportJarLib
         /// </summary>
         private void CreatePropertyCode(NetPropertyDefinition prop)
         {
-            var mainMethod = (prop.Getter??prop.Setter);
+            var mainMethod = prop.MainMethod;
             CreateComments(prop.Description, mainMethod.OriginalJavaName);
             CreateAttributes(prop.CustomAttributes, prop);
             writer.Write(indent);
-            writer.Write(Convert(mainMethod, mainMethod.Attributes, context.GenerateExternalMethods, false));
-            writer.Write(CreateRef(prop.PropertyType, true, true, true, false, prop.DeclaringType, target));
-            writer.Write(" ");
+
+            if (mainMethod.InterfaceMethod == null)
+            {
+                writer.Write(Convert(mainMethod, mainMethod.Attributes, context.GenerateExternalMethods, false));
+                writer.Write(CreateRef(prop.PropertyType, true, true, true, false, prop.DeclaringType, target));
+                writer.Write(" ");
+            }
+            else
+            {
+                writer.Write(CreateRef(prop.PropertyType, true, true, true, false, prop.DeclaringType, target));
+                writer.Write(" ");
+                writer.Write(CreateRef(mainMethod.InterfaceType, false, true, true, false, mainMethod.DeclaringType, target));
+                writer.Write(".");
+            }
+
             writer.Write(prop.Name);
 
             if (prop.Parameters.Any())

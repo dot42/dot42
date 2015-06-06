@@ -274,10 +274,10 @@ namespace Dot42.ImportJarLib
             {
                 var prop = overridingProperties[i];
 
+                NetPropertyDefinition matchingBaseProp = null;
+
                 if (prop.Getter != null)
                 {
-                    NetPropertyDefinition matchingBaseProp = null;
-
                     // Note: this logic might need to be also applied for the "lone" setter logic below.
                     foreach (var baseProp in allBaseProperties.Where(p=>p.Name == prop.Name))
                     {
@@ -312,19 +312,18 @@ namespace Dot42.ImportJarLib
                 {
                     // this is a "lone" setter. for boolean setters, the name might have changed.
                     // try to match all base properties, update the name if neccessary.
-                    NetPropertyDefinition bestProp = null;
                     foreach (var baseProp in allBaseProperties.Where(g => g.Getter != null && g.Setter != null))
                     {
                         if (FindSetter(baseProp.Getter, new[] {prop.Setter}, true) != null)
                         {
                             if (baseProp.Setter.IsVirtual)
                             {
-                                if (bestProp == null || prop.Name == baseProp.Name)
-                                    bestProp = baseProp;
+                                if (matchingBaseProp == null || prop.Name == baseProp.Name)
+                                    matchingBaseProp = baseProp;
                             }
                         }
                     }
-                    if(bestProp == null)
+                    if(matchingBaseProp == null)
                     { 
                         // remove the property alltogether
                         prop.Setter.Property = null;
@@ -332,7 +331,7 @@ namespace Dot42.ImportJarLib
                         continue;
                     }
 
-                    prop.Name = bestProp.Name;
+                    prop.Name = matchingBaseProp.Name;
                 }
 
 
@@ -346,10 +345,36 @@ namespace Dot42.ImportJarLib
                 var propName = prop.Name;
                 if (propName == typeDef.Name)
                 {
-                    Console.Error.WriteLine("Warning: Not generating inherited property and methods for {0}::{1}: clash with type name.", typeDef.FullName,propName);
-                    typeDef.Properties.Remove(prop);
-                    typeDef.Methods.Remove(prop.Getter);
-                    typeDef.Methods.Remove(prop.Setter);
+                    if (!matchingBaseProp.DeclaringType.IsInterface)
+                    {
+                        Console.Error.WriteLine("Warning: Inherited property {0}::{1} clashes with type name. Skipping generation of property and methods.", typeDef.FullName, propName);
+                        typeDef.Properties.Remove(prop);
+                        typeDef.Methods.Remove(prop.Getter);
+                        typeDef.Methods.Remove(prop.Setter);
+                        continue;
+                    }
+
+                    // make this an explicit interface implementtion.
+                    
+                    // TODO: We might also want to keep a renamed property in this case,
+                    //       too allow access to the property from the class.
+                    //       Also, the explicit implementation does not need a "JavaImport" attribute.
+                    Console.Error.WriteLine("Warning: Inherited property {0}::{1} clashes with type name. Generating explicit implementation.", typeDef.FullName, propName);
+
+                    if (prop.Getter != null)
+                    {
+                        if (matchingBaseProp.Getter != null)
+                            prop.Getter.SetExplicitImplementation(matchingBaseProp.Getter, matchingBaseProp.DeclaringType);
+                        else
+                            prop.Getter = null;
+                    }
+                    if (prop.Setter != null)
+                    {
+                        if (matchingBaseProp.Setter != null)
+                            prop.Setter.SetExplicitImplementation(matchingBaseProp.Setter, matchingBaseProp.DeclaringType);
+                        else
+                            prop.Setter = null;
+                    }
                     continue;
                 }
 
