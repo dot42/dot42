@@ -21,8 +21,10 @@ namespace Dot42.CompilerLib.Structure.DotNet
         private readonly Dictionary<XMethodDefinition, DelegateInstanceType> instances = new Dictionary<XMethodDefinition, DelegateInstanceType>();
         private Prototype invokePrototype;
         private Prototype equalsPrototype;
+        private Prototype clonePrototype;
         private readonly XMethodDefinition invokeMethod;
         private readonly XMethodDefinition equalsMethod;
+        private readonly XMethodDefinition cloneMethod;
 
         /// <summary>
         /// Default ctor
@@ -35,15 +37,8 @@ namespace Dot42.CompilerLib.Structure.DotNet
 
             // Build invoke prototype
             invokeMethod = delegateType.Methods.First(x => x.EqualsName("Invoke"));
-            XTypeDefinition baseType = delegateType;
-            while ((null != baseType) && !baseType.Methods.Any(x => x.EqualsName("Equals")))
-            {
-                baseType = baseType.BaseType as XTypeDefinition;
-            }
-            if (null != baseType)
-            {
-                equalsMethod = baseType.Methods.First(x => x.EqualsName("Equals"));
-            }
+            equalsMethod = FindMethod(delegateType, "EqualsWithoutInvocationList");
+            cloneMethod = FindMethod(delegateType, "CloneWithNewInvocationList");
         }
 
         /// <summary>
@@ -88,10 +83,38 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 equalsPrototype = PrototypeBuilder.BuildPrototype(compiler, targetPackage, interfaceClass, equalsMethod);
             }
 
+            if ((clonePrototype == null) && (cloneMethod != null))
+            {
+                clonePrototype = PrototypeBuilder.BuildPrototype(compiler, targetPackage, interfaceClass, cloneMethod);
+            }
+
             // Not found, build it.
-            result = DelegateInstanceTypeBuilder.Create(sequencePoint, compiler, targetPackage, InterfaceClass, invokeMethod, invokePrototype, equalsMethod, equalsPrototype, calledMethod);
+            result = DelegateInstanceTypeBuilder.Create(sequencePoint, compiler, targetPackage, InterfaceClass, 
+                                                        invokeMethod, invokePrototype, 
+                                                        equalsMethod, equalsPrototype, 
+                                                        cloneMethod, clonePrototype, 
+                                                        calledMethod);
             instances.Add(calledMethod, result);
             return result;
         }
+
+        private XMethodDefinition FindMethod(XTypeDefinition delegateType, string methodName)
+        {
+            while (true)
+            {
+                var ret = delegateType.Methods.FirstOrDefault(x => x.EqualsName(methodName));
+                if (ret != null)
+                    return ret;
+
+                var baseType = delegateType.BaseType;
+                if (baseType == null)
+                    return null;
+
+                delegateType = baseType.Resolve();
+            }
+            return null;
+        }
     }
+
+
 }

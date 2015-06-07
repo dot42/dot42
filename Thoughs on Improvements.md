@@ -138,5 +138,4 @@ Some cases need special handling:
 - The ideas employed in Dot42 might be used to create a C# to Java converter, based on Rosylin.
 - Could LLVM be introduced into the compile process?
 
-- CreateDelegate might be partitially implemented using http://docs.oracle.com/javase/7/docs/api/java/lang/invoke/MethodHandle.html
- http://stackoverflow.com/questions/19557829/faster-alternatives-to-javas-reflection
+- CreateDelegate might either be implemented using reflection-invoke or something like https://github.com/crittercism/dexmaker

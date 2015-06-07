@@ -1,6 +1,7 @@
 ### Limitations and Know Bugs in Dot42
 
 - `System.Linq.Expressions` is not (yet?) supported. I believe one should try to implement it based on Mono's implementation which in turn is based on Microsofts.
+- **Bug:** There is a problem with nested exception handlers. Nested finally statements - even implicit ones in using/foreach statements -  might not get executed on an exception under certain conditions. This needs further investigation, especially as it can lead to bugs that are nearly impossible to find.
 - Dot42 will redirect usages of `System.Threading.Interlocked` to Javas `AtomicXxxFieldUpdater` implementation. This works seamless for instance fields. The `AtomicXxxFieldUpdater` does not support static fields, so Dot42 reverts to `lock`ing on the the fields containing type. To prevent this locking, use the `AtomicXxx` classes directly, e.g. `AtomicInteger`.  
   Note that, when available, `System.Threading.Interlocked` is used by the C# compiler when generating support code for events. Therefore, when using static events, locking will occur. Dot42 will emit a warning in this case. At the moment, there is no known workaround.
 - to get Json.NET to run I swapped out a totally broken `decimal` by a `java.math.BigDecimal` based one. This hasn't been thoroughly tested yet.
@@ -11,15 +12,35 @@
 - Reflecting on parameters that are references will not give the desired results, due to the conversion Dot42 applies to them to make them work with java (this shouldn't be a big problem).
 - Dot42 emulates properties, so they can be properly reflected upon. Dot42 does not generate reflection information for properties with arguments (a.k.a. indexers). Custom indexers can therefore not be used in reflection based serializations. For indexers for the common interfaces like IList, this should not pose a problem.
   You probably have never implemented a custom indexer, and if you did, you most certainly did not rely on it for serialization, so there is probably no real problem.
-- Multidimensional arrays should work, there is some emulation code in Dot42. Nevertheless some json-net tests with multidimensional arrays fail. 
+- Many operations on multidimensional arrays should work. Nevertheless some indexing usages will crash the Dot42 compiler complaining about a missing `<ArrayType>[][].Address` method.
 -  `protected ValueType NumberFromText(string numberText, bool decimalPeriodSeen)`, as seen in MvvmCross, will not work if you intent to return doubles, ints or other primitives. Only structs inherit from `ValueType` in Dot42, primitives and enums do not. The workaround is to use `object` as return or parameter type instead of `ValueType`.
 - Importing jar references should work, but I could not get Intellisense/Resharper to work out of the box. When importing a jar reference (or when the underlying jar has changed) Dot42 creates a `.cs` -File with CLR compatible types, that can be accessed as normal during development. All references to them will magically be replaced to the actual implementation when compiling to `.dex`. This generated file is put in the `obj` intermediate directory, and not part of the project. Therefore Intellisense does not work.
   What worked for me (with Resharper) is to have a dedicated import project that does nothing else but import jar-references. I don't even worry about unused references, since dot42 is smart enough to not compile them into the final `.apk`. Then I don't reference the import project itself, but the assembly it generates. This make IntelliSense to work as expected.
   I believe it would be better if Dot42 would put the generated `.cs` files into a "Generated" folder of the project (or right next to the `.jar`s in VS), and compile it from there. The user should be able to adjust the imported file in case the Dot42 `.jar` import did not work seamless.
 - Importing multiple jar references will fail or omit methods when some of the references depend on each other. The workaround is to either import the dependencies into multiple Dot42 library projects, and reference these projects, or to combine the jars into a single jar.
 - Java doesn't support Ephemerons. These are e.g. used by `ConditionalWeakTable` to attach properties to objects in a GC friendly way. No workaround available.
-- **Bug: ** Arithmetic operations that are not constant with enums are not only slow, but some of them also provoke dalvik verification errors. When `enum E { A=-1, B=0, C=1 }` then  `var a = E.A; var b = (E)(-(int)a);` will fail. 
-- Dot42 seems not to support activities / android services, etc. in other than the main assembly. Everything that needs to go into the manifest needs to be in the main assembly. 
+- **Bug: ** Arithmetic operations that are not constant with enums are not only slow, but some of them also provoke dalvik verification errors. When `enum E { A=-1, B=0, C=1 }` then  `var a = E.A; var b = (E)(-(int)a);` will fail.
+- Dot42 seems not to support activities / android services, etc. in other than the main assembly. Everything that needs to go into the manifest needs to be in the main assembly.
+- Implementing interfaces using framework methods will trigger an "abstract method not implemented" exception at runtime. The workaround is to add an explicit interface implementation redirecting to the framework implementation.
+   ```
+	public interface IMvxLayoutInflater
+	{
+	    LayoutInflater LayoutInflater { get; }
+	}
+	
+	public class MvxActivity : Activity, IMvxLayoutInflater
+	{
+	    ...
+	#if DOT42 
+		// This is required in Dot42 at the moment, as the
+	    // actual getter method names differ.
+	    LayoutInflater IMvxLayoutInflater.LayoutInflater { get { return base.LayoutInflater; } }
+	#endif
+	   ...
+	}
+   ``` 
+
+- When a `.pdb` doesn't match it's `.dll`, e.g. because the `.dll` has been updated but not the `.pdb`, the compiler might fail with a non descriptive error message. Delete or update the `.pdb` in this case. 
 
 ### Structs
 
@@ -54,7 +75,10 @@ For similar reasons, the static class constructor has never access to the generi
 
 While Dot42s Visual Studio debugger is quite advanced, it does not yet have all the features you might be accustomed to from Visual Studio. 
 
-- The debugger can display local variables, including `this`, and fields of objects. It will not display properties or evaluate methods or expressions in general. It will only display parameters to methods when they are modified in the current method (the latter one should be relatively easy to fix.) 
+- The debugger can display local variables, including `this`, and fields of objects. It will not display properties or evaluate methods or expressions in general.
+- Sometimes local variables will not show up in the 'locals' watch window.
+  [This - at least sometimes - seems to be related to them being assigned to the `r0` Dalvik register. It appears to be a problem/feature of Dalvik itself, which tries to work around limitations of Eclipse by remapping registers. A fix might be to not use the `r0` register during debug builds.]
+
 - Code breakpoints are supported. Currently, you can not set breakpoints on data.
 - When using partial classes in different files, the debugger will only step into methods in one of the files. You can set breakpoints in all of them though.
 - There is no "edit and continue". 
@@ -68,6 +92,7 @@ While Dot42s Visual Studio debugger is quite advanced, it does not yet have all 
 	- `foreach` statements generate an implicit `try/finally` block. Since you can not - at the moment - set the instruction out of the current block, you will not be able to restart the `foreach` from within. The workaround is to set the next instruction from after the `foreach` instruction.
 - For reasons unknown, the disassembly window might not be able to show source code next to the disassembly. If you wish to see the disassembly and have problems, you should disable the "source code" checkbox. This should enable tracking the current position and setting breakpoints in the disassembly.
   ApkSpy will embed the source code without problems.
+- When using the disassembly window, values of registers can be watched, e.g. by entering `r2` in the watch window. You can specify the desired type, e.g. `(double)r12` or `(string)p1`. Note that using `(string)` or `(object)` as cast types might crash the virtual machine if the specified register does not actually hold a `string` or `object` type. This seems to be a bug of the Dalvik VM. It is recommended to always remove non-primitive cast expression from the watch window as soon as possible, so that they will not be evaluated on the next breakpoint/exception.
 
 ### Differences to Xamarin.Android
 - Xamarin.Android names the Android-`R` class `Ressources`, while Dot42 sticks to `R`. I am not sure there is a good reason to rename the `R` class. On the contrary, I remember myself searching for `R` when first working with Xamarin.Android for quite some time until I figured it out.

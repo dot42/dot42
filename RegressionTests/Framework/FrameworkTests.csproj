@@ -12,7 +12,7 @@
     <RootNamespace>Dot42.Tests</RootNamespace>
     <AssemblyName>FrameworkTests</AssemblyName>
     <TargetFrameworkIdentifier>Android</TargetFrameworkIdentifier>
-    <TargetFrameworkVersion>v4.3</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0.3</TargetFrameworkVersion>
     <AndroidVersion>$(TargetFrameworkVersion)</AndroidVersion>
     <SupportedCultures>
     </SupportedCultures>
@@ -117,6 +117,7 @@
     <None Include="System\ConvertTest_Mono.cs" />
     <Compile Include="System\DateTimeOffsetTest_Mono.cs" />
     <Compile Include="System\MathTest_Mono.cs" />
+    <Compile Include="System\MulticastDelegateTest_Mono.cs" />
     <Compile Include="System\TestByte.cs" />
     <Compile Include="System\TestException.cs" />
     <Compile Include="System\RandomTest.cs" />

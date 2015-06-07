@@ -43,7 +43,7 @@ namespace Dot42.CompilerLib.XModel.DotNet
             /// </summary>
             public override bool EqualsName(string name)
             {
-                return (Name == name) || (method.Name == name);
+                return Name == name || method.Name == name || method.OriginalName == name;
             }
 
             /// <summary>
