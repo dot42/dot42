@@ -203,7 +203,10 @@ namespace Dot42.DebuggerLib
                 else if (ins.Operand is MethodReference)
                 {
                     var m = (MethodReference)ins.Operand;
-                    ops.Append(fullTypeNames ? m.ToString() : m.Owner.Name + "::" + m.Name + m.Prototype);
+                    var owner = fullTypeNames || !(m.Owner is ClassReference)
+                                    ? m.ToString()
+                                    : ((ClassReference) m.Owner).Name;
+                    ops.Append(owner + "::" + m.Name + m.Prototype);
                 }
                 else if (ins.Operand is FieldReference)
                 {

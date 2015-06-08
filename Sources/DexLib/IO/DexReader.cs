@@ -732,8 +732,7 @@ namespace Dot42.DexLib.IO
                     int nameIndex = reader.ReadInt32();
 
                     var mref = new MethodReference();
-                    // TODO: find out why this used to be a CompositiveType instead of ClassReference
-                    mref.Owner = (ClassReference) typeReferences[classIndex];
+                    mref.Owner = (CompositeType) typeReferences[classIndex];
                     // Clone the prototype so we can annotate & update it easily
                     mref.Prototype = prototypes[prototypeIndex].Clone();
                     mref.Name = strings[nameIndex];

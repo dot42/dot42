@@ -12,7 +12,7 @@ namespace Dot42.DexLib.Extensions
             result = methodRef as MethodDefinition;
             if (result != null)
                 return true;
-            result = target.GetMethod(methodRef.Owner, methodRef.Name, methodRef.Prototype);
+            result = target.GetMethod((ClassReference)methodRef.Owner, methodRef.Name, methodRef.Prototype);
             return result != null;
         }
     }

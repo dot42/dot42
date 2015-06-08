@@ -327,7 +327,12 @@ namespace Dot42.CompilerLib.CompilerCache
         private MethodReference ConvertMethodReference(MethodReference methodRef, AssemblyCompiler compiler, DexTargetPackage targetPackage)
         {
             TypeEntry typeEntry;
-            MethodEntry methodEntry = _map.GetMethodByDexSignature(methodRef.Owner.Fullname, methodRef.Name, methodRef.Prototype.ToSignature());
+            
+            var owner = methodRef.Owner as ClassReference;
+            if (owner == null)
+                return methodRef; // this must be an internal method. return as-is.
+            
+            MethodEntry methodEntry = _map.GetMethodByDexSignature(owner.Fullname, methodRef.Name, methodRef.Prototype.ToSignature());
             string scopeId = null;
 
             if (methodEntry != null)
@@ -344,7 +349,7 @@ namespace Dot42.CompilerLib.CompilerCache
                 // special delegate handling
                 if (IsDelegateInstance(typeEntry))
                 {
-                    var delInstanceType = GetDelegateInstanceType(typeEntry, methodRef.Owner, compiler, targetPackage);
+                    var delInstanceType = GetDelegateInstanceType(typeEntry, owner, compiler, targetPackage);
                     return new MethodReference(delInstanceType.InstanceDefinition, methodRef.Name, methodRef.Prototype);
                 }
             }
@@ -354,8 +359,8 @@ namespace Dot42.CompilerLib.CompilerCache
 
             if(scopeId == "(none)")
                 throw new CompilerCacheResolveException("unable to resolve method without scope: " + methodRef);
-            
-            var xTypeDef =  ResolveToType(typeEntry, methodRef.Owner, compiler);
+
+            var xTypeDef = ResolveToType(typeEntry, owner, compiler);
 
             var methodDef = xTypeDef.GetMethodByScopeId(scopeId);
 
