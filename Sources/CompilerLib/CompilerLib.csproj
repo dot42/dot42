@@ -33,6 +33,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="dx, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Binaries\tools\dx\dx.exe</HintPath>
+    </Reference>
+    <Reference Include="IKVM.OpenJDK.Core, Version=8.0.5449.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Binaries\tools\dx\IKVM.OpenJDK.Core.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
@@ -115,10 +123,10 @@
     <Compile Include="CompilationMode.cs" />
     <Compile Include="CompilationTarget.cs" />
     <Compile Include="CompiledMethod.cs" />
-    <Compile Include="CompilerCache\AssemblyModifiedDetector.cs" />
-    <Compile Include="CompilerCache\CompilerCacheResolveException.cs" />
-    <Compile Include="CompilerCache\DexMethodBodyCloner.cs" />
-    <Compile Include="CompilerCache\DexMethodBodyCompilerCache.cs" />
+    <Compile Include="Target\CompilerCache\AssemblyModifiedDetector.cs" />
+    <Compile Include="Target\CompilerCache\CompilerCacheResolveException.cs" />
+    <Compile Include="Target\CompilerCache\DexMethodBodyCloner.cs" />
+    <Compile Include="Target\CompilerCache\DexMethodBodyCompilerCache.cs" />
     <Compile Include="CompilerException.cs" />
     <Compile Include="CompositionRoot.cs" />
     <Compile Include="DexOptimizer\BranchOptimizer.cs" />
@@ -201,6 +209,10 @@
     <Compile Include="Structure\DotNet\NullableMarkerClassBuilder.cs" />
     <Compile Include="Structure\DotNet\AndroidAppApplicationDerivedBuilder.cs" />
     <Compile Include="Target\Dex\DexMethodBodyCompiler.cs" />
+    <Compile Include="Target\Dx\DxClassfileMethodBodyCompiler.cs" />
+    <Compile Include="Target\Dx\DxException.cs" />
+    <Compile Include="Target\Dx\DxInvoker.cs" />
+    <Compile Include="Target\Dx\JarModifiedDetector.cs" />
     <Compile Include="Target\MethodBodyCompiler.cs" />
     <Compile Include="MethodSource.cs" />
     <Compile Include="NameConstants.cs" />

@@ -347,5 +347,10 @@
         public static readonly ToolOption CheckForwarders = new ToolOption("chkfwa=");
 
         public static readonly ToolOption EnableCompilerCache = new ToolOption("enable-compiler-cache");
+
+        /// <summary>
+        /// Enble usage of 'dx' from Android SDK Tools to compile .jar classes.
+        /// </summary>
+        public static readonly ToolOption EnableDxJarCompilation = new ToolOption("enable-dx-jar-compilation");
     }
 }

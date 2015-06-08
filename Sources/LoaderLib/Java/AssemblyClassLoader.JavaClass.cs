@@ -44,6 +44,9 @@ namespace Dot42.LoaderLib.Java
                 }
                 return resolved;
             }
+
+            public ClassSource ClassSource { get { return javaCode.ClassSource; } }
+
         }
     }
 }

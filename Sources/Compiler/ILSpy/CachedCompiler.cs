@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Dot42.ApkLib.Resources;
 using Dot42.CompilerLib;
-using Dot42.CompilerLib.CompilerCache;
+using Dot42.CompilerLib.Target.CompilerCache;
 using Dot42.CompilerLib.XModel;
 using Dot42.FrameworkDefinitions;
 using Dot42.LoaderLib.DotNet;

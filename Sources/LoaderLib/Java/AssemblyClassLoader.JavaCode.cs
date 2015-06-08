@@ -15,14 +15,26 @@ namespace Dot42.LoaderLib.Java
         internal sealed class JavaCode
         {
             private readonly EmbeddedResource resource;
+            private readonly string fileName;
             private JarFile resolved;
-
+            private MemoryStream stream;
+            private byte[] data;
+            
             /// <summary>
             /// Default ctor
             /// </summary>
-            public JavaCode(EmbeddedResource resource)
+            public JavaCode(EmbeddedResource resource, string fileName)
             {
                 this.resource = resource;
+                this.fileName = fileName;
+            }
+
+            public ClassSource ClassSource
+            {
+                get
+                {
+                    return new ClassSource(FileName, Data, resource.Name);
+                }
             }
 
             /// <summary>
@@ -30,8 +42,12 @@ namespace Dot42.LoaderLib.Java
             /// </summary>
             public JarFile Resolve(IClassLoader nextClassLoader)
             {
-                return resolved ?? (resolved = new JarFile(new MemoryStream(resource.GetResourceData()), "javacode-" + resource.Name, nextClassLoader));
+                return resolved ?? (resolved = new JarFile(new MemoryStream(Data),  FileName, nextClassLoader));
             }
+
+            private byte[] Data { get { return data ?? (data = resource.GetResourceData()); } }
+
+            private string FileName { get { return fileName ?? "javacode-" + resource.Name; } }
         }
     }
 }

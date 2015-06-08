@@ -126,6 +126,8 @@ Source: "{#SrcDir}\{#TargetName}\Extension\*"; DestDir: "{reg:HKLM32\SOFTWARE\Mi
 Source: "{#SrcDir}\Platform-tools\*"; DestDir: "{app}\Platform-tools";
 ; Android tools
 Source: "{#SrcDir}\Tools\*"; DestDir: "{app}\Tools";
+; 'dx' from Android SDK tools
+Source: "{#SrcDir}\Tools\dx\*"; DestDir: "{app}"; Excludes: README.txt
 ; MSBuild Targets files
 Source: "{#SrcDir}\Scripts\{#TargetName}\*.targets"; DestDir: "{app}";
 ; Frameworks

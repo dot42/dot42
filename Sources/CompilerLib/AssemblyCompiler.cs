@@ -6,10 +6,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Dot42.ApkLib.Resources;
-using Dot42.CompilerLib.CompilerCache;
 using Dot42.CompilerLib.Reachable;
 using Dot42.CompilerLib.Structure.DotNet;
 using Dot42.CompilerLib.Target;
+using Dot42.CompilerLib.Target.CompilerCache;
+using Dot42.CompilerLib.Target.Dx;
 using Dot42.CompilerLib.XModel;
 using Dot42.FrameworkDefinitions;
 using Dot42.LoaderLib.Java;
@@ -54,6 +55,8 @@ namespace Dot42.CompilerLib
         /// a AggregateException
         /// </summary>
         public bool StopAtFirstError { get; set; }
+
+        public DxClassfileMethodBodyCompiler DxClassfileMethodBodyCompiler { get; set; }
 
         /// <summary>
         /// TODO: the list of parameters has gotten way to long.

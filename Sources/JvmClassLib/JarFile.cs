@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using ICSharpCode.SharpZipLib.Zip;
+using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 
 namespace Dot42.JvmClassLib
 {
@@ -16,15 +17,23 @@ namespace Dot42.JvmClassLib
         private List<string> classNames;
         private List<string> classFileNames;
         private List<string> packages;
-        
+        private string streamHash;
+        private readonly Stream stream;
 
         /// <summary>
         /// Open a jar file from the given stream
         /// </summary>
         public JarFile(Stream stream, string fileName, IClassLoader nextClassLoader)
+                    :this(stream, fileName, null, nextClassLoader)
+        {
+        }
+
+        public JarFile(Stream stream, string fileName, string streamHash, IClassLoader nextClassLoader)
         {
             this.fileName = fileName;
             this.nextClassLoader = nextClassLoader;
+            this.streamHash = streamHash;
+            this.stream = stream;
             zipFile = new ZipFile(stream);
         }
 
@@ -119,6 +128,27 @@ namespace Dot42.JvmClassLib
         }
 
         /// <summary>
+        /// Try to get the original source of the class.
+        /// </summary>
+        public ClassSource TryGetClassSource(string className)
+        {
+            EnsureZipEntriesInitialized();
+
+            if (zipEntries.ContainsKey(className + ".class"))
+            {
+                if(stream is MemoryStream)
+                    return new ClassSource(fileName, ((MemoryStream)stream).GetBuffer());
+
+                return new ClassSource(fileName); // assume that it is an actual disk file, as we
+                                                  // rather not touch the stream, which would
+                                                  // be bad in a multithreading environment.
+            }
+                
+            
+            return nextClassLoader != null ? nextClassLoader.TryGetClassSource(className) : null;
+        }
+
+        /// <summary>
         /// Load a class with the given name
         /// </summary>
         public ClassFile LoadClass(string className)
@@ -150,13 +180,7 @@ namespace Dot42.JvmClassLib
         /// </summary>
         public ClassFile OpenClass(string fileName)
         {
-            if (zipEntries == null)
-            {
-                var dic = new Dictionary<string, ZipEntry>(StringComparer.InvariantCultureIgnoreCase);
-                foreach (ZipEntry zipEntry in zipFile)
-                    dic.Add(zipEntry.Name, zipEntry);
-                zipEntries = dic;
-            }
+            EnsureZipEntriesInitialized();
 
             ZipEntry entry;
 
@@ -168,6 +192,17 @@ namespace Dot42.JvmClassLib
                 var result = new ClassFile(stream, this);
                 loadedClasses[result.ClassName] = result;
                 return result;
+            }
+        }
+
+        private void EnsureZipEntriesInitialized()
+        {
+            if (zipEntries == null)
+            {
+                var dic = new Dictionary<string, ZipEntry>(StringComparer.InvariantCultureIgnoreCase);
+                foreach (ZipEntry zipEntry in zipFile)
+                    dic.Add(zipEntry.Name, zipEntry);
+                zipEntries = dic;
             }
         }
     }

@@ -1,4 +1,5 @@
-﻿using Dot42.CompilerLib.Target;
+﻿using System;
+using Dot42.CompilerLib.Target;
 using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel;
 using Dot42.CompilerLib.XModel.Java;
@@ -106,6 +107,17 @@ namespace Dot42.CompilerLib.Structure.Java
             // Create body (if any)
             if (!method.HasCode) 
                 return;
+
+            if (compiler.DxClassfileMethodBodyCompiler != null)
+            {
+                var dxBody = compiler.DxClassfileMethodBodyCompiler.GetMethodBody(dmethod, xMethod);
+                if (dxBody == null) 
+                    throw new Exception("unable to get method body through 'dx': " + dmethod);
+
+                dmethod.Body = dxBody;
+                dmethod.Owner.SetSourceFile(dxBody.Owner.Owner.SourceFile);
+                return;
+            }
 
             var cachedBody = compiler.MethodBodyCompilerCache.GetFromCache(dmethod, xMethod, compiler, targetPackage);
 

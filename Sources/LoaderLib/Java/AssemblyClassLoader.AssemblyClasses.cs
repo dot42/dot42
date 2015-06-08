@@ -34,6 +34,7 @@ namespace Dot42.LoaderLib.Java
                 foreach (var attr in assembly.GetJavaCodeAttributes())
                 {
                     var resourceName = (string)attr.ConstructorArguments[0].Value;
+                    var fileName = attr.ConstructorArguments.Count > 1 ? (string)attr.ConstructorArguments[1].Value : null;
 
                     JavaCode javaCode;
                     if (!javaCodes.TryGetValue(resourceName, out javaCode))
@@ -41,7 +42,7 @@ namespace Dot42.LoaderLib.Java
                         var resource = assembly.MainModule.Resources.FirstOrDefault(x => x.Name == resourceName) as EmbeddedResource;
                         if (resource == null)
                             throw new LoaderException("Cannot find resource " + resourceName);
-                        javaCode = new JavaCode(resource);
+                        javaCode = new JavaCode(resource, fileName);
                         javaCodes[resourceName] = javaCode;
 
                         foreach (var classFileName in javaCode.Resolve(null).ClassFileNames)

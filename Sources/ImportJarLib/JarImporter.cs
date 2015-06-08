@@ -104,8 +104,8 @@ namespace Dot42.ImportJarLib
                     Name = AttributeConstants.JavaCodeAttributeName,
                     Namespace = AttributeConstants.Dot42AttributeNamespace
                 };
-                var hash = JarReferenceHash.ComputeJarReferenceHash(jarFilePath);
-                var attr = new NetCustomAttribute(attrType, hash);
+                string hash = JarReferenceHash.ComputeJarReferenceHash(jarFilePath);
+                var attr = new NetCustomAttribute(attrType, hash, Path.GetFileName(jarFilePath));
                 assemblyAttributes.Add(attr);
             }
 

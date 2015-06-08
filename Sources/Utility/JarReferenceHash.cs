@@ -20,9 +20,17 @@ namespace Dot42.Utility
             }
         }
 
+        public static string ComputeJarReferenceHash(byte[] jarData)
+        {
+            var sha = SHA1.Create();
+            var hash = sha.ComputeHash(jarData);
+            return string.Join("", hash.Select(x => ConvByte((~x) & 0xFF)));
+        }
+        
         private static string ConvByte(int value)
         {
             return value.ToString("x2");
         }
+
     }
 }

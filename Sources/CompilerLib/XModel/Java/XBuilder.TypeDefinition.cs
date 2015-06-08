@@ -235,6 +235,8 @@ namespace Dot42.CompilerLib.XModel.Java
                 get { return false; }
             }
 
+            internal ClassFile ClassFile { get { return type; } }
+
             /// <summary>
             /// Is there a DexImport attribute on this type?
             /// </summary>

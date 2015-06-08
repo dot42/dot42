@@ -67,6 +67,7 @@ namespace Dot42.Compiler
                 { ToolOptions.ResourceTypeUsageInformationPath, "Resource type usage information path", v => ResourceTypeUsageInformationPath = v },
                 { ToolOptions.Target, "Set target", v => Target = v },
                 { ToolOptions.EnableCompilerCache, "Enable compiler cache", v => EnableCompilerCache = true },
+                { ToolOptions.EnableDxJarCompilation, "Use 'dx' from Android SDK Tools to compile .jar files.", v => EnableDxJarCompilation = true },
                 // APK Builder
                 { ToolOptions.OutputPackage, "Set output package path", v => PackagePath = v },
                 { ToolOptions.InputCodeFile, "Add code file (*.dex)", v => DexFiles.Add(v) },
@@ -155,6 +156,7 @@ namespace Dot42.Compiler
         public string ResourceTypeUsageInformationPath { get; private set; }
         public bool GenerateSetNextInstructionCode { get; private set; }
         public bool EnableCompilerCache { get; private set; }
+        public bool EnableDxJarCompilation { get; set; }
 
         // APK Builder
         public string ManifestFile { get; private set; }

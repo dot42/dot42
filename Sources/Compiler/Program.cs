@@ -6,7 +6,8 @@ using Dot42.ApkLib.Resources;
 using Dot42.Compiler.Manifest;
 using Dot42.Compiler.Resources;
 using Dot42.CompilerLib;
-using Dot42.CompilerLib.CompilerCache;
+using Dot42.CompilerLib.Target.CompilerCache;
+using Dot42.CompilerLib.Target.Dx;
 using Dot42.CompilerLib.XModel;
 using Dot42.ImportJarLib;
 using Dot42.LoaderLib.DotNet;
@@ -285,6 +286,9 @@ namespace Dot42.Compiler
             var compiler = new AssemblyCompiler(options.CompilationMode, assemblies, references, table, nsConverter,
                                                 options.DebugInfo, classLoader, resolver.GetFileName, ccache, 
                                                 usedTypeNames, module, options.GenerateSetNextInstructionCode);
+
+            if (options.EnableDxJarCompilation)
+                compiler.DxClassfileMethodBodyCompiler = new DxClassfileMethodBodyCompiler(options.OutputFolder, options.DebugInfo);
 
             using (AssemblyCompiler.Profile("total compilation time", true))
                 compiler.Compile();

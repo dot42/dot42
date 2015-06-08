@@ -86,6 +86,21 @@ namespace Dot42.LoaderLib.Java
             }
         }
 
+        public ClassSource TryGetClassSource(string className)
+        {
+            lock (dataLock)
+            {
+                foreach (var assemblyClasses in loadedAssemblies)
+                {
+                    JavaClass jClass;
+                    if (!assemblyClasses.TryGetJavaClass(className, out jClass) || jClass == null)
+                        continue;
+                    return jClass.ClassSource;
+                }
+                return null;
+            }
+        }
+
         /// <summary>
         /// Try to get dex import data for the given java class name?
         /// </summary>

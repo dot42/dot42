@@ -233,6 +233,11 @@ namespace Dot42.ImportJarLib
             return assemblyClassLoader.TryLoadClass(className, out result);
         }
 
+        ClassSource IClassLoader.TryGetClassSource(string className)
+        {
+            return assemblyClassLoader.TryGetClassSource(className);
+        }
+
         /// <summary>
         /// Gets all package names found in this loader.
         /// </summary>

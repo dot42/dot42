@@ -804,6 +804,11 @@ namespace Dot42.CompilerLib.Reachable
             return assemblyClassLoader.TryLoadClass(className, out result);
         }
 
+        public ClassSource TryGetClassSource(string className)
+        {
+            return assemblyClassLoader.TryGetClassSource(className);
+        }
+
         /// <summary>
         /// Gets all package names found in this loader.
         /// </summary>
