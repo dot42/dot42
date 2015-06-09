@@ -206,6 +206,13 @@ Filename: "{dotnet4032}\ngen.exe"; Parameters: "install ""{app}\dot42DevCenter.e
 Filename: "{dotnet4032}\ngen.exe"; Parameters: "install ""{app}\dot42Check.exe"""; StatusMsg: {cm:Optimize}; Flags: runhidden;
 Filename: "{dotnet4032}\ngen.exe"; Parameters: "install ""{app}\dot42Compiler.exe"""; StatusMsg: {cm:Optimize}; Flags: runhidden;
 Filename: "{dotnet4032}\ngen.exe"; Parameters: "install ""{app}\dot42.MSBuild.Tasks.dll"""; StatusMsg: {cm:Optimize}; Flags: runhidden;
+
+Filename: "{dotnet4032}\ngen.exe"; Parameters: "install ""{app}\dx.exe"""; StatusMsg: {cm:Optimize}; Flags: runhidden;
+Filename: "{dotnet4032}\ngen.exe"; Parameters: "install ""{app}\IKVM.Runtime.dll"""; StatusMsg: {cm:Optimize}; Flags: runhidden;
+Filename: "{dotnet4032}\ngen.exe"; Parameters: "install ""{app}\IKVM.OpenJDK.Core.dll"""; StatusMsg: {cm:Optimize}; Flags: runhidden;
+Filename: "{dotnet4032}\ngen.exe"; Parameters: "install ""{app}\IKVM.OpenJDK.Security.dll"""; StatusMsg: {cm:Optimize}; Flags: runhidden;
+Filename: "{dotnet4032}\ngen.exe"; Parameters: "install ""{app}\IKVM.OpenJDK.Util.dll"""; StatusMsg: {cm:Optimize}; Flags: runhidden;
+Filename: "{dotnet4032}\ngen.exe"; Parameters: "install ""{app}\IKVM.OpenJDK.Text.dll"""; StatusMsg: {cm:Optimize}; Flags: runhidden;
 ; Setup devenv 10.0
 Filename: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\10.0,InstallDir}\devenv.exe"; Parameters: "/setup"; StatusMsg: "{cm:ConfigureDevEnv10}"; Tasks: vstudio10;
 ; Setup devenv 11.0
@@ -227,12 +234,28 @@ Filename: "{dotnet4032}\ngen.exe"; Parameters: "uninstall ""{app}\dot42Check.exe
 Filename: "{dotnet4032}\ngen.exe"; Parameters: "uninstall ""{app}\dot42Compiler.exe"""; StatusMsg: {cm:UnOptimize}; Flags: runhidden;
 Filename: "{dotnet4032}\ngen.exe"; Parameters: "uninstall ""{app}\dot42.MSBuild.Tasks.dll"""; StatusMsg: {cm:UnOptimize}; Flags: runhidden;
 
+Filename: "{dotnet4032}\ngen.exe"; Parameters: "uninstall ""{app}\dx.exe"""; StatusMsg: {cm:Optimize}; Flags: runhidden;
+Filename: "{dotnet4032}\ngen.exe"; Parameters: "uninstall ""{app}\IKVM.Runtime.dll"""; StatusMsg: {cm:Optimize}; Flags: runhidden;
+Filename: "{dotnet4032}\ngen.exe"; Parameters: "uninstall ""{app}\IKVM.OpenJDK.Core.dll"""; StatusMsg: {cm:Optimize}; Flags: runhidden;
+Filename: "{dotnet4032}\ngen.exe"; Parameters: "uninstall ""{app}\IKVM.OpenJDK.Security.dll"""; StatusMsg: {cm:Optimize}; Flags: runhidden;
+Filename: "{dotnet4032}\ngen.exe"; Parameters: "uninstall ""{app}\IKVM.OpenJDK.Util.dll"""; StatusMsg: {cm:Optimize}; Flags: runhidden;
+Filename: "{dotnet4032}\ngen.exe"; Parameters: "uninstall ""{app}\IKVM.OpenJDK.Text.dll"""; StatusMsg: {cm:Optimize}; Flags: runhidden;
+
 [InstallDelete]
 ; Remove the extensions in an early version of dot42
 Type: filesandordirs; Name: "{localappdata}\Microsoft\VisualStudio\10.0\Extensions\TallApplications\dot42\1.0";
 Type: filesandordirs; Name: "{localappdata}\Microsoft\VisualStudio\11.0\Extensions\TallApplications\dot42\1.0";
+Type: filesandordirs; Name: "{localappdata}\Microsoft\VisualStudio\12.0\Extensions\TallApplications\dot42\1.0";
 Type: filesandordirs; Name: "{localappdata}\Microsoft\VisualStudio\10.0\Extensions\dot42\{#TargetName}\1.0";
 Type: filesandordirs; Name: "{localappdata}\Microsoft\VisualStudio\11.0\Extensions\dot42\{#TargetName}\1.0";
+Type: filesandordirs; Name: "{localappdata}\Microsoft\VisualStudio\12.0\Extensions\dot42\{#TargetName}\1.0";
+
+Type: filesandordirs; Name: "{localappdata}\Microsoft\VisualStudio\10.0\Extensions\TallApplications\dot42\1.1";
+Type: filesandordirs; Name: "{localappdata}\Microsoft\VisualStudio\11.0\Extensions\TallApplications\dot42\1.1";
+Type: filesandordirs; Name: "{localappdata}\Microsoft\VisualStudio\12.0\Extensions\TallApplications\dot42\1.1";
+Type: filesandordirs; Name: "{localappdata}\Microsoft\VisualStudio\10.0\Extensions\dot42\{#TargetName}\1.1";
+Type: filesandordirs; Name: "{localappdata}\Microsoft\VisualStudio\11.0\Extensions\dot42\{#TargetName}\1.1";
+Type: filesandordirs; Name: "{localappdata}\Microsoft\VisualStudio\12.0\Extensions\dot42\{#TargetName}\1.1";
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}";
@@ -240,6 +263,10 @@ Type: files; Name: "{userdocs}\dot42\{#TargetName}\Samples\Samples.pfx";
 Type: filesandordirs; Name: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\10.0,InstallDir}\Extensions\{#CompanyName}\{#AppName}\1.0";
 Type: filesandordirs; Name: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\11.0,InstallDir}\Extensions\{#CompanyName}\{#AppName}\1.0";
 Type: filesandordirs; Name: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\12.0,InstallDir}\Extensions\{#CompanyName}\{#AppName}\1.0";
+
+Type: filesandordirs; Name: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\10.0,InstallDir}\Extensions\{#CompanyName}\{#AppName}\1.1";
+Type: filesandordirs; Name: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\11.0,InstallDir}\Extensions\{#CompanyName}\{#AppName}\1.1";
+Type: filesandordirs; Name: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\12.0,InstallDir}\Extensions\{#CompanyName}\{#AppName}\1.1";
 
 [CustomMessages]
 StartApp=Start {#AppName} Device Center

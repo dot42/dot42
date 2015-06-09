@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Threading;
+using com.android.dx.command.dexer;
 
 namespace Dot42.CompilerLib.Target.Dx
 {
@@ -12,7 +12,7 @@ namespace Dot42.CompilerLib.Target.Dx
         {
             var param = new List<string>
             {
-                "--dex",
+                //"--dex",
                 "--output",
                 dexFileName,
                 "--positions",
@@ -30,7 +30,20 @@ namespace Dot42.CompilerLib.Target.Dx
 
             param.Add(jarFileName);
 
-            com.android.dx.command.Main.main(param.ToArray());
+            lock (typeof (Main))
+            {
+                // After a short glance at the code, it seems to be not multithreading capable,
+                // since it makes heavy use of static variables (!).
+                // One way to alleviate this would be to start a new AppDomain. For now we just 
+                // invoke everything in serial order.
+
+                var args = new Main.Arguments();
+                args.parse(param.ToArray());
+
+                int ret = Main.run(args);
+                if(ret != 0)
+                    throw new Exception("Error running 'dx' on '" + jarFileName + "'. Return code was: " + ret.ToString(CultureInfo.InvariantCulture));
+            }
         }
     }
 }

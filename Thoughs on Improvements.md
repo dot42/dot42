@@ -10,6 +10,10 @@
 
 - There seems to be an issue in the framework builder leading to Dot42 not always choosing the better `invoke-virtual` opcode and instead using `invoke-interface`. I have seen this for `ThreadPoolExecutor.execute()`. Not sure if this would have any performance implications whatsoever though.
 
+- The register allocation/usage algorithm could be improved:
+	- more aggressively by reusing out-of-scope registers. This could 
+	  greatly reduce the number of requiered move_from16XXX instructions.
+	- when move_from16XXX instructions are required, often unnecessary back-copying does occur, even though the value is never used again.
 
 ### Improving the generics implementation
 The following comments refer mainly to the implementation of the `GenericInstanceConverter`.
@@ -131,6 +135,21 @@ Some cases need special handling:
 
 - I believe it should in theory be possible to reduce the compile time to a few seconds even for large projects and non-incremental builds. This would require larger changes on how the compiler is internally implemented. They key would be to drop the visitor pattern in a few places, and replace it with proper lookup tables. These would need to be dynamically updated to always reflect the current code structure. For example during Ast conversion, a converter should be able to simple lookup all "call" expressions. Currently each converter goes through all expressions to find what is of interest to him.
     
+### .jar to .dex
+
+The integrated .jar to .dex method body compiler has subtle bug somewhere. I encountered this problem when using the DrawerLayout from the support library. A child ListView would not get redrawn (or more accurate: re-layouted) on data change until I deliberately forced some scrolling to occur by dragging the list. There are probably other manifestations of this bug. A good approach to hunt the bug would be to pull in a larger 'test' project, e.g. gson test or something, and hope that failing tests will lead right to broken .dex code.
+
+I decided to  fight the problem from the other side: I included the 'dx' tool from Android Tools SDK to compile .jars to temporary .dex, then load these .dex and extract the method bodies from there. This has the following benefits:
+- We know it generates correct code in all cases.
+- We get the better optimizing register allocator from 'dx', reducing the code size and therefore final .apk size. 
+- We get correct debug information, which was broken before as well.
+- We protect ourselfs at least partially against changes to the `.class` format/instruction set. The 'dx' tool is easily upgradable. We are only partial protected because we still need to generate the binding to the code, and - at the moment - still generate the class structure, annotations, etc. using our own code.
+
+Drawbacks are: 
+- If only a fraction of classes of the .jar are used, the current implementation might incur slight increases in initial compile time, though reduction is also possible. Incremental builds are always served from the initial build .dex. This should reduce compile time, even when using the compiler cache. See the code for detailed reasons.
+
+The internal compilation can be enabled by setting `<DxJarCompilation>false</DxJarCompilation>` in the `.csproj` of the application project. 
+
 ### Further thoughts
 
 - The Dot42 compiler might be significantly simplified by using Rosylin to convert CLR constructs that are incompatible with java and/or dex to compatible constructs.

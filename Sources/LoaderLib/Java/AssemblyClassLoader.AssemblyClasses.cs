@@ -28,7 +28,7 @@ namespace Dot42.LoaderLib.Java
             /// <summary>
             /// Default ctor
             /// </summary>
-            internal AssemblyClasses(AssemblyDefinition assembly)
+            internal AssemblyClasses(AssemblyDefinition assembly, Action<ClassSource> jarLoaded=null)
             {
                 this.assembly = assembly;
                 foreach (var attr in assembly.GetJavaCodeAttributes())
@@ -44,6 +44,9 @@ namespace Dot42.LoaderLib.Java
                             throw new LoaderException("Cannot find resource " + resourceName);
                         javaCode = new JavaCode(resource, fileName);
                         javaCodes[resourceName] = javaCode;
+
+                        if (jarLoaded != null)
+                            jarLoaded(javaCode.ClassSource);
 
                         foreach (var classFileName in javaCode.Resolve(null).ClassFileNames)
                         {

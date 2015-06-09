@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Dot42.CompilerLib.XModel;
 using Dot42.CompilerLib.XModel.Java;
 using Dot42.DexLib;
@@ -20,7 +21,7 @@ namespace Dot42.CompilerLib.Target.Dx
     {
         private readonly string _temporaryDirectory;
         private readonly bool _generateDebugSymbols;
-        private readonly Dictionary<string, DexLookup> _dexes = new Dictionary<string, DexLookup>();
+        private readonly Dictionary<string, Task<DexLookup>> _dexes = new Dictionary<string, Task<DexLookup>>();
 
 
 
@@ -39,45 +40,74 @@ namespace Dot42.CompilerLib.Target.Dx
             if (source == null)
                 return null;
 
-            DexLookup dex;
-            var dexFileName = GetOrCreateDexFilename(source);
-
-            lock (_dexes)
-            {
-                if (!_dexes.TryGetValue(dexFileName, out dex))
-                {
-                    dex = new DexLookup(DexLib.Dex.Read(dexFileName));
-                    _dexes[dexFileName] = dex;
-                }
-            }
-
+            DexLookup dex = GetOrCreateDex(source, waitForResult: true);
             var methodDef = dex.GetMethod(targetMethod.Owner.Fullname, targetMethod.Name, targetMethod.Prototype.ToSignature());
             return methodDef == null ? null : methodDef.Body;
         }
 
-        private string GetOrCreateDexFilename(ClassSource source)
+        public void PreloadJar(ClassSource source)
+        {
+            GetOrCreateDex(source, waitForResult: false);
+        }
+
+        private DexLookup GetOrCreateDex(ClassSource source, bool waitForResult)
         {
             string hash = GetHash(source);
 
-            string jarFileName;
+            var jarFileName = GetJarFileName(source, hash);
 
+            Task<DexLookup> dex;
+            
+            lock (_dexes)
+            {
+                if (_dexes.TryGetValue(jarFileName, out dex))
+                {
+                    if (!waitForResult)
+                        return null;
+                    return dex.Result;
+                }
+                    
+                dex = new Task<DexLookup>(()=>
+                {
+                    var dexFileName = GetOrCreateDexFilename(source, hash);
+                    return new DexLookup(DexLib.Dex.Read(dexFileName));
+                }, TaskCreationOptions.LongRunning);
+
+                _dexes[jarFileName] = dex;
+            }
+
+            dex.Start();
+
+            if (waitForResult)
+                return dex.Result;
+            return null;
+        }
+
+
+        private string GetJarFileName(ClassSource source, string hash)
+        {
             if (source.IsDiskFile)
             {
-                jarFileName = source.FileName;
+                return source.FileName;
             }
-            else
+
+            string baseName = Path.GetFileName(source.FileName);
+            return Path.Combine(_temporaryDirectory, baseName + "-" + hash + ".jar");
+        }
+
+        private string GetOrCreateDexFilename(ClassSource source, string hash)
+        {
+            string jarFileName = GetJarFileName(source, hash);
+            
+            if (!source.IsDiskFile && !File.Exists(jarFileName))
             {
-                string baseName = Path.GetFileName(source.FileName);
-                jarFileName = Path.Combine(_temporaryDirectory, baseName + "-" + hash + ".jar");
-
-                if (!File.Exists(jarFileName))
-                {
-                    Directory.CreateDirectory(_temporaryDirectory);
-                    File.WriteAllBytes(jarFileName, source.JarData);
-                }
+                Directory.CreateDirectory(_temporaryDirectory);
+                File.WriteAllBytes(jarFileName, source.JarData);
             }
 
-            var dexFileName = Path.Combine(_temporaryDirectory, Path.GetFileNameWithoutExtension(jarFileName) + "." + hash + ".dex");
+            string baseName = Path.GetFileNameWithoutExtension(jarFileName);
+            if (!baseName.Contains(hash)) baseName += "." + hash;
+            var dexFileName = Path.Combine(_temporaryDirectory, baseName + ".dex");
 
             if (!File.Exists(dexFileName))
             {
@@ -87,8 +117,6 @@ namespace Dot42.CompilerLib.Target.Dx
 
             return dexFileName;
         }
-
-        
 
         private string GetHash(ClassSource source)
         {

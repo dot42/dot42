@@ -10,6 +10,7 @@ using Dot42.CompilerLib.Target.CompilerCache;
 using Dot42.CompilerLib.Target.Dx;
 using Dot42.CompilerLib.XModel;
 using Dot42.ImportJarLib;
+using Dot42.JvmClassLib;
 using Dot42.LoaderLib.DotNet;
 using Dot42.LoaderLib.Java;
 using Dot42.Utility;
@@ -238,6 +239,11 @@ namespace Dot42.Compiler
             List<AssemblyDefinition> assemblies = new List<AssemblyDefinition>();
             List<AssemblyDefinition> references= new List<AssemblyDefinition>();
 
+            var dxJarCompiler = options.EnableDxJarCompilation
+                ? new DxClassfileMethodBodyCompiler(options.OutputFolder, options.DebugInfo)
+                : null;
+            Action<ClassSource> jarLoaded = dxJarCompiler != null ? dxJarCompiler.PreloadJar : (Action<ClassSource>)null;
+
             var module = new XModule();
             var classLoader = new AssemblyClassLoader(module.OnClassLoaded);
             var resolver = new AssemblyResolver(options.ReferenceFolders, classLoader, module.OnAssemblyLoaded);
@@ -286,10 +292,7 @@ namespace Dot42.Compiler
             var compiler = new AssemblyCompiler(options.CompilationMode, assemblies, references, table, nsConverter,
                                                 options.DebugInfo, classLoader, resolver.GetFileName, ccache, 
                                                 usedTypeNames, module, options.GenerateSetNextInstructionCode);
-
-            if (options.EnableDxJarCompilation)
-                compiler.DxClassfileMethodBodyCompiler = new DxClassfileMethodBodyCompiler(options.OutputFolder, options.DebugInfo);
-
+            compiler.DxClassfileMethodBodyCompiler = dxJarCompiler;
             using (AssemblyCompiler.Profile("total compilation time", true))
                 compiler.Compile();
 

@@ -14,13 +14,15 @@ namespace Dot42.LoaderLib.Java
         private readonly object dataLock = new object();
         private readonly List<AssemblyClasses> loadedAssemblies = new List<AssemblyClasses>();
         private readonly Action<ClassFile> classLoaded;
+        private readonly Action<ClassSource> _jarLoaded;
 
         /// <summary>
         /// Default ctor
         /// </summary>
-        public AssemblyClassLoader(Action<ClassFile> classLoaded)
+        public AssemblyClassLoader(Action<ClassFile> classLoaded, Action<ClassSource> jarLoaded = null)
         {
             this.classLoaded = classLoaded;
+            _jarLoaded = jarLoaded;
         }
 
         /// <summary>
@@ -40,7 +42,7 @@ namespace Dot42.LoaderLib.Java
                     return;
                 }
 
-                var classes = new AssemblyClasses(assembly);
+                var classes = new AssemblyClasses(assembly, _jarLoaded);
                 loadedAssemblies.Add(classes);
                 if (initialize != null)
                 {
