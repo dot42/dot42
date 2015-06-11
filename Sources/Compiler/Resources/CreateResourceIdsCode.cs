@@ -234,7 +234,14 @@ namespace Dot42.Compiler.Resources
             {
                 File.WriteAllText(outputPath, contents);
             }
-            File.SetLastWriteTime(outputPath, timeStamp);
+            
+            if (File.GetLastWriteTime(outputPath) != timeStamp)
+            {
+                // We checked the date to prevent VS from showing the reload dialog
+                // when nothing has changed.
+                File.SetLastWriteTime(outputPath, timeStamp);
+            }
+                
         }
     }
 }
