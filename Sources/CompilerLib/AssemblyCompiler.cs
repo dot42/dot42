@@ -200,7 +200,7 @@ namespace Dot42.CompilerLib
             classBuilders.ForEachWithExceptionMessage(x => x.CreateAnnotations(targetPackage));
 
             if (AddAssemblyTypesAnnotations())
-                AssemblyTypesBuilder.CreateAssemblyTypesAnnotations(this, (Target.Dex.DexTargetPackage)targetPackage, reachableContext.ReachableTypes);
+                AssemblyTypesBuilder.CreateAssemblyTypes(this, (Target.Dex.DexTargetPackage)targetPackage, reachableContext.ReachableTypes);
 
             if (AddFrameworkPropertyAnnotations())
                 DexImportClassBuilder.FinalizeFrameworkPropertyAnnotations(this, (Target.Dex.DexTargetPackage)targetPackage);
