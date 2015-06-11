@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Dot42.DebuggerLib.Events.Jdwp;
 using Dot42.JvmClassLib;
@@ -19,6 +20,7 @@ namespace Dot42.DebuggerLib.Model
         private readonly ExceptionBehaviorMap _exceptionBehaviorMap = new ExceptionBehaviorMap();
         private readonly ConcurrentDictionary<string, DalvikClassPrepareCookie> _preparers = new ConcurrentDictionary<string, DalvikClassPrepareCookie>();
         private readonly ConcurrentDictionary<ReferenceTypeId, int> _eventRequests = new ConcurrentDictionary<ReferenceTypeId, int>();
+        private int defaultBehaviorCaughtEventId = -1;
         private volatile bool _wasPrepared;
 
         private FieldId _throwableDetailedMessageFieldId;
@@ -28,11 +30,13 @@ namespace Dot42.DebuggerLib.Model
         private const string ThrowableDetailMessageFieldName = "detailMessage";
 
         // Do not report Dalvik/Java internal exception. These are be used for control flow(!) 
-        // by the class libaries. They are  of no interest whatsover to the user. They will 
+        // by the class libaries. They are of no interest whatsover to the user. They will 
         // all be caught by the framework, and be more than distracting if first chance exception 
         // are enabled.
         private static readonly Regex CaughtExceptionClassExcludePattern = new Regex(@"^libcore\..*", RegexOptions.CultureInvariant|RegexOptions.IgnoreCase);
         protected static readonly Regex CaughtExceptionLocationExcludePattern = new Regex(@"^libcore\..*", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+
+        private static readonly string[] CaughtExceptionExcludeLocations = new[] { "java.lang.BootClassLoader", "libcore.*" };
 
         /// <summary>
         /// Default ctor
@@ -145,20 +149,16 @@ namespace Dot42.DebuggerLib.Model
                     var defaultStopOnThrow = _exceptionBehaviorMap.DefaultStopOnThrow;
                     var defaultStopUncaught = _exceptionBehaviorMap.DefaultStopUncaught;
 
-                    if (!_wasPrepared)
-                    {
-                        // set the default.
-                        var sizeInfo = Debugger.GetIdSizeInfo();
-                        // new ClassId(sizeInfo) means Null class - all exceptions.
-                        SetupBehavior(new ClassId(sizeInfo), defaultStopOnThrow, defaultStopUncaught, "(default)");
-                    }
+                    SetupDefaultOnThrowBehavior(defaultStopOnThrow);
+                    // use normal handling for uncauhgt exceptions.
+                    SetupBehavior(new ClassId(Debugger.GetIdSizeInfo()), false, defaultStopUncaught, "(default)");
 
                     foreach (var b in behaviors)
                     {
                         if (b != null)
                         {
                             var needsOverride = (b.StopOnThrow && !defaultStopOnThrow)
-                                                || (b.StopUncaught && !defaultStopUncaught);
+                                             || (b.StopUncaught && !defaultStopUncaught);
 
                             var signature = Debugger.Process.ClrNameToSignature(b.ExceptionName);
                             
@@ -220,6 +220,47 @@ namespace Dot42.DebuggerLib.Model
             }
         }
 
+        /// <summary>
+        /// special handling for caught exception, to prevent exception pollution
+        /// due to ClassNotFoundExceptions an other internal eceptions used for
+        /// control flow.
+        /// </summary>
+        /// <param name="stopOnThrow"></param>
+        private void SetupDefaultOnThrowBehavior(bool stopOnThrow)
+        {
+            var prevEventId = defaultBehaviorCaughtEventId;
+
+            if (!stopOnThrow && prevEventId != -1)
+            {
+                if (Interlocked.CompareExchange(ref defaultBehaviorCaughtEventId, -1, prevEventId) == prevEventId)
+                {
+                    Debugger.EventRequest.ClearAsync(Jdwp.EventKind.Exception, prevEventId)
+                                         .Await(DalvikProcess.VmTimeout);
+                }
+            }
+            else if(stopOnThrow && prevEventId == -1)
+            {
+                // 0 means all types.
+                var refTypeId = new ClassId(Debugger.GetIdSizeInfo());
+
+                List<EventModifier> mod = new List<EventModifier>
+                {
+                    new ExceptionOnlyModifier(refTypeId, true, false)
+                };
+                mod.AddRange(CaughtExceptionExcludeLocations.Select(pattern => new ClassExcludeModifier(pattern)));
+
+                var eventId = Debugger.EventRequest.SetAsync(Jdwp.EventKind.Exception, Jdwp.SuspendPolicy.All, mod.ToArray())
+                                                   .Await(DalvikProcess.VmTimeout);
+
+                prevEventId = Interlocked.Exchange(ref defaultBehaviorCaughtEventId, eventId);
+                if (prevEventId != -1)
+                {
+                    Debugger.EventRequest.ClearAsync(Jdwp.EventKind.Exception, prevEventId)
+                                         .Await(DalvikProcess.VmTimeout);
+                }
+            }
+        }
+
         private void RemoveBehavior(ReferenceTypeId refTypeId, string signature)
         {
             int prevEventId;
@@ -227,7 +268,7 @@ namespace Dot42.DebuggerLib.Model
             {
                 DLog.Info(DContext.DebuggerLibDebugger, "clearing exception event: " + signature);
                 Debugger.EventRequest.ClearAsync(Jdwp.EventKind.Exception, prevEventId)
-                           .Await(DalvikProcess.VmTimeout);      
+                                     .Await(DalvikProcess.VmTimeout);      
             }
         }
 

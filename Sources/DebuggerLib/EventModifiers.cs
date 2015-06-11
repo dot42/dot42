@@ -172,7 +172,7 @@ namespace Dot42.DebuggerLib
         /// </summary>
         internal override int DataSize
         {
-            get { return 1 + Encoding.UTF8.GetBytes(classPattern).Length; }
+            get { return 1 + 4 + Encoding.UTF8.GetBytes(classPattern).Length; }
         }
 
         /// <summary>
