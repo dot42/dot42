@@ -410,9 +410,8 @@ namespace Dot42.CompilerLib.Structure.DotNet
             // Call delegate list
             var multicastDelegateType = new ClassReference(targetPackage.NameConverter.GetConvertedFullName("System.MulticastDelegate"));
             var invListLengthReference = new FieldReference(multicastDelegateType, "InvocationListLength", PrimitiveType.Int);
-            var atomicReferenceArrayRef = new ClassReference("java.util.concurrent.atomic.AtomicReferenceArray");
-            var invListReference = new FieldReference(multicastDelegateType, "InvocationList", atomicReferenceArrayRef);
-            var getMethod = new MethodReference(atomicReferenceArrayRef, "get", new Prototype(FrameworkReferences.Object, new Parameter(PrimitiveType.Int, "index")));
+            var multicastDelegateArray = new ArrayType(multicastDelegateType);
+            var invListReference = new FieldReference(multicastDelegateType, "InvocationList", multicastDelegateArray);
 
             var index = body.AllocateRegister(RCategory.Temp, RType.Value);
             var count = body.AllocateRegister(RCategory.Temp, RType.Value);
@@ -430,10 +429,9 @@ namespace Dot42.CompilerLib.Structure.DotNet
             ins.Add(new Instruction(RCode.Const, 0, new[] { index }));
             ins.Add(new Instruction(RCode.Iget_object, invListReference, new[] {invList, rthis}));
 
-            var getNext = new Instruction(RCode.Invoke_virtual, getMethod, new[] {invList, index});
+            var getNext = new Instruction(RCode.Aget_object, null, new[] { next, invList, index });
             ins.Add(getNext);
-            ins.Add(new Instruction(RCode.Move_result_object, null, new[] { next }));
-            ins.Add(new Instruction(RCode.Check_cast, delegateClass, new[] { next }));
+            ins.Add(new Instruction(RCode.Check_cast, delegateClass, new [] { next }));
             ins.Add(new Instruction(RCode.Invoke_virtual, nextInvokeMethod, nextInvokeArgs));
             
             if (nextMoveResultInstruction != null)
@@ -615,8 +613,8 @@ namespace Dot42.CompilerLib.Structure.DotNet
 
             var multicastDelegateType = (ClassReference)cloneMethod.Prototype.ReturnType;
             var invListLengthReference = new FieldReference(multicastDelegateType, "InvocationListLength", PrimitiveType.Int);
-            var atomicReferenceArrayRef = new ClassReference("java.util.concurrent.atomic.AtomicReferenceArray");
-            var invListReference = new FieldReference(multicastDelegateType, "InvocationList", atomicReferenceArrayRef);
+            var multicastDelegateArray = new ArrayType(multicastDelegateType);
+            var invListReference = new FieldReference(multicastDelegateType, "InvocationList", multicastDelegateArray);
 
             ins.Add(new Instruction(RCode.Iput_object, invListReference, new []{ rInvList, result}));
             ins.Add(new Instruction(RCode.Iput, invListLengthReference, new[] { rInvListLen, result }));

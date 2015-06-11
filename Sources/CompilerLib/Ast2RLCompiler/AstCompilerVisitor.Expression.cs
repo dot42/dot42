@@ -1144,7 +1144,7 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                         if (dBaseType == null)
                             throw new CompilerException(string.Format("Type {0} base no superclass as definition", dtype.Fullname));
                         var paramCount = node.Arguments.Count - 1;
-                        var baseCtor = dBaseType.Methods.Single(x => x.IsConstructor && (x.Prototype.Parameters.Count == paramCount));
+                        var baseCtor = dBaseType.Methods.Single(x => x.IsConstructor && !x.IsStatic && (x.Prototype.Parameters.Count == paramCount));
                         var call = this.Add(node.SourceLocation, RCode.Invoke_direct, baseCtor, args.SelectMany(x => x.Result.Registers));
                         return new RLRange(call, args[0].Result);
                     }
