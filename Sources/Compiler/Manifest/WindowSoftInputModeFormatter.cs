@@ -31,7 +31,7 @@ namespace Dot42.Compiler.Manifest
             var state = (stateValue != 0) ? stateOptions.Format(stateValue) : null;
             var adjust = (adjustValue != 0) ? adjustOptions.Format(adjustValue) : null;
 
-            if (!string.IsNullOrEmpty(state) || !string.IsNullOrEmpty(adjust))
+            if (!string.IsNullOrEmpty(state) && !string.IsNullOrEmpty(adjust))
                 return state + "|" + adjust;
             if (!string.IsNullOrEmpty(state))
                 return state;
