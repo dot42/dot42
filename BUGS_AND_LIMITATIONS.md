@@ -96,5 +96,8 @@ While Dot42s Visual Studio debugger is quite advanced, it does not yet have all 
 
 ### Differences to Xamarin.Android
 - Xamarin.Android names the Android-`R` class `Ressources`, while Dot42 sticks to `R`. I am not sure there is a good reason to rename the `R` class. On the contrary, I remember myself searching for `R` when first working with Xamarin.Android for quite some time until I figured it out.
+- The Android way to specifying resources for different configurations is using folders, e.g. `Layout\MainView.axml` and `Layout-Land\MainView.axml`, casing does not matter.
+  In Dot42 you can alternatively specify the configuration appended to the filename, e.g. `Layout\MainView.axml` and `Layout\MainView-Land.axml`. When a configuration is specified in both folder and filename, the folder configuration takes preference, and the file configuration is ignored.
+- You can have more than one root resources folder,e.g. `Resources`, `Resources_MyLib`, etc. The name actually does not matter, the resources are found by their build type.
 - (TODO: there are more differences...)
 
