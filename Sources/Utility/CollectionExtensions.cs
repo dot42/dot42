@@ -96,6 +96,10 @@ namespace Dot42.Utility
                 {
                     action(v);
                 }
+                catch (AggregateException ex)
+                {
+                    throw new Exception("Error while handling " + v + ": " + ex.Flatten().InnerException.Message, ex);
+                }
                 catch (Exception ex)
                 {
                     throw new Exception("Error while handling " + v + ": " + ex.Message, ex);

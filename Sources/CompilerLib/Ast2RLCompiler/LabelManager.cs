@@ -40,7 +40,7 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
         }
 
         /// <summary>
-        /// Push a new context of the context stack.
+        /// Push a new context on the context stack.
         /// </summary>
         public IDisposable CreateContext()
         {

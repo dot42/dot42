@@ -46,7 +46,7 @@ namespace Dot42.CompilerLib.Structure.Java
         /// <summary>
         /// Sorting low comes first
         /// </summary>
-        int IClassBuilder.SortPriority { get { return 0; } }
+        int IClassBuilder.SortPriority { get { return -1000; /* create java types before .Net types */ } }
 
         /// <summary>
         /// Gets fullname of the underlying type.
@@ -365,6 +365,11 @@ namespace Dot42.CompilerLib.Structure.Java
                     return name;
                 name = baseName + (index++);
             }
+        }
+
+        public override string ToString()
+        {
+            return classDef.Fullname;
         }
     }
 }
