@@ -67,6 +67,7 @@
             new ConfigurationOption<ScreenPixelDensities>(ScreenPixelDensities.xhdpi, "xhdpi", "Extra high-density screens; approximately 320dpi."),
             new ConfigurationOption<ScreenPixelDensities>(ScreenPixelDensities.nodpi, "nodpi", "This can be used for bitmap resources that you do not want to be scaled to match the device density."),
             new ConfigurationOption<ScreenPixelDensities>(ScreenPixelDensities.tvdpi, "tvdpi", "Screens somewhere between mdpi and hdpi; approximately 213dpi. This is not considered a \"primary\" density group. It is mostly intended for televisions and most apps shouldn't need it—providing mdpi and hdpi resources is sufficient for most apps and the system will scale them as appropriate."),
+            new ConfigurationOption<ScreenPixelDensities>(ScreenPixelDensities.anydpi, "anydpi", "can be used on >= v21"),
         });
 
         public static readonly ConfigurationOptions<TouchScreenTypes> TouchScreenTypeOptions = new ConfigurationOptions<TouchScreenTypes>(new[] {

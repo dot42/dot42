@@ -1,5 +1,8 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Runtime.Remoting.Channels;
+using System.Xml;
 using System.Xml.Linq;
 using Dot42.ResourcesLib;
 
@@ -24,6 +27,9 @@ namespace Dot42.Ide.Project
                 case ".9.png":
                     itemType = Dot42Constants.ItemTypeDrawableResource;
                     return true;
+                case ".axml":
+                    itemType = Dot42Constants.ItemTypeLayoutResource;
+                    return true;
                 case ".xml":
                     return TryDetectXmlItemType(path, frameworkFolder, out itemType);
                 default:
@@ -36,11 +42,15 @@ namespace Dot42.Ide.Project
         /// </summary>
         private static bool TryDetectXmlItemType(string path, string frameworkFolder, out string itemType)
         {
-            itemType = null;
+            // try detection based on the base;
+            if (TryDetectionItemTypeFromPath(path, out itemType))
+                return true;
+
             // Try loading the file.
             try
             {
-                var doc = XDocument.Load(path);
+                var doc = XDocument.Load(path); // todo: why load the whole document, when we are 
+                                                // only interested in the root  node?
                 var root = doc.Root;
                 if (root == null)
                     return false;
@@ -57,6 +67,7 @@ namespace Dot42.Ide.Project
                     case "GridLayout":
                     case "LinearLayout":
                     case "RelativeLayout":
+                    case "merge":
                         itemType = Dot42Constants.ItemTypeLayoutResource;
                         break;
                     case "bitmap":
@@ -64,6 +75,7 @@ namespace Dot42.Ide.Project
                     case "nine-patch":
                     case "inset":
                     case "layer-list":
+                    case "animation-list":
                     case "level-list":
                     case "selector":
                     case "scale":
@@ -92,6 +104,45 @@ namespace Dot42.Ide.Project
                 return false;
             }
         }
+
+        private static bool TryDetectionItemTypeFromPath(string path, out string itemType)
+        {
+            itemType = null;
+            var dir = Path.GetFileName(Path.GetDirectoryName(path));
+            if (dir == null) return false;
+
+            dir = dir.Split(new [] {'-'}, 2)[0]; // remove possible configuration specifier.
+            dir = dir.ToUpperInvariant();
+            switch (dir)
+            {
+                case "ANIMATION":
+                    itemType = Dot42Constants.ItemTypeAnimationResource;
+                    return true;
+                case "DRAWABLE":
+                    itemType = Dot42Constants.ItemTypeDrawableResource;
+                    return true;
+                case "LAYOUT":
+                    itemType = Dot42Constants.ItemTypeLayoutResource;
+                    return true;
+                case "MENU":
+                    itemType = Dot42Constants.ItemTypeMenuResource;
+                    return true;
+                case "VALUES":
+                    itemType = Dot42Constants.ItemTypeValuesResource;
+                    return true;
+                // Don't detect 'xml' as it is to common a name.
+                //case "XML":  
+                //    itemType = Dot42Constants.ItemTypeXmlResource;
+                //    return true;
+                case "RAW":
+                    itemType = Dot42Constants.ItemTypeRawResource;
+                    return true;
+                default:
+                    return false;
+            }
+
+        }
+        
 
         /// <summary>
         /// Try to detect layout files.
