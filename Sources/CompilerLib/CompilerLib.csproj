@@ -51,6 +51,7 @@
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Ast2RLCompiler\AstCompilerVisitor.cs" />
     <Compile Include="Ast2RLCompiler\AstCompilerVisitor.Expression.cs" />
+    <Compile Include="Ast2RLCompiler\AstCompilerVisitor.TryCatchFinally.cs" />
     <Compile Include="Ast2RLCompiler\AstInvocationFrame.cs" />
     <Compile Include="Ast2RLCompiler\Extensions\BoxInfo.cs" />
     <Compile Include="Ast2RLCompiler\Extensions\DexTyping.cs" />
