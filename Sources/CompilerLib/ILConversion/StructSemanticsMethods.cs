@@ -85,8 +85,8 @@ namespace Dot42.CompilerLib.ILConversion
                 // Copy all fields
                 foreach (var field in type.Fields.Where(x => !x.IsStatic))
                 {
-                    TypeDefinition fieldTypeDef;
-                    var fieldTreatAsStruct = StructFields.IsStructField(field, out fieldTypeDef) && !StructFields.IsImmutableStruct(fieldTypeDef);
+                    // Not need to bother with cloning struct-type fields here, 
+                    // as this will be done automatically by one of the Converters.
 
                     // Prepare for stfld
                     seq.Emit(OpCodes.Ldarg, body.ThisParameter);
@@ -94,13 +94,6 @@ namespace Dot42.CompilerLib.ILConversion
                     // Load from source
                     seq.Emit(OpCodes.Ldarg, sourceParam);
                     seq.Emit(OpCodes.Ldfld, field);
-
-                    // If struct, create clone
-                    if (fieldTreatAsStruct)
-                    {
-                        var cloneMethod = new MethodReference(NameConstants.Struct.CloneMethodName, fieldTypeDef, fieldTypeDef) { HasThis = true };
-                        seq.Emit(OpCodes.Call, cloneMethod);
-                    }
 
                     // Save in this
                     seq.Emit(OpCodes.Stfld, field);
