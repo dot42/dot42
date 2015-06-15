@@ -17,12 +17,12 @@ namespace Dot42.CompilerLib.RL.Transformations
         /// <summary>
         /// Transform the given body.
         /// </summary>
-        public void Transform(Dex target, MethodBody body)
+        public bool Transform(Dex target, MethodBody body)
         {
             var basicBlocks = BasicBlock.Find(body);
             var registerCount = body.Registers.Count();
             if (registerCount > MaxRegisters)
-                return;
+                return false;
 
             Dictionary<Instruction, ConstantKey> allConstInstructions;
             CollectReadOnlyConstInstructions(body, out allConstInstructions);
@@ -75,6 +75,8 @@ namespace Dot42.CompilerLib.RL.Transformations
                     }
                 }
             }
+
+            return false;
         }
 
         /// <summary>

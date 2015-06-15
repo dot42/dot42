@@ -14,7 +14,7 @@ namespace Dot42.CompilerLib.RL.Transformations
         /// <summary>
         /// Transform the given body.
         /// </summary>
-        public void Transform(Dex target, MethodBody body)
+        public bool Transform(Dex target, MethodBody body)
         {
             // Build the control flow graph
             var cfg = new ControlFlowGraph(body);
@@ -124,6 +124,7 @@ namespace Dot42.CompilerLib.RL.Transformations
                 }
             }
 
+            return false;
         }
 
         private class BasicBlockData

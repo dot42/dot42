@@ -14,8 +14,10 @@ namespace Dot42.CompilerLib.RL.Transformations
         /// <summary>
         /// Transform the given body.
         /// </summary>
-        public void Transform(Dex target, MethodBody body)
+        public bool Transform(Dex target, MethodBody body)
         {
+            bool hasChanges = false;
+
             // Find all "const" instructions and record register usage
             var allConstInstructions = new List<Instruction>();
             var registerUsage = new Dictionary<Register, List<Instruction>>();
@@ -61,8 +63,11 @@ namespace Dot42.CompilerLib.RL.Transformations
                     r = next.Registers[0];
                     ins.Registers[0] = r;
                     next.ConvertToNop();
+
+                    hasChanges = true;
                 }
             }
+            return hasChanges;
         }
 
         /// <summary>

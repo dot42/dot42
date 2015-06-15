@@ -11,7 +11,7 @@ namespace Dot42.CompilerLib.RL.Transformations
         /// <summary>
         /// Transform the given body.
         /// </summary>
-        public void Transform(Dex target, MethodBody body)
+        public bool Transform(Dex target, MethodBody body)
         {
             foreach (var ins in body.Instructions)
             {
@@ -39,6 +39,8 @@ namespace Dot42.CompilerLib.RL.Transformations
                         break;
                 }
             }
+
+            return false;
         }
     }
 }

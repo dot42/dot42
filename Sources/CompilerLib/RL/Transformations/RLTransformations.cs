@@ -13,10 +13,14 @@ namespace Dot42.CompilerLib.RL.Transformations
             //new ShareConstTransformation(),
             new NopRemoveTransformation(), 
             new FlattenExceptionsTransformation(), 
-            new RemoveEmptySwitchAndGotosTransformation(), 
-            new EliminateDeadCodeTransformation(), 
             // Last
             new InitializeRegistersTransformation(),
+        };
+
+        private static readonly IRLTransformation[] incrementalOptimizations = new IRLTransformation[]
+        {
+            new RemoveEmptySwitchAndGotosTransformation(), 
+            new EliminateDeadCodeTransformation(), 
         };
 
         /// <summary>
@@ -24,6 +28,16 @@ namespace Dot42.CompilerLib.RL.Transformations
         /// </summary>
         internal static void Transform(Dex target, MethodBody body)
         {
+            bool hasChanges = true;
+            while (hasChanges)
+            {
+                hasChanges = false;
+                foreach (var transformation in incrementalOptimizations)
+                {
+                    hasChanges = transformation.Transform(target, body) || hasChanges;
+                }   
+            }
+
             foreach (var transformation in optimizations)
             {
                 transformation.Transform(target, body);

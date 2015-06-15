@@ -2,7 +2,6 @@
 using System.Linq;
 using Dot42.CompilerLib.RL.Extensions;
 using Dot42.DexLib;
-using Dot42.DexLib.Instructions;
 
 namespace Dot42.CompilerLib.RL.Transformations
 {
@@ -12,14 +11,26 @@ namespace Dot42.CompilerLib.RL.Transformations
     /// </summary>
     internal sealed class RemoveEmptySwitchAndGotosTransformation : IRLTransformation
     {
-        public void Transform(Dex target, MethodBody body)
+        public bool Transform(Dex target, MethodBody body)
         {
 #if DEBUG
             //return;
 #endif
+            if (DoOptimization(body))
+            {
+                new NopRemoveTransformation().Transform(target, body);
+                return true;
+            }
+            return false;
+        }
+
+        private bool DoOptimization(MethodBody body)
+        {
+            bool hasChanges = false;
+
             var instructions = body.Instructions;
 
-            for(int i = 0 ; i < instructions.Count; ++i)
+            for (int i = 0; i < instructions.Count; ++i)
             {
                 var ins = instructions[i];
                 if (ins.Code == RCode.Packed_switch)
@@ -30,6 +41,7 @@ namespace Dot42.CompilerLib.RL.Transformations
                     {
                         // all targets and default point to next instruction.
                         instructions[i].ConvertToNop();
+                        hasChanges = true;
                     }
                 }
 
@@ -45,10 +57,12 @@ namespace Dot42.CompilerLib.RL.Transformations
                         gotoTarget = (Instruction) gotoTarget.Operand;
 
                         // this happens e.g. for the generated 'setNextInstruction' instructions.
-                        if (visited.Contains(ins))
+                        if (visited.Contains(gotoTarget))
                             break;
+                        visited.Add(gotoTarget);
 
                         ins.Operand = gotoTarget;
+                        hasChanges = true;
                     }
 
                     if (ins.Code == RCode.Goto)
@@ -60,15 +74,18 @@ namespace Dot42.CompilerLib.RL.Transformations
                             ins.Code = RCode.Return_void;
                             ins.Operand = null;
                             ins.Registers.Clear();
+                            hasChanges = true;
                         }
                         // remove empty gotos
                         else if (gotoTarget.Index == i + 1)
                         {
                             ins.ConvertToNop();
+                            hasChanges = true;
                         }
                     }
                 }
             }
+            return hasChanges;
         }
 
         public bool IsSimpleBranch(RCode code)
@@ -76,7 +93,7 @@ namespace Dot42.CompilerLib.RL.Transformations
             switch (code)
             {
                 case RCode.Goto:
-                //case RCode.Leave: // what is this?
+                case RCode.Leave:
                 case RCode.If_eq:
                 case RCode.If_eqz:
                 case RCode.If_ge:

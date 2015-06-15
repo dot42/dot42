@@ -13,11 +13,11 @@ namespace Dot42.CompilerLib.RL.Transformations
         /// <summary>
         /// Transform the given body.
         /// </summary>
-        public void Transform(Dex target, MethodBody body)
+        public bool Transform(Dex target, MethodBody body)
         {
             var handlers = body.Exceptions;
             if (handlers.Count <= 1)
-                return;
+                return false;
 
             // Create a list used for sorting and overlapping
             var fhandlers = handlers.Select(x => new FlattenableExceptionHandler(x)).ToList();
@@ -88,6 +88,8 @@ namespace Dot42.CompilerLib.RL.Transformations
                 handlers.Add(handler.Handler);
                 prev = handler;
             }
+
+            return false;
         }
 
         /// <summary>

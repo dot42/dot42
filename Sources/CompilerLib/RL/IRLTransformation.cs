@@ -6,7 +6,9 @@ namespace Dot42.CompilerLib.RL
     {
         /// <summary>
         /// Transform the given body.
+        /// <returns>for implementations that support incremental optimizations,
+        /// returns true if changes were made.</returns>
         /// </summary>
-        void Transform(Dex target, MethodBody body);
+        bool Transform(Dex target, MethodBody body);
     }
 }

@@ -11,8 +11,9 @@ namespace Dot42.CompilerLib.RL.Transformations
     /// </summary>
     internal sealed class EliminateDeadCodeTransformation : IRLTransformation
     {
-        public void Transform(Dex target, MethodBody body)
+        public bool Transform(Dex target, MethodBody body)
         {
+            bool hasChanges = false;
 #if DEBUG
             //return;
 #endif
@@ -28,11 +29,13 @@ namespace Dot42.CompilerLib.RL.Transformations
                 if (!reachable[i] && atEndOfMethod)
                 {
                     instructions.RemoveAt(i);
+                    hasChanges = true;
                 }
-                else if (!reachable[i])
+                else if (!reachable[i] && instructions[i].Code != RCode.Nop)
                 {
                     instructions[i].ConvertToNop();
                     removeNops = true;
+                    hasChanges = true;
                 }
                 else
                 {
@@ -43,6 +46,8 @@ namespace Dot42.CompilerLib.RL.Transformations
            
             if(removeNops)
                 new NopRemoveTransformation().Transform(target, body);
+
+            return hasChanges;
         }
 
         private void MarkReachable(int index, InstructionList instructions, bool[] reachable, MethodBody body)
