@@ -649,10 +649,16 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                     }
                 case AstCode.Leave:
                     {
-                        var label = (AstLabel) node.Operand;
-                        var branch = this.Add(node.SourceLocation, RCode.Leave);
-                        labelManager.AddResolveAction(label, x => branch.Operand = x);
-                        return new RLRange(branch, null);
+                        // this code indicates that we leave a try block.
+                        var tryCatch = tryCatchStack.FirstOrDefault(l => l.HasFinally);
+                        if (tryCatch == null)
+                        {
+                            var label = (AstLabel) node.Operand;
+                            var branch = this.Add(node.SourceLocation, RCode.Leave);
+                            labelManager.AddResolveAction(label, x => branch.Operand = x);
+                            return new RLRange(branch, null);
+                        }
+                        return tryCatch.BranchToFinally_Leave(node.SourceLocation, (AstLabel)node.Operand, args);
                     }
                 case AstCode.Switch:
                     {
@@ -736,10 +742,34 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                         return VisitCallExpression(node, args, parent);
                     }
                 case AstCode.Ret:
-                    if (currentMethod.ReturnsVoid)
-                        return new RLRange(args, this.Add(node.SourceLocation, RCode.Return_void), null);
-                    return new RLRange(args, this.Add(node.SourceLocation, node.Return(currentMethod), args[0].Result),
-                                       null);
+                {
+                        var tryCatch = tryCatchStack.FirstOrDefault(tc => tc.HasFinally);
+
+                        if (tryCatch == null)
+                        {
+                            if (currentMethod.ReturnsVoid)
+                                return new RLRange(args, this.Add(node.SourceLocation, RCode.Return_void), null);
+                            return new RLRange(args,
+                                this.Add(node.SourceLocation, node.Return(currentMethod), args[0].Result), null);
+                        }
+                        else
+                        {
+                            // We need to branch to the finally statement, but set up the correct return value.
+                            // and indicate that the finally handler should return that value.
+                            if (!currentMethod.ReturnsVoid)
+                            {
+                                if (finallyState.ReturnValueRegister == null)
+                                    finallyState.ReturnValueRegister =
+                                        frame.AllocateTemp(currentDexMethod.Prototype.ReturnType);
+                                var start = this.Add(node.SourceLocation, node.Move(), finallyState.ReturnValueRegister,
+                                    args[0].Result);
+                                var range = tryCatch.BranchToFinally_Ret(node.SourceLocation, args);
+                                return new RLRange(args, start, range.Last, null);
+                            }
+
+                            return tryCatch.BranchToFinally_Ret(node.SourceLocation, args);
+                        }
+                    }
 
                     #endregion
 
@@ -1303,9 +1333,9 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                     }
                 case AstCode.Rethrow:
                     {
-                        if (currentExceptionRegister == null)
+                        if (currentExceptionRegister.Count == 0)
                             throw new CompilerException("retrow outside catch block");
-                        var @throw = this.Add(node.SourceLocation, RCode.Throw, currentExceptionRegister);
+                        var @throw = this.Add(node.SourceLocation, RCode.Throw, currentExceptionRegister.Peek());
                         return new RLRange(@throw, null);                        
                     }
                 case AstCode.Delegate:

@@ -1,3 +1,5 @@
+
+
 ### Target Performance
 - There are probably myriads of possibilities to improve target performance, to optimize this and that. Profiling should find out if and where the largest bottlenecks are. 
 
@@ -86,7 +88,7 @@ To mitigate, Dot42 will rename possible clashing methods. Since all this happens
 
 **Constructors can not be renamed**. Therefore, clashing constructors will lead to a compile time error. One possible fix in Dot42 compiler would be to introduce special marker parameters types, e.g. `Dot42.Internal.Uint32Marker`, add them to conflicting constructors, and update all call sites to pass in an extra null or empty instance. 
  
-### Thoughts optimizing compiler performance
+### Thoughts on optimizing compiler performance
 *(Note: the figures are out of date, but the general ideas still apply)*.
 Compiling my pet project, NinjaTasks, including a reference to Newtonsoft.Json, MVVMCross and a few custom libraries takes with the newest optimizations still about 35 seconds without the compiler cache. There are ~1300 types with methods and ~10.000 methods in the mapfile (a few more generated-but-not-mapped might be in the dex). These values are far from the dreaded ~65000 dex method limit, which apparently a few projects have already reached.
 Obviously compiler performance has to be improved. Profiling showed for this CLR-only project the most time consuming steps are:
@@ -137,7 +139,7 @@ Some cases need special handling:
     
 ### .jar to .dex
 
-The integrated .jar to .dex method body compiler has subtle bug somewhere. I encountered this problem when using the DrawerLayout from the support library. A child ListView would not get redrawn (or more accurate: re-layouted) on data change until I deliberately forced some scrolling to occur by dragging the list. There are probably other manifestations of this bug. A good approach to hunt the bug would be to pull in a larger 'test' project, e.g. gson test or something, and hope that failing tests will lead right to broken .dex code.
+The integrated .jar to .dex method body compiler has a subtle bug somewhere. I encountered this problem when using the DrawerLayout from the support library. A child ListView would not get redrawn (or more accurate: re-layouted) on data change until I deliberately forced some scrolling to occur by dragging the list. There are most probably other manifestations of this bug. A good approach to hunt the bug would be to pull in a larger 'test' project, e.g. gson test or something, and hope that failing tests will lead right to broken .dex code.
 
 I decided to  fight the problem from the other side: I included the 'dx' tool from Android Tools SDK to compile .jars to temporary .dex, then load these .dex and extract the method bodies from there. This has the following benefits:
 - We know it generates correct code in all cases.
@@ -146,9 +148,84 @@ I decided to  fight the problem from the other side: I included the 'dx' tool fr
 - We protect ourselfs at least partially against changes to the `.class` format/instruction set. The 'dx' tool is easily upgradable. We are only partial protected because we still need to generate the binding to the code, and - at the moment - still generate the class structure, annotations, etc. using our own code.
 
 Drawbacks are: 
-- If only a fraction of classes of the .jar are used, the current implementation might incur slight increases in initial compile time, though reduction is also possible. Incremental builds are always served from the initial build .dex. This should reduce compile time, even when using the compiler cache. See the code for detailed reasons.
+- If only a fraction of classes of the .jar are used, the current implementation might incur a slight increases in initial compile time, though reduction is also possible. Incremental builds are always served from the initial build .dex. This should reduce compile time, even when using the compiler cache. See the code for detailed reasons.
 
 The internal compilation can be enabled by setting `<DxJarCompilation>false</DxJarCompilation>` in the `.csproj` of the application project. 
+
+### Exception handling
+
+The CLR supports four kinds of exception handlers:
+-  `catch` handlers execute when exception occurs that is assignment compatible with the specified exception type. "catch all" is implemented in C# using `System.Object` as exception type.
+- `finally` handlers always execute when a `try` block is exited, but after possible exceptions handlers have been run.
+- "fault" handlers always execute when a try block exists with an exception. As far as I understand, they are not used in C#. They are not supported by Dot42.
+-  "filter" handlers are not supported by C# or Dot42, I believe they might be used in VB code.
+  
+Dalvik/`.dex` only supports `catch`/`catch all` handlers. `finally` handlers have to be emulated. The emulation also has to work with  nested try/catch/finally blocks.
+
+There are five cases to consider:
+   
+1. There is no finally handler. 
+2. There is a finally handler, but no catch handlers.
+3. There is a finally handler and catch handlers, but no catch all handler
+4. There is a finally handler and catch handlers, including a catch all handler.
+5. All of the above, plus nested finally handlers. 
+
+
+
+###### (1) No finally handler. 
+No special emulation is necessary.
+
+###### (2) There is a finally handler, but no catch handlers.
+
+In Dot42 abstract syntax trees (Ast), there are for ways out of a try block:
+- an exception occurs
+- a `return` statement. The return statement will execute all nested finally blocks. 
+- an implicit branch to the next instruction after the finally block
+- an explicit `leave` instruction pointing to an arbitrary instruction. This instruction, similar to the return statement, can lead to the execution of multiple finally blocks, depending on the final destination. 
+
+We have to always end up executing the finally block(s), and continue afterwards with the correct destination. 
+
+> One implementation possibility used by earlier versions of Dot42  is to duplicate the finally blocks code at all relevant places, i.e. before return statements, before/after branching and as a general exception handler. This leads to unnecessary code bloat, especially with larger functions with more than one return statement and large finally blocks. Furthermore there were problems with nested try/catch/finally blocks, and, as far as I understand, the `leave` case was not handled at all. Newer implementation take the approach outlined below.
+
+To accomplish this we allocate per finally block one to three registers. Register `rEx` is to hold the exception, if any. This register is always allocated and initialized to zero. If there are return statements in the try block and the method returns a value, we allocate a register `rResult` to to hold that return value. The state variable `rTarget` to be used in a branch or `packed-switch` instruction to branch to the correct destination after the finally block has executed.
+
+After set-up, we emit the try block. We set the catch all handler of the try block to point to the code 
+```
+	move_exception rEx
+non_exception:
+```
+
+All return statements are changed to set up the return value variable (if any), set `rTarget` if required, and `goto non_exception`. Leave instruction and the implicit branch at the end of the block set up `rTarget` if required and `goto non_exception`.  
+
+Directly after `non_exception:` we emit the finally block. At the end of the finally block we emit a variant of the following code, depending on needs:
+ 
+```
+	if-eqz rEx check_first_target
+	throw rEx
+check_first_target:
+	if-neq rTarget 0 check_target_1
+	goto target1 
+check_target_1:
+    if-neq rTarget 1 check_target_2
+	goto target2 
+check_target_2:
+	return rValue            
+after_finally:
+```
+   
+
+###### (3) There is a finally handler and catch handlers, but no catch all handler.
+
+This case can be handled very similar to the previous case. The catch blocks are emitted after the try blocks. The try block and the bodies of the catch blocks are covered by the finally's catch-all handler. Return values and implicit/explicit branching are handled as in the try block by branching to `non_exception`.
+
+###### (4) There is a finally handler and catch handlers, including a catch all handler.
+
+Again, this case is not so different from the previous case. We emit the catch all handler after the other catch handlers. The try block is covered by the various exception handlers. These exception handlers in turn are covered by the finally handler. Return, throw, rethrow and branching are handled as in case (3).
+
+###### (5) All of the above, plus nested finally handlers. 
+
+The basic idea here is, that when a finally block is entered for a return or leave statement - depending on the leave target -, we have to reroute at the end of the finally block to the next enclosing finally block. To accomplish this, all targets in nested blocks get unique ids identifying their final destination. 
+[TODO: this section could be expanded]
 
 ### Further thoughts
 

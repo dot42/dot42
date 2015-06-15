@@ -34,6 +34,7 @@ namespace Dot42.CompilerLib.Target
                 var rlBody = new MethodBody(source);
                 var rlGenerator = new AstCompilerVisitor(compiler, source, targetPackage, dmethod, rlBody);
                 optimizedAst.Accept(rlGenerator, null);
+                rlGenerator.Complete();
 
                 // Should we add return_void?
                 if (source.ReturnsVoid)

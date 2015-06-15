@@ -2,14 +2,12 @@
 using System.Linq;
 using Dot42.CecilExtensions;
 using Dot42.CompilerLib.Ast;
-using Dot42.CompilerLib.Ast.Extensions;
-using Dot42.CompilerLib.Extensions;
 using Dot42.CompilerLib.RL;
-using Dot42.CompilerLib.RL.Extensions;
-using Dot42.CompilerLib.Target;
 using Dot42.CompilerLib.Target.Dex;
 using Dot42.DexLib;
-using MethodDefinition = Mono.Cecil.MethodDefinition;
+using Mono.Cecil.Cil;
+using Instruction = Dot42.CompilerLib.RL.Instruction;
+using MethodBody = Dot42.CompilerLib.RL.MethodBody;
 
 namespace Dot42.CompilerLib.Ast2RLCompiler
 {
@@ -20,18 +18,21 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
     {
         private readonly AssemblyCompiler compiler;
         private readonly MethodSource currentMethod;
-        private readonly Dot42.DexLib.MethodDefinition currentDexMethod;
+        private readonly MethodDefinition currentDexMethod;
         private readonly DexTargetPackage targetPackage;
         private readonly MethodBody body;
         private readonly AstInvocationFrame frame;
         private readonly InstructionList instructions;
         private readonly LabelManager labelManager = new LabelManager();
-        private Register currentExceptionRegister; // Holds the exception in a catch block
+        private readonly Stack<Register> currentExceptionRegister = new Stack<Register>();        // Holds the exception in a catch block
+
+        private readonly MethodFinallyState finallyState = new MethodFinallyState();
+        private readonly Stack<FinallyBlockState> tryCatchStack = new Stack<FinallyBlockState>(); // holds the current finally target.
 
         /// <summary>
         /// Default ctor
         /// </summary>
-        internal AstCompilerVisitor(AssemblyCompiler compiler, MethodSource source, DexTargetPackage targetPackage, Dot42.DexLib.MethodDefinition method, MethodBody body)
+        internal AstCompilerVisitor(AssemblyCompiler compiler, MethodSource source, DexTargetPackage targetPackage, MethodDefinition method, MethodBody body)
         {
             this.compiler = compiler;
             currentMethod = source;
@@ -157,10 +158,10 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
         /// <summary>
         /// Does the given method have a call to a base class ctor?
         /// </summary>
-        private static bool HasBaseOrThisClassCtorCall(MethodDefinition method)
+        private static bool HasBaseOrThisClassCtorCall(Mono.Cecil.MethodDefinition method)
         {
             var resolver = new GenericsResolver(method.DeclaringType);
-            foreach (var ins in method.Body.Instructions.Where(x => x.OpCode.Code == Mono.Cecil.Cil.Code.Call))
+            foreach (var ins in method.Body.Instructions.Where(x => x.OpCode.Code == Code.Call))
             {
                 var target = ins.Operand as Mono.Cecil.MethodReference;
                 if ((target != null) && (target.Name == ".ctor") && 
@@ -171,6 +172,11 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                 }
             }
             return false;
+        }
+
+        public void Complete()
+        {
+            FixFinallyRouting();
         }
     }
 }

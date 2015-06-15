@@ -69,12 +69,12 @@ namespace Dot42.CompilerLib.Extensions
             if (method == null)
                 throw new ArgumentNullException("method");
 
-#if DEBUG
-            if (method.DeclaringType.IsArray)
-            {
-                Debugger.Launch();
-            }
-#endif
+//#if DEBUG
+//            if (method.DeclaringType.IsArray)
+//            {
+//                Debugger.Launch();
+//            }
+//#endif
 
             // Resolve the type to a method definition
             XMethodDefinition methodDef;

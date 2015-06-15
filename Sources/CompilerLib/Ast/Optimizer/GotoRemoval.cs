@@ -84,21 +84,26 @@ namespace Dot42.CompilerLib.Ast.Optimizer
                                    && tryCatch.TryBlock.Body.All(p => p is AstLabel || p.Match(AstCode.Nop));
                     if (isEmptyTry)
                     {
-                        if (tryCatch.FaultBlock != null) continue; // TODO: don't know what a fault block is.
-                        if (tryCatch.FinallyBlock != null && tryCatch.FinallyBlock.EntryGoto != null) // TODO: don't know how to handle.
-
-                            if (tryCatch.FinallyBlock != null)
+                        if (tryCatch.FinallyBlock != null) 
+                        {
+                            if (tryCatch.FinallyBlock.EntryGoto != null)
                             {
-                                tryCatch.FinallyBlock.Body.InsertRange(0, tryCatch.TryBlock.Body); // keep labels if any.
-                                tryCatch.TryBlock = tryCatch.FinallyBlock;
-                                tryCatch.FinallyBlock = null;
+                                // TODO: don't know how to handle this. Doesn't seem to happen.
+                                continue;
                             }
+
+                            tryCatch.FinallyBlock.Body.InsertRange(0, tryCatch.TryBlock.Body);
+                            // keep labels if any.
+                            tryCatch.TryBlock = tryCatch.FinallyBlock;
+                            tryCatch.FinallyBlock = null;
+                        }
 
                         // replace.
                         block.Body[i] = tryCatch.TryBlock;
                         modifiedTryCatch = true;
                         // TODO: preserve possible external labels (is this neccessary?)
                         tryCatch.CatchBlocks.Clear(); // or can they contain labels?
+                        tryCatch.FaultBlock = null;
                     }
                 }
             }

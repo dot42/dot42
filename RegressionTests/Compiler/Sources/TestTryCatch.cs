@@ -176,6 +176,54 @@ namespace Dot42.Tests.Compiler.Sources
             AssertTrue(outerThrown);
         }
 
+        public void testNestedTryFinally()
+        {
+            int count = 0;
+            try
+            {
+                count ++;
+                try { count++; } 
+                finally { count++; }
+            }
+            finally
+            {
+                count++;
+                try { count++; }
+                finally { count++; }
+            }
+            Assert.AssertEquals(6, count);
+        }
+
+        public void testNestedTryFinallyGoto()
+        {
+            int count = 0;
+            var nan = double.NaN;
+            try
+            {
+                count++;
+
+                try
+                {
+                    if(double.IsNaN(nan))
+                        goto assert;
+                    count++;
+                }
+                finally { count++; }
+
+            }
+            finally
+            {
+                count++;
+                try { count++; }
+                finally { count++; }
+            }
+
+            count = 0;
+            assert:
+
+            Assert.AssertEquals(5, count);
+        }
+
         public void testEmptyTryCatch()
         {
             try
