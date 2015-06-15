@@ -1,16 +1,16 @@
 ﻿using System;
-using System.IO;
-using Java.Lang;
+using Android.OS;
 using Junit.Framework;
-using Exception = System.Exception;
 
 namespace Dot42.Tests.Compiler.Sources
 {
     public class TestTryCatch : TestCase
     {
+        private int lastFoo;
+
         private void Foo(int x)
         {
-            
+            lastFoo = x;
         }
 
         public void testX()
@@ -22,31 +22,35 @@ namespace Dot42.Tests.Compiler.Sources
         {
             try
             {
-                Foo(0);
+                Foo(2);
             }
             finally
             {
+                AssertEquals(2, lastFoo);
                 Foo(25);
             }
+            AssertEquals(25, lastFoo);
         }
 
         public void testTryCatch()
         {
             try
             {
-                Foo(0);
+                Foo(2);
             }
             catch (Exception)
             {
                 Foo(1);
             }
+
+            AssertEquals(2, lastFoo);
         }
 
         public void testTryCatchFinally()
         {
             try
             {
-                Foo(0);
+                Foo(2);
             }
             catch (Exception)
             {
@@ -54,15 +58,18 @@ namespace Dot42.Tests.Compiler.Sources
             }
             finally
             {
+                AssertEquals(2, lastFoo);
                 Foo(25);
             }
+
+            AssertEquals(25, lastFoo);
         }
 
         public void testTryCatchAllFinally()
         {
             try
             {
-                Foo(0);
+                Foo(1);
             }
             catch
             {
@@ -70,15 +77,18 @@ namespace Dot42.Tests.Compiler.Sources
             }
             finally
             {
+                AssertEquals(1, lastFoo);
                 Foo(25);
             }
+
+            AssertEquals(25, lastFoo);
         }
 
         public void testTryCatchCatchAllFinally()
         {
             try
             {
-                Foo(0);
+                Foo(3);
             }
             catch (Exception)
             {
@@ -90,15 +100,18 @@ namespace Dot42.Tests.Compiler.Sources
             }
             finally
             {
+                AssertEquals(3, lastFoo);
                 Foo(25);
             }
+
+            AssertEquals(25, lastFoo);
         }
 
         public void testNestedTryCatch1()
         {
             try
             {
-                Foo(0);
+                Foo(2);
                 try
                 {
                     Foo(100);
@@ -107,12 +120,16 @@ namespace Dot42.Tests.Compiler.Sources
                 {
                     Foo(101);
                 }
+
+                AssertEquals(100, lastFoo);
                 Foo(10);
             }
             catch (Exception)
             {
                 Foo(1);
             }
+
+            AssertEquals(10, lastFoo);
         }
 
         public void testNestedTryCatch2()
@@ -191,7 +208,7 @@ namespace Dot42.Tests.Compiler.Sources
                 try { count++; }
                 finally { count++; }
             }
-            Assert.AssertEquals(6, count);
+            AssertEquals(6, count);
         }
 
         public void testNestedTryFinallyGoto()
@@ -221,7 +238,7 @@ namespace Dot42.Tests.Compiler.Sources
             count = 0;
             assert:
 
-            Assert.AssertEquals(5, count);
+            AssertEquals(5, count);
         }
 
         public void testEmptyTryCatch()

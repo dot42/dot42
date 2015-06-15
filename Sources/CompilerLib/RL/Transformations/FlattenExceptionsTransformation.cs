@@ -19,55 +19,62 @@ namespace Dot42.CompilerLib.RL.Transformations
             if (handlers.Count <= 1)
                 return false;
 
-            // Create a list used for sorting and overlapping
+            // Create a list used for sorting and overlapping. outer handlers come before inner handlers
             var fhandlers = handlers.Select(x => new FlattenableExceptionHandler(x)).ToList();
             fhandlers.Sort();
 
             // Rebuild handler list
             for (var i = 0; i < fhandlers.Count - 1; )
             {
-                var a = fhandlers[i];
-                var b = fhandlers[i + 1];
-                if (!a.Overlaps(b))
+                var outer = fhandlers[i];
+                var inner = fhandlers[i + 1];
+                if (!outer.Overlaps(inner))
                 {
                     i++;
                     continue;
                 }
 
-                // a and b overlap.
-                if (a.TryStart < b.TryStart)
+                // 'outer' and 'inner' overlap.
+                if (outer.TryStart < inner.TryStart)
                 {
-                    // Create handler for start of A only.
-                    var prefix = new ExceptionHandler(a.Handler);
-                    prefix.TryEnd = b.Handler.TryStart.Previous;
+                    // Create handler for start of 'outer' only.
+                    var prefix = new ExceptionHandler(outer.Handler);
+                    prefix.TryEnd = inner.Handler.TryStart.Previous;
                     Debug.Assert(prefix.TryEnd != null);
                     fhandlers.Insert(i, new FlattenableExceptionHandler(prefix));
 
-                    // Trim original A handler
-                    a.Handler.TryStart = b.Handler.TryStart;
+                    // Trim original 'outer' handler
+                    outer.Handler.TryStart = inner.Handler.TryStart;
                 }
 
-                // start of a and b must now be equal
-                Debug.Assert(a.TryStart == b.TryStart);
+                // start of 'outer' and 'inner' must now be equal
+                Debug.Assert(outer.TryStart == inner.TryStart);
 
-                // Create handler for shared block
-                var common = new ExceptionHandler(b.Handler);
-                common.Catches.AddRange(a.Handler.Catches.Where(x => !b.Handler.Catches.Any(y => x.Type.Equals(y.Type))));
+                // Create handler for shared block, based on the inner handler.
+                var common = new ExceptionHandler(inner.Handler);
+
+                // add the outer handlers, but only if they do not mask a catch-all.
+                if (inner.Handler.CatchAll == null)
+                {
+                    common.Catches.AddRange(outer.Handler.Catches.Where(x => !inner.Handler.Catches.Any(y => x.Type.Equals(y.Type))));
+                    common.CatchAll = outer.Handler.CatchAll;
+
+                }
                 fhandlers.Add(new FlattenableExceptionHandler(common));
 
-                // Now remove b
-                fhandlers.Remove(b);
+                // Now remove 'inner'
+                fhandlers.Remove(inner);
 
-                // If a ends at same instruction as b, remove a also.
-                if (a.TryEnd == b.TryEnd)
+                // If 'outer' ends at same instruction as 'inner', remove 'outer' also.
+                if (outer.TryEnd == inner.TryEnd)
                 {
-                    fhandlers.Remove(a);
+                    fhandlers.Remove(outer);
                 }
                 else
                 {
-                    // Update a, so it starts after b
-                    a.Handler.TryStart = b.Handler.TryEnd.Next;
-                    Debug.Assert(a.Handler.TryStart != null);
+                    // Update 'outer', so it starts after 'inner'
+                    outer.Handler.TryStart = inner.Handler.TryEnd.Next;
+                    Debug.Assert(outer.Handler.TryStart != null);
                 }
 
                 // Sort and restart
@@ -75,7 +82,7 @@ namespace Dot42.CompilerLib.RL.Transformations
                 i = 0;
             }
 
-            // Now there must not be an overlapping handler anymore.
+            // Now there should not be any overlapping handlers left.
             // Rebuild the handler list and check non-overlapping condition
             handlers.Clear();
             FlattenableExceptionHandler prev = null;

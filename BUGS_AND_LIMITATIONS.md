@@ -1,7 +1,6 @@
 ### Limitations and Know Bugs in Dot42
 
 - `System.Linq.Expressions` is not (yet?) supported. I believe one should try to implement it based on Mono's implementation which in turn is based on Microsofts.
-- **Bug:** There is a problem with nested exception handlers. Nested finally statements - even implicit ones in using/foreach statements -  might not get executed on an exception under certain conditions. This needs further investigation, especially as it can lead to bugs that are nearly impossible to find.
 - Dot42 will redirect usages of `System.Threading.Interlocked` to Javas `AtomicXxxFieldUpdater` implementation. This works seamless for instance fields. The `AtomicXxxFieldUpdater` does not support static fields, so Dot42 reverts to `lock`ing on the the fields containing type. To prevent this locking, use the `AtomicXxx` classes directly, e.g. `AtomicInteger`.  
   Note that, when available, `System.Threading.Interlocked` is used by the C# compiler when generating support code for events. Therefore, when using static events, locking will occur. Dot42 will emit a warning in this case. At the moment, there is no known workaround.
 - to get Json.NET to run I swapped out a totally broken `decimal` by a `java.math.BigDecimal` based one. This hasn't been thoroughly tested yet.
