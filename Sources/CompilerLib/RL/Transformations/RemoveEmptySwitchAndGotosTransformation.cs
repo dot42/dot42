@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Dot42.CompilerLib.RL.Extensions;
 using Dot42.DexLib;
@@ -35,57 +36,134 @@ namespace Dot42.CompilerLib.RL.Transformations
                 var ins = instructions[i];
                 if (ins.Code == RCode.Packed_switch)
                 {
-                    var targets = (Instruction[]) ins.Operand;
-
-                    if (targets.All(p => p.Index == i + 1))
-                    {
-                        // all targets and default point to next instruction.
-                        instructions[i].ConvertToNop();
-                        hasChanges = true;
-                    }
+                    hasChanges = OptimizePacketSwitch(ins, i) || hasChanges;
                 }
-
-                // Eliminate chained and empty gotos, pull return_void
-                if (IsSimpleBranch(ins.Code))
+                else if (ins.Code == RCode.Sparse_switch)
                 {
-                    var gotoTarget = (Instruction) ins.Operand;
-
-                    HashSet<Instruction> visited = new HashSet<Instruction> {ins};
-
-                    while (gotoTarget.Code == RCode.Goto)
-                    {
-                        gotoTarget = (Instruction) gotoTarget.Operand;
-
-                        // this happens e.g. for the generated 'setNextInstruction' instructions.
-                        if (visited.Contains(gotoTarget))
-                            break;
-                        visited.Add(gotoTarget);
-
-                        ins.Operand = gotoTarget;
-                        hasChanges = true;
-                    }
-
-                    if (ins.Code == RCode.Goto)
-                    {
-                        // pull return_void (which can not throw an exception)
-                        // TODO: check if we would do any harm by pulling return_something as well.
-                        if (gotoTarget.Code == RCode.Return_void)
-                        {
-                            ins.Code = RCode.Return_void;
-                            ins.Operand = null;
-                            ins.Registers.Clear();
-                            hasChanges = true;
-                        }
-                        // remove empty gotos
-                        else if (gotoTarget.Index == i + 1)
-                        {
-                            ins.ConvertToNop();
-                            hasChanges = true;
-                        }
-                    }
+                    hasChanges = OptimizeSparseSwitch(ins, i) || hasChanges;
+                }
+                else if (IsSimpleBranch(ins.Code))
+                {
+                    hasChanges = OptimizeSimpleBranch(ins, i) || hasChanges;
                 }
             }
             return hasChanges;
+        }
+
+        private static bool OptimizeSimpleBranch(Instruction ins, int i)
+        {
+            // Eliminate chained and empty gotos, pull return_void
+            bool hasChanges = false;
+            
+            var finalTarget = FindFinalGotoChainTarget(ins, (Instruction) ins.Operand);
+
+            if (finalTarget != (Instruction) ins.Operand)
+            {
+                ins.Operand = finalTarget;
+                hasChanges = true;
+            }
+
+            if (ins.Code == RCode.Goto)
+            {
+                var gotoTarget = (Instruction) ins.Operand;
+
+                if (gotoTarget.Index == i + 1)
+                {
+                    // remove empty gotos
+                    ins.ConvertToNop();
+                    hasChanges = true;
+                }
+                else if (gotoTarget.Code == RCode.Return_void)
+                {
+                    // pull return_void (which can not throw an exception)
+                    // TODO: check if we would do any harm by pulling return_something as well.
+                    ins.Code = RCode.Return_void;
+                    ins.Operand = null;
+                    ins.Registers.Clear();
+                    hasChanges = true;
+                }
+            }
+
+            return hasChanges;
+        }
+
+        private static bool OptimizeSparseSwitch(Instruction ins, int i)
+        {
+            bool hasChanges = false;
+            var targets = (Tuple<int, Instruction>[]) ins.Operand;
+            bool repack = false;
+
+            for (int t = 0; t < targets.Length; ++t)
+            {
+                var finalTarget = FindFinalGotoChainTarget(ins, targets[t].Item2);
+                if (finalTarget != targets[t].Item2)
+                {
+                    targets[t] = Tuple.Create(targets[t].Item1, finalTarget);
+                    hasChanges = true;
+                }
+
+                if (targets[t].Item2.Index == i + 1)
+                {
+                    targets[t] = null;
+                    repack = true;
+                    hasChanges = true;
+                }
+            }
+
+            if (repack)
+            {
+                ins.Operand = targets.Where(p => p != null).ToArray();
+            }
+
+            if (((Tuple<int, Instruction>[]) ins.Operand).Length == 0)
+            {
+                ins.ConvertToNop();
+                hasChanges = true;
+            }
+            return hasChanges;
+        }
+
+        private static bool OptimizePacketSwitch(Instruction ins, int i)
+        {
+            bool hasChanges = false;
+
+            var targets = (Instruction[]) ins.Operand;
+
+            for (int t = 0; t < targets.Length; ++t)
+            {
+                var finalTarget = FindFinalGotoChainTarget(ins, targets[t]);
+                if (finalTarget != targets[t])
+                {
+                    targets[t] = finalTarget;
+                    hasChanges = true;
+                }
+            }
+
+            if (targets.All(p => p.Index == i + 1))
+            {
+                // all targets and default point to next instruction.
+                ins.ConvertToNop();
+                hasChanges = true;
+            }
+            return hasChanges;
+        }
+
+
+        private static Instruction FindFinalGotoChainTarget(Instruction branchInstruction, Instruction branchTarget)
+        {
+            HashSet<Instruction> visited = new HashSet<Instruction> { branchInstruction };
+
+            while (branchTarget.Code == RCode.Goto)
+            {
+                branchTarget = (Instruction)branchTarget.Operand;
+
+                // this happens e.g. for the generated 'setNextInstruction' instructions.
+                if (visited.Contains(branchTarget))
+                    break;
+                visited.Add(branchTarget);
+
+            }
+            return branchTarget;
         }
 
         public bool IsSimpleBranch(RCode code)
