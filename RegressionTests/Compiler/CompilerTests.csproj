@@ -78,6 +78,7 @@
     <Compile Include="Cases\TestGenericsWithDelegatesAndContrainedCallvirtHandling.cs" />
     <Compile Include="Sources\GenericInterfaceSubjects\IInterfaceWithGenericMethod.cs" />
     <Compile Include="Sources\TestGenericsAndValueTypes.cs" />
+    <Compile Include="Sources\TestNestedFinallySpecial.cs" />
     <Compile Include="Sources\TestNullableDateTime.cs" />
     <Compile Include="Sources\TestNullableEnum.cs" />
     <Compile Include="Sources\TestNullableInt.cs" />

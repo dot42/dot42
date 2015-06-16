@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -49,8 +50,8 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                 // make sure this is outside the try block for edge case exceptions.
                 this.Add(node.SourceLocation, RCode.Const, 0, finState.FinallyExceptionRegister);
 
-                finallyState.FinallyStacks.Last().Add(finState);
                 tryCatchStack.Push(finState);
+                finallyState.FinallyStacks.Last().Add(finState);
             }
             else
             {
@@ -63,8 +64,6 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
             handler.TryStart = first;
             node.TryBlock.AcceptOrDefault(this, node);
             handler.TryEnd = TryCatchGotoEnd(finState, last);
-
-            
 
             var catchesStart = this.Add(AstNode.NoSource, RCode.Nop);
 
@@ -160,14 +159,13 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
         {
             Debug.Assert(tryCatchStack.Count == 0);
 
-            Register comparisonRegister = null;
             foreach (var finallyStack in finallyState.FinallyStacks)
             {
-                FixFinallyStack(finallyStack, ref comparisonRegister);
+                FixFinallyStack(finallyStack);
             }
         }
 
-        private void FixFinallyStack(List<FinallyBlockState> finallyStack, ref Register comparisonRegister)
+        private void FixFinallyStack(List<FinallyBlockState> finallyStack)
         {
             // Find all identical targets in this stack.
             // To minimize assigments, order by number of targets. To simplify the routing 
@@ -197,103 +195,147 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
             {
                 targets = TryCatchGroupTargets(finallyBlock.Targets);
 
+                // reset 'leave' instruction that do not leave this block.
+                foreach (var targetGroup in targets.Where(t => t.Key.IsLeave).ToList())
+                {
+                    bool staysInBlock = targetGroup.Key.Destination.Index >= finallyBlock.FirstInstruction.Index 
+                                    &&  targetGroup.Key.Destination.Index <= finallyBlock.LastInstruction.Index;
+
+                    if(staysInBlock)
+                    {
+                        foreach (var source in targetGroup)
+                        {
+                            source.GotoFinally.Operand = source.Destination;
+                            source.SetTarget.ConvertToNop();
+                        }
+                        targets.Remove(targetGroup);
+                    }
+                }
+
+                if (targets.Count == 0)
+                    continue;
+
                 bool needTargetRegister = targets.Count > 1;
-
-                Instruction prevComparision = null;
-
                 TryCatchSetTargetRegister(finallyBlock, needTargetRegister);
 
+                var outerFinallyBlock = finallyBlock.OuterFinallyBlock;
                 int insIdx = finallyBlock.AfterExceptionCheck.Index + 1;
 
-                for (int i = 0; i < targets.Count; ++i)
+                if (targets.Count == 1)
                 {
-                    var target = targets[i];
-                    id = target.Key.SetTarget.Code == RCode.Nop ? 0 : (int)target.Key.SetTarget.Operand;
+                    // primitive case
+                    var target = targets[0];
+                    TryCatchEmitTargetInstruction(target.Key, ref insIdx, outerFinallyBlock);
+                }
+                else if (targets.Count == 2)
+                {
+                    // use a single comparison
+                    var target = targets[0].Key;
+                    id = target.SetTarget.Code == RCode.Nop ? 0 : (int)target.SetTarget.Operand;
 
-                    var outerFinallyBlock = finallyBlock.OuterFinallyBlock;
-
-                    bool emitComparison = i < targets.Count - 1;
-                    bool emitReturn = outerFinallyBlock == null && target.Key.IsReturn;
-                    
-                    bool chainToOuterBlock = outerFinallyBlock != null && target.Key.IsReturn;
-
-                    if (target.Key.IsLeave && outerFinallyBlock != null)
+                    Instruction compare;
+                    if (id == 0)
                     {
-                        // check if the leave leaves the outer finally block as well.
-                        if (target.Key.Destination.Index < outerFinallyBlock.FirstInstruction.Index
-                         || target.Key.Destination.Index > outerFinallyBlock.LastInstruction.Index)
-                        {
-                            chainToOuterBlock = true;
-                        }
-                    }
-
-                    Instruction firstInstruction = null;
-                    Instruction curComparison = null;
-
-                    if (emitComparison)
-                    {
-                        if (id == 0)
-                        {
-                            curComparison = firstInstruction = new Instruction(RCode.If_nez, finallyBlock.TargetRegister);
-                            instructions.Insert(insIdx++, curComparison);   
-                        }
-                        else
-                        {
-                            if (comparisonRegister == null)
-                                comparisonRegister = frame.AllocateTemp(PrimitiveType.Int);
-                            
-                            firstInstruction = new Instruction(RCode.Const, id, new [] {comparisonRegister});
-                            instructions.Insert(insIdx++, firstInstruction);
-                            curComparison = new Instruction(RCode.If_ne, finallyBlock.TargetRegister, comparisonRegister);
-                            instructions.Insert(insIdx++, curComparison);   
-                        }
-                    }
-
-                    if (emitReturn)
-                    {
-                        Instruction ret;
-                        if (currentMethod.ReturnsVoid)
-                        {
-                            ret = new Instruction(RCode.Return_void);
-                        }
-                        else
-                        {
-                            var retCode = currentMethod.ReturnsDexWide
-                                ? RCode.Return_wide
-                                : currentMethod.ReturnsDexValue
-                                    ? RCode.Return
-                                    : RCode.Return_object;
-                            ret = new Instruction(retCode, finallyState.ReturnValueRegister);
-                        }
-                        instructions.Insert(insIdx++, ret);
-                        firstInstruction = firstInstruction ?? ret;
-                    }
-                    else if (chainToOuterBlock)
-                    {
-                        RLRange range;
-                        if (target.Key.IsReturn)
-                            range = outerFinallyBlock.BranchToFinally_Ret(ref insIdx);
-                        else // IsLeave
-                            range = outerFinallyBlock.BranchToFinally_Leave(target.Key.Destination, ref insIdx);
-
-                        // This is a little bit hackish. We need to set the operand in the setTarget instruction.
-                        if (id == 0) range.First.ConvertToNop();
-                        else         range.First.Operand = id;
-
-                        firstInstruction = firstInstruction ?? range.First;
+                        compare = new Instruction(RCode.If_nez, finallyBlock.TargetRegister);
                     }
                     else
                     {
-                        // goto
-                        var insGoto = new Instruction(RCode.Goto, target.Key.Destination);
-                        instructions.Insert(insIdx++, insGoto);
-                        firstInstruction = firstInstruction ?? insGoto;
+                        var comparisonRegister = frame.AllocateTemp(PrimitiveType.Int);
+                        var iConst = new Instruction(RCode.Const, id, comparisonRegister.Registers.ToArray());
+                        instructions.Insert(insIdx++, iConst);
+                        compare = new Instruction(RCode.If_ne, finallyBlock.TargetRegister, comparisonRegister);
                     }
+                    instructions.Insert(insIdx++, compare);
+                    TryCatchEmitTargetInstruction(target, ref insIdx, outerFinallyBlock);
 
-                    if (prevComparision != null)
-                        prevComparision.Operand = firstInstruction;
-                    prevComparision = curComparison;
+                    target = targets[1].Key;
+                    var def = TryCatchEmitTargetInstruction(target, ref insIdx, outerFinallyBlock);
+                    compare.Operand = def;
                 }
+                else
+                {
+                    // use a sparse-switch
+                    List<Tuple<int,Instruction>> sparseSwitchData = new List<Tuple<int, Instruction>>();
+                    var ps = new Instruction(RCode.Sparse_switch, finallyBlock.TargetRegister);
+                    instructions.Insert(insIdx++, ps);
+
+                    // emit default.
+                    TryCatchEmitTargetInstruction(targets.Last().Key, ref insIdx, outerFinallyBlock);
+
+                    foreach (var targetGrouping in targets.Take(targets.Count - 1))
+                    {
+                        var target = targetGrouping.Key;
+                        id = target.SetTarget.Code == RCode.Nop ? 0 : (int)target.SetTarget.Operand;
+                        
+                        var first = TryCatchEmitTargetInstruction(target, ref insIdx, outerFinallyBlock);
+                        sparseSwitchData.Add(Tuple.Create(id, first));
+                    }
+                    ps.Operand = sparseSwitchData.ToArray();
+                }
+            }
+        }
+
+        /// <summary>
+        /// return the first emitted instruction
+        /// </summary>
+        private Instruction TryCatchEmitTargetInstruction(FinallyTarget target, ref int insIdx, FinallyBlockState outerFinallyBlock)
+        {
+            bool emitReturn = outerFinallyBlock == null && target.IsReturn;
+
+            bool chainToOuterBlock = outerFinallyBlock != null && target.IsReturn;
+
+            if (target.IsLeave && outerFinallyBlock != null)
+            {
+                // check if the leave leaves the outer finally block as well.
+                if (target.Destination.Index < outerFinallyBlock.FirstInstruction.Index
+                 || target.Destination.Index > outerFinallyBlock.LastInstruction.Index)
+                {
+                    chainToOuterBlock = true;
+                }
+            }
+
+            if (emitReturn)
+            {
+                Instruction ret;
+                if (currentMethod.ReturnsVoid)
+                {
+                    ret = new Instruction(RCode.Return_void);
+                }
+                else
+                {
+                    var retCode = currentMethod.ReturnsDexWide
+                        ? RCode.Return_wide
+                        : currentMethod.ReturnsDexValue
+                            ? RCode.Return
+                            : RCode.Return_object;
+                    ret = new Instruction(retCode, finallyState.ReturnValueRegister);
+                }
+                instructions.Insert(insIdx++, ret);
+                return ret;
+            }
+            else if (chainToOuterBlock)
+            {
+                Debug.Assert(outerFinallyBlock != null);
+                int id = target.SetTarget.Code == RCode.Nop ? 0 : (int)target.SetTarget.Operand;
+
+                RLRange range;
+                if (target.IsReturn)
+                    range = outerFinallyBlock.BranchToFinally_Ret(ref insIdx);
+                else // IsLeave
+                    range = outerFinallyBlock.BranchToFinally_Leave(target.Destination, ref insIdx);
+
+                // This is a little bit hackish. We need to set the operand in the setTarget instruction.
+                if (id == 0) range.First.ConvertToNop();
+                else range.First.Operand = id;
+
+                return range.First;
+            }
+            else
+            {
+                // goto
+                var insGoto = new Instruction(RCode.Goto, target.Destination);
+                instructions.Insert(insIdx++, insGoto);
+                return insGoto;
             }
         }
 
@@ -417,12 +459,13 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
 
                 var setTarget = new Instruction(RCode.Const) { SequencePoint = seqp }; // operand and register are set later
                 _compiler.instructions.Insert(insIdx++, setTarget); 
+                var branch = new Instruction(RCode.Goto, NonException) {SequencePoint = seqp};
+                _compiler.instructions.Insert(insIdx++, branch);
 
                 target.SetTarget = setTarget;
+                target.GotoFinally = branch;
                 target.State = this;
 
-                var branch = new Instruction(RCode.Goto, NonException) {SequencePoint = seqp};
-                _compiler.instructions.Insert(insIdx++, branch); 
                 return new RLRange(prefix, setTarget, branch, null);
             }
 
@@ -468,6 +511,7 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
             public bool IsLeave; 
             
             public Instruction SetTarget;
+            public Instruction GotoFinally;
             public Instruction Destination;
 
             public FinallyBlockState State;

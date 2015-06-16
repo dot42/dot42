@@ -23,7 +23,7 @@ namespace Dot42.CompilerLib.RL.Transformations
 
             MarkReachable(0, instructions, reachable, body);
 
-            bool removeNops = false, atEndOfMethod = true;
+            bool atEndOfMethod = true;
             for (int i = instructions.Count - 1; i > 0 ; --i)
             {
                 if (!reachable[i] && atEndOfMethod)
@@ -34,7 +34,6 @@ namespace Dot42.CompilerLib.RL.Transformations
                 else if (!reachable[i] && instructions[i].Code != RCode.Nop)
                 {
                     instructions[i].ConvertToNop();
-                    removeNops = true;
                     hasChanges = true;
                 }
                 else
@@ -44,9 +43,6 @@ namespace Dot42.CompilerLib.RL.Transformations
 
             }
            
-            if(removeNops)
-                new NopRemoveTransformation().Transform(target, body);
-
             return hasChanges;
         }
 

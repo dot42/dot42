@@ -3,26 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using Dot42.CompilerLib.RL.Extensions;
 using Dot42.DexLib;
+using Dot42.DexLib.Instructions;
 
 namespace Dot42.CompilerLib.RL.Transformations
 {
     /// <summary>
-    /// Remove all empty switches, gotos to next address, and redirect branch instructions
-    /// to a goto.
+    /// several branching related optimizations
     /// </summary>
-    internal sealed class RemoveEmptySwitchAndGotosTransformation : IRLTransformation
+    internal sealed class SwitchAndGotoOptimization : IRLTransformation
     {
         public bool Transform(Dex target, MethodBody body)
         {
 #if DEBUG
             //return;
 #endif
-            if (DoOptimization(body))
-            {
-                new NopRemoveTransformation().Transform(target, body);
-                return true;
-            }
-            return false;
+            return DoOptimization(body);
         }
 
         private bool DoOptimization(MethodBody body)
@@ -36,13 +31,13 @@ namespace Dot42.CompilerLib.RL.Transformations
                 var ins = instructions[i];
                 if (ins.Code == RCode.Packed_switch)
                 {
-                    hasChanges = OptimizePacketSwitch(ins, i) || hasChanges;
+                    hasChanges = OptimizePackedSwitch(ins, i) || hasChanges;
                 }
-                else if (ins.Code == RCode.Sparse_switch)
+                if (ins.Code == RCode.Sparse_switch)
                 {
                     hasChanges = OptimizeSparseSwitch(ins, i) || hasChanges;
                 }
-                else if (IsSimpleBranch(ins.Code))
+                if (IsSimpleBranch(ins.Code))
                 {
                     hasChanges = OptimizeSimpleBranch(ins, i) || hasChanges;
                 }
@@ -91,6 +86,10 @@ namespace Dot42.CompilerLib.RL.Transformations
         {
             bool hasChanges = false;
             var targets = (Tuple<int, Instruction>[]) ins.Operand;
+
+            // if if we can convert it to a packed switch
+            Array.Sort(targets, new PackedSwitchComparer());
+
             bool repack = false;
 
             for (int t = 0; t < targets.Length; ++t)
@@ -112,18 +111,34 @@ namespace Dot42.CompilerLib.RL.Transformations
 
             if (repack)
             {
-                ins.Operand = targets.Where(p => p != null).ToArray();
+                ins.Operand = targets = targets.Where(p => p != null).ToArray();
             }
 
-            if (((Tuple<int, Instruction>[]) ins.Operand).Length == 0)
+            if (targets.Length == 0)
             {
                 ins.ConvertToNop();
-                hasChanges = true;
+                return true;
             }
-            return hasChanges;
+            
+            // check if we can convert it to a packet switch.
+            int first = targets[0].Item1;
+
+            if (first != 0)
+                return hasChanges; // the RL format only supports zero-based packed switch at the moment...
+
+            for (int idx = 1; idx < targets.Length; ++idx)
+            {
+                if(targets[idx].Item1 != first + idx)
+                    return hasChanges;
+            }
+
+            ins.Code = RCode.Packed_switch;
+            ins.Operand = targets.Select(p => p.Item2).ToArray();
+
+            return true;
         }
 
-        private static bool OptimizePacketSwitch(Instruction ins, int i)
+        private static bool OptimizePackedSwitch(Instruction ins, int i)
         {
             bool hasChanges = false;
 
@@ -188,6 +203,14 @@ namespace Dot42.CompilerLib.RL.Transformations
                 default:
                     return false;
             }
+        }
+    }
+
+    internal class PackedSwitchComparer : IComparer<Tuple<int, Instruction>>
+    {
+        public int Compare(Tuple<int, Instruction> x, Tuple<int, Instruction> y)
+        {
+            return Comparer<int>.Default.Compare(x.Item1, y.Item1);
         }
     }
 }

@@ -4,7 +4,7 @@ namespace Dot42.CompilerLib.RL.Transformations
 {
     internal static class RLTransformations
     {
-        private static readonly IRLTransformation[] optimizations = new IRLTransformation[] {
+        private static readonly IRLTransformation[] optimizations = {
             new InvokeTypeTransformation(), 
             new ConstPropagationTransformation(), 
             new ShareConstTransformation(),
@@ -17,10 +17,12 @@ namespace Dot42.CompilerLib.RL.Transformations
             new InitializeRegistersTransformation(),
         };
 
-        private static readonly IRLTransformation[] incrementalOptimizations = new IRLTransformation[]
+        private static readonly IRLTransformation[] incrementalOptimizations = 
         {
-            new RemoveEmptySwitchAndGotosTransformation(), 
+            new SwitchAndGotoOptimization(), 
+            new NopRemoveTransformation(), 
             new EliminateDeadCodeTransformation(), 
+            new NopRemoveTransformation(), 
         };
 
         /// <summary>
@@ -35,7 +37,7 @@ namespace Dot42.CompilerLib.RL.Transformations
                 foreach (var transformation in incrementalOptimizations)
                 {
                     hasChanges = transformation.Transform(target, body) || hasChanges;
-                }   
+                }
             }
 
             foreach (var transformation in optimizations)
