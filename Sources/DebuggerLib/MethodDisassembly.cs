@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using Dot42.DexLib;
@@ -160,21 +162,21 @@ namespace Dot42.DebuggerLib
                     ops.Append(ins.Operand);
                     ops.Append("\"");
                 }
+                else if (ins.Operand is sbyte)
+                {
+                    FormatOperand_Integer(ops, (int)(byte)(sbyte)ins.Operand, "X2");
+                }
+                else if (ins.Operand is short)
+                {
+                    FormatOperand_Integer(ops, (int) (short) ins.Operand);
+                }
                 else if (ins.Operand is int)
                 {
-                    var i = (int)ins.Operand;
-                    ops.Append(i);
-
-                    if (i > 8 || i < -8)
-                    {
-                        ops.Append(" (0x");
-                        ops.Append(i.ToString("X4"));
-                        ops.Append(")");
-                    }
+                    FormatOperand_Integer(ops, (int) ins.Operand);
                 }
                 else if (ins.Operand is long)
                 {
-                    var l = (long)ins.Operand;
+                    var l = (long) ins.Operand;
                     ops.Append(l);
 
                     ops.Append(" (0x");
@@ -183,17 +185,8 @@ namespace Dot42.DebuggerLib
                 }
                 else if (ins.Operand is Instruction)
                 {
-                    var target = (Instruction)ins.Operand;
-                    ops.Append(JumpMarker);
-                    ops.Append(" ");
-                    ops.Append(target.Offset.ToString("X3"));
-
-                    int targetIdx = body.Instructions.IndexOf(target);
-                    int myIdx = body.Instructions.IndexOf(ins);
-                    ops.Append(" ; ");
-
-                    int offset = (targetIdx - myIdx);
-                    ops.Append(offset.ToString("+0;-0;+0"));
+                    var target = (Instruction) ins.Operand;
+                    FormatOperand_Instruction(ops, ins, body, target, false);
                 }
                 else if (ins.Operand is ClassReference)
                 {
@@ -202,16 +195,41 @@ namespace Dot42.DebuggerLib
                 }
                 else if (ins.Operand is MethodReference)
                 {
-                    var m = (MethodReference)ins.Operand;
+                    var m = (MethodReference) ins.Operand;
                     var owner = fullTypeNames || !(m.Owner is ClassReference)
-                                    ? m.ToString()
-                                    : ((ClassReference) m.Owner).Name;
+                        ? m.ToString()
+                        : ((ClassReference) m.Owner).Name;
                     ops.Append(owner + "::" + m.Name + m.Prototype);
                 }
                 else if (ins.Operand is FieldReference)
                 {
-                    var m = (FieldReference)ins.Operand;
+                    var m = (FieldReference) ins.Operand;
                     ops.Append(fullTypeNames ? m.ToString() : m.Owner.Name + "::" + m.Name + " : " + m.Type);
+                }
+                else if (ins.Operand is PackedSwitchData)
+                {
+                    var d = (PackedSwitchData) ins.Operand;
+                    FormatOperand_Integer(ops, d.FirstKey);
+                    ops.Append(":");
+                    foreach (var target in d.Targets)
+                    {
+                        ops.Append(" ");
+                        FormatOperand_Instruction(ops, ins, body, target, true);
+                    }
+                }
+                else if (ins.Operand is SparseSwitchData)
+                {
+                    var d = (SparseSwitchData) ins.Operand;
+                    bool isFirst = true;
+                    foreach (var target in d.Targets)
+                    {
+                        if (!isFirst)
+                            ops.Append(" ");
+                        ops.Append(target.Key);
+                        ops.Append(": ");
+                        FormatOperand_Instruction(ops, ins, body, target.Value, true);
+                        isFirst = false;
+                    }
                 }
                 else
                 {
@@ -224,6 +242,38 @@ namespace Dot42.DebuggerLib
 
             var bstrOperands = ops.ToString();
             return bstrOperands;
+        }
+
+        private static void FormatOperand_Instruction(StringBuilder ops, Instruction ins, MethodBody body, Instruction target, bool compact)
+        {
+            ops.Append(JumpMarker);
+            ops.Append(" ");
+            ops.Append(target.Offset.ToString("X3"));
+
+            
+                int targetIdx = body.Instructions.IndexOf(target);
+                int myIdx = body.Instructions.IndexOf(ins);
+
+            ops.Append(!compact ? " ; " : "(");
+
+            int offset = (targetIdx - myIdx);
+            ops.Append(offset.ToString("+0;-0;+0"));
+
+            if (compact)
+                ops.Append(")");
+
+        }
+
+        private static void FormatOperand_Integer(StringBuilder ops, int i, string defaultHexFormat="X4")
+        {
+            ops.Append(i);
+
+            if (i > 8 || i < -8)
+            {
+                ops.Append(" (0x");
+                ops.Append(i.ToString(defaultHexFormat));
+                ops.Append(")");
+            }
         }
 
         private static void Align(StringBuilder b, int tabSize)
