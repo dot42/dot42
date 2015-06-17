@@ -1,4 +1,9 @@
-﻿using Dot42.CompilerLib.XModel;
+﻿using System;
+using System.Diagnostics;
+using System.Linq;
+using System.Runtime.Remoting.Channels;
+using Dot42.CompilerLib.Ast.Extensions;
+using Dot42.CompilerLib.XModel;
 
 namespace Dot42.CompilerLib.Ast.Converters
 {
@@ -12,11 +17,12 @@ namespace Dot42.CompilerLib.Ast.Converters
         /// </summary>
         public static void Convert(AstNode ast, AssemblyCompiler compiler)
         {
-            // Optimize enum2int(ldsfld(enum-const))
             foreach (var node in ast.GetExpressions())
             {
                 switch (node.Code)
                 {
+                    // Optimize enum2int(ldsfld(enum-const))
+                    //      and enum2int(int.to.enum(xxx))
                     case AstCode.Enum_to_int:
                     case AstCode.Enum_to_long:
                         {
@@ -35,10 +41,53 @@ namespace Dot42.CompilerLib.Ast.Converters
                                     node.Arguments.Clear();
                                 }
                             }
+                            else if (arg.Code == AstCode.Int_to_enum || arg.Code == AstCode.Long_to_enum)
+                            {
+                                var expectedType = node.ExpectedType;
+                                node.CopyFrom(arg.Arguments[0]);
+                                node.ExpectedType = expectedType;
+                            }
                         }
                         break;
+                    // optimize ceq/cne (int/long-to-enum(int), yyy)
+                    case AstCode.Ceq:
+                    case AstCode.Cne:
+                    {
+                        if (node.Arguments.Any(a=>IsToEnum(a.Code)))
+                        {
+                            // xx_to_enum is a quite costly operation when compared to enum-to-int,
+                            // so convert this to an interger-only compare.
+                            bool isLong = node.Arguments.Any(a => a.Code == AstCode.Long_to_enum);
+
+                            foreach (var arg in node.Arguments)
+                            {
+                                if (IsToEnum(arg.Code))
+                                {
+                                    arg.CopyFrom(arg.Arguments[0]);
+                                    arg.ExpectedType = isLong ? compiler.Module.TypeSystem.Long : compiler.Module.TypeSystem.Int;
+                                }
+                                else
+                                {
+                                    Debug.Assert(arg.GetResultType().IsEnum());
+                                    var orig = new AstExpression(arg);
+                                    var convert = new AstExpression(arg.SourceLocation,
+                                        isLong ? AstCode.Enum_to_long : AstCode.Enum_to_int, null, orig);
+                                    convert.ExpectedType = isLong ? compiler.Module.TypeSystem.Long : compiler.Module.TypeSystem.Int;
+                                    arg.CopyFrom(convert);
+                                }
+                            }
+                        }
+                        break;
+                    }
                 }
             }
+ 
         }
+
+        private static bool IsToEnum(AstCode code)
+        {
+            return code == AstCode.Int_to_enum || code == AstCode.Long_to_enum;
+        }
+
     }
 }

@@ -5,6 +5,21 @@
 
 - One optimization that should be easy to implement is to inline simple getters and setter: http://developer.android.com/training/articles/perf-tips.html#GettersSetters
 
+- Enum flags can be heavy on performance. 
+ ```
+	// this is fast
+	var flags = BindingFlags.Public;  
+	// this is fast
+	bool matches = (flags & BindingFlags.Instance) == BindingFlags.Instance;
+ 	// this is slow
+	var flags = BindingFlags.Public|BindingFlags.Instance;
+	// can be mitigated by only calculating the enum once. 
+	static BindingFlags PublicInstanceBindingFlags = BindingFlags.Public|BindingFlags.Instance; 
+``` 
+	The first statement results in a static field lookup, the second statement in a simple getter call and some bit operations.
+    The third statement though involves a binary search: The enum instance corresponding to the constant value is found at runtime. This can lead to huge performance cost when used in inner loops, especially since one would not expect such a hit on a constant expression.
+    Best would be to change the Dot42 compiler to automatically generate enum instance values for constant expressions, and store them in the __generated class.
+
 - There is a performance test on stackoverflow comparing performance between Xamarin.Android and Dot42. It is based on regex evaluation. I don't think the test says much about overall performance of both platforms - I believe Dot42 outperforms Xamarin.Android in many cases -, but anyways it should be easy to score much higher on it. Regex expression should not be retranslated/recompiled on every use, but instead be cached in a LRU cache, just as the BCL does it.
   [http://stackoverflow.com/questions/17134522/does-anyone-have-benchmarks-code-results-comparing-performance-of-android-ap](http://stackoverflow.com/questions/17134522/does-anyone-have-benchmarks-code-results-comparing-performance-of-android-ap)
 
@@ -14,7 +29,7 @@
 
 - The register allocation/usage algorithm could be improved:
 	- more aggressively by reusing out-of-scope registers. This could 
-	  greatly reduce the number of requiered move_from16XXX instructions.
+	  greatly reduce the number of required move_from16XXX instructions.
 	- when move_from16XXX instructions are required, often unnecessary back-copying does occur, even though the value is never used again.
 
 ### Improving the generics implementation
