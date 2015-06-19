@@ -100,7 +100,7 @@ namespace Dot42.CompilerLib.RL
             {
                 if (registers[i] == oldRegister)
                 {
-                    if (oldRegister.IsKeepWithNext != newRegister.IsKeepWithNext)
+                    if (oldRegister.KeepWith != newRegister.KeepWith)
                         throw new ArgumentException("New register has different keep-with-next value");
                     registers[i] = newRegister;
                     replaced = true;

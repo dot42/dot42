@@ -74,7 +74,7 @@ namespace Dot42.CompilerLib.RL.Transformations
             var oldRegister2 = (oldRegister.Type == RType.Wide) ? body.GetNext(oldRegister) : null;
             var newRegister2 = (newRegister.Type == RType.Wide) ? body.GetNext(newRegister) : null;
 
-            if (oldRegister.IsKeepWithNext != newRegister.IsKeepWithNext)
+            if (oldRegister.KeepWith != newRegister.KeepWith)
                 throw new ArgumentException("New register has different keep-with-next value");
 
             HashSet<Instruction> list;

@@ -44,7 +44,7 @@ namespace Dot42.CompilerLib.RL
         /// <summary>
         /// Is the keep with next flag set?
         /// </summary>
-        public bool IsKeepWithNext { get { return Flags.HasFlag(RFlags.KeepWithNext); } }
+        public RFlags KeepWith { get { return Flags & (RFlags.KeepWithNext|RFlags.KeepWithPrev); } }
 
         /// <summary>
         /// Is this register of category temp?

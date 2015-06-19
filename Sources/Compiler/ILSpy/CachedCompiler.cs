@@ -44,7 +44,7 @@ namespace Dot42.Compiler.ILSpy
             _compiler = null;
 
 #if DEBUG
-            var framework = Frameworks.Instance.GetBySdkVersion(18);
+            var framework = Frameworks.Instance.GetBySdkVersion(15);
 #else
             var framework = Frameworks.Instance.GetNewestVersion();
 #endif

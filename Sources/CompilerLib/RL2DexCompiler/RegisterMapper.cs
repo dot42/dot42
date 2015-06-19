@@ -186,7 +186,7 @@ namespace Dot42.CompilerLib.RL2DexCompiler
             while (i < registers.Count)
             {
                 var r = registers[i++];
-                if ((r.Flags & RFlags.KeepWithNext) == 0)
+                if (r.KeepWith != RFlags.KeepWithNext)
                     continue;
                 var next = body.Registers.First(x => x.Index == r.Index + 1);
                 if (!registers.Contains(next))
