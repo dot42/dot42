@@ -316,7 +316,7 @@ namespace MonoTests.System
             // Assert.AreEqual ("Sunday, 24 February 2002 11:25:13", t1.ToString ("U"), "#A15");
             Assert.AreEqual("2002 February", t1.ToString("y", CultureInfo.InvariantCulture), "#A16");
             Assert.AreEqual("2002 February", t1.ToString("Y", CultureInfo.InvariantCulture), "#A17");
-            Assert.AreEqual("02/25/2002 05:25:13", t1.ToString(""), "#A18");
+            Assert.AreEqual("02/25/2002 05:25:13", t1.ToString("", CultureInfo.InvariantCulture), "#A18");
 
             // Custom patterns
             Assert.AreEqual("25", t1.ToString("%d", CultureInfo.InvariantCulture), "#B1");
@@ -668,7 +668,7 @@ namespace MonoTests.System
 			Assert.AreEqual (13, t1.Second, "#A12");
 #endif
             t1 = DateTime.ParseExact("Monday, 25 February 2002 04:25:13", "U", CultureInfo.InvariantCulture);
-            Assert.AreEqual("Monday, 25 February 2002 04:25:13", t1.ToString("U"), "#A13");
+            Assert.AreEqual("Monday, 25 February 2002 04:25:13", t1.ToString("U", CultureInfo.InvariantCulture), "#A13");
 #if NOT_IMPLEMENTED
             t2 = new DateTime(DateTime.Today.Year, 2, 25);
             t1 = DateTime.ParseExact("February 25", "m", CultureInfo.InvariantCulture);
