@@ -237,6 +237,37 @@ namespace Dot42.CompilerLib.ILConversion
                     ins.Operand = end;
                 }
 
+                // cast return type of a generic method. TODO: better might be to
+                // correctly resolve calls to generic instances as well (above)
+                if (targetMethod.ReturnType.IsGenericParameter)
+                {
+                    var methodRef = (MethodReference)instruction.Operand;
+                    TypeReference returnType = null;
+
+                    var gp = (GenericParameter)methodRef.ReturnType;
+                    if (gp.Type == GenericParameterType.Type)
+                    {
+                        var gi = methodRef.DeclaringType as IGenericInstance;
+                        if (gi != null && gi.HasGenericArguments)
+                            returnType = gi.GenericArguments[gp.Position];
+                    }
+                    else if (gp.Type == GenericParameterType.Method)
+                    {
+                        var gi = methodRef as IGenericInstance;
+                        if (gi != null && gi.HasGenericArguments)
+                            returnType = gi.GenericArguments[gp.Position];
+                    }
+
+                    if (returnType != null)
+                    {
+                        if (!returnType.IsPrimitive)
+                        {
+                            seq.Emit(OpCodes.Castclass, returnType);
+                        }
+                        // todo: handle primitive types. unbox them? are structs correctly handled? enums?
+                    }
+                }
+
                 // Insert cloned instructions
                 prefixSeq.InsertTo(0, seq);
                 seq.InsertToAfter(instruction, body);

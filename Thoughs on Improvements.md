@@ -8,8 +8,10 @@
 - Enum flags can be heavy on performance. 
  ```
 	// this is fast
-	var flags = BindingFlags.Public;  
+	var flags = BindingFlags.Public;
 	// this is fast
+	bool isInsance = flags == BindingFlags.Instance;  
+	// this is relativly fast (due to an involved virtual call)
 	bool matches = (flags & BindingFlags.Instance) == BindingFlags.Instance;
  	// this is slow
 	var flags = BindingFlags.Public|BindingFlags.Instance;
@@ -17,7 +19,7 @@
 	static BindingFlags PublicInstanceBindingFlags = BindingFlags.Public|BindingFlags.Instance; 
 ``` 
 	The first statement results in a static field lookup, the second statement in a simple getter call and some bit operations.
-    The third statement though involves a binary search: The enum instance corresponding to the constant value is found at runtime. This can lead to huge performance cost when used in inner loops, especially since one would not expect such a hit on a constant expression.
+    The third statement though involves a (special purpose) hash table lookup: The enum instance corresponding to the constant value is found at runtime. This can lead to huge performance cost when used in inner loops, especially since one would not expect such a hit on a constant expression.
     Best would be to change the Dot42 compiler to automatically generate enum instance values for constant expressions, and store them in the __generated class.
 
 - There is a performance test on stackoverflow comparing performance between Xamarin.Android and Dot42. It is based on regex evaluation. I don't think the test says much about overall performance of both platforms - I believe Dot42 outperforms Xamarin.Android in many cases -, but anyways it should be easy to score much higher on it. Regex expression should not be retranslated/recompiled on every use, but instead be cached in a LRU cache, just as the BCL does it.
@@ -31,6 +33,9 @@
 	- more aggressively by reusing out-of-scope registers. This could 
 	  greatly reduce the number of required move_from16XXX instructions.
 	- when move_from16XXX instructions are required, often unnecessary back-copying does occur, even though the value is never used again.
+
+- When using a primitive array in `foreach` loop, the array is copied in `Dot42.Internal.ArrayIEnumerable<T>`. We could have specilized enumerables that do not need the array copying. Boxing/Unboxing would still occur at the moment though.
+  Furthermore, in the typical case GetEnumerator is called exactly once. This case could be optimize by implementing IEnumerator on ArrayIEnumerable<T>, and only return a new instance if a second call is acually made. 
 
 ### Improving the generics implementation
 The following comments refer mainly to the implementation of the `GenericInstanceConverter`.
@@ -227,7 +232,8 @@ check_target_2:
 	return rValue            
 after_finally:
 ```
-   
+
+(As a side note: with more than two targets, we actually emit a sparse-switch)
 
 ###### (3) There is a finally handler and catch handlers, but no catch all handler.
 
@@ -239,8 +245,8 @@ Again, this case is not so different from the previous case. We emit the catch a
 
 ###### (5) All of the above, plus nested finally handlers. 
 
-The basic idea here is, that when a finally block is entered for a return or leave statement - depending on the leave target -, we have to reroute at the end of the finally block to the next enclosing finally block. To accomplish this, all targets in nested blocks get unique ids identifying their final destination. 
-[TODO: this section could be expanded]
+The basic idea here is, that when a finally block is entered for a return or leave statement - depending on the leave target -, we have to reroute at the end of the finally block to the next enclosing finally block. To accomplish this, all targets in nested blocks get unique ids identifying their final destination.
+Special care is taken to correctly resolve the target of a `leave` instruction. Details on this can be found in the source code.
 
 ### Further thoughts
 

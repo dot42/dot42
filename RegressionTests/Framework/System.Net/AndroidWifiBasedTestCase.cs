@@ -16,7 +16,7 @@ namespace Dot42.Tests.System.Net
     {
         private static bool wifiWasDisabled;
 
-        protected override void SetUp()
+        protected internal override void SetUp()
         {
             base.SetUp();
             EnableWifi();
