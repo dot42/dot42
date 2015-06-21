@@ -112,7 +112,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
             var underlyingEnumType = Type.GetEnumUnderlyingType();
             var isWide = underlyingEnumType.IsWide();
             var xValueType = isWide ? module.TypeSystem.Long : module.TypeSystem.Int;
-            var valueField = XSyntheticFieldDefinition.Create(XType, XSyntheticFieldFlags.Protected | XSyntheticFieldFlags.ReadOnly, NameConstants.Enum.ValueFieldName, xValueType);
+            var valueField = XSyntheticFieldDefinition.Create(XType, XSyntheticFieldFlags.Public | XSyntheticFieldFlags.ReadOnly, NameConstants.Enum.ValueFieldName, xValueType);
             Class.Fields.Add(valueField.GetDexField(Class, targetPackage));
 
             // Create normal members

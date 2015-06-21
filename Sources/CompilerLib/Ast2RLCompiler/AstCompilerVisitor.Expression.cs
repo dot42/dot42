@@ -494,17 +494,32 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                 case AstCode.Enum_to_long:
                     {
                         var enumType = node.Arguments[0].GetResultType().Resolve();
-                        var isWide = enumType.GetEnumUnderlyingType().IsWide();
-                        var internalEnumType = compiler.GetDot42InternalType("Enum").GetClassReference(targetPackage);
-                        var methodName = isWide ? "LongValue" : "IntValue";
-                        var enumNumericType = isWide ? PrimitiveType.Long : PrimitiveType.Int;
-                        var rvalue = frame.AllocateTemp(enumNumericType);
-                        var convMethodDex = new MethodReference(internalEnumType, methodName,
-                                                                new Prototype(enumNumericType));
-                        var call = this.Add(node.SourceLocation, RCode.Invoke_virtual, convMethodDex, args[0].Result);
-                        var last = this.Add(node.SourceLocation, isWide ? RCode.Move_result_wide : RCode.Move_result,
-                                            rvalue);
-                        return new RLRange(call, last, rvalue);
+                        var valueField = enumType.Fields.First/*OrDefault*/(f => f.Name == NameConstants.Enum.ValueFieldName);
+
+                        //if (valueField != null)
+                        {
+                            var dField = valueField.GetReference(targetPackage);
+                            var fieldType = valueField.FieldType;
+                            // Allocate register
+                            var valueR = frame.AllocateTemp(fieldType.GetReference(targetPackage));
+                            // Get from field
+                            var iget = this.Add(node.SourceLocation, valueField.IGet(), dField, valueR, args[0].Result);
+                            return new RLRange(iget, valueR);
+                        }
+                        //else  // I believe this code can be deleted.
+                        //{
+                        //    var isWide = enumType.GetEnumUnderlyingType().IsWide();
+                        //    var internalEnumType = compiler.GetDot42InternalType("Enum").GetClassReference(targetPackage);
+                        //    var methodName = isWide ? "LongValue" : "IntValue";
+                        //    var enumNumericType = isWide ? PrimitiveType.Long : PrimitiveType.Int;
+                        //    var rvalue = frame.AllocateTemp(enumNumericType);
+                        //    var convMethodDex = new MethodReference(internalEnumType, methodName,
+                        //                                            new Prototype(enumNumericType));
+                        //    var call = this.Add(node.SourceLocation, RCode.Invoke_virtual, convMethodDex, args[0].Result);
+                        //    var last = this.Add(node.SourceLocation, isWide ? RCode.Move_result_wide : RCode.Move_result,
+                        //                        rvalue);
+                        //    return new RLRange(call, last, rvalue);                            
+                        //}
                     }
 
                 case AstCode.Int_to_enum:

@@ -7,20 +7,20 @@
 
 - Enum flags can be heavy on performance. 
  ```
-	// this is fast
-	var flags = BindingFlags.Public;
-	// this is fast
-	bool isInsance = flags == BindingFlags.Instance;  
-	// this is relativly fast (due to an involved virtual call)
+	// (1) this is fast
+	var flags = BindingFlags.Public;	
+	bool isInsance = flags == BindingFlags.Instance;	   
+	// (2) this is fast 
 	bool matches = (flags & BindingFlags.Instance) == BindingFlags.Instance;
- 	// this is slow
+	bool shouldLog = logLevel >= LogLevel.Warn;
+ 	// (3) this is relatively slow
 	var flags = BindingFlags.Public|BindingFlags.Instance;
-	// can be mitigated by only calculating the enum once. 
+	// (3) can be mitigated by retrieving the enum only once. 
 	static BindingFlags PublicInstanceBindingFlags = BindingFlags.Public|BindingFlags.Instance; 
 ``` 
-	The first statement results in a static field lookup, the second statement in a simple getter call and some bit operations.
-    The third statement though involves a (special purpose) hash table lookup: The enum instance corresponding to the constant value is found at runtime. This can lead to huge performance cost when used in inner loops, especially since one would not expect such a hit on a constant expression.
-    Best would be to change the Dot42 compiler to automatically generate enum instance values for constant expressions, and store them in the __generated class.
+	(1) involve a static field access, (2) involves a static and an instance field access and some bit operations.
+    (3) involves a virtual method call and an (optimized) hash table lookup: The enum instance corresponding to the constant value is found at runtime. When used in inner loops, this can lead to huge performance cost, especially since one would not expect such a hit on a constant expression.
+    For now the given workaround can be used, but best would be to change the Dot42 compiler to automatically generate enum instance values for constant expressions, and store them in the __generated class. 
 
 - There is a performance test on stackoverflow comparing performance between Xamarin.Android and Dot42. It is based on regex evaluation. I don't think the test says much about overall performance of both platforms - I believe Dot42 outperforms Xamarin.Android in many cases -, but anyways it should be easy to score much higher on it. Regex expression should not be retranslated/recompiled on every use, but instead be cached in a LRU cache, just as the BCL does it.
   [http://stackoverflow.com/questions/17134522/does-anyone-have-benchmarks-code-results-comparing-performance-of-android-ap](http://stackoverflow.com/questions/17134522/does-anyone-have-benchmarks-code-results-comparing-performance-of-android-ap)
