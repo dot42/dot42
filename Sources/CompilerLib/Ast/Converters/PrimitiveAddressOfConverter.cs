@@ -1,4 +1,6 @@
-﻿using Dot42.CompilerLib.Ast.Extensions;
+﻿using System.Linq;
+using Dot42.CompilerLib.Ast.Extensions;
+using Dot42.CompilerLib.Ast2RLCompiler.Extensions;
 using Dot42.CompilerLib.XModel;
 
 namespace Dot42.CompilerLib.Ast.Converters
@@ -16,15 +18,80 @@ namespace Dot42.CompilerLib.Ast.Converters
             foreach (var node in ast.GetExpressions(x => (x.Code == AstCode.Call) || (x.Code == AstCode.Calli) || (x.Code == AstCode.Callvirt)))
             {
                 var method = (XMethodReference)node.Operand;
+                bool processed = false;
                 XMethodDefinition methodDef;
-                if (method.TryResolve(out methodDef) && methodDef.IsConstructor && methodDef.DeclaringType.IsPrimitive && (node.Arguments.Count == 2))
+
+                if (method.TryResolve(out methodDef) && methodDef.DeclaringType.IsPrimitive)
                 {
-                    // primitive.ctor(addressof_primitive, value) -> primitive.cast(value)
-                    var locVar = node.Arguments[0].Operand;
-                    node.Arguments.RemoveAt(0);
-                    node.SetCode(AstCode.Stloc).SetType(node.Arguments[0].GetResultType()).Operand = locVar;
+                    if (methodDef.IsConstructor &&  (node.Arguments.Count == 2))
+                    {
+                        // primitive.ctor(addressof_primitive, value) -> primitive.cast(value)
+                        var locVar = node.Arguments[0].Operand;
+                        node.Arguments.RemoveAt(0);
+                        node.SetCode(AstCode.Stloc).SetType(node.Arguments[0].GetResultType()).Operand = locVar;
+                        processed = true;
+                    }
+                    else if (methodDef.Name == "GetHashCode" && node.Arguments.Count == 1 && methodDef.HasThis)
+                    {
+                        // we try to avoid boxing.
+                        var arg = node.Arguments[0];
+
+
+                        switch (arg.Code)
+                        {
+                            case AstCode.AddressOf:
+                                arg = arg.Arguments[0];
+                                break;
+                            case AstCode.Ldloca:
+                                arg.SetCode(AstCode.Ldloc);
+                                arg.SetType(arg.InferredType.ElementType);
+                                break;
+                            case AstCode.Ldflda:
+                                arg.SetCode(AstCode.Ldfld);
+                                arg.SetType(arg.InferredType.ElementType);
+                                break;
+                            case AstCode.Ldsflda:
+                                arg.SetCode(AstCode.Ldsfld);
+                                arg.SetType(arg.InferredType.ElementType);
+                                break;
+                            case AstCode.Ldelema:
+                                arg.SetCode(AstCode.Ldelem_Any);
+                                arg.SetType(arg.InferredType.ElementType);
+                                break;
+                        }
+
+                        var type = arg.GetResultType();
+
+                        if (type.IsBoolean()
+                            || type.IsFloat() || type.IsDouble()
+                            || type.IsInt64() || type.IsUInt64())
+                        {
+                            var ch = compiler.GetDot42InternalType("CompilerHelper").Resolve();
+
+                            // these need special handling
+
+                            var replMethod = ch.Methods.FirstOrDefault(m => m.Name == "GetHashCode" && m.IsStatic
+                                                 && m.Parameters[0].ParameterType.IsSame(type, true));
+                            if (replMethod != null)
+                            {
+                                node.Operand = replMethod;
+                                node.SetCode(AstCode.Call);
+                                node.Arguments.Clear();
+                                node.Arguments.Add(arg);
+                            }
+                        }
+                        else
+                        {
+                            // for the other primitive types, we just return the value itself.
+                            node.CopyFrom(arg);
+                            node.ExpectedType = compiler.Module.TypeSystem.Int;
+                        }
+
+                        processed = true;
+                    }
                 }
-                else
+
+                if(!processed)
                 {
                     for (var i = 0; i < node.Arguments.Count; i++)
                     {

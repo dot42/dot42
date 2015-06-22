@@ -34,6 +34,7 @@ namespace Dot42.Tests.System
         {
             AssertEquals("5", ((byte)5).ToString(CultureInfo.InvariantCulture));
             AssertEquals("255", ((byte)255).ToString(CultureInfo.InvariantCulture));
+            AssertEquals("254", ((byte)254).ToString(CultureInfo.InvariantCulture));
         }
     }
 }

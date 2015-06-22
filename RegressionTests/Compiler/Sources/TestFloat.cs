@@ -142,6 +142,13 @@ namespace Dot42.Tests.Compiler.Sources
             AssertTrue(i % 100.0f == 0.0f);
         }
 
+        public void testGetHashCode()
+        {
+            AssertEquals(2.0f.GetHashCode(), ((object)2.0f).GetHashCode());
+            AssertEquals(float.NaN.GetHashCode(), ((object)float.NaN).GetHashCode());
+            AssertEquals(float.PositiveInfinity.GetHashCode(), ((object)float.PositiveInfinity).GetHashCode());
+        }
+
         public void testCompare1()
         {
             AssertTrue(d5 <  d7);

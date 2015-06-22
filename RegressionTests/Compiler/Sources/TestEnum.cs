@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using Junit.Framework;
 
@@ -604,6 +605,7 @@ namespace Dot42.Tests.Compiler.Sources
             {
                 if (!field.IsLiteral)
                     continue;
+                Debug.WriteLine("retrieving value of field {0}", field.Name);
                 object value = field.GetValue(enumType);
                 values.Add(value);
             }

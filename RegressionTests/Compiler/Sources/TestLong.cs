@@ -7,6 +7,8 @@ namespace Dot42.Tests.Compiler.Sources
         private long d1 = 1, d1_1 = 1;
         private long d2 = 2, d5 = 5, d7 = 7;
 
+        private static long d8 = 8;
+
         public void testSimpleEqual1()
         {
             var i = 5L;
@@ -163,6 +165,24 @@ namespace Dot42.Tests.Compiler.Sources
         {
             var propMethod = Class1Method.GetPropMethod();
             AssertEquals(42, propMethod);
+        }
+
+        public void testHashCode()
+        {
+            long l = unchecked((long)0x8100000020000000);
+            long[] ll = new[] {l};
+            
+            AssertEquals(d1.GetHashCode(),      ((object)d1).GetHashCode());
+            AssertEquals(d8.GetHashCode(),      ((object)d8).GetHashCode());
+            AssertEquals(l.GetHashCode(),       ((object)l) .GetHashCode());
+            AssertEquals(ll[0].GetHashCode(),   ((object)l) .GetHashCode());
+            AssertEquals(hashCodeByRef(ref l),  ((object)l) .GetHashCode());
+            AssertEquals(hashCodeByRef(ref d8), ((object)d8).GetHashCode());
+        }
+
+        public int hashCodeByRef(ref long l)
+        {
+            return l.GetHashCode();
         }
 
         public void testCompare1()
