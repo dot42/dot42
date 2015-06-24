@@ -81,6 +81,9 @@ namespace Dot42.CompilerLib.Ast.Converters
                 replacementMethod = "Get";
             else if (methodName.StartsWith("Exchange"))
                 replacementMethod = "GetAndSet";
+            else if (methodName.StartsWith("CompareAndSet"))
+                // this patches through to the original java method for performance purists.
+                replacementMethod = "CompareAndSet"; 
             else if (methodName.StartsWith("CompareExchange"))
             {
                 // The semantics here are slighlty different. Java returns a 'true' on 

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics.Contracts;
 using System.Linq;
 using Dot42.CompilerLib.RL;
 using Dot42.CompilerLib.RL.Transformations;

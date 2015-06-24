@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Management.Instrumentation;
 using Dot42.CompilerLib.RL.Extensions;
 using Dot42.DexLib;
 
@@ -11,10 +12,10 @@ namespace Dot42.CompilerLib.RL.Transformations
         public bool Transform(Dex target, MethodBody body)
         {
             var basicBlocks = BasicBlock.Find(body);
-            return OptimizePredictableBranches(basicBlocks);
+            return OptimizeBranches(basicBlocks);
         }
 
-        private bool OptimizePredictableBranches(List<BasicBlock> basicBlocks)
+        private bool OptimizeBranches(List<BasicBlock> basicBlocks)
         {
             bool hasChanges = false;
 
@@ -26,7 +27,11 @@ namespace Dot42.CompilerLib.RL.Transformations
                 {
                     var ins = instructions[i];
 
-                    if (IsComparisonBranch(ins.Code))
+                    if (ins.Code.IsComparisonBranch() && ins.Next.Code == RCode.Goto)
+                        hasChanges = OptimizeBranchFollowedByGoto(basicBlocks, ins) || hasChanges;
+
+                    // Eliminate Predictable branches
+                    if (ins.Code.IsComparisonBranch() || ins.Code == RCode.Goto)
                     {
                         hasChanges = OptimizePredictableBranch(ins) || hasChanges;
                     }
@@ -35,16 +40,43 @@ namespace Dot42.CompilerLib.RL.Transformations
             return hasChanges;
         }
 
+        private static bool OptimizeBranchFollowedByGoto(List<BasicBlock> basicBlocks, Instruction ins)
+        {
+            // Eliminate Branches immediately followed by a goto
+            // If they jump just after the goto, and we are the only
+            // instruction reaching the goto.
+            
+            var branchTarget = (Instruction) ins.Operand;
+            if (branchTarget != ins.Next.NextOrDefault) 
+                return false;
+
+            var gotoBlock = basicBlocks.Single(b => b.Entry == ins.Next);
+
+            // if there are other instructions reaching the goto,
+            // dont do anything.
+            if (gotoBlock.EntryBlocks.Any()) 
+                return false;
+
+            // invert the comparison and eliminate the goto
+            ins.Code = ReverseComparison(ins.Code);
+            ins.Operand = ins.Next.Operand;
+            ins.Next.ConvertToNop();
+            return true;
+        }
+
         /// <summary>
-        /// This will eliminate: 
+        /// This will eliminate or shortcut: 
         ///     (1) zero-comparisons to a just set const
-        ///     (2) chained branches when the second branch zero-compares to a 
+        ///     (2) branch to a branch when the second branch zero-compares to a 
         ///         just set const before the first branch.
+        ///     (3) branch to a const immediatly followed by a zero-comparison
+        ///         to that same const.
         /// </summary>
         private bool OptimizePredictableBranch(Instruction ins)
         {
             // (1) zero-comparisons to a just set const
-            if (IsComparisonWithZero(ins.Code) && ins.Previous.Code == RCode.Const)
+            if (IsComparisonWithZero(ins.Code) && ins.Previous.Code == RCode.Const 
+                   && IsSameRegister(ins.Registers, ins.Previous.Registers))
             {
                 if (WillTakeBranch(ins.Code, Convert.ToInt32(ins.Previous.Operand)))
                 {
@@ -59,42 +91,67 @@ namespace Dot42.CompilerLib.RL.Transformations
                 }
             }
 
-            // (2) chained branches 
+            // (2) chained branches
             var target = (Instruction)ins.Operand;
-            if (!IsComparisonWithZero(target.Code))
-                return false;
-            if (ins.Previous.Code != RCode.Const)
-                return false;
-            if (target.Registers[0].Index != ins.Previous.Registers[0].Index)
-                return false;
+            if (IsComparisonWithZero(target.Code) && ins.Previous.Code == RCode.Const
+                   && IsSameRegister(target.Registers, ins.Previous.Registers))
+            {
+                if (WillTakeBranch(target.Code, Convert.ToInt32(ins.Previous.Operand)))
+                    ins.Operand = target.Operand;
+                else
+                    ins.Operand = target.Next;
+                return true;
+            }
 
-            if (WillTakeBranch(target.Code, Convert.ToInt32(ins.Previous.Operand)))
-                ins.Operand = target.Operand;
-            else
-                ins.Operand = target.Next;
+            // (3) chained branches (2)
+            if (target.Code == RCode.Const && IsComparisonWithZero(target.Next.Code)
+                   && IsSameRegister(target.Registers, target.Next.Registers))
+            {
+                if (WillTakeBranch(target.Next.Code, Convert.ToInt32(target.Operand)))
+                    ins.Operand = target.Next.Operand;
+                else
+                    ins.Operand = target.Next.Next;
+                return true;
+            }
 
-            return true;
+            return false;
         }
 
-        public bool IsComparisonBranch(RCode code)
+        private bool IsSameRegister(RegisterList r1, RegisterList r2)
+        {
+            return r1.Count == 1 && r2.Count == 1 && r1[0].Index == r2[0].Index;
+        }
+
+        private static RCode ReverseComparison(RCode code)
         {
             switch (code)
             {
-                case RCode.If_eq:
                 case RCode.If_eqz:
-                case RCode.If_ge:
-                case RCode.If_gez:
-                case RCode.If_gt:
-                case RCode.If_gtz:
-                case RCode.If_le:
-                case RCode.If_lez:
-                case RCode.If_lt:
-                case RCode.If_ltz:
-                case RCode.If_ne:
+                    return RCode.If_nez;
                 case RCode.If_nez:
-                    return true;
+                    return RCode.If_eqz;
+                case RCode.If_gez:
+                    return RCode.If_ltz;
+                case RCode.If_gtz:
+                    return RCode.If_lez;
+                case RCode.If_lez:
+                    return RCode.If_gtz;
+                case RCode.If_ltz:
+                    return RCode.If_gez;
+                case RCode.If_eq:
+                    return RCode.If_ne;
+                case RCode.If_ne:
+                    return RCode.If_eq;
+                case RCode.If_ge:
+                    return RCode.If_lt;
+                case RCode.If_gt:
+                    return RCode.If_le;
+                case RCode.If_le:
+                    return RCode.If_gt;
+                case RCode.If_lt:
+                    return RCode.If_ge;
                 default:
-                    return false;
+                    throw new InvalidOperationException();
             }
         }
 

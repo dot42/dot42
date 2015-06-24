@@ -4,19 +4,13 @@ namespace Dot42.CompilerLib.RL.Transformations
 {
     internal static class RLTransformations
     {
-        private static readonly IRLTransformation[] optimizations = {
+        private static readonly IRLTransformation[] optimizations1 =
+        {
             new InvokeTypeTransformation(), 
             new ConstPropagationTransformation(), 
             new ShareConstTransformation(),
-            new ShareRegistersTransformation(), 
-            //new ConstPropagationTransformation(), 
-            //new ShareConstTransformation(),
-            new NopRemoveTransformation(), 
-            new FlattenExceptionsTransformation(), 
-            // Last
-            new InitializeRegistersTransformation(),
         };
-
+        
         private static readonly IRLTransformation[] incrementalOptimizations = 
         {
             new SwitchAndGotoOptimization(), 
@@ -25,12 +19,23 @@ namespace Dot42.CompilerLib.RL.Transformations
             new EliminateDeadRegistersOptimizer(), 
         };
 
+        private static readonly IRLTransformation[] optimizations2 = {
+            new ShareRegistersTransformation(), 
+            new NopRemoveTransformation(), 
+            new FlattenExceptionsTransformation(), 
+            // Last
+            new InitializeRegistersTransformation(),
+        };
+
         /// <summary>
         /// Transform the given body towards Dex compilation.
         /// </summary>
         internal static void Transform(Dex target, MethodBody body)
         {
             bool hasChanges = true;
+
+            foreach (var transformation in optimizations1)
+                transformation.Transform(target, body);
 
             var noopRemove = new NopRemoveTransformation();
             noopRemove.Transform(target, body);
@@ -47,7 +52,7 @@ namespace Dot42.CompilerLib.RL.Transformations
                 }
             }
 
-            foreach (var transformation in optimizations)
+            foreach (var transformation in optimizations2)
             {
                 transformation.Transform(target, body);
             }            

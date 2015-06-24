@@ -10,8 +10,14 @@ namespace Dot42.CompilerLib.RL.Transformations
     {
         public bool Transform(Dex target, MethodBody body)
         {
+            // Find assigments-only in whole body.
+            return EleminateAssigmentOnlyRegisters(body.Instructions);
+        }
+
+        private bool EleminateAssigmentOnlyRegisters(IEnumerable<Instruction> instructions)
+        {
             bool hasChanges = false;
-            foreach (var ins in FindDeadRegisters(body.Instructions).SelectMany(dr => dr.Value))
+            foreach (var ins in FindAssignmentOnlyRegisters(instructions).SelectMany(dr => dr.Value))
             {
                 hasChanges = true;
                 ins.ConvertToNop();
@@ -19,7 +25,7 @@ namespace Dot42.CompilerLib.RL.Transformations
             return hasChanges;
         }
 
-        private Dictionary<Register, List<Instruction>> FindDeadRegisters(InstructionList instructions)
+        private Dictionary<Register, List<Instruction>> FindAssignmentOnlyRegisters(IEnumerable<Instruction> instructions)
         {
             var registers = new RegisterUsageMap(instructions);
             var possiblyDead = new HashSet<Register>(registers.Registers);

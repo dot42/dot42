@@ -99,6 +99,28 @@ namespace Dot42.CompilerLib.RL.Extensions
             }
         }
 
+        public static bool IsComparisonBranch(this RCode code)
+        {
+            switch (code)
+            {
+                case RCode.If_eq:
+                case RCode.If_eqz:
+                case RCode.If_ge:
+                case RCode.If_gez:
+                case RCode.If_gt:
+                case RCode.If_gtz:
+                case RCode.If_le:
+                case RCode.If_lez:
+                case RCode.If_lt:
+                case RCode.If_ltz:
+                case RCode.If_ne:
+                case RCode.If_nez:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         /// <summary>
         /// Is the given code any unconditional branch code?
         /// </summary>
