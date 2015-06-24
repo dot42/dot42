@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using Dot42.CompilerLib.RL.Extensions;
 using Dot42.DexLib;
 using Dot42.DexLib.Instructions;
@@ -41,13 +42,20 @@ namespace Dot42.CompilerLib.RL.Transformations
                 {
                     hasChanges = OptimizeSimpleBranch(ins, i) || hasChanges;
                 }
+
+               
             }
             return hasChanges;
         }
 
+        /// <summary>
+        /// Eliminate chained and empty gotos, pull return_void
+        /// </summary>
+        /// <param name="ins"></param>
+        /// <param name="i"></param>
+        /// <returns></returns>
         private static bool OptimizeSimpleBranch(Instruction ins, int i)
         {
-            // Eliminate chained and empty gotos, pull return_void
             bool hasChanges = false;
             
             var finalTarget = FindFinalGotoChainTarget(ins, (Instruction) ins.Operand);

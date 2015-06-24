@@ -20,9 +20,9 @@ namespace Dot42.CompilerLib.RL.Transformations
         private static readonly IRLTransformation[] incrementalOptimizations = 
         {
             new SwitchAndGotoOptimization(), 
-            new NopRemoveTransformation(), 
             new EliminateDeadCodeTransformation(), 
-            new NopRemoveTransformation(), 
+            new PredictableBranchOptimizer(), 
+            new EliminateDeadRegistersOptimizer(), 
         };
 
         /// <summary>
@@ -31,12 +31,19 @@ namespace Dot42.CompilerLib.RL.Transformations
         internal static void Transform(Dex target, MethodBody body)
         {
             bool hasChanges = true;
+
+            var noopRemove = new NopRemoveTransformation();
+            noopRemove.Transform(target, body);
+
             while (hasChanges)
             {
                 hasChanges = false;
                 foreach (var transformation in incrementalOptimizations)
                 {
-                    hasChanges = transformation.Transform(target, body) || hasChanges;
+                    bool changed = transformation.Transform(target, body);
+                    if (changed) noopRemove.Transform(target, body);
+                        
+                    hasChanges =  changed || hasChanges;
                 }
             }
 

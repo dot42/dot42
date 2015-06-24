@@ -124,6 +124,8 @@
     <Compile Include="CompilationMode.cs" />
     <Compile Include="CompilationTarget.cs" />
     <Compile Include="CompiledMethod.cs" />
+    <Compile Include="RL\Transformations\EliminateDeadRegistersOptimizer.cs" />
+    <Compile Include="RL\Transformations\PredictableBranchOptimizer.cs" />
     <Compile Include="Target\CompilerCache\AssemblyModifiedDetector.cs" />
     <Compile Include="Target\CompilerCache\CompilerCacheResolveException.cs" />
     <Compile Include="Target\CompilerCache\DexMethodBodyCloner.cs" />

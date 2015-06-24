@@ -38,6 +38,8 @@ namespace Dot42.CompilerLib.RL.Transformations
             }
         }
 
+        public IEnumerable<Register> Registers { get { return map.Keys; } }
+
         /// <summary>
         /// Add the given instruction to the set of usages for the given register.
         /// </summary>
