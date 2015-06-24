@@ -57,7 +57,13 @@ namespace Dot42.Compiler.ILSpy
             var parameter = new ReaderParameters(ReadingMode.Immediate) { AssemblyResolver = resolver,ReadSymbols = true};
 
             var assemblies = new[] { resolver.Load(assembly.MainModule.FullyQualifiedName, parameter) }.ToList();
-            var references = new[] { resolver.Load(AssemblyConstants.SdkAssemblyName, parameter) }.ToList();
+            List<AssemblyDefinition> references = new List<AssemblyDefinition>();
+            
+            if(assembly.MainModule.Name != "dot42.dll")
+                references = new[] { resolver.Load(AssemblyConstants.SdkAssemblyName, parameter) }.ToList();
+            
+            foreach (var a in assemblies)
+                references.Remove(a);
 
             var c = new AssemblyCompiler(CompilationMode.All, assemblies, references, new Table("pkg.name"),
                                          new NameConverter("pkg.name", ""), true, 

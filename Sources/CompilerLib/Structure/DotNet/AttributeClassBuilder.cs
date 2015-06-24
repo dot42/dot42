@@ -27,7 +27,9 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// <summary>
         /// Sorting low comes first
         /// </summary>
-        protected override int SortPriority { get { return 0; } }
+        // Can be called very late, as nobody has dependencies on us.
+        // This allows us to compile Dot42 in 'All' mode.
+        protected override int SortPriority { get { return 200; } } 
 
         /// <summary>
         /// Implemented all fields and methods.
