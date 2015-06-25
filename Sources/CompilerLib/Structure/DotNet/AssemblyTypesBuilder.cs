@@ -3,6 +3,7 @@ using System.Linq;
 using Dot42.CompilerLib.Extensions;
 using Dot42.CompilerLib.Target.Dex;
 using Dot42.DexLib;
+using Dot42.DexLib.Metadata;
 using Mono.Cecil;
 
 namespace Dot42.CompilerLib.Structure.DotNet
@@ -40,22 +41,17 @@ namespace Dot42.CompilerLib.Structure.DotNet
 
                 if (prevAssemblyName != assemblyName)
                 {
-                    values.Add(assemblyName);
+                    values.Add("!" + assemblyName); // we need some identification of assemblies.
                     prevAssemblyName = assemblyName;
                 }
 
-                try
-                {
-                    // TODO: with compilationmode=all reachable types contains 
-                    //       types that are not to be included in the output.
-                    //       (most notable 'Module')
-                    //       somehow handle that without an exception.
-                    var tRef = type.GetReference(targetPackage, compiler.Module);    
-                    values.Add(tRef);
-                }
-                catch
-                {
-                }
+                // TODO: With compilationmode=all reachable types contains  <Module>
+                //       this should be excluded earlier.
+                if (type.FullName == "<Module>")
+                    continue;
+
+                var tRef = type.GetReference(targetPackage, compiler.Module) as ClassReference;    
+                if(tRef != null) values.Add(tRef.Fullname);
             }
 
             var anno = new Annotation(iAssemblyTypes, AnnotationVisibility.Runtime,

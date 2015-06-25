@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Dot42.CompilerLib.Ast.Extensions;
 using Dot42.CompilerLib.XModel;
 using Dot42.Utility;
 
@@ -53,9 +54,16 @@ namespace Dot42.CompilerLib.Ast.Converters
                             }
                         }
                     }
-                    bool isStatic = field != null && field.Resolve().IsStatic;
-                    DLog.Warning(DContext.CompilerCodeGenerator, "Emulating Interlocked call using failsafe locking mechanism in {0}{1}. Consider using AtomicXXX classes instead.", 
-                        currentMethod.Method.FullName, !isStatic?"": " because a static field is referenced");
+                    
+
+                    if (currentMethod.IsDotNet && !currentMethod.ILMethod.DeclaringType.HasSuppressMessageAttribute("InterlockedFallback"))
+                    {
+                        bool isStatic = field != null && field.Resolve().IsStatic;
+
+                        DLog.Warning(DContext.CompilerCodeGenerator,
+                            "Emulating Interlocked call using failsafe locking mechanism in {0}{1}. Consider using AtomicXXX classes instead. You can suppress this message with an [SuppressMessage(\"dot42\", \"InterlockedFallback\")] attribute on the class.",
+                            currentMethod.Method.FullName, !isStatic ? "" : " because a static field is referenced");
+                    }
                     FailsafeInterlockedUsingLocking(field, expr, targetExpr, block, i, compiler);
                 }
 
