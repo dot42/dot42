@@ -23,24 +23,14 @@ namespace Dot42.CompilerLib.RL.Transformations
 
             MarkReachable(0, instructions, reachable, body);
 
-            bool atEndOfMethod = true;
             for (int i = instructions.Count - 1; i > 0 ; --i)
             {
-                if (!reachable[i] && atEndOfMethod)
-                {
-                    instructions.RemoveAt(i);
-                    hasChanges = true;
-                }
-                else if (!reachable[i] && instructions[i].Code != RCode.Nop)
+                // the nop-remover will also correcly remove exception handlers.
+                if (!reachable[i] && instructions[i].Code != RCode.Nop)
                 {
                     instructions[i].ConvertToNop();
                     hasChanges = true;
                 }
-                else
-                {
-                    atEndOfMethod = false;
-                }
-
             }
            
             return hasChanges;

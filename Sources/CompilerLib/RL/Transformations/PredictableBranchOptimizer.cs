@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Management.Instrumentation;
 using Dot42.CompilerLib.RL.Extensions;
 using Dot42.DexLib;
 
@@ -11,8 +10,8 @@ namespace Dot42.CompilerLib.RL.Transformations
     {
         public bool Transform(Dex target, MethodBody body)
         {
-            var basicBlocks = BasicBlock.Find(body);
-            return OptimizeBranches(basicBlocks);
+            var cfg = new ControlFlowGraph(body);
+            return OptimizeBranches(cfg.ToList());
         }
 
         private bool OptimizeBranches(List<BasicBlock> basicBlocks)
@@ -21,26 +20,20 @@ namespace Dot42.CompilerLib.RL.Transformations
 
             foreach (var bb in basicBlocks)
             {
-                var instructions = bb.Instructions.ToList();
+                var ins = bb.Exit;
+                if (ins.Code.IsComparisonBranch() && ins.Next.Code == RCode.Goto)
+                    hasChanges = OptimizeBranchFollowedByGoto(ins, basicBlocks) || hasChanges;
 
-                for (int i = 1 /*start at one*/; i < instructions.Count; ++i)
+                // Eliminate Predictable branches
+                if (ins.Code.IsComparisonBranch() || ins.Code == RCode.Goto)
                 {
-                    var ins = instructions[i];
-
-                    if (ins.Code.IsComparisonBranch() && ins.Next.Code == RCode.Goto)
-                        hasChanges = OptimizeBranchFollowedByGoto(basicBlocks, ins) || hasChanges;
-
-                    // Eliminate Predictable branches
-                    if (ins.Code.IsComparisonBranch() || ins.Code == RCode.Goto)
-                    {
-                        hasChanges = OptimizePredictableBranch(ins) || hasChanges;
-                    }
+                    hasChanges = OptimizePredictableBranch(ins, basicBlocks) || hasChanges;
                 }
             }
             return hasChanges;
         }
 
-        private static bool OptimizeBranchFollowedByGoto(List<BasicBlock> basicBlocks, Instruction ins)
+        private static bool OptimizeBranchFollowedByGoto(Instruction ins, List<BasicBlock> basicBlocks)
         {
             // Eliminate Branches immediately followed by a goto
             // If they jump just after the goto, and we are the only
@@ -52,9 +45,8 @@ namespace Dot42.CompilerLib.RL.Transformations
 
             var gotoBlock = basicBlocks.Single(b => b.Entry == ins.Next);
 
-            // if there are other instructions reaching the goto,
-            // dont do anything.
-            if (gotoBlock.EntryBlocks.Any()) 
+            // if there are other instructions reaching the goto, don't do anything.
+            if (gotoBlock.EntryBlocks.Count() != 1) 
                 return false;
 
             // invert the comparison and eliminate the goto
@@ -69,14 +61,14 @@ namespace Dot42.CompilerLib.RL.Transformations
         ///     (1) zero-comparisons to a just set const
         ///     (2) branch to a branch when the second branch zero-compares to a 
         ///         just set const before the first branch.
-        ///     (3) branch to a const immediatly followed by a zero-comparison
-        ///         to that same const.
+        //      (3) branch to a const immediatly followed by a zero-comparison
+        //          to that same const.
         /// </summary>
-        private bool OptimizePredictableBranch(Instruction ins)
+        private bool OptimizePredictableBranch(Instruction ins, List<BasicBlock> blocks)
         {
             // (1) zero-comparisons to a just set const
-            if (IsComparisonWithZero(ins.Code) && ins.Previous.Code == RCode.Const 
-                   && IsSameRegister(ins.Registers, ins.Previous.Registers))
+            if (ins.Index > 0 && IsComparisonWithZero(ins.Code) 
+                && ins.Previous.Code == RCode.Const && IsSameRegister(ins.Registers, ins.Previous.Registers))
             {
                 if (WillTakeBranch(ins.Code, Convert.ToInt32(ins.Previous.Operand)))
                 {
@@ -91,10 +83,11 @@ namespace Dot42.CompilerLib.RL.Transformations
                 }
             }
 
-            // (2) chained branches
+            // (2)  branch to a branch when the second branch zero-compares to a 
+            //      just set const before the first branch.
             var target = (Instruction)ins.Operand;
-            if (IsComparisonWithZero(target.Code) && ins.Previous.Code == RCode.Const
-                   && IsSameRegister(target.Registers, ins.Previous.Registers))
+            if (ins.Index > 0 && IsComparisonWithZero(target.Code) 
+                && ins.Previous.Code == RCode.Const && IsSameRegister(target.Registers, ins.Previous.Registers))
             {
                 if (WillTakeBranch(target.Code, Convert.ToInt32(ins.Previous.Operand)))
                     ins.Operand = target.Operand;
@@ -103,17 +96,44 @@ namespace Dot42.CompilerLib.RL.Transformations
                 return true;
             }
 
-            // (3) chained branches (2)
+            // (3) branch to a const immediatly followed by a zero-comparison to that same const.
+            //     We can only shortcut if the register is not read again after the branch.
             if (target.Code == RCode.Const && IsComparisonWithZero(target.Next.Code)
-                   && IsSameRegister(target.Registers, target.Next.Registers))
+                && IsSameRegister(target.Registers, target.Next.Registers))
             {
-                if (WillTakeBranch(target.Next.Code, Convert.ToInt32(target.Operand)))
-                    ins.Operand = target.Next.Operand;
-                else
-                    ins.Operand = target.Next.Next;
-                return true;
+                var secondBranch = target.Next;
+                var secondBlock = blocks.First(b => b.Exit == secondBranch);
+
+                var visited = new HashSet<BasicBlock>{ secondBlock }; // we know the second block contains only two instructions. 
+                if (!IsRegisterReadAgain(target.Registers[0], secondBlock.ExitBlocks, visited))
+                {
+                    if (WillTakeBranch(target.Next.Code, Convert.ToInt32(target.Operand)))
+                        ins.Operand = target.Next.Operand;
+                    else
+                        ins.Operand = target.Next.Next;
+                    return true;
+                }
             }
 
+            return false;
+        }
+
+        private bool IsRegisterReadAgain(Register register, IEnumerable<BasicBlock> blocks, HashSet<BasicBlock> visited)
+        {
+            foreach (var block in blocks)
+            {
+                if(visited.Contains(block))
+                    continue;
+                visited.Add(block);
+
+                foreach (var ins in block.Instructions)
+                {
+                    if (register.IsSourceIn(ins))
+                        return true;
+                }
+                if (IsRegisterReadAgain(register, block.ExitBlocks, visited))
+                    return true;
+            }
             return false;
         }
 

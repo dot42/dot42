@@ -69,6 +69,14 @@ namespace Dot42.CompilerLib.RL.Extensions
             var index = i.Registers.IndexOf(r);
             return (index >= 0) && i.IsDestinationRegister(index);
         }
+        /// <summary>
+        /// Is the given register being read (i.e. not assigned) in the given instruction?
+        /// </summary>
+        public static bool IsSourceIn(this Register r, Instruction i)
+        {
+            var index = i.Registers.IndexOf(r);
+            return (index >= 0) && !i.IsDestinationRegister(index);
+        }
 
         /// <summary>
         /// Replace all references to oldRegister with newRegister in the given instruction set.
