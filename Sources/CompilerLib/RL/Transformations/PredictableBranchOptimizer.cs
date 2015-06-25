@@ -27,7 +27,7 @@ namespace Dot42.CompilerLib.RL.Transformations
                 // Eliminate Predictable branches
                 if (ins.Code.IsComparisonBranch() || ins.Code == RCode.Goto)
                 {
-                    hasChanges = OptimizePredictableBranch(ins, basicBlocks) || hasChanges;
+                    hasChanges = OptimizePredictableBranch(ins, bb, basicBlocks) || hasChanges;
                 }
             }
             return hasChanges;
@@ -35,7 +35,7 @@ namespace Dot42.CompilerLib.RL.Transformations
 
         private static bool OptimizeBranchFollowedByGoto(Instruction ins, List<BasicBlock> basicBlocks)
         {
-            // Eliminate Branches immediately followed by a goto
+            // Redirect branches immediately followed by a goto
             // If they jump just after the goto, and we are the only
             // instruction reaching the goto.
             
@@ -64,11 +64,12 @@ namespace Dot42.CompilerLib.RL.Transformations
         //      (3) branch to a const immediatly followed by a zero-comparison
         //          to that same const.
         /// </summary>
-        private bool OptimizePredictableBranch(Instruction ins, List<BasicBlock> blocks)
+        private bool OptimizePredictableBranch(Instruction ins, BasicBlock block, List<BasicBlock> blocks)
         {
             // (1) zero-comparisons to a just set const
-            if (ins.Index > 0 && IsComparisonWithZero(ins.Code) 
-                && ins.Previous.Code == RCode.Const && IsSameRegister(ins.Registers, ins.Previous.Registers))
+            if (ins != block.Entry 
+                && IsComparisonWithZero(ins.Code) && ins.Previous.Code == RCode.Const 
+                && IsSameRegister(ins.Registers, ins.Previous.Registers))
             {
                 if (WillTakeBranch(ins.Code, Convert.ToInt32(ins.Previous.Operand)))
                 {
@@ -86,8 +87,9 @@ namespace Dot42.CompilerLib.RL.Transformations
             // (2)  branch to a branch when the second branch zero-compares to a 
             //      just set const before the first branch.
             var target = (Instruction)ins.Operand;
-            if (ins.Index > 0 && IsComparisonWithZero(target.Code) 
-                && ins.Previous.Code == RCode.Const && IsSameRegister(target.Registers, ins.Previous.Registers))
+            if (ins != block.Entry 
+                && IsComparisonWithZero(target.Code) && ins.Previous.Code == RCode.Const 
+                && IsSameRegister(target.Registers, ins.Previous.Registers))
             {
                 if (WillTakeBranch(target.Code, Convert.ToInt32(ins.Previous.Operand)))
                     ins.Operand = target.Operand;
@@ -104,7 +106,8 @@ namespace Dot42.CompilerLib.RL.Transformations
                 var secondBranch = target.Next;
                 var secondBlock = blocks.First(b => b.Exit == secondBranch);
 
-                var visited = new HashSet<BasicBlock>{ secondBlock }; // we know the second block contains only two instructions. 
+                var visited = new HashSet<BasicBlock> {secondBlock};
+                    // we know the second block contains only two instructions. 
                 if (!IsRegisterReadAgain(target.Registers[0], secondBlock.ExitBlocks, visited))
                 {
                     if (WillTakeBranch(target.Next.Code, Convert.ToInt32(target.Operand)))
@@ -130,9 +133,12 @@ namespace Dot42.CompilerLib.RL.Transformations
                 {
                     if (register.IsSourceIn(ins))
                         return true;
+                    if (register.IsDestinationIn(ins))
+                        goto nextBlock;
                 }
                 if (IsRegisterReadAgain(register, block.ExitBlocks, visited))
                     return true;
+            nextBlock:;
             }
             return false;
         }
