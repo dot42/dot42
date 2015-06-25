@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Dot42.CompilerLib.Ast;
@@ -21,6 +22,8 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
         private readonly DexTargetPackage targetPackage;
         private readonly MethodBody body;
         private readonly ArgumentRegisterSpec thisArgument;
+        protected readonly Dictionary<IVariable, RegisterSpec> compilerGeneratedVariables = new Dictionary<IVariable, RegisterSpec>();
+
 
         /// <summary>
         /// Create a frame for the given method
@@ -137,6 +140,19 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
             {
                 return arguments.First(x => (x.Parameter != null) && x.Parameter.Equals(variable));
             }
+
+            if (!variable.PreventOptimizations && variable.IsGenerated)
+            {
+                // allocate as temp register, to allow later optimization steps on the register.
+                RegisterSpec genR;
+                if (!compilerGeneratedVariables.TryGetValue(variable, out genR))
+                {
+                    genR = Allocate(variable.Type.GetReference(targetPackage), false, RCategory.Temp, variable);
+                    compilerGeneratedVariables.Add(variable, genR);
+                }
+                return genR;
+            }
+
             VariableRegisterSpec r;
             if (!variables.TryGetValue(variable, out r))
             {

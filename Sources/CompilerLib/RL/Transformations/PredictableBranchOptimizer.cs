@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Linq;
+using com.android.dx.io.instructions;
 using Dot42.CompilerLib.RL.Extensions;
 using Dot42.DexLib;
 
@@ -21,6 +23,10 @@ namespace Dot42.CompilerLib.RL.Transformations
             foreach (var bb in basicBlocks)
             {
                 var ins = bb.Exit;
+
+                if (IsComparisonToRegister(ins.Code))
+                    hasChanges = OptimizeComparisonToConstZero(ins, bb) || hasChanges;
+
                 if (ins.Code.IsComparisonBranch() && ins.Next.Code == RCode.Goto)
                     hasChanges = OptimizeBranchFollowedByGoto(ins, basicBlocks) || hasChanges;
 
@@ -31,6 +37,71 @@ namespace Dot42.CompilerLib.RL.Transformations
                 }
             }
             return hasChanges;
+        }
+
+        /// <summary>
+        /// replaces comparisons where one operand has just been set to a const zero.
+        /// asumes that instruction is a comparison instruction with two registers.
+        /// </summary>
+        private bool OptimizeComparisonToConstZero(Instruction ins, BasicBlock bb)
+        {
+            var r1 = ins.Registers[0];
+            var r2 = ins.Registers[1];
+            
+            bool? r1IsZero = null, r2IsZero = null;
+
+            if (r1.Category == RCategory.Argument || r1.PreventOptimization)
+                r1IsZero = false;
+            if (r2.Category == RCategory.Argument || r2.PreventOptimization)
+                r2IsZero = false;
+
+            for (var prev = ins.PreviousOrDefault; prev != null && prev.Index >= bb.Entry.Index; prev=prev.PreviousOrDefault)
+            {
+                if(r1IsZero.HasValue && r2IsZero.HasValue)
+                    break;
+                if ((r1IsZero.HasValue && r1IsZero.Value) || (r2IsZero.HasValue && r2IsZero.Value))
+                    break;
+
+                if (r1IsZero == null)
+                {
+                    if (r1.IsDestinationIn(prev))
+                    {
+                        r1IsZero = prev.Code == RCode.Const && Convert.ToInt32(prev.Operand) == 0;
+                        continue;
+                    }
+                }
+                if (r2IsZero == null)
+                {
+                    if (r2.IsDestinationIn(prev))
+                    {
+                        r2IsZero = prev.Code == RCode.Const && Convert.ToInt32(prev.Operand) == 0;
+                        continue;
+                    }
+                }
+            }
+
+            if (r2IsZero.HasValue && r2IsZero.Value)
+            {
+                ins.Code = ToComparisonWithZero(ins.Code);
+                ins.Registers.Clear();
+                ins.Registers.Add(r1);
+                return true;
+            }
+
+            if (r1IsZero.HasValue && r1IsZero.Value)
+            {
+                // swap the registers before converting to zero-comparison.
+                ins.Code = ToComparisonWithZero(SwapComparisonRegisers(ins.Code));
+                if (ins.Code != RCode.If_eqz && ins.Code != RCode.If_nez)
+                    ins.Code = ReverseComparison(ins.Code);
+
+                ins.Registers.Clear();
+                ins.Registers.Add(r2);
+                return true;
+            }
+            
+
+            return false;
         }
 
         private static bool OptimizeBranchFollowedByGoto(Instruction ins, List<BasicBlock> basicBlocks)
@@ -181,6 +252,49 @@ namespace Dot42.CompilerLib.RL.Transformations
             }
         }
 
+        private static RCode SwapComparisonRegisers(RCode code)
+        {
+            switch (code)
+            {
+                case RCode.If_eq:
+                    return RCode.If_eq;
+                case RCode.If_ne:
+                    return RCode.If_ne;
+                case RCode.If_ge:
+                    return RCode.If_le;
+                case RCode.If_gt:
+                    return RCode.If_lt;
+                case RCode.If_le:
+                    return RCode.If_ge;
+                case RCode.If_lt:
+                    return RCode.If_gt;
+                default:
+                    throw new InvalidOperationException();
+            }
+        }
+
+        private RCode ToComparisonWithZero(RCode code)
+        {
+            switch (code)
+            {
+                case RCode.If_eq:
+                    return RCode.If_eqz;
+                case RCode.If_ge:
+                    return RCode.If_gez;
+                case RCode.If_gt:
+                    return RCode.If_gtz;
+                case RCode.If_le:
+                    return RCode.If_lez;
+                case RCode.If_lt:
+                    return RCode.If_ltz;
+                case RCode.If_ne:
+                    return RCode.If_nez;
+                default:
+                    throw new InvalidOperationException();
+            }
+        }
+
+
         public bool IsComparisonWithZero(RCode code)
         {
             switch (code)
@@ -195,6 +309,11 @@ namespace Dot42.CompilerLib.RL.Transformations
                 default:
                     return false;
             }
+        }
+
+        public bool IsComparisonToRegister(RCode code)
+        {
+            return code.IsComparisonBranch() && !IsComparisonWithZero(code);
         }
 
         private bool WillTakeBranch(RCode code, int comparand)
