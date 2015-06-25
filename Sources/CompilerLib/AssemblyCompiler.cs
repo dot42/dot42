@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dot42.ApkLib.Resources;
 using Dot42.CompilerLib.Reachable;
+using Dot42.CompilerLib.Structure;
 using Dot42.CompilerLib.Structure.DotNet;
 using Dot42.CompilerLib.Target;
 using Dot42.CompilerLib.Target.CompilerCache;
@@ -113,6 +114,7 @@ namespace Dot42.CompilerLib
             get { return assemblyClassLoader; }
         }
 
+        internal ITargetPackage TargetPackage { get { return targetPackage; } }
 
         /// <summary>
         /// Compile all types and members

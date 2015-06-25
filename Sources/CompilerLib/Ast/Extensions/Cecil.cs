@@ -43,7 +43,7 @@ namespace Dot42.CompilerLib.Ast.Extensions
                 {
                     if (a.AttributeType.FullName != "System.Diagnostics.CodeAnalysis.SuppressMessageAttribute")
                         continue;
-                    if (a.ConstructorArguments.Count != 2)
+                    if (a.ConstructorArguments.Count < 2)
                         continue;
                     if (a.ConstructorArguments[0].Value == null ||
                         a.ConstructorArguments[0].Value.ToString().ToLowerInvariant() != "dot42")

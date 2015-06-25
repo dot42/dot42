@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using System.Windows.Controls;
 using System.Windows.Input;
 using Dot42.CompilerLib.Target;
 using ICSharpCode.ILSpy;

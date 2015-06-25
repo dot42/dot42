@@ -116,7 +116,7 @@ namespace Dot42.Compiler.ILSpy
             }
 
             var methodSource = new MethodSource(xMethod, ilMethod.OriginalMethod);
-            var node = MethodBodyCompiler.CreateOptimizedAst(AssemblyCompiler, methodSource, false, StopConversion);
+            var node = MethodBodyCompiler.CreateOptimizedAst(AssemblyCompiler, methodSource, GenerateSetNextInstructionCode, StopConversion);
 
             if (StopConversion != StopAstConversion.None)
             {
