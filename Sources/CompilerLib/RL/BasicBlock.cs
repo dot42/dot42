@@ -172,5 +172,18 @@ namespace Dot42.CompilerLib.RL
             exitBlocks = exitBlocks ?? new HashSet<BasicBlock>();
             exitBlocks.Add(exitBlock);
         }
+
+        public void RemoveExitBlock(BasicBlock exitBlock)
+        {
+            if (exitBlocks == null)
+                return;
+            exitBlocks.Remove(exitBlock);
+        }
+
+        public void RemoveEntryBlock(BasicBlock insBlock)
+        {
+            if (entryBlocks == null) return;
+            entryBlocks.Remove(insBlock);
+        }
     }
 }

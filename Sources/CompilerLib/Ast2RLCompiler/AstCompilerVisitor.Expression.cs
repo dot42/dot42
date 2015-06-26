@@ -1434,7 +1434,7 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                                 if (i + 1 < arrayData.Length)
                                 {
                                     // Increment index
-                                    this.Add(node.SourceLocation, RCode.Add_int_lit, 1, rIndex, rIndex);
+                                    this.Add(node.SourceLocation, RCode.Add_int_lit8, 1, rIndex, rIndex);
                                 }
                             }
                         }
@@ -1470,7 +1470,7 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                             if (i + 1 < size)
                             {
                                 // Increment index
-                                this.Add(node.SourceLocation, RCode.Add_int_lit, 1, rIndex, rIndex);
+                                this.Add(node.SourceLocation, RCode.Add_int_lit8, 1, rIndex, rIndex);
                             }
                         }
                         return new RLRange(start, this.Add(node.SourceLocation, RCode.Nop), rArray);

@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Dot42.CompilerLib.RL.Extensions;
 using Dot42.DexLib.Instructions;
 using Dot42.Utility;
+using java.lang;
 using NinjaTools.Collections;
 
 namespace Dot42.CompilerLib.RL
@@ -51,6 +53,7 @@ namespace Dot42.CompilerLib.RL
     {
         private readonly MethodBody _body;
         private readonly Dictionary<Instruction, BasicBlock> _entries;
+        private readonly Dictionary<Instruction, BasicBlock> _exits;
         private readonly List<BasicBlock> _basicBlocks;
         private readonly List<Instruction> _entryInstructions;
         private Dictionary<BasicBlock, HashSet<BasicBlock>> _reachableBlocks;
@@ -64,6 +67,7 @@ namespace Dot42.CompilerLib.RL
             _body = body;
             _basicBlocks = new ControlFlowGraph(body).ToList();
             _entries = _basicBlocks.ToDictionary(b => b.Entry, b => b);
+            _exits = _basicBlocks.ToDictionary(b => b.Exit, b => b);
             _entryInstructions = _basicBlocks.Select(b => b.Entry).ToList();
 
             IncludeExceptionHandlers(body);
@@ -134,9 +138,19 @@ namespace Dot42.CompilerLib.RL
             return ret;
         }
 
-        public BasicBlock BlockFromEntryInstruction(Instruction ins)
+        public BasicBlock GetBlockFromEntry(Instruction ins)
         {
             return _entries[ins];
+        }
+
+        public BasicBlock GetBlockFromExit(Instruction ins)
+        {
+            return _exits[ins];
+        }
+        
+        public bool IsEntryInstruction(Instruction next)
+        {
+            return _entries.ContainsKey(next);
         }
 
         public BasicBlock BlockFromInstruction(Instruction ins)
@@ -150,22 +164,44 @@ namespace Dot42.CompilerLib.RL
         /// </summary>
         internal bool IsReachable(InstructionInBlock target, InstructionInBlock source, InstructionInBlock blocker)
         {
-            if (source.Block == target.Block && source.Block == blocker.Block)
-                return target.Instruction.Index >= source.Instruction.Index 
-                   && (source.Instruction.Index > blocker.Instruction.Index 
-                       || blocker.Instruction.Index > target.Instruction.Index);
-            if (source.Block == target.Block)
-                return source.Instruction.Index <= target.Instruction.Index;
-            if (source.Block == blocker.Block)
-                return source.Instruction.Index > target.Instruction.Index;
-
-            var queryReachables = GetReachableBlocks(source.Block);
-            // the easy checks...
-            if (!queryReachables.Contains(target.Block))
+            if (target == blocker)
                 return false;
-            if (!queryReachables.Contains(blocker.Block))
+            if (target == source)
+                throw new ArgumentException("source and target must be different"); // or think about a proper meaning.
+
+            HashSet<BasicBlock> sourceReachables = null;
+
+            // Check all three instructions inthe same block.
+            if (source.Block == target.Block && source.Block == blocker.Block)
+            {
+                if (target.Instruction.Index >= source.Instruction.Index)
+                {
+                    return source.Instruction.Index > blocker.Instruction.Index 
+                        || blocker.Instruction.Index > target.Instruction.Index;
+                }
+                else
+                {
+                    if(blocker.Instruction.Index <= target.Instruction.Index
+                    || blocker.Instruction.Index > source.Instruction.Index)
+                        return false;
+
+                    sourceReachables = GetReachableBlocks(source.Block);
+                    return sourceReachables.Contains(source.Block);
+                }
+            }
+            // check source in same block as either target or blocker.
+            if (source.Block == target.Block && source.Instruction.Index < target.Instruction.Index)
                 return true;
-            // slightly more complicated: both last and first are reachable.
+            if (source.Block == blocker.Block && source.Instruction.Index < blocker.Instruction.Index)
+                return false;
+
+            sourceReachables = GetReachableBlocks(source.Block);
+            // the easy checks...
+            if (!sourceReachables.Contains(target.Block))
+                return false;
+            if (!sourceReachables.Contains(blocker.Block))
+                return true;
+            // slightly more complicated: both target and blocker are reachable from source.
             if (target.Block == blocker.Block)
                 return target.Instruction.Index < blocker.Instruction.Index;
             // work on a per-block basis.
@@ -190,6 +226,35 @@ namespace Dot42.CompilerLib.RL
                     return true;
             }
             return false;
+        }
+
+        /// <summary>
+        /// Sets the Operand of 'ins' and updates the entry/exit block
+        /// data structures.
+        /// </summary>
+        public void RerouteBranch(Instruction ins, Instruction newTarget)
+        {
+            var oldTarget = (Instruction) ins.Operand;
+            
+            if (oldTarget == newTarget)
+                return;
+
+            ins.Operand = newTarget;
+
+            var insBlock = GetBlockFromExit(ins);
+
+            // don't remove oldTargt if the branch was just to the next address.
+            if (oldTarget.Index != ins.Index + 1) 
+            {
+                var oldTargetBlock = GetBlockFromEntry(oldTarget);
+                insBlock.RemoveExitBlock(oldTargetBlock);
+                oldTargetBlock.RemoveEntryBlock(insBlock);
+            }
+            
+            // update the new target.
+            var newEntryBlock = GetBlockFromEntry(newTarget);
+            insBlock.AddExitBlock(newEntryBlock);
+            newEntryBlock.AddEntryBlock(insBlock);
         }
     }
 }

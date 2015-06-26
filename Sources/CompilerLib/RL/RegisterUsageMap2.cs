@@ -10,15 +10,22 @@ namespace Dot42.CompilerLib.RL
     {
         private readonly ControlFlowGraph2 _graph;
         private readonly Dictionary<Register, RegisterUsage> _usages;
+        private readonly MethodBody _body;
+        private readonly List<BasicBlock> _basicBlocks;
+        public ControlFlowGraph2 Graph { get { return _graph; } }
+
         public List<RegisterUsage> BasicUsages { get { return _usages.Values.ToList(); }}
-        
+        public MethodBody Body{ get { return _body; } }
+
+        public List<BasicBlock> BasicBlocks { get { return _basicBlocks; } }
+
         internal class RegisterUsage
         {
             public readonly Register Register;
             public readonly List<InstructionInBlock> Reads = new List<InstructionInBlock>();
             public readonly List<InstructionInBlock> Writes = new List<InstructionInBlock>();
             public readonly List<InstructionInBlock> MovesFromOtherRegisters = new List<InstructionInBlock>();
-            public readonly List<InstructionInBlock> CheckCasts = new List<InstructionInBlock>();
+            public readonly List<InstructionInBlock> CheckCastsAndNewInstance = new List<InstructionInBlock>();
             public readonly HashSet<BasicBlock> Blocks = new HashSet<BasicBlock>();
 
             public RegisterUsage(Register r)
@@ -48,7 +55,7 @@ namespace Dot42.CompilerLib.RL
                 Reads.RemoveAll(i => i == ins);
                 Writes.RemoveAll(i => i == ins);
                 MovesFromOtherRegisters.RemoveAll(i => i == ins);
-                CheckCasts.RemoveAll(i => i == ins);
+                CheckCastsAndNewInstance.RemoveAll(i => i == ins);
             }
 
             public void Add(InstructionInBlock ins, int registerIndex)
@@ -59,8 +66,8 @@ namespace Dot42.CompilerLib.RL
                 if (isDest)   AddWrite(ins);
                 if (isSource) Reads.Add(ins); ;
 
-                if(ins.Instruction.Code == RCode.Check_cast)
-                    CheckCasts.Add(ins);
+                if(ins.Instruction.Code == RCode.Check_cast || ins.Instruction.Code == RCode.New_instance)
+                    CheckCastsAndNewInstance.Add(ins);
                 
                 if(!isDest && !isSource)
                     Debug.Assert(false);
@@ -71,7 +78,7 @@ namespace Dot42.CompilerLib.RL
                 Reads.Clear();
                 Writes.Clear();
                 MovesFromOtherRegisters.Clear();
-                CheckCasts.Clear();
+                CheckCastsAndNewInstance.Clear();
             }
         }
 
@@ -79,7 +86,18 @@ namespace Dot42.CompilerLib.RL
         {
             _graph = graph;
             _usages = new Dictionary<Register, RegisterUsage>();
-            CollectBasicUsages(graph, _usages);
+            _body = graph.Body;
+            _basicBlocks = graph.BasicBlocks;
+            CollectBasicUsages(_basicBlocks, _usages);
+            // TODO: seperate independant usages.
+        }
+
+        public RegisterUsageMap2(MethodBody body)
+        {
+            _body = body;
+            _usages = new Dictionary<Register, RegisterUsage>();
+            _basicBlocks = BasicBlock.Find(body);
+            CollectBasicUsages(_basicBlocks, _usages);
             // TODO: seperate independant usages.
         }
 
@@ -89,7 +107,7 @@ namespace Dot42.CompilerLib.RL
             if (_usages.TryGetValue(r, out ret))
                 return ret;
 
-            if(!_graph.Body.Registers.Contains(r))
+            if(!_body.Registers.Contains(r))
                 throw new InvalidOperationException();
 
             ret = new RegisterUsage(r);
@@ -97,9 +115,9 @@ namespace Dot42.CompilerLib.RL
             return ret;
         }
 
-        private static void CollectBasicUsages(ControlFlowGraph2 graph, Dictionary<Register, RegisterUsage> usages)
+        private static void CollectBasicUsages(IList<BasicBlock> blocks, Dictionary<Register, RegisterUsage> usages)
         {
-            foreach (var block in graph.BasicBlocks)
+            foreach (var block in blocks)
             {
                 foreach (var ins in block.Instructions)
                 {
@@ -140,8 +158,8 @@ namespace Dot42.CompilerLib.RL
 
             if (replaced.Register.KeepWith == RFlags.KeepWithNext)
             {
-                replaced2 = GetBasicUsage(_graph.Body.GetNext(replaced.Register));
-                replacement2 = GetBasicUsage(_graph.Body.GetNext(replacement.Register));
+                replaced2 = GetBasicUsage(_body.GetNext(replaced.Register));
+                replacement2 = GetBasicUsage(_body.GetNext(replacement.Register));
                 replR2 = replaced2.Register;
             }
 
@@ -183,7 +201,7 @@ namespace Dot42.CompilerLib.RL
             
         }
 
-        private void ConvertToNop(InstructionInBlock ins)
+        public void ConvertToNop(InstructionInBlock ins)
         {
             // update registers usages.
             foreach (var r in ins.Instruction.Registers)

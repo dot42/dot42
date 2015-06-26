@@ -10,6 +10,7 @@ namespace Dot42.CompilerLib.RL.Transformations
         {
             new InvokeTypeTransformation(),
             new EliminateCheckCastToObject(), 
+            new InlineIntLiteralsTransformation(), 
             new ConstPropagationTransformation(), 
             new ShareConstTransformation(),
         };
@@ -67,7 +68,6 @@ namespace Dot42.CompilerLib.RL.Transformations
             yield return noopRemove;
 
             bool hasChanges = true;
-
 
             while (hasChanges)
             {

@@ -191,6 +191,17 @@ namespace Dot42.CompilerLib.RL
         Or_int_lit = 0xd6,
         Xor_int_lit = 0xd7,
 
+        Add_int_lit8 = 0xd8,
+        Rsub_int_lit8 = 0xd9,
+        Mul_int_lit8 = 0xda,
+        Div_int_lit8 = 0xdb,
+        Rem_int_lit8 = 0xdc,
+        And_int_lit8 = 0xdd,
+        Or_int_lit8 = 0xde,
+        Xor_int_lit8 = 0xdf,
+        Shl_int_lit8 = 0xe0,
+        Shr_int_lit8 = 0xe1,
+        Ushr_int_lit8 = 0xe2,
         // Specials
         Leave = 0x1001,
     }

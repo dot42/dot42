@@ -127,6 +127,7 @@
     <Compile Include="RL\ControlFlowGraph2.cs" />
     <Compile Include="RL\RegisterUsageMap2.cs" />
     <Compile Include="RL\Transformations\EliminateCheckCastToObject.cs" />
+    <Compile Include="RL\Transformations\InlineIntLiteralsTransformation.cs" />
     <Compile Include="RL\Transformations\PredictableBranchOptimizer.cs" />
     <Compile Include="RL\Transformations\EliminateRegistersOptimization.cs" />
     <Compile Include="Target\CompilerCache\AssemblyModifiedDetector.cs" />

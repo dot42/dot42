@@ -11,14 +11,14 @@ namespace Dot42.CompilerLib.RL.Transformations
         public bool Transform(Dex target, MethodBody body)
         {
             var cfg = new ControlFlowGraph2(body);
-            return OptimizeBranches(cfg.BasicBlocks);
+            return OptimizeBranches(cfg);
         }
 
-        private bool OptimizeBranches(List<BasicBlock> basicBlocks)
+        private bool OptimizeBranches(ControlFlowGraph2 cfg)
         {
             bool hasChanges = false;
 
-            foreach (var bb in basicBlocks)
+            foreach (var bb in cfg.BasicBlocks)
             {
                 var ins = bb.Exit;
 
@@ -26,12 +26,12 @@ namespace Dot42.CompilerLib.RL.Transformations
                     hasChanges = OptimizeComparisonToConstZero(ins, bb) || hasChanges;
 
                 if (ins.Code.IsComparisonBranch() && ins.Next.Code == RCode.Goto)
-                    hasChanges = OptimizeBranchFollowedByGoto(ins, basicBlocks) || hasChanges;
+                    hasChanges = OptimizeBranchFollowedByGoto(ins, cfg) || hasChanges;
 
                 // Eliminate Predictable branches
                 if (ins.Code.IsComparisonBranch() || ins.Code == RCode.Goto)
                 {
-                    hasChanges = OptimizePredictableBranch(ins, bb, basicBlocks) || hasChanges;
+                    hasChanges = OptimizePredictableBranch(ins, bb, cfg) || hasChanges;
                 }
             }
             return hasChanges;
@@ -101,7 +101,7 @@ namespace Dot42.CompilerLib.RL.Transformations
             return false;
         }
 
-        private static bool OptimizeBranchFollowedByGoto(Instruction ins, List<BasicBlock> basicBlocks)
+        private static bool OptimizeBranchFollowedByGoto(Instruction ins, ControlFlowGraph2 cfg)
         {
             // Redirect branches immediately followed by a goto
             // If they jump just after the goto, and we are the only
@@ -111,7 +111,7 @@ namespace Dot42.CompilerLib.RL.Transformations
             if (branchTarget != ins.Next.NextOrDefault) 
                 return false;
 
-            var gotoBlock = basicBlocks.Single(b => b.Entry == ins.Next);
+            var gotoBlock = cfg.GetBlockFromEntry(ins.Next);
 
             // if there are other instructions reaching the goto, don't do anything.
             if (gotoBlock.EntryBlocks.Count() != 1) 
@@ -119,7 +119,7 @@ namespace Dot42.CompilerLib.RL.Transformations
 
             // invert the comparison and eliminate the goto
             ins.Code = ReverseComparison(ins.Code);
-            ins.Operand = ins.Next.Operand;
+            cfg.RerouteBranch(ins, (Instruction)ins.Next.Operand);
             ins.Next.ConvertToNop();
             return true;
         }
@@ -132,7 +132,7 @@ namespace Dot42.CompilerLib.RL.Transformations
         //      (3) branch to a const immediatly followed by a zero-comparison
         //          to that same const.
         /// </summary>
-        private bool OptimizePredictableBranch(Instruction ins, BasicBlock block, List<BasicBlock> blocks)
+        private bool OptimizePredictableBranch(Instruction ins, BasicBlock block, ControlFlowGraph2 cfg)
         {
             // (1) zero-comparisons to a just set const
             if (ins != block.Entry 
@@ -160,9 +160,9 @@ namespace Dot42.CompilerLib.RL.Transformations
                 && IsSameRegister(target.Registers, ins.Previous.Registers))
             {
                 if (WillTakeBranch(target.Code, Convert.ToInt32(ins.Previous.Operand)))
-                    ins.Operand = target.Operand;
+                    cfg.RerouteBranch(ins, (Instruction)target.Operand);
                 else
-                    ins.Operand = target.Next;
+                    cfg.RerouteBranch(ins, target.Next);
                 return true;
             }
 
@@ -172,16 +172,16 @@ namespace Dot42.CompilerLib.RL.Transformations
                 && IsSameRegister(target.Registers, target.Next.Registers))
             {
                 var secondBranch = target.Next;
-                var secondBlock = blocks.First(b => b.Exit == secondBranch);
+                var secondBlock = cfg.GetBlockFromExit(secondBranch);
 
                 var visited = new HashSet<BasicBlock> {secondBlock};
                     // we know the second block contains only two instructions. 
                 if (!IsRegisterReadAgain(target.Registers[0], secondBlock.ExitBlocks, visited))
                 {
-                    if (WillTakeBranch(target.Next.Code, Convert.ToInt32(target.Operand)))
-                        ins.Operand = target.Next.Operand;
+                    if (WillTakeBranch(secondBranch.Code, Convert.ToInt32(target.Operand)))
+                        cfg.RerouteBranch(ins, (Instruction)target.Next.Operand);
                     else
-                        ins.Operand = target.Next.Next;
+                        cfg.RerouteBranch(ins, target.Next.Next);
                     return true;
                 }
             }

@@ -437,7 +437,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
             if (nextMoveResultInstruction != null)
                 ins.Add(nextMoveResultInstruction);
 
-            ins.Add(new Instruction(RCode.Add_int_lit, 1, new[] { index, index }));
+            ins.Add(new Instruction(RCode.Add_int_lit8, 1, new[] { index, index }));
             ins.Add(new Instruction(RCode.If_lt, getNext, new[] { index, count }));
 
             ins.Add(done);
@@ -543,7 +543,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
             // compare types.
             ins.Add(new Instruction(RCode.If_ne, returnFalseInstruction, new[] {thisType, otherType}));
 
-            ins.Add(new Instruction(RCode.Add_int_lit, 1, new[] {counter, counter}));
+            ins.Add(new Instruction(RCode.Add_int_lit8, 1, new[] {counter, counter}));
             ins.Add(new Instruction(RCode.If_ne, loadThisVal, new[] {counter, rThisLen}));
             
             ins.Add(done);
