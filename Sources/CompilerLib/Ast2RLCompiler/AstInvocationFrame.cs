@@ -5,7 +5,6 @@ using System.Linq;
 using Dot42.CompilerLib.Ast;
 using Dot42.CompilerLib.Extensions;
 using Dot42.CompilerLib.RL;
-using Dot42.CompilerLib.Target;
 using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel.Synthetic;
 using Dot42.DexLib;
@@ -22,8 +21,6 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
         private readonly DexTargetPackage targetPackage;
         private readonly MethodBody body;
         private readonly ArgumentRegisterSpec thisArgument;
-        protected readonly Dictionary<IVariable, RegisterSpec> compilerGeneratedVariables = new Dictionary<IVariable, RegisterSpec>();
-
 
         /// <summary>
         /// Create a frame for the given method
@@ -141,22 +138,12 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                 return arguments.First(x => (x.Parameter != null) && x.Parameter.Equals(variable));
             }
 
-            if (!variable.PreventOptimizations && variable.IsGenerated)
-            {
-                // allocate as temp register, to allow later optimization steps on the register.
-                RegisterSpec genR;
-                if (!compilerGeneratedVariables.TryGetValue(variable, out genR))
-                {
-                    genR = Allocate(variable.Type.GetReference(targetPackage), false, RCategory.Temp, variable);
-                    compilerGeneratedVariables.Add(variable, genR);
-                }
-                return genR;
-            }
-
             VariableRegisterSpec r;
             if (!variables.TryGetValue(variable, out r))
             {
-                var category = variable.PreventOptimizations ? RCategory.VariablePreventOptimization : RCategory.Variable;
+                bool isPreventOpt = variable.PreventOptimizations;
+                bool isTempVariable = !isPreventOpt && (variable.IsGenerated || variable.IsCompilerGenerated);
+                var category = isPreventOpt ? RCategory.VariablePreventOptimization : isTempVariable ? RCategory.TempVariable : RCategory.Variable;
                 r = (VariableRegisterSpec) Allocate(variable.Type.GetReference(targetPackage), false, category, variable);
                 variables.Add(variable, r);
             }
@@ -178,6 +165,7 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                         return new RegisterSpec(pair.Item1, pair.Item2, type);
                     case RCategory.Variable:
                     case RCategory.VariablePreventOptimization:
+                    case RCategory.TempVariable:
                         return new VariableRegisterSpec(pair.Item1, pair.Item2, type, (AstVariable)parameter);
                     case RCategory.Argument:
                         return new ArgumentRegisterSpec(pair.Item1, pair.Item2, type, ParameterWrapper.Wrap(parameter));
@@ -193,6 +181,7 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                     return new RegisterSpec(register, null, type);
                 case RCategory.Variable:
                 case RCategory.VariablePreventOptimization:
+                case RCategory.TempVariable:
                     return new VariableRegisterSpec(register, null, type, (AstVariable) parameter);
                 case RCategory.Argument:
                     return new ArgumentRegisterSpec(register, null, type, ParameterWrapper.Wrap(parameter));

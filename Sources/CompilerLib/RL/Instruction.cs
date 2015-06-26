@@ -231,5 +231,15 @@ namespace Dot42.CompilerLib.RL
             return ((info.GetUsage(index) & RegisterFlags.Destination) == RegisterFlags.Destination);
         }
 
+
+        /// <summary>
+        /// Is the register with the given index being assigned a value in this instruction?
+        /// </summary>
+        public bool IsSourceRegister(int index)
+        {
+            var info = OpCodeInfo.Get(Code.ToDex());
+            return ((info.GetUsage(index) & RegisterFlags.Source) == RegisterFlags.Source);
+        }
+
     }
 }

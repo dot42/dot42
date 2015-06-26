@@ -69,13 +69,26 @@ namespace Dot42.CompilerLib.RL.Extensions
             var index = i.Registers.IndexOf(r);
             return (index >= 0) && i.IsDestinationRegister(index);
         }
+
         /// <summary>
-        /// Is the given register being read (i.e. not assigned) in the given instruction?
+        /// Is the given register used as source in the given instruction?
         /// </summary>
-        public static bool IsSourceIn(this Register r, Instruction i)
+        public static bool IsSourceIn(this Register r, Instruction ins)
         {
-            var index = i.Registers.IndexOf(r);
-            return (index >= 0) && !i.IsDestinationRegister(index);
+            var registers = ins.Registers;
+            var count = registers.Count;
+            if (count == 0)
+                return false;
+            var info = OpCodeInfo.Get(ins.Code.ToDex());
+            for (var i = 0; i < count; i++)
+            {
+                if (registers[i] == r)
+                {
+                    if ((info.GetUsage(i) & RegisterFlags.Source) == RegisterFlags.Source)
+                        return true;
+                }
+            }
+            return false;
         }
 
         /// <summary>

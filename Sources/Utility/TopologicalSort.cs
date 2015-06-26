@@ -128,7 +128,7 @@ namespace Dot42.Utility
 
             if (alreadyVisited)
             {
-                if (level == inProcess && ignoreCycles)
+                if (level == inProcess && !ignoreCycles)
                 {
                     throw new ArgumentException("Cyclic dependency found.");
                 }

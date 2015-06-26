@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
 using System.Linq;
-using com.android.dx.io.instructions;
 using Dot42.CompilerLib.RL.Extensions;
 using Dot42.DexLib;
 
@@ -12,8 +10,8 @@ namespace Dot42.CompilerLib.RL.Transformations
     {
         public bool Transform(Dex target, MethodBody body)
         {
-            var cfg = new ControlFlowGraph(body);
-            return OptimizeBranches(cfg.ToList());
+            var cfg = new ControlFlowGraph2(body);
+            return OptimizeBranches(cfg.BasicBlocks);
         }
 
         private bool OptimizeBranches(List<BasicBlock> basicBlocks)
@@ -91,9 +89,8 @@ namespace Dot42.CompilerLib.RL.Transformations
             if (r1IsZero.HasValue && r1IsZero.Value)
             {
                 // swap the registers before converting to zero-comparison.
-                ins.Code = ToComparisonWithZero(SwapComparisonRegisers(ins.Code));
-                if (ins.Code != RCode.If_eqz && ins.Code != RCode.If_nez)
-                    ins.Code = ReverseComparison(ins.Code);
+                ins.Code = ToComparisonWithZero(SwapComparisonRegisters(ins.Code));
+           
 
                 ins.Registers.Clear();
                 ins.Registers.Add(r2);
@@ -252,7 +249,7 @@ namespace Dot42.CompilerLib.RL.Transformations
             }
         }
 
-        private static RCode SwapComparisonRegisers(RCode code)
+        private static RCode SwapComparisonRegisters(RCode code)
         {
             switch (code)
             {

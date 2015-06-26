@@ -77,6 +77,8 @@ namespace Dot42.CompilerLib.RL
                     return "rt" + index;
                 case RCategory.Variable:
                     return "rv" + index;
+                case RCategory.TempVariable:
+                    return "rc" + index;
                 case RCategory.VariablePreventOptimization:
                     return "rd" + index;
                 case RCategory.Argument:

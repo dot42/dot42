@@ -8,21 +8,22 @@ namespace Dot42.CompilerLib.RL.Transformations
     {
         private static readonly IRLTransformation[] optimizations1 =
         {
-            new InvokeTypeTransformation(), 
+            new InvokeTypeTransformation(),
+            new EliminateCheckCastToObject(), 
             new ConstPropagationTransformation(), 
             new ShareConstTransformation(),
         };
         
         private static readonly IRLTransformation[] incrementalOptimizations = 
         {
+            new EliminateRegistersOptimization(), 
             new SwitchAndGotoOptimization(), 
             new EliminateDeadCodeTransformation(), 
             new PredictableBranchOptimizer(), 
-            new EliminateDeadRegistersOptimizer(), 
         };
 
         private static readonly IRLTransformation[] optimizations2 = {
-            new ShareRegistersTransformation(), 
+            new ShareRegistersTransformation(),             
             new NopRemoveTransformation(), 
             new FlattenExceptionsTransformation(), 
             // Last

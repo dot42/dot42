@@ -7,7 +7,8 @@ namespace Dot42.CompilerLib.RL
     {
         Temp,
         Variable,
+        TempVariable,
         VariablePreventOptimization,
-        Argument
+        Argument,
     }
 }
