@@ -30,6 +30,10 @@ namespace Dot42.CompilerLib.RL.Transformations
             for (int i = 0; i < instructions.Count; ++i)
             {
                 var ins = instructions[i];
+
+                if (ins.Registers.Count > 0 && ins.Registers[0].PreventOptimization)
+                    continue;
+
                 if (ins.Code == RCode.Packed_switch)
                 {
                     hasChanges = OptimizePackedSwitch(ins, i) || hasChanges;
@@ -42,8 +46,6 @@ namespace Dot42.CompilerLib.RL.Transformations
                 {
                     hasChanges = OptimizeSimpleBranch(ins, i) || hasChanges;
                 }
-
-               
             }
             return hasChanges;
         }
@@ -60,7 +62,7 @@ namespace Dot42.CompilerLib.RL.Transformations
             
             var finalTarget = FindFinalGotoChainTarget(ins, (Instruction) ins.Operand);
 
-            if (finalTarget != (Instruction) ins.Operand)
+            if (finalTarget != (Instruction) ins.Operand && finalTarget != ins)
             {
                 ins.Operand = finalTarget;
                 hasChanges = true;

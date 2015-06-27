@@ -22,6 +22,9 @@ namespace Dot42.CompilerLib.RL.Transformations
             {
                 var ins = bb.Exit;
 
+                if (ins.Registers.Count > 0 && ins.Registers[0].PreventOptimization)
+                    continue;
+
                 if (IsComparisonToRegister(ins.Code))
                     hasChanges = OptimizeComparisonToConstZero(ins, bb) || hasChanges;
 

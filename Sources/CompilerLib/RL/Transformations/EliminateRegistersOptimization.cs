@@ -39,7 +39,9 @@ namespace Dot42.CompilerLib.RL.Transformations
             foreach (var usage in registerUsage.BasicUsages)
             {
                 var reg = usage.Register;
-                if ((!reg.IsTemp && reg.Category != RCategory.TempVariable) || reg.KeepWith == RFlags.KeepWithPrev)
+                if ((!reg.IsTemp && reg.Category != RCategory.TempVariable) 
+                    || reg.KeepWith == RFlags.KeepWithPrev
+                    || reg.PreventOptimization)
                     continue;
 
                 // (1) quick check: write only registers.

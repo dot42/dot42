@@ -56,7 +56,7 @@ namespace Dot42.Compiler.ILSpy
             var methodSource = new MethodSource(xMethod, ilMethod.OriginalMethod);
             var target = (DexTargetPackage) AssemblyCompiler.TargetPackage;
             var dMethod = (MethodDefinition)xMethod.GetReference(target);
-            DexMethodBodyCompiler.TranslateToRL(AssemblyCompiler, target, methodSource, dMethod, false, out cmethod);
+            DexMethodBodyCompiler.TranslateToRL(AssemblyCompiler, target, methodSource, dMethod, GenerateSetNextInstructionCode, out cmethod);
 
             var rlBody = cmethod.RLBody;
 
