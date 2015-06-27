@@ -152,7 +152,7 @@ namespace Dot42.CompilerLib.XModel
         }
 
         /// <summary>
-        /// Does this method need a parameter to pass the generic instance array for the generic types of the declaring type?
+        /// Does this method need a parameter to pass the generic instance (array) for the generic types of the declaring type?
         /// </summary>
         public bool NeedsGenericInstanceTypeParameter
         {

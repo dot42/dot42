@@ -65,7 +65,7 @@ namespace Dot42.CompilerLib.Ast.Converters
                     // Resolve type to a Class<?>
                     var typeHelperType = compiler.GetDot42InternalType(InternalConstants.TypeHelperName).Resolve();
                     // while having primitive arrays for primitive types would be nice, a lot of boxing and unboxing
-                    // would be needed. only for-primitive-specialized generic classes could optimize this.
+                    // would be needed. only for-primitive-specialized generic classes we could optimize this.
                     var ldType = LoadTypeForGenericInstance(node.SourceLocation, currentMethod, type, compiler, typeHelperType, typeSystem, TypeConversion.EnsureRuntimeType);
                     var newInstanceExpr = new AstExpression(node.SourceLocation, AstCode.ArrayNewInstance, null, ldType, node.Arguments[0]) { ExpectedType = typeSystem.Object };
                     var arrayType = new XArrayType(type);
@@ -89,17 +89,17 @@ namespace Dot42.CompilerLib.Ast.Converters
                 if (methodDef.NeedsGenericInstanceTypeParameter)
                 {
                     // Add generic instance type parameter value
-                    var arg = CreateGenericInstance(node.SourceLocation, method.DeclaringType, currentMethod, compiler);
-                    node.Arguments.Add(arg);
-                    node.GenericInstanceArgCount++;
+                    var arg = CreateGenericInstanceCallArguments(node.SourceLocation, method.DeclaringType, currentMethod, compiler);
+                    node.Arguments.AddRange(arg);
+                    node.GenericInstanceArgCount += arg.Count;
                 }
 
                 if (methodDef.NeedsGenericInstanceMethodParameter)
                 {
                     // Add generic instance method parameter
-                    var arg = CreateGenericInstance(node.SourceLocation, method, currentMethod, compiler);
-                    node.Arguments.Add(arg);
-                    node.GenericInstanceArgCount++;
+                    var arg = CreateGenericInstanceCallArguments(node.SourceLocation, method, currentMethod, compiler);
+                    node.Arguments.AddRange(arg);
+                    node.GenericInstanceArgCount += arg.Count;
                 }
             }
 
@@ -114,18 +114,17 @@ namespace Dot42.CompilerLib.Ast.Converters
                 // Add generic instance type parameter value, if method is static
                 if (genTypeDef != null && delegateInfo.Item2.Resolve().IsStatic)
                 {
-                    
-                    var arg = CreateGenericInstance(node.SourceLocation, delegateInfo.Item2.DeclaringType, currentMethod, compiler);
-                    node.Arguments.Add(arg);
-                    node.GenericInstanceArgCount++;
+                    var arg = CreateGenericInstanceCallArguments(node.SourceLocation, delegateInfo.Item2.DeclaringType, currentMethod, compiler);
+                    node.Arguments.AddRange(arg);
+                    node.GenericInstanceArgCount += arg.Count;
                 }
 
                 // add generic method type parameter value.
                 if (genMethodDef != null)
                 {
-                    var arg = CreateGenericInstance(node.SourceLocation, delegateInfo.Item2, currentMethod, compiler);
-                    node.Arguments.Add(arg);
-                    node.GenericInstanceArgCount++;
+                    var arg = CreateGenericInstanceCallArguments(node.SourceLocation, delegateInfo.Item2, currentMethod, compiler);
+                    node.Arguments.AddRange(arg);
+                    node.GenericInstanceArgCount += arg.Count;
                 }
             }
 
@@ -161,21 +160,19 @@ namespace Dot42.CompilerLib.Ast.Converters
                     if (ctorRef.TryResolve(out ctorDef) && ctorDef.NeedsGenericInstanceTypeParameter)
                     {
                         // Add generic instance type parameter value
-                        var arg = CreateGenericInstance(node.SourceLocation, ctorRef.DeclaringType, currentMethod, compiler);
-                        node.Arguments.Add(arg);
-                        node.GenericInstanceArgCount++;
+                        var arg = CreateGenericInstanceCallArguments(node.SourceLocation, ctorRef.DeclaringType, currentMethod, compiler);
+                        node.Arguments.AddRange(arg);
+                        node.GenericInstanceArgCount += arg.Count;
                     }
                 }
             }
         }
 
         /// <summary>
-        /// Build expression that creates an instance of GenericInstance with arguments from the given .NET generic instance.
-        /// 
-        /// (basically creates an array with the type parameters)
-        /// TODO: optimize the common case where an existing array is only cloned, and use that instead.
+        /// Build expressions that are used when calling a .NET method with generic instance parameters, one expression for
+        /// each required parameter.
         /// </summary>
-        private static AstExpression CreateGenericInstance(ISourceLocation seqp, XReference member, MethodSource currentMethod, AssemblyCompiler compiler)
+        private static IList<AstExpression> CreateGenericInstanceCallArguments(ISourceLocation seqp, XReference member, MethodSource currentMethod, AssemblyCompiler compiler)
         {
             // Prepare
             var genericInstance = member as IXGenericInstance;
@@ -199,8 +196,24 @@ namespace Dot42.CompilerLib.Ast.Converters
                 typeExpressions.Add(typeExpr);
             }
 
-            var elementType = compiler.Module.TypeSystem.Type;
-            return new AstExpression(seqp, AstCode.InitArrayFromArguments, new XArrayType(elementType), typeExpressions) { ExpectedType = new XArrayType(elementType) };
+            bool isMethod = member is XMethodReference;
+            bool buildArray = count > (isMethod ? InternalConstants.GenericMethodParametersAsArrayThreshold 
+                                                : InternalConstants.GenericTypeParametersAsArrayThreshold);
+            if (buildArray)
+            {
+                //TODO: when we can determine that all expressions just load our classes generic instance (array) field,
+                //      and extract all values in sequence, we should shortcut and just return a load of the field,
+                //      instead of unpacking and re-packing each value, putting pressure on the garbage collector
+                //      in the process. This is not a huge problem any longer, as we do not use arrays as often
+                //      as we used to. Nevertheless, where arrays are used, possible re-use should be faily common,
+                //      e.g. when instatiating nested classes or invoking static methods.
+                var elementType = compiler.Module.TypeSystem.Type;
+                return new [] { new AstExpression(seqp, AstCode.InitArrayFromArguments, new XArrayType(elementType), typeExpressions) { ExpectedType = new XArrayType(elementType) }};
+            }
+            else
+            {
+                return typeExpressions;
+            }
         }
 
         /// <summary>
@@ -233,7 +246,7 @@ namespace Dot42.CompilerLib.Ast.Converters
             var gp = type as XGenericParameter;
             if (gp != null)
             {
-                AstExpression gi;
+                AstExpression loadExpr;
                 if (gp.Owner is XTypeReference)
                 {
                     // Class type parameter
@@ -260,9 +273,9 @@ namespace Dot42.CompilerLib.Ast.Converters
                         }
                         return new AstExpression(seqp, AstCode.TypeOf, typeSystem.Object) { ExpectedType = typeSystem.Type };
                     }
-                    gi = currentMethod.IsStatic ?
-                        LoadStaticClassGenericInstance(seqp, typeSystem) :
-                        LoadInstanceClassGenericInstance(seqp, typeSystem);
+                    loadExpr = currentMethod.IsStatic ?
+                        LoadStaticClassGenericArgument(seqp, typeSystem, currentMethod.Method, gp.Position) :
+                        LoadInstanceClassGenericArgument(seqp, typeSystem, currentMethod.Method.DeclaringType, gp.Position);
                 }
                 else
                 {
@@ -273,14 +286,8 @@ namespace Dot42.CompilerLib.Ast.Converters
                         // Imported type
                         return LoadTypeForGenericInstance(seqp, currentMethod, type.Module.TypeSystem.Object, compiler, typeHelperType, typeSystem, typeConversion);
                     }
-                    gi = LoadMethodGenericInstance(seqp, typeSystem);
+                    loadExpr = LoadMethodGenericArgument(seqp, typeSystem, currentMethod.Method, gp.Position);
                 }
-
-                var indexExpr = new AstExpression(seqp, AstCode.Ldc_I4, gp.Position) { ExpectedType = typeSystem.Int };
-                var loadExpr  = new AstExpression(seqp, AstCode.Ldelem_Ref, null,
-                                                        gi, indexExpr);
-
-                loadExpr.ExpectedType = typeSystem.Type;
 
                 if (typeConversion == TypeConversion.EnsureRuntimeType)
                     return EnsureGenericRuntimeType(loadExpr, typeSystem, typeHelperType);
@@ -298,9 +305,19 @@ namespace Dot42.CompilerLib.Ast.Converters
                     return baseType;
 
                 // Use the element type and make a generic proxy with the generic arguments.
-                var parameters = CreateGenericInstance(seqp, git, currentMethod, compiler);
-                var method = typeHelperType.Methods.First(m => m.Name == "GetGenericInstanceType");
-                return new AstExpression(seqp, AstCode.Call, method, baseType, parameters);
+                var parameters = CreateGenericInstanceCallArguments(seqp, git, currentMethod, compiler);
+                if (parameters.Count == 1 && parameters[0].GetResultType().IsArray)
+                {
+                    // array type call.
+                    var method = typeHelperType.Methods.Single(m => m.Name == "GetGenericInstanceType" && m.Parameters.Count == 2 && m.Parameters[1].ParameterType.IsArray);
+                    return new AstExpression(seqp, AstCode.Call, method, baseType, parameters[0]);
+                }
+                else
+                {
+                    parameters.Insert(0, baseType);
+                    var method = typeHelperType.Methods.Single(m => m.Name == "GetGenericInstanceType" && m.Parameters.Count == parameters.Count && !m.Parameters[1].ParameterType.IsArray);
+                    return new AstExpression(seqp, AstCode.Call, method, parameters.ToArray());
+                }
             }
 
 
@@ -320,7 +337,7 @@ namespace Dot42.CompilerLib.Ast.Converters
         }
 
         /// <summary>
-        /// expand the loadExpression, so that primitive types are converted to their boxed counterparts,
+        /// Expand the loadExpression, so that primitive types are converted to their boxed counterparts,
         /// and marker types are converted to their underlying types.
         /// </summary>
         private static AstExpression EnsureGenericRuntimeType(AstExpression loadExpr, XTypeSystem typeSystem, XTypeDefinition typeHelper)
@@ -334,27 +351,45 @@ namespace Dot42.CompilerLib.Ast.Converters
         /// Load the GenericInstance of the current instance.
         /// The result is a temporary register.
         /// </summary>
-        private static AstExpression LoadInstanceClassGenericInstance(ISourceLocation seqp, XTypeSystem typeSystem)
+        private static AstExpression LoadInstanceClassGenericArgument(ISourceLocation seqp, XTypeSystem typeSystem, XTypeDefinition type, int index)
         {
-            return new AstExpression(seqp, AstCode.LdGenericInstanceField, null) { ExpectedType = new XArrayType(typeSystem.Type) };
+            bool loadFromArray = type.GenericParameters.Count > InternalConstants.GenericTypeParametersAsArrayThreshold;
+            return LoadGenericArgument(seqp, typeSystem, AstCode.LdGenericInstanceField, index, loadFromArray);
         }
 
         /// <summary>
         /// Load the GenericInstance of the current static method.
         /// The result is a register that cannot be destroyed.
         /// </summary>
-        private static AstExpression LoadStaticClassGenericInstance(ISourceLocation seqp, XTypeSystem typeSystem)
+        private static AstExpression LoadStaticClassGenericArgument(ISourceLocation seqp, XTypeSystem typeSystem, XMethodDefinition method, int index)
         {
-            return new AstExpression(seqp, AstCode.LdGenericInstanceTypeArgument, null) { ExpectedType = new XArrayType(typeSystem.Type) };
+            bool loadFromArray = method.DeclaringType.GenericParameters.Count > InternalConstants.GenericTypeParametersAsArrayThreshold;
+            return LoadGenericArgument(seqp, typeSystem, AstCode.LdGenericInstanceTypeArgument, index, loadFromArray);
         }
 
         /// <summary>
         /// Load the GenericInstance of the current generic method.
         /// The result is a register that cannot be destroyed.
         /// </summary>
-        private static AstExpression LoadMethodGenericInstance(ISourceLocation seqp, XTypeSystem typeSystem)
+        private static AstExpression LoadMethodGenericArgument(ISourceLocation seqp, XTypeSystem typeSystem, XMethodDefinition method, int index)
         {
-            return new AstExpression(seqp, AstCode.LdGenericInstanceMethodArgument, null) { ExpectedType = new XArrayType(typeSystem.Type) };
+            bool loadFromArray = method.GenericParameters.Count > InternalConstants.GenericMethodParametersAsArrayThreshold;
+            return LoadGenericArgument(seqp, typeSystem, AstCode.LdGenericInstanceMethodArgument, index, loadFromArray);
+        }
+
+        private static AstExpression LoadGenericArgument(ISourceLocation seqp, XTypeSystem typeSystem, AstCode ldCode, int index, bool loadFromArray)
+        {
+            if (loadFromArray)
+            {
+                var getField = new AstExpression(seqp, ldCode, 0) { ExpectedType = new XArrayType(typeSystem.Type) };
+                var indexExpr = new AstExpression(seqp, AstCode.Ldc_I4, index) { ExpectedType = typeSystem.Int };
+                var loadExpr = new AstExpression(seqp, AstCode.Ldelem_Ref, null, getField, indexExpr) { ExpectedType = typeSystem.Type };
+                return loadExpr;
+            }
+            else
+            {
+                return new AstExpression(seqp, ldCode, index) { ExpectedType = typeSystem.Type };
+            }
         }
     }
 }

@@ -55,7 +55,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// <summary>
         /// Create and add GenericInstance field.
         /// </summary>
-        protected override void CreateGenericInstanceField(DexTargetPackage targetPackage)
+        protected override void CreateGenericInstanceFields(DexTargetPackage targetPackage)
         {
             // No need to do anything here.
         }

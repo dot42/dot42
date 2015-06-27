@@ -10,8 +10,8 @@ namespace Dot42.DexLib
     {
         private TypeReference _returnType;
         private List<Parameter> _parameters;
-        private Parameter _genericInstanceTypeParameter;
-        private Parameter _genericInstanceMethodParameter;
+        private List<Parameter> _genericInstanceTypeParameters;
+        private List<Parameter> _genericInstanceMethodParameters;
         private int _hashCode;
         private string _signatureCache;
 
@@ -21,6 +21,8 @@ namespace Dot42.DexLib
         public Prototype()
         {
             Parameters = new List<Parameter>();
+            _genericInstanceTypeParameters = new List<Parameter>();
+            _genericInstanceMethodParameters = new List<Parameter>();
         }
 
         /// <summary>
@@ -31,6 +33,8 @@ namespace Dot42.DexLib
         {
             _returnType = returntype;
             Parameters = parameters;
+            _genericInstanceTypeParameters = new List<Parameter>();
+            _genericInstanceMethodParameters = new List<Parameter>();
 
             Freeze();
         }
@@ -45,19 +49,19 @@ namespace Dot42.DexLib
         /// <summary>
         /// Parameter in which the GenericInstance for generic types is passed to the method.
         /// </summary>
-        public Parameter GenericInstanceTypeParameter
+        public IList<Parameter> GenericInstanceTypeParameters
         {
-            get { return _genericInstanceTypeParameter; }
-            set { ThrowIfFrozen();_genericInstanceTypeParameter = value; }
+            get { return IsFrozen ? (IList<Parameter>)_genericInstanceTypeParameters.AsReadOnly() : _genericInstanceTypeParameters; }
+            set { ThrowIfFrozen();_genericInstanceTypeParameters = new List<Parameter>(value); }
         }
 
         /// <summary>
         /// Parameter in which the GenericInstance for generic methods is passed to the method.
         /// </summary>
-        public Parameter GenericInstanceMethodParameter
+        public IList<Parameter> GenericInstanceMethodParameters
         {
-            get { return _genericInstanceMethodParameter; }
-            set { ThrowIfFrozen(); _genericInstanceMethodParameter = value; }
+            get { return IsFrozen ? (IList<Parameter>)_genericInstanceMethodParameters.AsReadOnly() : _genericInstanceMethodParameters; }
+            set { ThrowIfFrozen(); _genericInstanceMethodParameters = new List<Parameter>(value); }
         }
 
         public bool ContainsAnnotation()
@@ -129,6 +133,9 @@ namespace Dot42.DexLib
             {
                 result.Parameters.Add(p.Clone());
             }
+
+            result._genericInstanceTypeParameters = new List<Parameter>(_genericInstanceTypeParameters);
+            result._genericInstanceMethodParameters = new List<Parameter>(_genericInstanceMethodParameters); ;
 
             if (IsFrozen)
             {
@@ -210,12 +217,12 @@ namespace Dot42.DexLib
             {
                 if (_returnType != null)
                     _returnType.Freeze();
-                foreach (var p in Parameters)
+                foreach (var p in _parameters)
                     p.Freeze();
-                if (_genericInstanceMethodParameter != null)
-                    _genericInstanceMethodParameter.Freeze();
-                if (_genericInstanceTypeParameter != null)
-                    _genericInstanceTypeParameter.Freeze();
+                foreach (var p in _genericInstanceTypeParameters)
+                    p.Freeze();
+                foreach (var p in _genericInstanceMethodParameters)
+                    p.Freeze();
             }
 
             return gotFrozen;
@@ -229,13 +236,13 @@ namespace Dot42.DexLib
                 _hashCode = 0; _signatureCache = null;
 
                 if (_returnType != null)
-                    _returnType.Freeze();
+                    _returnType.Unfreeze();
                 foreach (var p in _parameters)
-                    p.Freeze();
-                if (_genericInstanceMethodParameter != null)
-                    _genericInstanceMethodParameter.Freeze();
-                if (_genericInstanceTypeParameter != null)
-                    _genericInstanceTypeParameter.Freeze();
+                    p.Unfreeze();
+                foreach (var p in _genericInstanceTypeParameters)
+                    p.Unfreeze();
+                foreach (var p in _genericInstanceMethodParameters)
+                    p.Unfreeze();
             }
 
             return thawed;

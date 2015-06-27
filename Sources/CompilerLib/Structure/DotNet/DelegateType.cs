@@ -89,11 +89,12 @@ namespace Dot42.CompilerLib.Structure.DotNet
             }
 
             // Not found, build it.
-            result = DelegateInstanceTypeBuilder.Create(sequencePoint, compiler, targetPackage, InterfaceClass, 
-                                                        invokeMethod, invokePrototype, 
-                                                        equalsMethod, equalsPrototype, 
-                                                        cloneMethod, clonePrototype, 
-                                                        calledMethod);
+            var builder = new DelegateInstanceTypeBuilder(sequencePoint, compiler, targetPackage, InterfaceClass, 
+                                                          invokeMethod, invokePrototype, 
+                                                          equalsMethod, equalsPrototype, 
+                                                          cloneMethod, clonePrototype, 
+                                                          calledMethod);
+            result = builder.Create();
             instances.Add(calledMethod, result);
             return result;
         }

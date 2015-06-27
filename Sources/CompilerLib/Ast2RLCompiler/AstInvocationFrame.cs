@@ -102,16 +102,24 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
             // Add GenericInstanceType parameter (if any)
             if (source.Method.NeedsGenericInstanceTypeParameter)
             {
-                var type = prototype.GenericInstanceTypeParameter.Type;
-                GenericInstanceTypeArgument = (ArgumentRegisterSpec) Allocate(type, false, RCategory.Argument, null);
-                arguments.Add(GenericInstanceTypeArgument);                
+                GenericInstanceTypeArguments = new List<ArgumentRegisterSpec>();
+                foreach (var param in prototype.GenericInstanceTypeParameters)
+                {
+                    var r = (ArgumentRegisterSpec) Allocate(param.Type, false, RCategory.Argument, null);
+                    GenericInstanceTypeArguments.Add(r);
+                    arguments.Add(r);
+                }
             }
             // Add GenericInstanceMethod parameter (if any)
             if (source.Method.NeedsGenericInstanceMethodParameter)
             {
-                var type = prototype.GenericInstanceMethodParameter.Type;
-                GenericInstanceMethodArgument = (ArgumentRegisterSpec) Allocate(type, false, RCategory.Argument, null);
-                arguments.Add(GenericInstanceMethodArgument);
+                GenericInstanceMethodArguments = new List<ArgumentRegisterSpec>();
+                foreach (var param in prototype.GenericInstanceMethodParameters)
+                {
+                    var r = (ArgumentRegisterSpec)Allocate(param.Type, false, RCategory.Argument, null);
+                    GenericInstanceMethodArguments.Add(r);
+                    arguments.Add(r);
+                }
             }
             // Check register count
             var expected = prototype.Parameters.Sum(x => x.Type.IsWide() ? 2 : 1);

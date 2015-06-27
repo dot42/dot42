@@ -1240,33 +1240,35 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
 #region Generics
                 case AstCode.LdGenericInstanceField:
                     {
-                        var giField = GetGenericInstanceField();
-                        var r = frame.AllocateTemp(FrameworkReferences.ClassArray);
+                        var giField = GetGenericInstanceField((int)node.Operand);
+                        var r = frame.AllocateTemp(giField.Type);
                         var iget = this.Add(node.SourceLocation, RCode.Iget_object, giField, r, frame.ThisArgument);
                         return new RLRange(iget, r);
                     }
                 case AstCode.StGenericInstanceField:
                     {
-                        var giField = GetGenericInstanceField();
+                        var giField = GetGenericInstanceField((int)node.Operand);
                         var r = args[0].Result;
                         var iput = this.Add(node.SourceLocation, RCode.Iput_object, giField, r, frame.ThisArgument);
                         return new RLRange(iput, r);
                     }
                 case AstCode.LdGenericInstanceTypeArgument:
-                    {
-                        if (frame.GenericInstanceTypeArgument == null)
+                {
+                        int index = (int) node.Operand;
+                        if (index <0 || index >= frame.GenericInstanceTypeArguments.Count)
                         {
-                            throw new CompilerException(string.Format("Method {0} has no generic instance type argument", currentMethod.FullName));
+                            throw new CompilerException(string.Format("Method {0} has no generic instance type argument " + index, currentMethod.FullName));
                         }
-                        return new RLRange(frame.GenericInstanceTypeArgument);
+                        return new RLRange(frame.GenericInstanceTypeArguments[index]);
                     }
                 case AstCode.LdGenericInstanceMethodArgument:
                     {
-                        if (frame.GenericInstanceMethodArgument == null)
+                        int index = (int)node.Operand;
+                        if (index < 0 || index >= frame.GenericInstanceMethodArguments.Count)
                         {
-                            throw new CompilerException(string.Format("Method {0} has no generic instance method argument", currentMethod.FullName));
+                            throw new CompilerException(string.Format("Method {0} has no generic instance method argument " + index, currentMethod.FullName));
                         }
-                        return new RLRange(frame.GenericInstanceMethodArgument);
+                        return new RLRange(frame.GenericInstanceMethodArguments[index]);
                     }
                 case AstCode.UnboxFromGeneric:
                     {
@@ -1373,15 +1375,8 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                         if (delegateInstanceType.ConstructorNeedsInstanceArgument)
                             registerArgs.Add(args[0].Result);
 
-                        if (delegateInstanceType.ConstructorNeedsGenericInstanceTypeArgument)
-                            registerArgs.Add(args[1].Result);
-                        if (delegateInstanceType.ConstructorNeedsGenericInstanceMethodArgument &&
-                            delegateInstanceType.ConstructorNeedsGenericInstanceTypeArgument)
-                        {
-                            registerArgs.Add(args[2].Result);
-                        }
-                        else if (delegateInstanceType.ConstructorNeedsGenericInstanceMethodArgument)
-                            registerArgs.Add(args[1].Result);
+                        for(int i = 1; i < args.Count; ++i) // generic method / instance type arguments.
+                            registerArgs.Add(args[i].Result);
 
                         // call .ctor
                         var invokeCtor = this.Add(node.SourceLocation, RCode.Invoke_direct,
@@ -1937,15 +1932,14 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
         /// Gets the generic instance field of the current method.
         /// Throws an exception when there is no such field.
         /// </summary>
-        private FieldDefinition GetGenericInstanceField()
+        private FieldDefinition GetGenericInstanceField(int index)
         {
             var owner = currentDexMethod.Owner;
-            var giField = owner.GenericInstanceField;
-            if (giField == null)
+            if (owner.GenericInstanceFields.Count <= index || index < 0)
             {
                 throw new CompilerException(string.Format("Expected GenericInstance field in {0}", owner.Fullname));
             }
-            return giField;
+            return owner.GenericInstanceFields[index];
         }
     }
 }

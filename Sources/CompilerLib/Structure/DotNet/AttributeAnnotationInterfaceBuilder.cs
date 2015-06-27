@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Dot42.ApkLib.Resources;
 using Dot42.CecilExtensions;
-using Dot42.CompilerLib.Ast;
-using Dot42.CompilerLib.Ast.Extensions;
 using Dot42.CompilerLib.Ast2RLCompiler.Extensions;
 using Dot42.CompilerLib.Extensions;
 using Dot42.CompilerLib.RL;
@@ -14,7 +11,6 @@ using Dot42.CompilerLib.XModel.DotNet;
 using Dot42.DexLib;
 using Dot42.FrameworkDefinitions;
 using Mono.Cecil;
-using Mono.Cecil.Rocks;
 using MethodDefinition = Dot42.DexLib.MethodDefinition;
 using TypeReference = Dot42.DexLib.TypeReference;
 
@@ -44,7 +40,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
             attributeClass.AddInnerClass(@interface);
 
             // Set super class
-            @interface.SuperClass = new ClassReference("java/lang/Object");
+            @interface.SuperClass = FrameworkReferences.Object;
 
             // Implement Dot42.Internal.IAttribute
             @interface.Interfaces.Add(new ClassReference("java/lang/annotation/Annotation"));

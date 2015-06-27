@@ -27,6 +27,7 @@ namespace Dot42.DexLib
             Fields = new List<FieldDefinition>();
             Methods = new List<MethodDefinition>();
             innerClasses = new List<ClassDefinition>();
+            GenericInstanceFields = new List<FieldDefinition>();
         }
 
         internal ClassDefinition(ClassReference cref)
@@ -56,7 +57,16 @@ namespace Dot42.DexLib
         /// <summary>
         /// Field holding generic type arguments
         /// </summary>
-        public FieldDefinition GenericInstanceField { get; set; }
+        public IList<FieldDefinition> GenericInstanceFields { get; private set; }
+
+        public bool GenericInstanceFieldIsTypeArray
+        {
+            get
+            {
+                return GenericInstanceFields.Count == 1 &&
+                       GenericInstanceFields[0].Type.Descriptor == "[Ljava.lang.Class;";
+            }
+        }
 
         public ClassDefinition NullableMarkerClass { get; set; }
 

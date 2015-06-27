@@ -845,7 +845,8 @@ namespace Dot42.CompilerLib.Ast.Optimizer
                 case AstCode.LdGenericInstanceTypeArgument:
                 case AstCode.LdGenericInstanceMethodArgument:
                 case AstCode.StGenericInstanceField:
-                    return new XArrayType(new XTypeReference.SimpleXTypeReference(module, "System", "Type", null, false, null));
+                    return expr.ExpectedType;
+                //    return new XArrayType(new XTypeReference.SimpleXTypeReference(module, "System", "Type", null, false, null));
                 default:
                     Debug.WriteLine("Type Inference: Can't handle expression " + expr.Code.GetName());
                     return null;

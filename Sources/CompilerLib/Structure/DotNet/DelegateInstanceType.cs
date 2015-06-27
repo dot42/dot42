@@ -50,17 +50,5 @@ namespace Dot42.CompilerLib.Structure.DotNet
         {
             get { return !calledMethod.IsStatic; }
         }
-
-        public bool ConstructorNeedsGenericInstanceTypeArgument
-        {
-            get { return calledMethod.IsStatic && calledMethod.DeclaringType.IsGenericClass; }
-        }
-
-        public bool ConstructorNeedsGenericInstanceMethodArgument
-        {
-            get { return calledMethod.NeedsGenericInstanceMethodParameter; }
-        }
-
-       
     }
 }

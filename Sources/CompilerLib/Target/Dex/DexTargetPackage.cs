@@ -60,7 +60,7 @@ namespace Dot42.CompilerLib.Target.Dex
                 generatedCodeClass.Name = "__generated";
                 generatedCodeClass.Namespace = nameConverter.PackageName;
                 generatedCodeClass.AccessFlags = AccessFlags.Public | AccessFlags.Synthetic;
-                generatedCodeClass.SuperClass = new ClassReference("java/lang/Object");
+                generatedCodeClass.SuperClass = FrameworkReferences.Object;
                 dex.AddClass(generatedCodeClass);
             }
             return generatedCodeClass;

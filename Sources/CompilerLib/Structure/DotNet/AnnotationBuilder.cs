@@ -138,9 +138,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 foreach (var argument in (CustomAttributeArgument[]) value)
                 {
                     // dereference if argument is an object or params array.
-                    var arg = argument.Value is CustomAttributeArgument 
-                                ? (CustomAttributeArgument)argument.Value 
-                                : argument;
+                    var arg = argument.Value as CustomAttributeArgument? ?? argument;
 
                     object val;
 

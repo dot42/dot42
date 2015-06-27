@@ -21,12 +21,12 @@ namespace Dot42.CompilerLib.RL
         /// <summary>
         /// Gets the register spec used to hold the type genericinstance value.
         /// </summary>
-        public ArgumentRegisterSpec GenericInstanceTypeArgument { get; protected set; }
+        public IList<ArgumentRegisterSpec> GenericInstanceTypeArguments { get; protected set; }
 
         /// <summary>
         /// Gets the register spec used to hold the method genericinstance value.
         /// </summary>
-        public ArgumentRegisterSpec GenericInstanceMethodArgument { get; protected set; }
+        public IList<ArgumentRegisterSpec> GenericInstanceMethodArguments { get; protected set; }
 
         /// <summary>
         /// Gets the register specs used for arguments passed to this method.

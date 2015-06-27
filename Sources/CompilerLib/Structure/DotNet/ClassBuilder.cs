@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
 using Dot42.CecilExtensions;
 using Dot42.CompilerLib.Ast.Extensions;
@@ -12,7 +11,6 @@ using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel;
 using Dot42.CompilerLib.XModel.DotNet;
 using Dot42.DexLib;
-using Dot42.DexLib.Extensions;
 using Dot42.FrameworkDefinitions;
 using Dot42.JvmClassLib;
 using Dot42.LoaderLib.Extensions;
@@ -39,6 +37,9 @@ namespace Dot42.CompilerLib.Structure.DotNet
         private List<FieldBuilder> fieldBuilders;
         private List<MethodBuilder> methodBuilders;
         private XTypeDefinition xType;
+
+        public bool BuildGenericInstanceFieldAsArray { get { return XType.GenericParameters.Count > InternalConstants.GenericTypeParametersAsArrayThreshold; } }
+        protected bool IsNetGenericType { get { return typeDef.HasGenericParameters && !typeDef.HasDexImportAttribute(); } }
 
         /// <summary>
         /// Create a type builder for the given type.
@@ -327,7 +328,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
             }
             else if (typeDef.IsInterface)
             {
-                classDef.SuperClass = new ClassReference("java/lang/Object");
+                classDef.SuperClass = FrameworkReferences.Object;
             }
             else
             {
@@ -344,6 +345,12 @@ namespace Dot42.CompilerLib.Structure.DotNet
             foreach (var intf in typeDef.Interfaces.Select(x => x.Interface.GetClassReference(targetPackage, compiler.Module))
                                                    .Distinct())
                 classDef.Interfaces.Add(intf);
+
+            if (IsNetGenericType)
+            {
+                var genericMarker = compiler.GetDot42InternalType(InternalConstants.GenericTypeDefinitionMarker);
+                classDef.Interfaces.Add(genericMarker.GetClassReference(targetPackage));
+            }
         }
 
         /// <summary>
@@ -405,13 +412,10 @@ namespace Dot42.CompilerLib.Structure.DotNet
             fieldBuilders.ForEach(x => x.Create(classDef, XType, targetPackage));
 
             // Build GenericInstance field (if generic)
-            if (typeDef.HasGenericParameters && !typeDef.HasDexImportAttribute())
+            if (IsNetGenericType && !typeDef.IsStatic())
             {
                 //Class.IsGenericClass = true;
-                if (!typeDef.IsStatic())
-                {
-                    CreateGenericInstanceField(targetPackage);
-                }
+                CreateGenericInstanceFields(targetPackage);
             }
 
             // Build methods
@@ -425,16 +429,36 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// <summary>
         /// Create and add GenericInstance field.
         /// </summary>
-        protected virtual void CreateGenericInstanceField(DexTargetPackage targetPackage)
+        protected virtual void CreateGenericInstanceFields(DexTargetPackage targetPackage)
         {
-            var field = new FieldDefinition {
-                Name = CreateUniqueFieldName("$g"),
-                Type = FrameworkReferences.ClassArray,
-                AccessFlags = AccessFlags.Protected | AccessFlags.Synthetic,
-                Owner = Class
-            };
-            Class.Fields.Add(field);
-            Class.GenericInstanceField = field;
+            if (BuildGenericInstanceFieldAsArray)
+            {
+                var field = new FieldDefinition
+                {
+                    Name = CreateUniqueFieldName("$g"),
+                    Type = FrameworkReferences.ClassArray,
+                    AccessFlags = AccessFlags.Protected | AccessFlags.Synthetic,
+                    Owner = Class
+                };
+                Class.Fields.Add(field);
+                Class.GenericInstanceFields.Add(field);
+            }
+            else
+            {
+                for (int i = 0; i < typeDef.GenericParameters.Count; ++i)
+                {
+                    var field = new FieldDefinition
+                    {
+                        Name = CreateUniqueFieldName("$g", 1),
+                        Type = FrameworkReferences.Class,
+                        AccessFlags = AccessFlags.Protected | AccessFlags.Synthetic,
+                        Owner = Class
+                    };
+                    Class.Fields.Add(field);
+                    Class.GenericInstanceFields.Add(field);
+                }
+            }
+
         }
 
         /// <summary>
@@ -701,10 +725,15 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// <summary>
         /// Create a field name that is based on the given name, and is unique in this class.
         /// </summary>
-        protected string CreateUniqueFieldName(string name)
+        protected string CreateUniqueFieldName(string name, int start = -1)
         {
             var baseName = name;
             var index = 0;
+            if (start >= 0)
+            {
+                index = start;
+                name += index;
+            }
             while (true)
             {
                 if (Class.Fields.All(x => x.Name != name))

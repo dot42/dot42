@@ -1,5 +1,4 @@
-﻿using System.Globalization;
-using System.Linq;
+﻿using System.Linq;
 using System.Text;
 using Dot42.CecilExtensions;
 using Dot42.CompilerLib.Ast.Extensions;

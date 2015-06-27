@@ -216,7 +216,7 @@ namespace Dot42.CompilerLib.Structure.Java
             }
             else if (typeDef.IsInterface)
             {
-                classDef.SuperClass = new ClassReference("java/lang/Object");
+                classDef.SuperClass = FrameworkReferences.Object;
             }
             else
             {

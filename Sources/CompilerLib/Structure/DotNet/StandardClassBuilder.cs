@@ -46,7 +46,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
             bool containsGenericInterfaces = XType.Interfaces.Any(i => i.IsGenericInstance || i.IsGenericParameter);
             bool needsFieldAnnotation = !Class.IsSynthetic && Class.Fields.Count(p => !p.IsSynthetic && !p.IsStatic) > 1;
             
-            bool needsAnnotation = Class.GenericInstanceField != null 
+            bool needsAnnotation = Class.GenericInstanceFields.Count > 0 
                                 || XType.GenericParameters.Count > 0 
                                 || isBaseTypeGeneric 
                                 || containsGenericInterfaces 
@@ -57,9 +57,11 @@ namespace Dot42.CompilerLib.Structure.DotNet
             var annType = Compiler.GetDot42InternalType(InternalConstants.TypeReflectionInfoAnnotation).GetClassReference(targetPackage);
             var annotation = new Annotation(annType, AnnotationVisibility.Runtime);
 
-            if(Class.GenericInstanceField != null)
-                annotation.Arguments.Add(new AnnotationArgument(InternalConstants.TypeReflectionInfoGenericArgumentsField, 
-                                                                Class.GenericInstanceField.Name));
+            if (Class.GenericInstanceFields.Count > 0)
+            {
+                    annotation.Arguments.Add(new AnnotationArgument(InternalConstants.TypeReflectionInfoGenericArgumentsFields,
+                                             Class.GenericInstanceFields.Select(f=>f.Name).ToArray()));
+            }
 
             if (XType.GenericParameters.Count > 0)
                 annotation.Arguments.Add(new AnnotationArgument(InternalConstants.TypeReflectionInfoGenericArgumentCountField, XType.GenericParameters.Count));

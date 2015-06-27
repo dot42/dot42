@@ -113,7 +113,7 @@ namespace Dot42.CompilerLib.Extensions
         {
             if (className.StartsWith("["))
             {
-                className = "java/lang/Object";
+                return FrameworkReferences.Object;
             }
             return new ClassReference(className);
         }
@@ -146,13 +146,13 @@ namespace Dot42.CompilerLib.Extensions
             if (type.IsGenericParameter || (type.IsByReference && type.ElementType.IsGenericParameter))
             {
                 if (type.IsByReference) // this should be possible as well, but would need some more code at some other places.
-                    return new ByReferenceType(new ClassReference("java/lang/Object"));
+                    return new ByReferenceType(FrameworkReferences.Object);
 
                 var gp = (XGenericParameter) type;
                 if (gp.AllowConstraintAsTypeReference())
                     return gp.Constraints[0].GetReference(targetPackage);
 
-                return new ClassReference("java/lang/Object");
+                return FrameworkReferences.Object;
             }
 
             // Handle out/ref types
@@ -182,7 +182,7 @@ namespace Dot42.CompilerLib.Extensions
                     var typeofT = git.GenericArguments[0];
 
                     if(typeofT.IsGenericParameter) // use object.
-                        return new ClassReference("java/lang/Object");
+                        return FrameworkReferences.Object;
 
                     XTypeDefinition typeofTDef;
                     if (!typeofT.TryResolve(out typeofTDef))

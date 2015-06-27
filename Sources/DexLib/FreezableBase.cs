@@ -12,6 +12,9 @@ namespace Dot42.DexLib
 
     public class FreezableBase
     {
+        // TODO: maybe it would be better to get rid of the freezable pattern for the more primitive objects
+        //       and replace them with read-only objects and the builder pattern.
+
         private int _freezeCount;
         /// <summary>
         /// returns true if the object is in a frozen state i.e. is unmodifiable.

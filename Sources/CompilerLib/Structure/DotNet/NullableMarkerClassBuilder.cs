@@ -57,7 +57,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
         {
             // TODO: implement Generic Type Definition Classes and derive from System.Nullable`1-Marker.
             //Class.SuperClass = Compiler.GetDot42InternalType("System", "Nullable`1").GetClassReference(targetPackage);
-            Class.SuperClass = new ClassReference("java/lang/Object");
+            Class.SuperClass = FrameworkReferences.Object;
             _underlyingBuilder.Class.NullableMarkerClass = Class;
         }
 
@@ -171,7 +171,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
             return new TypeEntry(ret.Name + "?", ret.Scope, ret.DexName, ret.Id, ret.ScopeId);
         }
 
-        protected override void CreateGenericInstanceField(DexTargetPackage targetPackage)
+        protected override void CreateGenericInstanceFields(DexTargetPackage targetPackage)
         {
         }
 

@@ -4,7 +4,9 @@ using System.Linq;
 using Dot42.CompilerLib.Ast;
 using Dot42.CompilerLib.Ast.Converters;
 using Dot42.CompilerLib.Ast.Optimizer;
+using Dot42.CompilerLib.Structure.DotNet;
 using Dot42.CompilerLib.XModel;
+using Dot42.FrameworkDefinitions;
 
 namespace Dot42.CompilerLib.Target
 {
@@ -64,8 +66,8 @@ namespace Dot42.CompilerLib.Target
                 }
                 if (source.Method.NeedsGenericInstanceTypeParameter && (source.Name == ".ctor"))
                 {
-                    // Add code to safe the generic instance type parameter into the generic instance field.
-                    AddGenericInstanceFieldInitializationCode(ast);
+                    // Add code to save the generic instance type parameter into the generic instance field.
+                    AddGenericInstanceFieldInitializationCode(source, ast, compiler.Module.TypeSystem);
                 }
             }
             else if (source.IsJava)
@@ -183,11 +185,23 @@ namespace Dot42.CompilerLib.Target
         /// <summary>
         /// Add generic instance field initialization code.
         /// </summary>
-        private static void AddGenericInstanceFieldInitializationCode(AstBlock ast)
+        private static void AddGenericInstanceFieldInitializationCode(MethodSource source, AstBlock ast, XTypeSystem typeSystem)
         {
-            var initExpr = new AstExpression(ast.SourceLocation, AstCode.StGenericInstanceField, null,
-                new AstExpression(ast.SourceLocation, AstCode.LdGenericInstanceTypeArgument, null));
-            InsertAfter(ast, null, new[] { initExpr });
+            int paramCount = source.Method.DeclaringType.GenericParameters.Count;
+            if (paramCount > InternalConstants.GenericTypeParametersAsArrayThreshold)
+            {
+                var xArrayType = new XArrayType(typeSystem.Type);
+                var loadExpr = new AstExpression(ast.SourceLocation, AstCode.LdGenericInstanceTypeArgument, 0) {ExpectedType = xArrayType};
+                var initExpr = new AstExpression(ast.SourceLocation, AstCode.StGenericInstanceField, 0, loadExpr)  { ExpectedType = xArrayType };
+                InsertAfter(ast, null, new[] {initExpr});
+            }
+            else
+            {
+                InsertAfter(ast, null, Enumerable.Range(0, paramCount).Select(i =>
+                    new AstExpression(ast.SourceLocation, AstCode.StGenericInstanceField, i,
+                        new AstExpression(ast.SourceLocation, AstCode.LdGenericInstanceTypeArgument, i)
+                            { ExpectedType = typeSystem.Type }) { ExpectedType = typeSystem.Type }));
+            }
         }
 
         /// <summary>
