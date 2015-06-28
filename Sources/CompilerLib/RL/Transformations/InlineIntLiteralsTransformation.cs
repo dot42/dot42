@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using Dot42.CompilerLib.RL.Extensions;
 using Dot42.DexLib;
-using java.io;
 
 namespace Dot42.CompilerLib.RL.Transformations
 {
@@ -57,6 +53,12 @@ namespace Dot42.CompilerLib.RL.Transformations
                 var binOpIns = binOp.Instruction;
                 if (binOpIns.Registers.Last() != constReg)
                     continue;
+                
+                if (binOpIns.Code == RCode.Sub_int || binOpIns.Code == RCode.Sub_int_2addr)
+                {
+                    // special handling: we need to invert and convert to an add. 
+                    value = -value;
+                }
 
                 // we found: a short const followed by a int-binary operation
                 //           in the same block. The only use of the const 
@@ -113,18 +115,26 @@ namespace Dot42.CompilerLib.RL.Transformations
                     minValue = sbyte.MinValue;
                     maxValue = sbyte.MaxValue;
                     return true;
+                case RCode.Sub_int:  // converted to an add
+                case RCode.Sub_int_2addr:
+                    minValue = -short.MaxValue;
+                    maxValue = -short.MinValue;
+                    return true;
                 default:
                     minValue = int.MaxValue;
                     maxValue = int.MinValue;
                     return false;
             }
         }
+        
         private RCode ToIntLit(RCode code, bool use8BitLit)
         {
             switch (code)
             {
                 case RCode.Add_int:
                 case RCode.Add_int_2addr:
+                case RCode.Sub_int:       // value is negatized above
+                case RCode.Sub_int_2addr:
                     return use8BitLit ? RCode.Add_int_lit8 : RCode.Add_int_lit;
                 case RCode.Mul_int:
                 case RCode.Mul_int_2addr:
