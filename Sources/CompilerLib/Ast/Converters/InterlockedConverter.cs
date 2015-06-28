@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Net;
 using Dot42.CompilerLib.Ast.Extensions;
 using Dot42.CompilerLib.XModel;
 using Dot42.Utility;
@@ -24,12 +25,18 @@ namespace Dot42.CompilerLib.Ast.Converters
                     if(expr == null) 
                         continue;
 
-                    var interlockedCall = expr.GetSelfAndChildrenRecursive<AstExpression>(p=>
-                                                        p.Code == AstCode.Call 
-                                                        && ((XMethodReference)p.Operand).DeclaringType.FullName == "System.Threading.Interlocked")
-                                                    .FirstOrDefault();
-                    if(interlockedCall == null) 
+
+                    var interlockedPairs = expr.GetExpressionPairs(p =>
+                                            p.Code == AstCode.Call
+                                            && ((XMethodReference) p.Operand).DeclaringType.FullName == "System.Threading.Interlocked")
+                                            .ToList();
+                                                    
+                    if(interlockedPairs.Count == 0) 
                         continue;
+                    if (interlockedPairs.Count > 1)
+                        throw new CompilerException("The Interlocked converter can not handle more than one interlocked call per statement. Try splittig the statement up.");
+
+                    var interlockedCall = interlockedPairs.First().Expression;
 
                     // first parameter should be a reference to a field,
                     // (but be lenient if we don't find what we expect)
@@ -49,35 +56,29 @@ namespace Dot42.CompilerLib.Ast.Converters
                                                              .FirstOrDefault(f => f.Name == field.Name + NameConstants.Atomic.FieldUpdaterPostfix);
                             if (updater != null)
                             {
-                                if (InterlockedUsingUpdater(interlockedCall, field, updater, targetExpr, compiler))
+                                var method = (XMethodReference) interlockedCall.Operand;
+                                var methodName = method.Name.Split('$')[0]; // retrieve original name.
+
+                                if (InterlockedUsingUpdater(interlockedCall, methodName, field, updater, targetExpr, interlockedPairs.First().Parent, compiler))
                                     continue;
                             }
                         }
                     }
                     
 
-                    if (currentMethod.IsDotNet && !currentMethod.ILMethod.DeclaringType.HasSuppressMessageAttribute("InterlockedFallback"))
-                    {
-                        bool isStatic = field != null && field.Resolve().IsStatic;
-
-                        DLog.Warning(DContext.CompilerCodeGenerator,
-                            "Emulating Interlocked call using failsafe locking mechanism in {0}{1}. Consider using AtomicXXX classes instead. You can suppress this message with an [SuppressMessage(\"dot42\", \"InterlockedFallback\")] attribute on the class.",
-                            currentMethod.Method.FullName, !isStatic ? "" : " because a static field is referenced");
-                    }
-                    FailsafeInterlockedUsingLocking(field, expr, targetExpr, block, i, compiler);
+                    FailsafeInterlockedUsingLocking(field, expr, targetExpr, block, i, compiler, currentMethod);
                 }
 
             }
         }
 
-        private static bool InterlockedUsingUpdater(AstExpression interlockedCall, XFieldReference field, XFieldDefinition updater, AstExpression targetExpr, AssemblyCompiler compiler)
+        private static bool InterlockedUsingUpdater(AstExpression interlockedCall, string methodName, XFieldReference field,
+                                                    XFieldDefinition updater, AstExpression targetExpr, AstExpression parentExpr,
+                                                    AssemblyCompiler compiler)
         {
-            var method = (XMethodReference) interlockedCall.Operand;
 
             bool isStatic = field.Resolve().IsStatic;
 
-            var methodName = method.Name.Split('$')[0]; // retrieve original name.
-            
             string replacementMethod = null;
             if (methodName == "Increment")
                 replacementMethod = "IncrementAndGet";
@@ -94,10 +95,15 @@ namespace Dot42.CompilerLib.Ast.Converters
                 replacementMethod = "CompareAndSet"; 
             else if (methodName.StartsWith("CompareExchange"))
             {
-                // The semantics here are slighlty different. Java returns a 'true' on 
-                // success, while BCL returns the old value. We have crafted a replacement 
-                // method with the BCL semantics though.
-                replacementMethod = "CompareExchange";
+                if (TransformCompareExchangeToCompareAndSet(parentExpr, compiler, ref interlockedCall))
+                    replacementMethod = "CompareAndSet";
+                else
+                {
+                    // The semantics here are slighlty different. Java returns a 'true' on 
+                    // success, while BCL returns the old value. We have crafted a replacement 
+                    // method with the BCL semantics though.
+                    replacementMethod = "CompareExchange";
+                }
             }
             else
             {
@@ -131,10 +137,124 @@ namespace Dot42.CompilerLib.Ast.Converters
 
         }
 
+        private static bool TransformCompareExchangeToCompareAndSet(AstExpression parentExpr, AssemblyCompiler compiler, ref AstExpression interlockedCall)
+        {
+            if (parentExpr == null) 
+            {
+                // as the return value is not used, transformation is possible.
+                SwapArgumentsAndSetResultType(interlockedCall, compiler);
+                return true; 
+            }
+
+            // Java returns a 'true' on  success, while BCL always returns the old value.
+            // Assuming the comparants are the same, in BLC terms 'ceq' means checking for 
+            // success (i.e. old value is expected value), while 'cne' means checking for 
+            // failure (i.e. value found if different from expected value)
+            // 'brfalse' a zero comparand mean branch on success, while brtrue means the opposite.
+
+            var comparant1 = interlockedCall.Arguments[2];
+
+            if (parentExpr.Code == AstCode.Brfalse || parentExpr.Code == AstCode.Brtrue)
+            {
+                // compare to not null.
+                switch (comparant1.Code)
+                {
+                    case AstCode.Ldnull:
+                        break;
+                    case AstCode.Ldc_I4:
+                    case AstCode.Ldc_I8:
+                        {
+                            if (System.Convert.ToInt64(comparant1.Operand) != 0)
+                                return false;
+                            break;
+                        }
+                    default:
+                        return false;
+                }
+
+                // transformation is possible.
+                parentExpr.Code = parentExpr.Code == AstCode.Brfalse ? AstCode.Brtrue : AstCode.Brfalse;
+                SwapArgumentsAndSetResultType(interlockedCall, compiler);
+                return true;
+            }
+            
+            // Cne should work in theory, but I have not actually seen it so I was unable to test.
+            // Leave it out for safety until actually encountered.
+            if (   parentExpr.Code != AstCode.Ceq 
+                // parentExpr.Code != AstCode.Cne
+                && parentExpr.Code != AstCode.__Beq 
+                && parentExpr.Code != AstCode.__Bne_Un) 
+                return false;
+
+            var comparand2 = parentExpr.Arguments[1];
+
+            if (comparant1.Code != comparand2.Code || !Equals(comparant1.Operand, comparand2.Operand))
+                return false;
+            
+            switch (comparant1.Code)
+            {
+                case AstCode.Ldloc:
+                case AstCode.Ldnull:
+                case AstCode.Ldc_I4:
+                case AstCode.Ldc_I8:
+                    break;
+                default:
+                    return false;
+            }
+
+            // transformation is possible.
+            if (parentExpr.Code == AstCode.Ceq)
+            {
+                parentExpr.CopyFrom(interlockedCall);
+                interlockedCall = parentExpr;
+            }
+            //else if (parentExpr.Code == AstCode.Cne) // see above.
+            //{
+            //    parentExpr.Code = AstCode.Not;
+            //    parentExpr.Arguments.RemoveAt(1);
+            //}
+            else if (parentExpr.Code == AstCode.__Beq)
+            {
+                parentExpr.Code = AstCode.Brtrue;
+                parentExpr.Arguments.RemoveAt(1);
+            }
+            else if (parentExpr.Code == AstCode.__Bne_Un)
+            {
+                parentExpr.Code = AstCode.Brfalse;
+                parentExpr.Arguments.RemoveAt(1);
+            }
+            else
+            {
+                return false;
+            }
+
+            SwapArgumentsAndSetResultType(interlockedCall, compiler);
+            return true;
+        }
+
+        private static void SwapArgumentsAndSetResultType(AstExpression interlockedCall, AssemblyCompiler compiler)
+        {
+            var arg1 = new AstExpression(interlockedCall.Arguments[1]);
+            var arg2 = new AstExpression(interlockedCall.Arguments[2]);
+            interlockedCall.Arguments[1].CopyFrom(arg2);
+            interlockedCall.Arguments[2].CopyFrom(arg1);
+            interlockedCall.ExpectedType = null;
+            interlockedCall.InferredType = compiler.Module.TypeSystem.Bool;
+        }
+
         private static void FailsafeInterlockedUsingLocking(XFieldReference field, AstExpression expr, 
                                                             AstExpression targetExpr, AstBlock block, int idx, 
-                                                            AssemblyCompiler compiler)
+                                                            AssemblyCompiler compiler, MethodSource currentMethod)
         {
+            if (currentMethod.IsDotNet && !currentMethod.ILMethod.DeclaringType.HasSuppressMessageAttribute("InterlockedFallback"))
+            {
+                bool isStatic = field != null && field.Resolve().IsStatic;
+
+                DLog.Warning(DContext.CompilerCodeGenerator,
+                    "Emulating Interlocked call using failsafe locking mechanism in {0}{1}. Consider using AtomicXXX classes instead. You can suppress this message with an [SuppressMessage(\"dot42\", \"InterlockedFallback\")] attribute on the class.",
+                    currentMethod.Method.FullName, !isStatic ? "" : " because a static field is referenced");
+            }
+
             // replace with:
             //    Monitor.Enter();
             //    try { <original expression> } finally { Monitor.Exit(); } 
