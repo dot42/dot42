@@ -20,11 +20,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
         private readonly ClassDefinition interfaceClass;
         private readonly Dictionary<XMethodDefinition, DelegateInstanceType> instances = new Dictionary<XMethodDefinition, DelegateInstanceType>();
         private Prototype invokePrototype;
-        private Prototype equalsPrototype;
-        private Prototype clonePrototype;
         private readonly XMethodDefinition invokeMethod;
-        private readonly XMethodDefinition equalsMethod;
-        private readonly XMethodDefinition cloneMethod;
 
         /// <summary>
         /// Default ctor
@@ -37,8 +33,6 @@ namespace Dot42.CompilerLib.Structure.DotNet
 
             // Build invoke prototype
             invokeMethod = delegateType.Methods.First(x => x.EqualsName("Invoke"));
-            equalsMethod = FindMethod(delegateType, "EqualsWithoutInvocationList");
-            cloneMethod = FindMethod(delegateType, "CloneWithNewInvocationList");
         }
 
         /// <summary>
@@ -78,22 +72,11 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 invokePrototype = PrototypeBuilder.BuildPrototype(compiler, targetPackage, interfaceClass, invokeMethod);
             }
 
-            if ((equalsPrototype == null) && (equalsMethod != null))
-            {
-                equalsPrototype = PrototypeBuilder.BuildPrototype(compiler, targetPackage, interfaceClass, equalsMethod);
-            }
-
-            if ((clonePrototype == null) && (cloneMethod != null))
-            {
-                clonePrototype = PrototypeBuilder.BuildPrototype(compiler, targetPackage, interfaceClass, cloneMethod);
-            }
+            
 
             // Not found, build it.
             var builder = new DelegateInstanceTypeBuilder(sequencePoint, compiler, targetPackage, InterfaceClass, 
-                                                          invokeMethod, invokePrototype, 
-                                                          equalsMethod, equalsPrototype, 
-                                                          cloneMethod, clonePrototype, 
-                                                          calledMethod);
+                                                          invokeMethod, invokePrototype, calledMethod);
             result = builder.Create();
             instances.Add(calledMethod, result);
             return result;
@@ -113,7 +96,6 @@ namespace Dot42.CompilerLib.Structure.DotNet
 
                 delegateType = baseType.Resolve();
             }
-            return null;
         }
     }
 
