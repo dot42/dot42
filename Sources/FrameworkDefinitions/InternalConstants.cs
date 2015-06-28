@@ -18,6 +18,7 @@
         public const string TypeHelperName = "TypeHelper";
 
         public const string GenericTypeDefinitionMarker = "IGenericTypeDefinition";
+        public const string NullableMarker = "INullableMarker";
 
         /// <summary>
         /// Name of IGenericInstanceClass class

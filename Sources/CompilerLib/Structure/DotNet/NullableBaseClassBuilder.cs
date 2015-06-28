@@ -8,6 +8,7 @@ using Dot42.CompilerLib.XModel;
 using Dot42.CompilerLib.XModel.DotNet;
 using Dot42.CompilerLib.XModel.Synthetic;
 using Dot42.DexLib;
+using Dot42.FrameworkDefinitions;
 using Dot42.Mapping;
 using Mono.Cecil;
 using MethodDefinition = Dot42.DexLib.MethodDefinition;
@@ -163,6 +164,15 @@ namespace Dot42.CompilerLib.Structure.DotNet
         {
             var ret = base.CreateMappingEntry();
             return new TypeEntry(ret.Name + "?", ret.Scope, ret.DexName, ret.Id, ret.ScopeId);
+        }
+
+        protected override void ImplementInterfaces(DexTargetPackage targetPackage)
+        {
+            base.ImplementInterfaces(targetPackage);
+
+            var marker = Compiler.GetDot42InternalType(InternalConstants.NullableMarker);
+            Class.Interfaces.Add(marker.GetClassReference(targetPackage));
+
         }
     }
 }
