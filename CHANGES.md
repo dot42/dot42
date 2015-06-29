@@ -1,4 +1,67 @@
+### 2015-06-29 commit id f27a0fb67a5b3d472a6133d3d2c284884dbf14a9
 
+The changes focus both on improving compatibility with existing .NET code, and improving target performance.
+
+
+###### Compiler
+- reimplemented the `try/catch/finally` generation code to correctly support nested finally statements, also implicit ones in `lock` or `using ` statements.
+- fixes a bug in the code optimizer sometimes producing erroneous `long` or `double` operations.
+- reworked `System.Delegate/MulticastDelegate` to adhere to BCL specification; this fixes problems with event unsubscription and also eliminates race conditions.
+
++ Compile method bodies from .jar files using `dx` from Android SDK Tools. This fixes some issues seen in the support libary.
++ fix compiler error when a .class files uses annotations on parameters.
++ updated the android support library to version 22.2.0.
++ fixes some issues in the binding generator when import jar files.
++ stop the VS plugin to automatically uncheck usage of the support libary.
++ fix DexWriter sometimes writing invalid dex when static field values are only used on some fields.
++ fixes spurious compiler errors when implementing java interface from .NET
+
+- Allow to specify various data attributes on Android intent filters when using attributes.
+- Allow android resource configurations to be also specified using directories, the normal Android way.
+- improve Android resource handling: try to detect resource type from directory name, accept `anydpi` as configuration qualifier.
+ 
++ Implemented various optimization steps during the code generation phase. Depending on the used code constructs, leading to reduced code size and improved runtime performance. 
++ reworked parts of the generics emulation for reduced pressure on the garbage collector, smaller code size and better runtime performance.
++ significantly reduced implicit boxing of primitive data types in various situations.
++ significantly improved performance of various enum binary / flags operations.
+
+###### Compiler / Framework
+
+- removed race condition in `System.Threading.Task` continuations 
+- removed a race condition when emulating the semantics of `Interlocked.CompareExchange` with `Atomic*FieldUpdater.CompareAndSet`.
+- fixed `Task.WhenAny` trying to set the result multiple times
+- make `WeakReference` a true WeakReference, not a SoftReference, as this more closely resembles .NET semantics. Also added `WeakReference<T>`
+- fix `DateTime.DaysInMonth` returning days for the wrong month
+- implemented `Enumerable.Distinct(IComparer)`
+- improved `DateTime` formatting compatibility.
+
+- clear internal caches in low memory situations
+- clear internal locale specific caches on Android configuration change. A new default locale is therefore automatically applied.
+
++ significantly improved reflection performance.
++ significantly increased performance of `Activator.CreateInstance(Type, params object[])`
+ 
+- improved Number formatting performance, under some situations significantly.
+- improved `DateTime` parsing/formatting performance
+- improved `EqualityComparer<T>.Default` performance
+- slightly improved performance of various string functions.
+- improved performance when using `Interlocked.CompareExchange` in typical usage scenarios.
+- reworked the assembly emulation layer for faster start up time and significant less memory usage.
+- slightly improved performance when using mutable structs.  
+
++ suppress various bogus warning messages
+
+###### Debugger
+- improved VS debugger performance when break on all exceptions is selected.
+
+###### Development Tools  
+- allow the ILSpy-plugin to peek into the Dot42 framework assembly
+- allow the ILSpy-plugin to stop at a specified step during the RL 
+transformation phase
+ 
+###### Known regressions
+
+- The new optimizations applied during the code generation phase lead to an increased compile time of about 10%. 
 
 ### Version 1.2.1505.1
 

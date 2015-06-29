@@ -1,9 +1,96 @@
+### Performance
 
+For everyone interested in high performance, not only in the .NET framework, [Rico Mariani's Performance Tidbis](http://blogs.msdn.com/b/ricom/default.aspx) are a very good read. His most important general advice: Measure! For some general performance tips for the Android platform read http://developer.android.com/training/articles/perf-tips.html.
 
-### Target Performance
-- There are probably myriads of possibilities to improve target performance, to optimize this and that. Profiling should find out if and where the largest bottlenecks are. 
+### Target Performance / Framework
 
-- One optimization that should be easy to implement is to inline simple getters and setter: http://developer.android.com/training/articles/perf-tips.html#GettersSetters
+As Rico Mariani states it, [the performance war is won 5% at a time](http://blogs.msdn.com/b/ricom/archive/2005/10/17/481999.aspx). This is even more true when optimizing performance in a BCL compatible framework. When optimizing applications you know your use cases, run these, measure, eliminate the bottlenecks, and are done. With the framework, we do not know in advance which parts will be heavily used. One application might make heavy use of regular expressions (see below), while another uses reflection in abundance (e.g. MvvmCross). Basically, besides mimicing the BCL functional behaviour, to an extend we also need to mirror its performance behavior. With this in mind, for us, the performance war might even be won only 1% at a time.
+
+#### Caching
+There are several places in the framework where we need to do caching for performance reasons. 
+- One such area is reflection. Reflection performance in the BLC must have greatly improved over the years. Json.NET, conceived at .NET 2.0 times, timitly caches values returned from reflection. MvvmCross on the other hand does not do any reflection-caching, and calls abundantly into e.g. `Type.GetProperty(string)`. `Type.GetProperty(string)` in itself is relative expensive, as it needs to walk the class hierachy to find all possible properties. Uncached, these calls can amount to 20% of total program execution time. 
+- Another area is generics. Both for reflection and for runtime, where we need to attach several properties to types and retrieve them very often. 
+- Yet another area is number formatting. In .NET you call `intVal.ToString("D5", CultureInfo.InvariantCulture)`, or `string.Format(cultureInfo, "{0:F2}" , floatVal)`. In Java you create and configure a `NumberFormat` instance and call its `format` method. The instantiation is very expensive, and was not designed to be called repeatetly in a tight loop.
+- The same applies to `DateTime` formatting and parsing, where you work with a `DateFormat` instance in java (the API of which is convoluted to the limit) Furthermore, we have to perform a relativly complext .NET format specifier to java format specifier translation.
+- The BCL regex classed do explicit caching (see below)
+
+###### Cache policy
+[Caching implies policy](http://blogs.msdn.com/b/ricom/archive/2004/01/19/60280.aspx), as [a cache with a bad policy is another name for a memory leak](http://blogs.msdn.com/b/oldnewthing/archive/2006/05/02/588350.aspx).
+At the moment, the various generics and reflection related caches are evicted when the Android OS signals that is is under memory pressure. As they generally have to be extremely fast, it seems to be an OK choice to omit more elaborated eviction algortihms.
+The formatting related caches are MRU caches, with a hard upper limit of entries. They also get evicted when the OS signals memory pressure (and when the OS signals a configuration change, for the default locale might have changed). Maybe these MRU list should be converted to thread-local caches, so that the number of threads is automatically adjusted. [Such a change would make it more difficult to clear the caches under various conditions]. The formatting related caches do not have to be as performant, since a lot of the time is spend doing the actual formatting. [Todo: verify this is true, add some numbers].
+
+###### Cache performance
+
+The generics caches and the reflection caches need to be lightning fast and thread safe. I found that the naive approach - using a `ConcurrentHashMap<K,V>` could lead to about 10% of program execution time being spend retrieving values from various caches. While using the caches already considerably speeds up program execution, there is clearly room for improvement.
+Most of these caches are "add a key once, lookup very often, clear seldom or never" types. Furthermore, measurements show that at least 90% of cache access time is eaten up by thread safety, be it volatile field/memory accesses or locks.
+
+To improve performance one can
+- Try to avoid accessing a cache if the result can also be determined quicker in another way. For the very performance sensitive `GenericInstanceFactory.GetGenericTypeDefinition` we introduced a marker interface for .NET generic types. This allows us to have a non-synchronized fast path using `instanceof` making most accesses to the concurrent hash map redundant. Another example of this strategy is in `NumberFormatter`, which chooses a fast path for default int or long formatting.  
+- Try to remove the necessity of thread safety through synchronization. This can be achieve by using immutable data structures, initialized in a class (static) constructor. An example of this (though not performance critical) can by found in `AssemblyTypes`. Another example is the `CultureInfo.TheInvariantCulture` static field.
+
+- We introduced optimized hash maps to deal with the specified type of data access. 
+  - `FastConcurrentHashMap` is based on an open hash map. For read accesses, in the vast majority of cases, on a cache hit, there will be exactly one volatile field access, while on a cache miss there will be two.
+  We measured its performance when used together with an `OpenIdentityHashMap`, which compares reference equality for keys. Micro bench-marking - if that accounts to anything - show that the `FastConcurrentHashMap` when used in a tight loop and called thousands to millions of times it is three times as quick as the java `ConcurrentHashMap` while being about 1.5 times slower than the unsynchronized standard java `HashMap`. When analyzing the performance in a real application, the gain appears to be much larger. Due to various optimizations the performance logs are a bit difficult to interpret. I believe the improvement compared to the `ConcurrentHashMap` must be somewhere in the range of 5 to 20 times as fast.
+  - For highest duty maps with multi-value keys it might be worthwhile to remove pressure from the garbage collector by not allocating a new key on every query. Especially in the Dalvik VM with its non-compacting garbage collector this can improve performance. The idea is to subclass OpenHashMap and implement a specialized get method. An example of this can be found in `RefectionCache`. Note that in .NET one could simply make the key a struct to avoid an allocation.      
+  - `IntIntMap` and `LongIntMap` are used in `EnumInfo.GetValue` to quickly retrieve the enum belonging to an int/long. These maps avoid the otherwise necessary and expensive boxing if normal maps where used. Thread safety is achieved in similar ways as in `FastConcurrentHashMap`.
+  - This is just an idea I had, maybe not at all practical. What stops us from having a non-volatile fast path is that when we write value to a non-volatile field and another processor/core happens to read the updated field, it is not guaranteed that the other processor will also see all other modified memory; in fact it could read just garbage when dereferencing the fields content.
+  
+   Now, what if we were able to force all threads to always see the updated field and updated memory at the same time? As per the design of `FastConcurrentHashMap` and the type of data access this would happen very infrequently, so that the cost might be neglected. Such an update could maybe be achieved by: 
+   1)
+	- aquire a lock, so nobody else tries the same thing
+	- suspend all other threads
+		- Thread.suspend is deprecated and might leave us with other race conditions
+		- always making the process debuggable, connect to the debugger, and work with the debugger. [This should be possible](TODO: insert link), but sounds quite involved.
+	- update the field
+	- release all other threads.
+	
+   2) maybe with some native code. 
+	- we would still take a lock
+	- somehow get the processors/cores to empty their caches. 
+		- Is there an ARM instruction?
+		- could we work with the linux kernel?
+   3) Could we force the scheduler to schedule us on every processor/core so we could force a memory barrier (either in native or code or in the JVM)?
+  		
+  
+There is a [performance test on stackoverflow](http://stackoverflow.com/questions/17134522/does-anyone-have-benchmarks-code-results-comparing-performance-of-android-ap) comparing performance between Xamarin.Android and Dot42. It is based on regex evaluation. I don't think the test says much about overall performance of both platforms - I believe Dot42 outperforms Xamarin.Android in many cases -, but anyways it should be easy to score much higher on it. Regex expression should not be retranslated/recompiled on every use, but instead be cached in a LRU cache, just as the BCL does it.
+
+One finding is that using ThreadLocal variables/maps for caches will in many cases not increase performance. Apparently when retrieving a thread local variable, multiple volatile field accesses occur. My tests show that simply calling `Thread.getCurrentThread()` - with is a prerequisite to getting the currents threads id - has buried a volatile memory access somewhere inside the dalvik VM. With Javas memory model there appears to be no way to realize thread safe writable data structures with less than one volatile field access even on a fast read path.
+
+#### Other areas
+
+- When casting primitive array to IEnumerable the array is copied upon initialization of `Dot42.Internal.ArrayIEnumerable<T>` - not in code, but implicit by the compiler when initializing the generic instance. This amounts to ca. 1% of runtime in one of my pet projects. We should have specialized enumerables that do not need array copying. Boxing/Unboxing of individual elements would still occur when accessing an element through `IEnumerator.Current`.
+  When accessing a primitive array as an IList or ICollection on the other hand, the one-time boxing of all values might be worthwile.
+ 
+  Furthermore, when looking at the generated code for e.g. `AsBoolEnumerable` it appears that the just boxed array is unboxed again right into its source (!).
+	```
+	AccessFlags: Public, Static
+	Prototype:   (java.lang.Object) : system.Collections.Generic.IEnumerableʹ1
+	#Registers:  6
+	#Incoming:   1
+	#Outgoing:   3
+	
+	 000           move_object  r0, p0
+	 001            check_cast  r0          [Z]
+	 003           const_class  r1          Z
+	 005               const_4  r3          1
+	 006             new_array  r2, r3      [java.lang.Class]
+	 008               const_4  r3          0
+	 009           aput_object  r1, r2, r3
+	 00B          new_instance  r1          ArrayIEnumerableʹ1
+	 00D         invoke_static  r0          Boxing::Box([Z]) : [java.lang.Object]
+	 010    move_result_object  r4
+	 011         invoke_direct  r1, r4, r2  ArrayIEnumerableʹ1::<init>([java.lang.Object], [java.lang.Class]) : V
+	 014         invoke_static  r4, r0      Boxing::UnboxTo(java.lang.Object, [Z]) : V
+	 017         return_object  r1
+	
+	Parameters:
+		p0 (r5) -> value
+	```
+### Target Performance / Compiler
+
+When working on the compiler both ApkSpy and the ILSpyPlugin can be very valuable. When improving the compiler I usually run the ILSpyPlugin in the debugger. This allows to quickly navigate to an interesting method an invoke the compilation only for that single method (when working on Ast or RL), setting breakpoints where I need them. 
+
+- One optimization that should be easy to implement is to automatically inline simple getters and setter: http://developer.android.com/training/articles/perf-tips.html#GettersSetters
 
 - Enum flags can be heavy on performance. 
  ```
@@ -20,50 +107,55 @@
 ``` 
 	(1) involve a static field access, (2) involves a static and an instance field access and some bit operations.
     (3) involves a virtual method call and an (optimized) hash table lookup: The enum instance corresponding to the constant value is found at runtime. When used in inner loops, this can lead to huge performance cost, especially since one would not expect such a hit on a constant expression.
-    For now the given workaround can be used, but best would be to change the Dot42 compiler to automatically generate enum instance values for constant expressions, and store them in the __generated class. 
+    For now the given workaround can be used, but best would be to change the Dot42 compiler to automatically generate enum instance values for constant expressions, and store them in the __generated class.
 
-- There is a performance test on stackoverflow comparing performance between Xamarin.Android and Dot42. It is based on regex evaluation. I don't think the test says much about overall performance of both platforms - I believe Dot42 outperforms Xamarin.Android in many cases -, but anyways it should be easy to score much higher on it. Regex expression should not be retranslated/recompiled on every use, but instead be cached in a LRU cache, just as the BCL does it.
-  [http://stackoverflow.com/questions/17134522/does-anyone-have-benchmarks-code-results-comparing-performance-of-android-ap](http://stackoverflow.com/questions/17134522/does-anyone-have-benchmarks-code-results-comparing-performance-of-android-ap)
-
-- When calling GetHashCode(), ToString() and Equals() on primitive types, they get boxed. These common calls could be redirected by the compiler to avoid the boxing. GetHashCode() and Equals() could even be inlined.
-
-- There seems to be an issue in the framework builder leading to Dot42 not always choosing the better `invoke-virtual` opcode and instead using `invoke-interface`. I have seen this for `ThreadPoolExecutor.execute()`. Not sure if this would have any performance implications whatsoever though.
-
-- The register allocation/usage algorithm could be improved:
-	- more aggressively by reusing out-of-scope registers. This could 
-	  greatly reduce the number of required move_from16XXX instructions.
-	- when move_from16XXX instructions are required, often unnecessary back-copying does occur, even though the value is never used again.
-
-- When using a primitive array in `foreach` loop, the array is copied in `Dot42.Internal.ArrayIEnumerable<T>`. We could have specilized enumerables that do not need the array copying. Boxing/Unboxing would still occur at the moment though.
-  Furthermore, in the typical case GetEnumerator is called exactly once. This case could be optimize by implementing IEnumerator on ArrayIEnumerable<T>, and only return a new instance if a second call is acually made. 
+- Code Generator
+	- I believe the register spilling algorithm could be improved, as it seems to introduce quite a bit uneccessary register movement. Maybe a better sorting of the registers, depending of number of usages, could help. Also, loop variables should be prioritized when assigning non-spilling registers.
+		
+	- Variables with the same name and type and different scope could be combined into a single variable, further reducing the pressure on  register splilling. 
+	
+	- In fact, registers for variables should be reused once its corresponding variable goes out of scope. Such a change would require changes to the debug info builder as well. 
+	  
+- There seems to be an issue (in the framework builder?) leading to Dot42 not always choosing the better `invoke-virtual` opcode and instead using `invoke-interface`. I have seen this for `ThreadPoolExecutor.execute()`. Not sure if this would have any performance implications whatsoever though.
 
 ### Improving the generics implementation
+
 The following comments refer mainly to the implementation of the `GenericInstanceConverter`.
 
-- A simple optimization could be done for the common case where there is a single generic argument. Here we don't need to create an array at all, but could simply pass the type around.
-  In fact, even for more than one generic argument, performance both memory and runtime wise would be improved for at least up to four parameters (http://programmers.stackexchange.com/questions/162546/why-the-overhead-when-allocating-objects-arrays-in-java); that is, unless we implement static fields with all possible generic arguments (see below) 
+- One optimization that has been done is to pass generic parameters not as arrays - as was done before - but pass each parameter as an argument. If the number of generic parameters of a class exceeds 4 the parameters are passed as an array as before. Generic method parameters are never passed as array. The limit four was choosen rather arbitrarily. It seems that there should be some upper limit, as the framework has to mirror the parameter passing behavior. 
+  Performance both memory and runtime wise should be improved for at least up to four parameters (http://programmers.stackexchange.com/questions/162546/why-the-overhead-when-allocating-objects-arrays-in-java); that is, unless we implement static fields with all possible generic arguments (see below). 
 
-- It should be possible to optimize the common case when all generic parameters to pass are the same as the ones stored in my `$g` field, and the order is the same as well. In this case a new array doesn't need to be created, instead the `$g`-field can be just passes as-is.
-
-- One minor modification to the current system that should cut down on code size and improve performance would be to generate at compile time static fields - maybe in a specialized marker class - for all encountered parameter combinations to `new GClass<T1,T2>` or calls to generic methods.  
+- When passing generic parameters as arrays (which we do not very often any more):
+  - it should be possible to optimize the common case when all generic parameters to pass are the same as the ones stored in my `$g` field, and the order is the same as well. In this case a new array doesn't need to be created, instead the `$g`-field can be just passes as-is. This will happen regularly when calling static methods of the same class or when instantiating nested classes. 	
+  - A modification that should cut down on code size and improve performance would be to generate at compile time static fields - maybe in a specialized marker class - for all encountered parameter combinations to `new GClass<T1,T2>` or calls to generic methods.  
   This should work when the parameters are known and constant at compile time. We then wouldn't need to create new arrays on these occasions, but a simple field access would suffice.
 
-- A larger change would be to have a generic base class, similar to the current implementation (which would have to have it's sealed modifier if any removed), and derive all generic instances from it. The derived classes would know its instance arguments, preferably from a static field. All constructors are cloned, passing in the required instance arguments. The existing reflection code in `System.Type` would be updated to make these changes invisible to a caller. `Type.MakeGenericType()` style invocation would work as they do now, if no pre-generated type exists.
-  - A benefit would be that GetType() would return a unique type for every generic instance type, without any performance overhead.
-  - On the call sites, the creation of arrays is not longer necessary leading to performance improvements.
-  - Memory consumption is reduced, since we don't create arrays again and again and again.
+- A larger change would be to have a generic base class, similar to the current implementation (which would have to have it's sealed modifier if any removed), and derive all generic instances from it. The derived classes would know its instance arguments, probably from a static field/static fields. All constructors are mirrored, adding the required instance arguments. The existing reflection code in `System.Type` would be updated to make these changes invisible to a caller. `Type.MakeGenericType()` style invocation would work as they do now, if no pre-generated type exists.
+  - A benefit would be that GetType() would return a unique type for (compile-time) generic instance types, without any performance overhead.
+  - On the call sites, the creation of arrays or passing of extra arguments is not longer necessary leading to performance improvements.
   - The drawback would be that the class hierarchy is altered, though this could be made invisible to any caller using .NET reflection.
-  - Before implementing, tests should show how many of those types need to be actually created, and if this might lead to combinatorial explosion (i don't think so, though)
+  - Before implementing, tests should show how many of those types need to be actually created, and if this might lead to combinatorial explosion (I don't think so, though)
 
-- (todo: think about specialized implementations for primitive types)
-
+For the common data structure `List<T>` there could be specialized 
+implementations for primitive data types. Boxing/Unboxing primitive types could be considerably reduced. For `Dictionary<K,V>` and maybe `HashMap<T>` a specialized implementation for `int`, maybe `long` and `char` keys (the latter could be based on the `int` version) could be beneficial. In a first step these implementations could be delivered as part of the `Dot42.Collections.Specialized` namespace, to be explicitly used for performance critical parts of an application. In a second step the compiler and framework could automatically redirect to the specialized implementation. In that case, the reflection code would need to take these few special cases into account a well.
+ 
 ### Nullable&lt;T&gt;
 
 Some nitty-gritty details on how Nullables work: 
 >http://blogs.msdn.com/b/haibo_luo/archive/2005/08/23/455241.aspx. 
 >http://stackoverflow.com/questions/4759330/why-is-gettype-returning-datetime-type-for-nullabledatetime
 
-- (todo: think about improving the performance of (byte, short, int)-nullables by storing them in a field larger than required and using the extra space as flag if a value is present)
+- A random thought, maybe no practical: performance of (byte, short, int)-nullables might be improved by storing them in a field larger than required and using the extra space as flag if a value is present. Boxing/Unboxing could seamlessly work.  
+
+# Stucts
+
+Another random though. Structs use their performance benefit when used in Dot42, as they are always created on the heap. In a way, they are always "boxed".
+
+For **immutable** structs containing only a single field, e.g. `CancellationToken`, a modified `DateTime`, `TimeSpan`, it might be worthwhile to introduce an unboxed state. The containing field can replace the usage of the struct. All instance methods of the struct would have to be duplicated to static methods that accept the fields value (=the unboxed struct) as first parameter. If we had specialized `List<T>` implementations (see above) additional boxing/unboxing would not even be needed when adding the values to a list. 
+
+This behavior could extended to structs containing multiple field of the same type. User defined structs like `Point2D`,`Point3D` or `Rect` come to mind. Here in unboxed state all fields would be passed. Methods accepting `Point2D` would be modified to accept two `double`. Array accesses would be adjusted (maybe an array wrapper would be needed for reflections sake?). A wrapper or specialized implementation of `List<T>` could provide a compatible interface.
+
+The (boxed) struct class would continue to work as before, and used when boxing/unboxing the struct.       
 
 #### Debugger
 
@@ -151,7 +243,7 @@ Some cases need special handling:
 	- The mapfile and the generated class structure for the compiler cache
 	- Loaded assemblies (if the IL conversion code is altered to not modify them any more)
 	- When using graphs for reachable detection the reachable graph for each assembly.
-- With all above optimizations applied, saving of the .dex would become the most time consuming step. Futher investigation should look for bottlenecks there.
+- With all above optimizations applied, saving of the .dex would become the most time consuming step. Further investigation should look for bottlenecks there.
 
 - precompiling the dot42 compiler with `ngen.exe` does not necessarily lead to reduced compile time. 
 
@@ -159,20 +251,20 @@ Some cases need special handling:
     
 ### .jar to .dex
 
-The integrated .jar to .dex method body compiler has a subtle bug somewhere. I encountered this problem when using the DrawerLayout from the support library. A child ListView would not get redrawn (or more accurate: re-layouted) on data change until I deliberately forced some scrolling to occur by dragging the list. There are most probably other manifestations of this bug. A good approach to hunt the bug would be to pull in a larger 'test' project, e.g. gson test or something, and hope that failing tests will lead right to broken .dex code.
+The integrated .jar to .dex method body compiler has a subtle bug somewhere. [Note: with the recent fixes in the RL-to-dex conversion this assertion might or might not hold still true]. I encountered this problem when using the DrawerLayout from the support library. A child ListView would not get redrawn (or more accurate: re-layouted) on data change until I deliberately forced some scrolling to occur by dragging the list. There are most probably other manifestations of this bug. A good approach to hunt the bug would be to pull in a larger 'test' project, e.g. gson test or something, and hope that failing tests will lead right to broken .dex code.
 
-I decided to  fight the problem from the other side: I included the 'dx' tool from Android Tools SDK to compile .jars to temporary .dex, then load these .dex and extract the method bodies from there. This has the following benefits:
+I decided to eliminate the problem from the other side: Dot42 now uses the 'dx' tool from Android Tools SDK to compile .jars to temporary .dex, then load these .dex and extract the method bodies from there. This has the following benefits:
 - We know it generates correct code in all cases.
 - We get the better optimizing register allocator from 'dx', reducing the code size and therefore final .apk size. 
 - We get correct debug information, which was broken before as well.
-- We protect ourselfs at least partially against changes to the `.class` format/instruction set. The 'dx' tool is easily upgradable. We are only partial protected because we still need to generate the binding to the code, and - at the moment - still generate the class structure, annotations, etc. using our own code.
+- We protect ourselfs at least partially against changes to the `.class` format/instruction set. The 'dx' tool is easily up-gradable. We are only partial protected because we still need to generate the binding to the code, and - at the moment - still generate the class structure, annotations, etc. using our own code.
 
 Drawbacks are: 
 - If only a fraction of classes of the .jar are used, the current implementation might incur a slight increases in initial compile time, though reduction is also possible. Incremental builds are always served from the initial build .dex. This should reduce compile time, even when using the compiler cache. See the code for detailed reasons.
 
 The internal compilation can be enabled by setting `<DxJarCompilation>false</DxJarCompilation>` in the `.csproj` of the application project. 
 
-### Exception handling
+### Notes on exception handling
 
 The CLR supports four kinds of exception handlers:
 -  `catch` handlers execute when exception occurs that is assignment compatible with the specified exception type. "catch all" is implemented in C# using `System.Object` as exception type.
@@ -180,34 +272,32 @@ The CLR supports four kinds of exception handlers:
 - "fault" handlers always execute when a try block exists with an exception. As far as I understand, they are not used in C#. They are not supported by Dot42.
 -  "filter" handlers are not supported by C# or Dot42, I believe they might be used in VB code.
   
-Dalvik/`.dex` only supports `catch`/`catch all` handlers. `finally` handlers have to be emulated. The emulation also has to work with  nested try/catch/finally blocks.
+Dalvik/`.dex` only supports `catch`/`catch all` handlers. `finally` handlers have to be emulated. The emulation also has to work with nested try/catch/finally blocks.
 
 There are five cases to consider:
    
 1. There is no finally handler. 
 2. There is a finally handler, but no catch handlers.
-3. There is a finally handler and catch handlers, but no catch all handler
-4. There is a finally handler and catch handlers, including a catch all handler.
-5. All of the above, plus nested finally handlers. 
-
-
+3. There is a finally handler and catch handlers, but no catch-all handler
+4. There is a finally handler and catch handlers, including a catch-all handler.
+5. All of the above, plus nested finally handlers.
 
 ###### (1) No finally handler. 
 No special emulation is necessary.
 
 ###### (2) There is a finally handler, but no catch handlers.
 
-In Dot42 abstract syntax trees (Ast), there are for ways out of a try block:
+In Dot42's abstract syntax trees (Ast), there are for ways out of a try block:
 - an exception occurs
 - a `return` statement. The return statement will execute all nested finally blocks. 
 - an implicit branch to the next instruction after the finally block
 - an explicit `leave` instruction pointing to an arbitrary instruction. This instruction, similar to the return statement, can lead to the execution of multiple finally blocks, depending on the final destination. 
 
-We have to always end up executing the finally block(s), and continue afterwards with the correct destination. 
+A correct translation will have to always end up executing the finally block(s), and continue afterwards at the correct destination. 
 
-> One implementation possibility used by earlier versions of Dot42  is to duplicate the finally blocks code at all relevant places, i.e. before return statements, before/after branching and as a general exception handler. This leads to unnecessary code bloat, especially with larger functions with more than one return statement and large finally blocks. Furthermore there were problems with nested try/catch/finally blocks, and, as far as I understand, the `leave` case was not handled at all. Newer implementation take the approach outlined below.
+> One implementation possibility used by earlier versions of Dot42 is to duplicate the code of finally blocks at all relevant places, i.e. before return statements, before/after branching and as a general exception handler. This leads to unnecessary code bloat, especially in larger functions with more than one return statement and large finally blocks. Furthermore there were problems with nested try/catch/finally blocks, and, as far as I understand, the `leave` case was not handled at all. Newer implementation take the approach outlined below.
 
-To accomplish this we allocate per finally block one to three registers. Register `rEx` is to hold the exception, if any. This register is always allocated and initialized to zero. If there are return statements in the try block and the method returns a value, we allocate a register `rResult` to to hold that return value. The state variable `rTarget` to be used in a branch or `packed-switch` instruction to branch to the correct destination after the finally block has executed.
+To accomplish correct routing we allocate per try/finally block one to three registers. Register `rEx` is to hold the exception, if any. This register is always allocated and initialized to zero. If there are return statements in the try block and the method returns a value, we allocate a register `rResult` to to hold that return value. If required, a state variable `rTarget` is used in a branch or `packed-switch` instruction to branch to the correct destination after the finally block has executed.
 
 After set-up, we emit the try block. We set the catch all handler of the try block to point to the code 
 ```
@@ -215,7 +305,7 @@ After set-up, we emit the try block. We set the catch all handler of the try blo
 non_exception:
 ```
 
-All return statements are changed to set up the return value variable (if any), set `rTarget` if required, and `goto non_exception`. Leave instruction and the implicit branch at the end of the block set up `rTarget` if required and `goto non_exception`.  
+All return statements are changed to set up the return value variable (if any), set `rTarget` if required, and `goto non_exception`. Leave instruction and the implicit branch at the end of the block set up `rTarget` if required and `goto non_exception`. It is only required to set up `rTarget` if there is more than one way out of the try block. 
 
 Directly after `non_exception:` we emit the finally block. At the end of the finally block we emit a variant of the following code, depending on needs:
  
@@ -235,17 +325,18 @@ after_finally:
 
 (As a side note: with more than two targets, we actually emit a sparse-switch)
 
-###### (3) There is a finally handler and catch handlers, but no catch all handler.
+###### (3) There is a finally handler and catch handlers, but no catch-all handler.
 
-This case can be handled very similar to the previous case. The catch blocks are emitted after the try blocks. The try block and the bodies of the catch blocks are covered by the finally's catch-all handler. Return values and implicit/explicit branching are handled as in the try block by branching to `non_exception`.
+This case can be handled very similar to the previous case. The catch blocks are emitted after the try blocks. The try block and the bodies of the catch blocks are covered by the finally's catch-all handler. Return values and implicit/explicit branching are handled as in the try block by branching to `non_exception`. `throw` and `rethrow` are handled implicitly.
 
-###### (4) There is a finally handler and catch handlers, including a catch all handler.
+###### (4) There is a finally handler and catch handlers, including a catch-all handler.
 
 Again, this case is not so different from the previous case. We emit the catch all handler after the other catch handlers. The try block is covered by the various exception handlers. These exception handlers in turn are covered by the finally handler. Return, throw, rethrow and branching are handled as in case (3).
 
 ###### (5) All of the above, plus nested finally handlers. 
 
 The basic idea here is, that when a finally block is entered for a return or leave statement - depending on the leave target -, we have to reroute at the end of the finally block to the next enclosing finally block. To accomplish this, all targets in nested blocks get unique ids identifying their final destination.
+
 Special care is taken to correctly resolve the target of a `leave` instruction. Details on this can be found in the source code.
 
 ### Further thoughts

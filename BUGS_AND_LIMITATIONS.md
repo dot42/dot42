@@ -80,6 +80,7 @@ While Dot42s Visual Studio debugger is quite advanced, it does not yet have all 
 
 - Code breakpoints are supported. Currently, you can not set breakpoints on data.
 - When using partial classes in different files, the debugger will only step into methods in one of the files. You can set breakpoints in all of them though.
+- The debugger has issues with multithreading code and will occasionally deadlock code not running on the main thread. This situation is usually accompanied by a dalvik warning like his: `06-28 22:54:19.575	30238	30305	D	dalvikvm	threadid=11: still suspended after undo (sc=1 dc=1)`.
 - There is no "edit and continue". 
 	- This would be quite difficult - though not impossible - to implement, as the Dalvik virtual machine has no support whatsoever for this.
 - Dot42 has an experimental implementation for the "set next instruction" feature in Visual Studio. 
