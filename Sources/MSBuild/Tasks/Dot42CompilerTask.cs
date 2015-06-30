@@ -70,6 +70,15 @@ namespace Dot42.MSBuild.Tasks
                     }
                 }
             }
+            catch (AggregateException agex)
+            {
+                foreach (var ex in agex.Flatten().InnerExceptions)
+                {
+                    ErrorLog.DumpError(ex);
+                    Log.LogErrorFromException(ex);
+                }
+                return false;
+            }
             catch (Exception ex)
             {
                 ErrorLog.DumpError(ex);

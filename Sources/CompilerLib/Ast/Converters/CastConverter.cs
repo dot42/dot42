@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using Dot42.CompilerLib.XModel;
 using Dot42.FrameworkDefinitions;
 
@@ -33,6 +31,9 @@ namespace Dot42.CompilerLib.Ast.Converters
                     case AstCode.Castclass:
                         ConvertCastclass(compiler, node, typeSystem);
                         break;
+                    case AstCode.Call:
+                        ConvertAsNativeIFormattable(node, typeSystem);
+                        break;
                     case AstCode.Callvirt:
                         ConvertCallvirtIEnumerable(compiler, node, typeSystem);
                         break;
@@ -48,7 +49,6 @@ namespace Dot42.CompilerLib.Ast.Converters
                         break;
                 }
             }
-
         }
 
         /// <summary>
@@ -91,7 +91,7 @@ namespace Dot42.CompilerLib.Ast.Converters
             if (castMethod != null)
             {
                 // make sure we don't evaluate the expression twice.
-                var tempVar = new AstGeneratedVariable("temp$$", "") { Type = compiler.Module.TypeSystem.Object };
+                var tempVar = new AstGeneratedVariable("temp$$", null) { Type = compiler.Module.TypeSystem.Object };
                 var storeTempVar = new AstExpression(node.SourceLocation, AstCode.Stloc, tempVar, node.Arguments[0]) { ExpectedType =compiler.Module.TypeSystem.Object} ;
                 var loadTempVar = new AstExpression(node.SourceLocation, AstCode.Ldloc, tempVar).SetType(compiler.Module.TypeSystem.Object);
 
@@ -149,7 +149,7 @@ namespace Dot42.CompilerLib.Ast.Converters
             }
 
             // make sure we don't evaluate the expression twice.
-            var tempVar = new AstGeneratedVariable("temp$$", "") { Type = compiler.Module.TypeSystem.Object };
+            var tempVar = new AstGeneratedVariable("temp$$", null) { Type = compiler.Module.TypeSystem.Object };
             var storeTempVar = new AstExpression(node.SourceLocation, AstCode.Stloc, tempVar, node.Arguments[0]) { ExpectedType = compiler.Module.TypeSystem.Object };
             var loadTempVar = new AstExpression(node.SourceLocation, AstCode.Ldloc, tempVar).SetType(compiler.Module.TypeSystem.Object);
 
@@ -274,7 +274,7 @@ namespace Dot42.CompilerLib.Ast.Converters
             }
 
             // make sure we don't evaluate the expression twice.
-            var tempVar = new AstGeneratedVariable("temp$$", "") { Type = compiler.Module.TypeSystem.Object };
+            var tempVar = new AstGeneratedVariable("temp$$", null) { Type = compiler.Module.TypeSystem.Object };
             var storeTempVar = new AstExpression(node.SourceLocation, AstCode.Stloc, tempVar, node.Arguments[0]) { ExpectedType = compiler.Module.TypeSystem.Object };
             var loadTempVar = new AstExpression(node.SourceLocation, AstCode.Ldloc, tempVar).SetType(compiler.Module.TypeSystem.Object);
 
@@ -344,6 +344,35 @@ namespace Dot42.CompilerLib.Ast.Converters
                 return "ListOfObject";
 
             return null;
+        }
+
+        private static void ConvertAsNativeIFormattable(AstExpression node, XTypeSystem typeSystem)
+        {
+            var method = (XMethodReference)node.Operand;
+            var type = method.ReturnType;
+
+            if (method.Name == "AsNativeIFormattable"
+                && method.DeclaringType.Name == InternalConstants.CompilerHelperName
+                && type.FullName == "System.IFormattable")
+            {
+                // make sure we don't evaluate the expression twice.
+                var tempVar = new AstGeneratedVariable("temp$$", null) { Type = typeSystem.Object };
+                var storeTempVar = new AstExpression(node.SourceLocation, AstCode.Stloc, tempVar, node.Arguments[0]) { ExpectedType = typeSystem.Object };
+                var loadTempVar = new AstExpression(node.SourceLocation, AstCode.Ldloc, tempVar).SetType(typeSystem.Object);
+
+                // Convert to "(x instanceof T) ? (T)x : null"
+
+                // "instanceof x"
+                var instanceofExpr = new AstExpression(node.SourceLocation, AstCode.SimpleInstanceOf, type, storeTempVar).SetType(typeSystem.Bool);
+                // T(x)
+                var txExpr = new AstExpression(node.SourceLocation, AstCode.SimpleCastclass, type, loadTempVar).SetType(type);
+                // null
+                var nullExpr = new AstExpression(node.SourceLocation, AstCode.Ldnull, null).SetType(type);
+                // Combine
+                var conditional = new AstExpression(node.SourceLocation, AstCode.Conditional, type,
+                                        instanceofExpr, txExpr, nullExpr).SetType(type);
+                node.CopyFrom(conditional);
+            }
         }
     }
 }

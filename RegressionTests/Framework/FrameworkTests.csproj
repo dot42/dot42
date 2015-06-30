@@ -12,7 +12,7 @@
     <RootNamespace>Dot42.Tests</RootNamespace>
     <AssemblyName>FrameworkTests</AssemblyName>
     <TargetFrameworkIdentifier>Android</TargetFrameworkIdentifier>
-    <TargetFrameworkVersion>v4.0.3</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.3</TargetFrameworkVersion>
     <AndroidVersion>$(TargetFrameworkVersion)</AndroidVersion>
     <SupportedCultures>
     </SupportedCultures>
@@ -138,6 +138,7 @@
     <Compile Include="System\TestIDisposable.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="System\TestTimeSpanCustomFormat.cs" />
     <Compile Include="System\TestUint16.cs" />
     <Compile Include="System\TestInt32_Mono.cs" />
     <Compile Include="System\TestString.cs">
