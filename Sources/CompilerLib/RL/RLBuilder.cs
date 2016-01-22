@@ -63,7 +63,7 @@ namespace Dot42.CompilerLib.RL
         /// </summary>
         public static Instruction Add(this IRLBuilder builder, ISourceLocation sequencePoint, RCode opcode, params Register[] registers)
         {
-            if(registers.Any(r=> r == null))
+            if (registers.Any(r => r == null))
                 throw new InvalidOperationException("Register must not be null. Wrong overload?");
 
             return builder.Add(sequencePoint, opcode, (object)null, registers);

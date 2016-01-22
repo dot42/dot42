@@ -165,7 +165,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
         internal virtual void CreateAnnotations(DexTargetPackage targetPackage)
         {
             // Build field annotations
-            AnnotationBuilder.Create(compiler, field, dfield, targetPackage);
+            AttributeAnnotationInstanceBuilder.CreateAttributeAnnotations(compiler, field, dfield, targetPackage);
 
             dfield.AddGenericDefinitionAnnotationIfGeneric(xField.FieldType, compiler, targetPackage);
         }

@@ -34,7 +34,7 @@ namespace Dot42.CompilerLib
         private readonly Table resources;
         private readonly bool generateDebugInfo;
         private readonly Dictionary<XTypeDefinition, DelegateType> delegateTypes = new Dictionary<XTypeDefinition, DelegateType>();
-        private readonly Dictionary<TypeDefinition, AttributeAnnotationInterface> attributeAnnotationTypes = new Dictionary<TypeDefinition, AttributeAnnotationInterface>();
+        private readonly Dictionary<TypeDefinition, AttributeAnnotationMapping> attributeAnnotations = new Dictionary<TypeDefinition, AttributeAnnotationMapping>();
         private readonly MapFile mapFile = new MapFile();
         private bool optimizedMapFile = false;
         private int lastMapFileId;
@@ -199,13 +199,18 @@ namespace Dot42.CompilerLib
                 }
             }
 
-            classBuilders.ForEachWithExceptionMessage(x => x.CreateAnnotations(targetPackage));
+            using (Profile("for creating annotations"))
+            {
+                classBuilders.ForEachWithExceptionMessage(x => x.CreateAnnotations(targetPackage));
 
-            if (AddAssemblyTypesAnnotations())
-                AssemblyTypesBuilder.CreateAssemblyTypes(this, (Target.Dex.DexTargetPackage)targetPackage, reachableContext.ReachableTypes);
+                if (AddAssemblyTypesAnnotations())
+                    AssemblyTypesBuilder.CreateAssemblyTypes(this, (Target.Dex.DexTargetPackage) targetPackage,
+                        reachableContext.ReachableTypes);
 
-            if (AddFrameworkPropertyAnnotations())
-                DexImportClassBuilder.FinalizeFrameworkPropertyAnnotations(this, (Target.Dex.DexTargetPackage)targetPackage);
+                if (AddFrameworkPropertyAnnotations())
+                    DexImportClassBuilder.FinalizeFrameworkPropertyAnnotations(this, 
+                        (Target.Dex.DexTargetPackage) targetPackage);
+            }
 
             // Compile all methods
             using (Profile("for compiling to target"))
@@ -275,18 +280,18 @@ namespace Dot42.CompilerLib
         /// <summary>
         /// Record the attribute annotation information for the given attribute type.
         /// </summary>
-        internal void Record(TypeDefinition attributeType, AttributeAnnotationInterface attributeAnnotationInterface)
+        internal void Record(TypeDefinition attributeType, AttributeAnnotationMapping attributeAnnotationMapping)
         {
-            attributeAnnotationTypes.Add(attributeType, attributeAnnotationInterface);
+            attributeAnnotations.Add(attributeType, attributeAnnotationMapping);
         }
 
         /// <summary>
         /// Gets the recorded annotation information for the given attribute type.
         /// </summary>
-        internal AttributeAnnotationInterface GetAttributeAnnotationType(TypeDefinition attributeType)
+        internal AttributeAnnotationMapping GetAttributeAnnotationMapping(TypeDefinition attributeType)
         {
-            AttributeAnnotationInterface result;
-            if (attributeAnnotationTypes.TryGetValue(attributeType, out result))
+            AttributeAnnotationMapping result;
+            if (attributeAnnotations.TryGetValue(attributeType, out result))
                 return result;
             throw new ArgumentException(string.Format("No annotation information found for attribute type {0}", attributeType.FullName));
         }

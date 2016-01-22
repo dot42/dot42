@@ -211,7 +211,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
         internal virtual void CreateAnnotations(DexTargetPackage targetPackage)
         {
             // Build method annotations
-            AnnotationBuilder.Create(compiler, method, dmethod, targetPackage);
+            AttributeAnnotationInstanceBuilder.CreateAttributeAnnotations(compiler, method, dmethod, targetPackage);
             
             // only add generics annotation for getters or setters or constructors
             if (method.IsGetter)

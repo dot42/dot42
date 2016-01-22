@@ -149,7 +149,7 @@ Some nitty-gritty details on how Nullables work:
 
 # Stucts
 
-Another random though. Structs use their performance benefit when used in Dot42, as they are always created on the heap. In a way, they are always "boxed".
+Another random though. Structs loose their performance benefit when used in Dot42, as they are always created on the heap. In a way, they are always "boxed".
 
 For **immutable** structs containing only a single field, e.g. `CancellationToken`, a modified `DateTime`, `TimeSpan`, it might be worthwhile to introduce an unboxed state. The containing field can replace the usage of the struct. All instance methods of the struct would have to be duplicated to static methods that accept the fields value (=the unboxed struct) as first parameter. If we had specialized `List<T>` implementations (see above) additional boxing/unboxing would not even be needed when adding the values to a list. 
 
@@ -262,7 +262,7 @@ I decided to eliminate the problem from the other side: Dot42 now uses the 'dx' 
 Drawbacks are: 
 - If only a fraction of classes of the .jar are used, the current implementation might incur a slight increases in initial compile time, though reduction is also possible. Incremental builds are always served from the initial build .dex. This should reduce compile time, even when using the compiler cache. See the code for detailed reasons.
 
-The internal compilation can be enabled by setting `<DxJarCompilation>false</DxJarCompilation>` in the `.csproj` of the application project. 
+The internal, non `dx`-based compilation can be enabled by setting `<DxJarCompilation>false</DxJarCompilation>` in the `.csproj` of the application project. 
 
 ### Notes on exception handling
 
@@ -287,7 +287,7 @@ No special emulation is necessary.
 
 ###### (2) There is a finally handler, but no catch handlers.
 
-In Dot42's abstract syntax trees (Ast), there are for ways out of a try block:
+In Dot42's abstract syntax trees (Ast), there are four ways out of a try block:
 - an exception occurs
 - a `return` statement. The return statement will execute all nested finally blocks. 
 - an implicit branch to the next instruction after the finally block

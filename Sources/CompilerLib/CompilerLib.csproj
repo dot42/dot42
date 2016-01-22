@@ -299,10 +299,9 @@
     <Compile Include="RL\Transformations\ShareRegistersTransformation.CrossBlocks.cs" />
     <Compile Include="RL\Transformations\ShareRegistersTransformation.InBlock.cs" />
     <Compile Include="RL\VariableRegisterSpec.cs" />
-    <Compile Include="Structure\DotNet\AnnotationBuilder.cs" />
+    <Compile Include="Structure\DotNet\AttributeAnnotationInstanceBuilder.cs" />
     <Compile Include="Structure\DotNet\AnnotationClassBuilder.cs" />
-    <Compile Include="Structure\DotNet\AttributeAnnotationInterface.cs" />
-    <Compile Include="Structure\DotNet\AttributeAnnotationInterfaceBuilder.cs" />
+    <Compile Include="Structure\DotNet\AttributeAnnotationMapping.cs" />
     <Compile Include="Structure\DotNet\AttributeClassBuilder.cs" />
     <Compile Include="Structure\DotNet\AttributeCtorArgumentMapping.cs" />
     <Compile Include="Structure\DotNet\ClassBuilder.cs" />

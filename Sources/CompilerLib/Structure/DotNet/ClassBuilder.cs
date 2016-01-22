@@ -478,7 +478,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
             if (Class != null)
             {
                 // Custom attributes
-                AnnotationBuilder.Create(compiler, Type, Class, targetPackage);
+                AttributeAnnotationInstanceBuilder.CreateAttributeAnnotations(compiler, Type, Class, targetPackage);
 
                 // Properties
                 if ((methodBuilders != null) && compiler.AddPropertyAnnotations())
@@ -528,7 +528,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 foreach (var pair in propertyMap)
                 {
                     var provider = new PropertyAnnotationProvider {Annotations = new List<Annotation>()};
-                    AnnotationBuilder.Create(compiler, pair.Key, provider, targetPackage, true);
+                    AttributeAnnotationInstanceBuilder.CreateAttributeAnnotations(compiler, pair.Key, provider, targetPackage, true);
 
                     string propName = pair.Key.Name;
 

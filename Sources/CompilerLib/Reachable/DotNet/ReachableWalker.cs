@@ -108,7 +108,6 @@ namespace Dot42.CompilerLib.Reachable.DotNet
                 {
                     GetDot42InternalType(context, "IAttribute").MarkReachable(context);
                     GetDot42InternalType(context, "IAttributes").MarkReachable(context);
-                    GetDot42InternalType(context, "IAnnotationType").MarkReachable(context);
                 }
                 else if (typeDef.IsEnum)
                 {
