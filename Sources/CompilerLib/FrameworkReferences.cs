@@ -76,6 +76,12 @@ namespace Dot42.CompilerLib
         internal static readonly ArrayType ObjectArray = new ArrayType(Object);
 
         /// <summary>
+        /// Reference to java.lang.Void::TYPE
+        /// </summary>
+        internal static readonly FieldReference VoidType = new FieldReference(new ClassReference("java/lang/Void"), "TYPE", Class);
+
+
+        /// <summary>
         /// Reference to java.lang.String.equals(string)
         /// </summary>
         internal static XMethodReference StringEquals(XTypeSystem typeSystem)

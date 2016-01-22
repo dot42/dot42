@@ -27,6 +27,13 @@ namespace Dot42.CompilerLib.RL.Transformations
                             {
                                 ins.Code = RCode.Invoke_interface;
                             }
+                            else if (method.IsStatic) // This happens for android extension methods. 
+                                                      // Is this a hack. why was the correct invoke code not 
+                                                      // used in the first place?
+                                                      // (in AstCompilerVisitor.Expression.VisitCallExpression?)
+                            {
+                                ins.Code = RCode.Invoke_static;
+                            }
                             else if (method.IsDirect)
                             {
                                 ins.Code = RCode.Invoke_direct;

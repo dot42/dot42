@@ -99,9 +99,21 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                 case AstCode.TypeOf:
                     {
                         var type = (XTypeReference) node.Operand;
-                        var dtype = type.IsVoid() ? PrimitiveType.Void : type.GetReference(targetPackage);
                         var typeReg = frame.AllocateTemp(FrameworkReferences.Class);
-                        var first = this.Add(node.SourceLocation, RCode.Const_class, dtype, typeReg);
+                        Instruction first;
+
+                        if (!type.IsVoid())
+                        {
+                            var dtype = type.GetReference(targetPackage);
+                            first = this.Add(node.SourceLocation, RCode.Const_class, dtype, typeReg);
+                        }
+                        else
+                        {
+                            // for some reasons ART does not accept 'void' when using 'const-class'. 
+                            // Not so advanced after all?
+                            first = this.Add(node.SourceLocation, RCode.Sget_object, FrameworkReferences.VoidType, typeReg);
+                        }
+
                         return new RLRange(first, typeReg);
                     }
                 case AstCode.BoxedTypeOf:

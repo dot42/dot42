@@ -1,3 +1,7 @@
+### 2016-01-22 
+
+Fix verification errors when using the ART runtime.
+
 ### 2015-06-29 commit id f27a0fb67a5b3d472a6133d3d2c284884dbf14a9
 
 The changes focus both on improving compatibility with existing .NET code, and improving target performance.
