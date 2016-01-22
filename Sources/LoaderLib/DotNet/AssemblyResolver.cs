@@ -158,10 +158,11 @@ namespace Dot42.LoaderLib.DotNet
                 Console.WriteLine(ex.StackTrace);
 #endif
                 // Log the error
-                DLog.Error(DContext.CompilerAssemblyResolver, "Failed to load assembly {0}", ex, name);
+                var assemblyName = name==null?assemblyFilename:name.ToString();
+                DLog.Error(DContext.CompilerAssemblyResolver, "Failed to load assembly {0}: {1}", assemblyName, ex.Message);
 
                 // Pass the error on
-                var exn = new AssemblyResolutionException(name);
+                var exn = new AssemblyResolutionException(name??new AssemblyNameDefinition(assemblyFilename, new Version()));
                 loadingTaskSource.SetException(exn);
                 throw exn;
             }
@@ -227,10 +228,16 @@ namespace Dot42.LoaderLib.DotNet
             if (File.Exists(path))
                 return path;
             var name = Path.GetFileName(path);
-            var referencePaths = referenceFolders.Select(x => Path.Combine(x, name + ".dll"))
-                         .Concat(referenceFolders.Select(x => Path.Combine(x, name)))
-                         .Concat(referenceFolders.Select(x => Path.Combine(x, name + ".exe")));
+            List<string> referencePaths = new List<string>();
 
+            foreach (var refFolder in referenceFolders)
+            {
+                referencePaths.Add(Path.Combine(refFolder, name + ".dll"));
+                referencePaths.Add(Path.Combine(refFolder, name));
+                referencePaths.Add(Path.Combine(refFolder, name + ".exe"));
+            }
+
+            // why do we have the string.Equals here?
             path = referencePaths.FirstOrDefault(x => string.Equals(Path.GetFileNameWithoutExtension(x), name, StringComparison.OrdinalIgnoreCase) && File.Exists(x));
             return path;
         }

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Dot42.ApkLib.Resources;
 using Dot42.CompilerLib;
@@ -36,9 +37,10 @@ namespace Dot42.Compiler.ILSpy
 
         public void CompileIfRequired(ilspy::Mono.Cecil.AssemblyDefinition assembly, bool stopBeforeGeneratingCode = false)
         {
-            if (_compiler != null && _previousAssembly == assembly
-            && (_isFullyCompiled || stopBeforeGeneratingCode))
+            if (_compiler != null && _previousAssembly == assembly && (_isFullyCompiled || stopBeforeGeneratingCode))
                 return;
+
+            string assemblyFileName = assembly.MainModule.FullyQualifiedName;
 
             CompilationErrors = null;
             _compiler = null;
@@ -49,14 +51,18 @@ namespace Dot42.Compiler.ILSpy
             var framework = Frameworks.Instance.GetNewestVersion();
 #endif
             string frameworkFolder = framework.Folder;
-            var refFolders = new List<string> { frameworkFolder };
+
+            var refFolders = new List<string> { frameworkFolder, Path.GetDirectoryName(assemblyFileName) };
 
             var module = new XModule();
             var classLoader = new AssemblyClassLoader(module.OnClassLoaded);
             var resolver = new AssemblyResolver(refFolders, classLoader, module.OnAssemblyLoaded);
-            var parameter = new ReaderParameters(ReadingMode.Immediate) { AssemblyResolver = resolver,ReadSymbols = true};
+            var parameter = new ReaderParameters(ReadingMode.Immediate)
+            {
+                   AssemblyResolver = resolver,ReadSymbols = true, SymbolReaderProvider = new SafeSymbolReaderProvider()
+            };
 
-            var assemblies = new[] { resolver.Load(assembly.MainModule.FullyQualifiedName, parameter) }.ToList();
+            var assemblies = new[] { resolver.Load(assemblyFileName, parameter) }.ToList();
             List<AssemblyDefinition> references = new List<AssemblyDefinition>();
             
             if(assembly.MainModule.Name != "dot42.dll")
