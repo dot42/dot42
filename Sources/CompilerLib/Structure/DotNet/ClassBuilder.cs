@@ -608,10 +608,25 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 var objectClass = compiler.Module.TypeSystem.Object.GetClassReference(targetPackage);
 
                 var defValue = new Annotation(annotationClass, AnnotationVisibility.Runtime,
-                    new AnnotationArgument("GenericArguments", new object[0]),
+                    new AnnotationArgument("GenericArguments", new Annotation[0]),
                     new AnnotationArgument("GenericInstanceType", objectClass),
                     new AnnotationArgument("GenericTypeDefinition", objectClass),
                     new AnnotationArgument("GenericParameter", -1));
+
+                var defAnnotation = new Annotation(new ClassReference("dalvik.annotation.AnnotationDefault"),
+                    AnnotationVisibility.System, new AnnotationArgument("value", defValue));
+                Class.Annotations.Add(defAnnotation);
+            }
+            else if ((Type.Namespace == InternalConstants.Dot42InternalNamespace) &&
+                     (Type.Name == InternalConstants.GenericArgumentAnnotation))
+            {
+                var annotationClass = compiler.GetDot42InternalType(InternalConstants.GenericArgumentAnnotation)
+                                              .GetClassReference(targetPackage);
+
+                var defValue = new Annotation(annotationClass, AnnotationVisibility.Runtime,
+                    new AnnotationArgument("ContainingTypeArgumentIndex", -1),
+                    new AnnotationArgument("FixedType", new Annotation[0]),
+                    new AnnotationArgument("NestedType", new Annotation[0]));
 
                 var defAnnotation = new Annotation(new ClassReference("dalvik.annotation.AnnotationDefault"),
                     AnnotationVisibility.System, new AnnotationArgument("value", defValue));

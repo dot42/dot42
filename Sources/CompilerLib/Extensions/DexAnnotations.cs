@@ -61,12 +61,15 @@ namespace Dot42.CompilerLib.Extensions
         {
             var genericsDefAnnotationClass = compiler.GetDot42InternalType(InternalConstants.GenericDefinitionAnnotation)
                                                      .GetClassReference(targetPackage);
+            var genericsArgAnnotationClass = compiler.GetDot42InternalType(InternalConstants.GenericArgumentAnnotation)
+                                                     .GetClassReference(targetPackage);
+
             var annotation = new Annotation {Type = genericsDefAnnotationClass, Visibility = AnnotationVisibility.Runtime};
 
             if (xtype.IsGenericInstance)
             {
                 bool handled = false;
-                List<object> genericArguments = new List<object>();
+                List<Annotation> genericArguments = new List<Annotation>();
 
                 if (xtype.GetElementType().IsNullableT())
                 {
@@ -92,24 +95,25 @@ namespace Dot42.CompilerLib.Extensions
                 {
                     foreach (var arg in ((XGenericInstanceType) xtype).GenericArguments)
                     {
+                        var argAnn = new Annotation { Type = genericsArgAnnotationClass, Visibility = AnnotationVisibility.Runtime };
                         if (arg.IsGenericParameter)
                         {
                             var gparm = (XGenericParameter) arg;
 
                             // TODO: if we wanted to annotate methods as well, we should differentiate 
                             //       between generic method arguments and generic type arguments.
-
-                            genericArguments.Add(gparm.Position);
+                            argAnn.Arguments.Add(new AnnotationArgument("ContainingTypeArgumentIndex", gparm.Position));
                         }
                         else if (arg.IsGenericInstance)
                         {
                             var giparm = GetGenericDefinitionAnnotationForType((XGenericInstanceType) arg, true,compiler, targetPackage);
-                            genericArguments.Add(giparm);
+                            argAnn.Arguments.Add(new AnnotationArgument("NestedType", giparm));
                         }
                         else
                         {
-                            genericArguments.Add(arg.GetReference(targetPackage));
+                            argAnn.Arguments.Add(new AnnotationArgument("FixedType", arg.GetReference(targetPackage)));
                         }
+                        genericArguments.Add(argAnn);
                     }
                     annotation.Arguments.Add(new AnnotationArgument("GenericArguments", genericArguments.ToArray()));
                 }

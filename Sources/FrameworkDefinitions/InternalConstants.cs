@@ -40,6 +40,7 @@
         public const string TypeReflectionInfoFieldsField = "Fields";
 
         public const string GenericDefinitionAnnotation = "IGenericDefinition";
+        public const string GenericArgumentAnnotation = "IGenericArgument";
 
         /// <summary>
         /// Name of IGenericMethodParameter class
