@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using Dot42.CompilerLib;
 using Dot42.CompilerLib.Ast;
+using Dot42.CompilerLib.Ast.Optimizer;
 using Dot42.CompilerLib.Target;
 using Dot42.CompilerLib.XModel;
 using Dot42.CompilerLib.XModel.DotNet;
@@ -21,7 +22,11 @@ namespace Dot42.Compiler.ILSpy
     [Export(typeof(Language))]
     public class DexInputLanguage : CompiledLanguage
     {
+        private static AstOptimizationStep _stopOptimizing = AstOptimizationStep.None;
+        
         internal static StopAstConversion StopConversion { get; set; }
+        internal static AstOptimizationStep StopOptimizing { get { return _stopOptimizing; } set { _stopOptimizing = value; } }
+
         internal static bool ShowHasSeqPoint { get; set; }
         internal static bool BreakExpressionLines { get; set; }
         internal static bool ShowFullNames { get; set; }
@@ -40,6 +45,8 @@ namespace Dot42.Compiler.ILSpy
         {
             get { return ".il"; }
         }
+
+        
 
         public override void DecompileMethod(ilspy::Mono.Cecil.MethodDefinition method, ICSharpCode.Decompiler.ITextOutput output, DecompilationOptions options)
         {
@@ -116,15 +123,27 @@ namespace Dot42.Compiler.ILSpy
             }
 
             var methodSource = new MethodSource(xMethod, ilMethod.OriginalMethod);
-            var node = MethodBodyCompiler.CreateOptimizedAst(AssemblyCompiler, methodSource, GenerateSetNextInstructionCode, StopConversion);
+            var node = MethodBodyCompiler.CreateOptimizedAst(AssemblyCompiler, methodSource,
+                GenerateSetNextInstructionCode, StopConversion, StopOptimizing);
 
+            bool writeExtraLine = false;
             if (StopConversion != StopAstConversion.None)
             {
                 output.Write(indent);
-                output.Write("// Stop " + StopConversion);
+                output.Write("// Stop Ast Conversion after  " + StopConversion);
                 output.WriteLine();
-                output.WriteLine();
+                writeExtraLine = true;
             }
+            if (StopOptimizing != AstOptimizationStep.None)
+            {
+                output.Write(indent);
+                output.Write("// Stop Ast Optimizing before " + StopOptimizing);
+                output.WriteLine();
+                writeExtraLine = true;
+            }
+
+            if(writeExtraLine)
+                output.WriteLine();
 
             var bridge = new TextOutputBridge(output);
             

@@ -48,7 +48,11 @@ namespace Dot42.CompilerLib.Target
         /// <summary>
         /// Convert the given method into optimized Ast format.
         /// </summary>
-        internal protected static AstNode CreateOptimizedAst(AssemblyCompiler compiler, MethodSource source, bool generateSetNextInstructionCode, StopAstConversion debugStop = StopAstConversion.None)
+        internal protected static AstNode CreateOptimizedAst(AssemblyCompiler compiler, MethodSource source,
+            bool generateSetNextInstructionCode, 
+            StopAstConversion debugStop = StopAstConversion.None,
+            AstOptimizationStep debugStopOptimizing = AstOptimizationStep.None
+            )
         {
             // Build AST
             DecompilerContext context;
@@ -90,7 +94,7 @@ namespace Dot42.CompilerLib.Target
 
             // Optimize AST
             var astOptimizer = new AstOptimizer(context, ast);
-            astOptimizer.Optimize();
+            astOptimizer.Optimize(debugStopOptimizing);
 
             if (debugStop == StopAstConversion.AfterOptimizing) return ast;
 

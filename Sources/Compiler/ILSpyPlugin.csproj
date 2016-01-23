@@ -119,6 +119,7 @@
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="ILSpy\CompiledLanguage.cs" />
     <Compile Include="ILSpy\CachedCompiler.cs" />
+    <Compile Include="ILSpy\MenuDexInputOptimization.cs" />
     <Compile Include="ILSpy\MenuRLLanguage.cs" />
     <Compile Include="ILSpy\MenuDexInputLanguage.cs" />
     <Compile Include="ILSpy\MenuOptions.cs" />

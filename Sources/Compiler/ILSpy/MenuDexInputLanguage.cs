@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Windows.Input;
+using Dot42.CompilerLib.Ast.Optimizer;
 using Dot42.CompilerLib.Target;
 using ICSharpCode.ILSpy;
 
@@ -11,7 +12,7 @@ namespace Dot42.Compiler.ILSpy
 
         public StopMenuCommandAttribute(StopAstConversion code)
         {
-            Menu = "Dot42 De_x Input";
+            Menu = "Dot42 De_xInput";
             MenuCategory = "Stop";
             Header = code == StopAstConversion.None
                 ? "Full Pocessing" : "Stop after " + code.ToString().Replace("After", "");
@@ -30,6 +31,7 @@ namespace Dot42.Compiler.ILSpy
             var stopCode = attr.StopCode;
 
             DexInputLanguage.StopConversion = stopCode;
+            DexInputLanguage.StopOptimizing= AstOptimizationStep.None;
             
             MainWindow.Instance.RefreshDecompiledView();
             //UpdateCheckedState(stopCode);
