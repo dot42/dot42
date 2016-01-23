@@ -772,13 +772,11 @@ namespace Dot42.CompilerLib.Reachable.DotNet
                     GetDot42InternalType(context, InternalConstants.TypeReflectionInfoAnnotation).MarkReachable(context);
                     GetDot42InternalType(context, InternalConstants.GenericTypeParameterAnnotation).MarkReachable(context);
                     GetDot42InternalType(context, InternalConstants.GenericDefinitionAnnotation).MarkReachable(context);
-                    GetDot42InternalType(context, InternalConstants.GenericArgumentAnnotation).MarkReachable(context);
                 }
                 if (provider is MethodDefinition)
                 {
                     GetDot42InternalType(context, InternalConstants.GenericMethodParameterAnnotation).MarkReachable(context);
                     GetDot42InternalType(context, InternalConstants.GenericDefinitionAnnotation).MarkReachable(context);
-                    GetDot42InternalType(context, InternalConstants.GenericArgumentAnnotation).MarkReachable(context);
                 }
 
                 // Mark parameters

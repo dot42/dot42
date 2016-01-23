@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Text;
 using Dot42.CompilerLib.Extensions;
 using Dot42.CompilerLib.Target.Dex;
@@ -12,28 +10,50 @@ namespace Dot42.CompilerLib.Structure.DotNet
 {
     public class GenericDefinitionAnnotationFactory
     {
-        public static Annotation CreateAnnotation(XTypeReference xtype, bool forceTypeDefinition, AssemblyCompiler compiler, DexTargetPackage targetPackage)
+        public static Annotation CreateAnnotation(XTypeReference xtype, bool forceTypeDefinition,
+            AssemblyCompiler compiler, DexTargetPackage targetPackage)
         {
             var genericsDefAnnotationClass = compiler.GetDot42InternalType(InternalConstants.GenericDefinitionAnnotation)
-                                                     .GetClassReference(targetPackage);
-            var genericsArgAnnotationClass = compiler.GetDot42InternalType(InternalConstants.GenericArgumentAnnotation)
-                                                     .GetClassReference(targetPackage);
+                .GetClassReference(targetPackage);
 
-            var annotation = new Annotation { Type = genericsDefAnnotationClass, Visibility = AnnotationVisibility.Runtime };
+            var annotation = new Annotation
+            {
+                Type = genericsDefAnnotationClass,
+                Visibility = AnnotationVisibility.Runtime
+            };
+
+            string s = GetDefinition(xtype, forceTypeDefinition, compiler, targetPackage);
+            if (string.IsNullOrEmpty(s)) return null;
+
+            annotation.Arguments.Add(new AnnotationArgument("Definition", s));
+
+            return annotation;
+        }
+
+        /// <summary>
+        /// The syntax is experimental, and neither fully fixed nor officially defined.
+        /// </summary>
+        private static string GetDefinition(XTypeReference xtype, bool forceTypeDefinition, AssemblyCompiler compiler,
+            DexTargetPackage targetPackage)
+        {
+            StringBuilder s = new StringBuilder();
+
+            // TODO: reorganize, so that the syntax becomes clear.
+
+            bool setGenericInstanceType = false;
 
             if (xtype.IsGenericInstance)
             {
                 bool handled = false;
-                List<Annotation> genericArguments = new List<Annotation>();
 
                 if (xtype.GetElementType().IsNullableT())
                 {
                     // privitives and enums are represented by their marker classes. 
                     // no annotation needed.
-                    var argument = ((XGenericInstanceType)xtype).GenericArguments[0];
-                    if (argument.IsEnum() || argument.IsPrimitive && !forceTypeDefinition)
+                    var argument = ((XGenericInstanceType) xtype).GenericArguments[0];
+                    if (!forceTypeDefinition && (argument.IsEnum() || argument.IsPrimitive))
                     {
-                        return null;
+                        return "";
                     }
 
                     // structs have marker classes.
@@ -41,48 +61,76 @@ namespace Dot42.CompilerLib.Structure.DotNet
                     var @class = classRef == null ? null : targetPackage.DexFile.GetClass(classRef.Fullname);
                     if (@class != null && @class.NullableMarkerClass != null)
                     {
-                        annotation.Arguments.Add(new AnnotationArgument("GenericInstanceType", @class.NullableMarkerClass));
+                        s.Append("@");
+                        s.Append(GetClassName(@class.NullableMarkerClass));
+                        setGenericInstanceType = true;
                         handled = true;
                     }
                 }
 
                 if (!handled)
                 {
-                    foreach (var arg in ((XGenericInstanceType)xtype).GenericArguments)
+                    bool isFirst = true;
+                    foreach (var arg in ((XGenericInstanceType) xtype).GenericArguments)
                     {
-                        var argAnn = new Annotation { Type = genericsArgAnnotationClass, Visibility = AnnotationVisibility.Runtime };
+                        if (!isFirst) s.Append(",");
+                        isFirst = false;
+
                         if (arg.IsGenericParameter)
                         {
-                            var gparm = (XGenericParameter)arg;
+                            var gparm = (XGenericParameter) arg;
 
                             // TODO: if we wanted to annotate methods as well, we should differentiate 
                             //       between generic method arguments and generic type arguments.
-                            argAnn.Arguments.Add(new AnnotationArgument("ContainingTypeArgumentIndex", gparm.Position));
+                            s.Append("!");
+                            s.Append(gparm.Position);
                         }
                         else if (arg.IsGenericInstance)
                         {
-                            var giparm = CreateAnnotation((XGenericInstanceType)arg, true, compiler, targetPackage);
-                            argAnn.Arguments.Add(new AnnotationArgument("NestedType", giparm));
+                            var giparm = GetDefinition((XGenericInstanceType)arg, true, compiler, targetPackage);
+                            s.Append("{");
+                            s.Append(giparm);
+                            s.Append("}");
                         }
                         else
                         {
-                            argAnn.Arguments.Add(new AnnotationArgument("FixedType", arg.GetReference(targetPackage)));
+                            s.Append(GetClassName(arg.GetReference(targetPackage)));
                         }
-                        genericArguments.Add(argAnn);
                     }
-                    annotation.Arguments.Add(new AnnotationArgument("GenericArguments", genericArguments.ToArray()));
                 }
             }
             else // generic parameter
             {
-                var parm = (XGenericParameter)xtype;
-                annotation.Arguments.Add(new AnnotationArgument("GenericParameter", parm.Position));
+                var parm = (XGenericParameter) xtype;
+                s.Append("!!");
+                s.Append(parm.Position);
             }
 
-            if (forceTypeDefinition && annotation.Arguments.All(a => a.Name != "GenericInstanceType"))
-                annotation.Arguments.Add(new AnnotationArgument("GenericTypeDefinition", xtype.ElementType.GetReference(targetPackage)));
+            if (forceTypeDefinition && !setGenericInstanceType)
+            {
+                string def = GetClassName(xtype.ElementType.GetReference(targetPackage));
+                s.Insert(0, def + "<");
+                s.Append(">");
+            }
 
-            return annotation;
+            return s.ToString();
+        }
+
+        private static string GetClassName(TypeReference r)
+        {
+            if (r.IsPrimitive())
+                return r.Descriptor;
+
+            var desc = r.Descriptor;
+
+            // prepare for direct class.ForName usage:
+            // remove ';' (and L for non-arrays)
+            if (desc.StartsWith("["))
+                desc = desc.Substring(0, desc.Length - 1);
+            else 
+                desc = desc.Substring(1, desc.Length - 2);
+
+            return desc.Replace('/', '.');
         }
     }
 }

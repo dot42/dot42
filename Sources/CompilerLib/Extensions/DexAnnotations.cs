@@ -1,10 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Dot42.CompilerLib.Structure.DotNet;
+﻿using Dot42.CompilerLib.Structure.DotNet;
 using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel;
 using Dot42.DexLib;
-using Dot42.FrameworkDefinitions;
 
 namespace Dot42.CompilerLib.Extensions
 {
