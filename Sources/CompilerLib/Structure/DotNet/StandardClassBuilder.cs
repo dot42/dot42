@@ -69,14 +69,14 @@ namespace Dot42.CompilerLib.Structure.DotNet
             List<Annotation> definitions= new List<Annotation>();
 
             if (isBaseTypeGeneric)
-                definitions.Add(AssemblyCompilerExtensions.GetGenericDefinitionAnnotationForType(
+                definitions.Add(GenericDefinitionAnnotationFactory.CreateAnnotation(
                                 XType.BaseType, true, Compiler, targetPackage));
 
             foreach (var intf in XType.Interfaces)
             {
                 if(!intf.IsGenericInstance && !intf.IsGenericParameter)
                     continue;
-                definitions.Add(AssemblyCompilerExtensions.GetGenericDefinitionAnnotationForType(
+                definitions.Add(GenericDefinitionAnnotationFactory.CreateAnnotation(
                                                             intf, true, Compiler, targetPackage));
             }
 
