@@ -295,7 +295,7 @@ namespace Dot42.CompilerLib.RL.Transformations
         }
 
 
-        public bool IsComparisonWithZero(RCode code)
+        public static bool IsComparisonWithZero(RCode code)
         {
             switch (code)
             {
@@ -316,7 +316,7 @@ namespace Dot42.CompilerLib.RL.Transformations
             return code.IsComparisonBranch() && !IsComparisonWithZero(code);
         }
 
-        private bool WillTakeBranch(RCode code, int comparand)
+        public static bool WillTakeBranch(RCode code, int comparand)
         {
             switch (code)
             {

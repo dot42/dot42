@@ -45,7 +45,7 @@ namespace Dot42.CompilerLib.Ast
         /// </summary>
         public bool IsCompilerGenerated
         {
-            get { return OriginalName.StartsWith("CS$") || string.IsNullOrEmpty(OriginalName); }
+            get { return OriginalName.StartsWith("CS$") || OriginalName.StartsWith("<") || string.IsNullOrEmpty(OriginalName); }
         }
 
         /// <summary>

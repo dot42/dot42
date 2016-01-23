@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using Dot42.ApkLib.Resources;
 using Dot42.CompilerLib.Ast;
-using Dot42.CompilerLib.Ast.Converters;
 using Dot42.CompilerLib.Ast.Extensions;
 using Dot42.CompilerLib.Ast2RLCompiler.Extensions;
 using Dot42.CompilerLib.Extensions;
@@ -12,8 +10,6 @@ using Dot42.CompilerLib.RL;
 using Dot42.CompilerLib.Structure.DotNet;
 using Dot42.CompilerLib.XModel;
 using Dot42.DexLib;
-using Dot42.DexLib.Instructions;
-using Dot42.FrameworkDefinitions;
 using ArrayType = Dot42.DexLib.ArrayType;
 using FieldDefinition = Dot42.DexLib.FieldDefinition;
 using Instruction = Dot42.CompilerLib.RL.Instruction;
@@ -1764,9 +1760,10 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                             switch (ilMethod.Name)
                             {
                                 case "Enter":
-                                    return new RLRange(this.Add(node.SourceLocation, RCode.Monitor_enter, args[0].Result), null);
+                                    return monitorManager.Enter(this, node, args);
+                                    
                                 case "Exit":
-                                    return new RLRange(this.Add(node.SourceLocation, RCode.Monitor_exit, args[0].Result), null);
+                                    return monitorManager.Exit(this, node, args);
                             }
                         }
                     }

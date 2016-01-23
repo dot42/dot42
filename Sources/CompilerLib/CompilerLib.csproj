@@ -58,6 +58,7 @@
     <Compile Include="Ast2RLCompiler\Extensions\DexJavaTyping.cs" />
     <Compile Include="Ast2RLCompiler\Extensions\DexDotNetTyping.cs" />
     <Compile Include="Ast2RLCompiler\Extensions\RCode.cs" />
+    <Compile Include="Ast2RLCompiler\MonitorManager.cs" />
     <Compile Include="Ast2RLCompiler\LabelManager.cs" />
     <Compile Include="Ast\AstBasicBlock.cs" />
     <Compile Include="Ast\AstBlock.cs" />
@@ -130,6 +131,7 @@
     <Compile Include="RL\Transformations\InlineIntLiteralsTransformation.cs" />
     <Compile Include="RL\Transformations\PredictableBranchOptimizer.cs" />
     <Compile Include="RL\Transformations\EliminateRegistersOptimization.cs" />
+    <Compile Include="RL\Transformations\EliminateDeadAssignmentsOptimization.cs" />
     <Compile Include="Structure\DotNet\GenericDefinitionAnnotationFactory.cs" />
     <Compile Include="Target\CompilerCache\AssemblyModifiedDetector.cs" />
     <Compile Include="Target\CompilerCache\CompilerCacheResolveException.cs" />

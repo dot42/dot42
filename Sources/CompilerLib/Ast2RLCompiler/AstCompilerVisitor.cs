@@ -25,7 +25,7 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
         private readonly InstructionList instructions;
         private readonly LabelManager labelManager = new LabelManager();
         private readonly Stack<Register> currentExceptionRegister = new Stack<Register>();        // Holds the exception in a catch block
-
+        private readonly MonitorManager monitorManager = new MonitorManager();
         private readonly MethodFinallyState finallyState = new MethodFinallyState();
         private readonly Stack<FinallyBlockState> tryCatchStack = new Stack<FinallyBlockState>(); // holds the current finally target.
 

@@ -27,7 +27,9 @@ namespace Dot42.CompilerLib.RL.Transformations
         ///  (1) are only assigned to.
         ///  (2) are assigned exacly once directly followed by the only read, which moves them
         ///      to another register, if in same block.
-        ///  (3) Are assigned from another register excactly once and not written otherwise, 
+        ///  (3) are 'const' exacly once and then only used in branch-with-comparison-to-zero operations. 
+        ///      we remove the branch and the assignment.
+        ///  (4) Are assigned from another register excactly once and not written otherwise, 
         ///      and were the source register is never changed during the usage of that register.
         ///      We also make sure that the other register is never check-casted as this could
         ///      mean we are modifying the dex-visible type.
@@ -71,7 +73,37 @@ namespace Dot42.CompilerLib.RL.Transformations
                     continue;
                 }
 
-                // (3) more complicated.
+                // (3) still simple.
+                if (usage.Writes.Count == 1 && usage.Writes[0].Instruction.Code.IsConst()
+                 && usage.Reads.All(r=>PredictableBranchOptimizer.IsComparisonWithZero(r.Instruction.Code)))
+                {
+                    var writeInsBlock = usage.Writes[0];
+                    int operand = Convert.ToInt32(writeInsBlock.Instruction.Operand);
+                    foreach (var insBlock in usage.Reads.ToArray())
+                    {
+                        usage.Remove(insBlock);
+
+                        var ins = insBlock.Instruction;
+                        bool willTakeBranch = PredictableBranchOptimizer.WillTakeBranch(ins.Code, operand);
+
+                        if (willTakeBranch)
+                        {
+                            ins.Code = RCode.Goto;
+                            ins.Registers.Clear();
+                        }
+                        else
+                        {
+                            ins.ConvertToNop();
+                        }
+                        
+                    }
+                    
+                    usage.Remove(writeInsBlock);
+                    writeInsBlock.Instruction.ConvertToNop();
+                    continue;
+                }
+
+                // (4) more complicated.
                 if (usage.Writes.Count != 1 || usage.MovesFromOtherRegisters.Count != 1)
                     continue;
 

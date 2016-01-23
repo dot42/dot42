@@ -17,6 +17,7 @@ namespace Dot42.CompilerLib.RL.Transformations
         
         private static readonly IRLTransformation[] incrementalOptimizations = 
         {
+            new EliminateDeadAssignmentsOptimization(), 
             new EliminateRegistersOptimization(), 
             new SwitchAndGotoOptimization(), 
             new EliminateDeadCodeTransformation(), 
