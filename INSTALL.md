@@ -6,10 +6,12 @@ Before building, make sure you have
 - `nant` installed and in you path
 - `git` in your path, e.g. msysgit. This dependency is not crucial, and could be easily removed from the buildfile.
 - have `msbuild.exe` in your path, i.e. have called `VsDevCmd.bat` (Developer command prompt).
-- if you want to compile the Visual Studio extension you will need the VS 2013 SDK installed (and probably VS 2013 as well). If you want the extension to work with VS2010 or VS 2012 see below. You might have to adjust the build files if you don't want the extension to be compiled, I did not test this.
+- the build script tries to autodetect the correct VS installation. If it fails, try to adjust the `Common\Build\SelectVs.build` script. 
+- if you want to compile the Visual Studio extension you will need an VS 201x SDK installed (and VS 201x as well). See also below. You might have to adjust the build files if you don't want the extension to be compiled, I did not test this.
 - to build the setup, you will need to have InnoSetup installed.
-- In the original dot42 GitHub-repository, some "Buildtools" where missing, making it impossible to compile the project with `nant`. I wrote a replacement that handles the most important usages and is a noop for others. To enable it, call `set BUILDTOOLS={path-to-dot42-root-folder}\Common\Build\NAnt.BuildTools.Tasks.dll`. You can compile it yourself by invoking `nant` in `.\Common\Build\NAnt.BuildTools.Tasks`.
+- In the original dot42 GitHub-repository, some "Buildtools" where missing, making it impossible to compile the project with `nant`. I wrote a replacement that handles the most important usages and is a noop for others. You can compile it yourself by invoking `nant` in `.\Common\Build\NAnt.BuildTools.Tasks`.
   It would of course be better if the original Buildtools where available.
+
 
 
 You can now go through the `.build` files in `Common\Build` and the  `NAnt.build` file in the root directory and adjust any obviously wrong paths. I successfully compiled with VS 2013 installed. Alternatively you can also come back to this step if you run into errors.
@@ -18,7 +20,8 @@ To build, invoke `nant build-setup` from the root folder. It'll take a while to 
 
 ###### Notes about the Visual Studio Integration
 
-I disabled the VS 2010 and VS 2012 compatibility, mainly because my SDD wouldn't fit the two additional installations, and I did not find out how to compile for those versions without installing them. If you want to compile for VS 2010 or VS 2012 versions, adjustments to `VStudio.Android.sln` and `VStudio\VStudio.Extension.Android.csproj` have to be made. The crucial part is the "XmlEditor". Dig through the Git-logs to see what needs to be changed. It'll be great if a way was found to compile for all three versions (and maybe VS 2015) without having them all installed. You will probably also need to install the appropriate VS 20xx SDKs.
+The VS plugin supports VS 2010, 2012, 2013 and 2015. Due to limitations of the VS XML Editor component, you can compile only for those versions that you have installed. I believe it is neccessary to install at least one VS 201x SDK, matching your installed VS version. 
+For VS 2015, you should select the "Visual Studio Extensibility Tools" in the installer, or install it later by opening the New Project dialog and selecting the Install Visual Studio Extensibility Tools item under Visual C# / Extensibility (https://msdn.microsoft.com/en-us/library/bb166441.aspx). 
 
 ### Installing
 
@@ -36,3 +39,8 @@ The doxygen xml documentation can not be included in the repository, for its she
 Once everything is in place, a simple call to `doxygen AndroidFramework.doxygen.cfg` will build the documentation. This will take a quite a while.
 
 You then regenerate the framework bindings with a call to `nant generate-and-build-frameworks` from the Dot42 root folder.
+
+###### Building the Visual Studio Extensions from within Visual Studio 
+
+If you want to hack on Dot42 Visual Studio Extensions, there are some quirks to note. The VStudio.Xml.sln should be build first. Only those projects will succeed for which you have VS installed, but you can ignore these errors. Open VStudio.Android.sln only after you have build VStudio.Xml.sln at least once, so that VS can pick up the previously build XML Editor assemblies.
+With VS2013 I found that the VSIX only gets property build in debug mode when I do a 'rebuild'. With an incremental build some dlls are missing from the VSIX for unknown reasons. This should not be a problem for debugging, as you will just copy the output file to the appropriate VS Extension directory. In release I did not encounter such a quirk.

@@ -1,6 +1,10 @@
 ﻿<?xml version="1.0"?>
 <project name="Common-VC" description="Common VC++ properties">
 
+	<!-- select the used VS Version -->
+	<include buildfile="SelectVS.build"/>
+	
+	
 	<readregistry property="CurrentSdkVersion" key="SOFTWARE\Microsoft\Microsoft SDKs\Windows\CurrentVersion" />
 	<property name="sdkversion" value="${CurrentSdkVersion}" overwrite="false"/>
 	<readregistry property="sdkdir" key="SOFTWARE\Microsoft\Microsoft SDKs\Windows\${sdkversion}\InstallationFolder" />
@@ -16,10 +20,9 @@
 	<!-- hardcoded to get it to work... -->
 	<property name="sdk7dir" value="c:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Bin" />
 	<property name="rcdir" value="c:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Bin" />
-
-	<property name='vcdir' value="${environment::get-variable('VS90COMNTOOLS')}\..\..\Vc" if="${environment::variable-exists('VS90COMNTOOLS')}"/>
-	<property name='vcdir' value="${environment::get-variable('VS100COMNTOOLS')}\..\..\Vc" if="${environment::variable-exists('VS100COMNTOOLS')}"/>
-	<property name='vcdir' value="${environment::get-variable('VS110COMNTOOLS')}\..\..\Vc" if="${environment::variable-exists('VS110COMNTOOLS')}"/>
+	
+	
+	<property name='vcdir' value="${vscomntools}\..\..\Vc" />
 	<property name='vcinc' value='${vcdir}\include'/>
 	<property name='vc32lib' value='${vcdir}\lib'/>
 	<property name='vc64lib' value='${vcdir}\lib\amd64'/>

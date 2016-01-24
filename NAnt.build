@@ -4,20 +4,14 @@
 	<property name="nant.settings.currentframework" value="net-4.0" />
 
 	<property name="basedir" value="${project::get-base-directory()}" />
-	<include buildfile="${basedir}\Common\Build\Common.build"/>
-	<include buildfile="${basedir}\Common\Build\Common-Release.build"/>
-	<!--property name="vs10comntools" value="${environment::get-variable('VS100COMNTOOLS')}"/-->
-	<property name="vs11comntools" value="${environment::get-variable('VS110COMNTOOLS')}"/>
-	<property name="vs12comntools" value="${environment::get-variable('VS120COMNTOOLS')}"/>	
-	<!--property name="devenvdir" value="${path::get-full-path(path::combine(vs10comntools, '..\ide'))}"/-->
-	<property name="devenv11dir" value="${path::get-full-path(path::combine(vs11comntools, '..\ide'))}"/>
-	<property name="devenv12dir" value="${path::get-full-path(path::combine(vs12comntools, '..\ide'))}"/>
-	<property name="devenvdir" value="${devenv12dir}"/>
-	<!--property name="devenv" value="${devenvdir}\devenv.com"/-->
-	<property name="devenv11" value="${devenv11dir}\devenv.com"/>
-	<property name="devenv12" value="${devenv12dir}\devenv.com"/>
-	<property name="devenv" value="${devenv12}"/>
+	<property name="buildtoolsdir" value="${basedir}\Common\Build" />
+	
+	<include buildfile="${buildtoolsdir}\Common.build"/>
+	<include buildfile="${buildtoolsdir}\Common-Release.build"/>	
+	
+
 	<property name="adb" value="${basedir}\Binaries\Platform-tools\adb.exe"/>
+
 
 	<property name="product" value="dot42"/>
 	<property name="configuration" value="Release" />
@@ -25,7 +19,7 @@
 	<!-- property name="targets" value="Android,BlackBerry" / -->
 	<property name="targets" value="Android" />
 
-	<property name="default-api-level" value="15"/>
+	<property name="default-api-level" value="18"/>
 
 	<property name="builddir" value="${basedir}\Build" />
 	<property name="productdir" value="${basedir}\Product"/>
@@ -51,7 +45,7 @@
 				<include name="**/output/**" />
 				<include name="**/*.sln.cache" />
 				<include name="**/*.suo" />
-				<include name="**/*.user" />
+				<!--include name="**/*.user" /-->
 				<include name="Build/**" />
 				<exclude name="SharpDevelop/**" />
 				<exclude name="**/.git/**" />
@@ -89,9 +83,10 @@
 		<msbuild project="${basedir}\Tools.sln" target="Rebuild">
 			<property name="Configuration" value="${configuration}"/>
 		</msbuild>
-		<!--msbuild project="${basedir}\VStudio11.sln" target="Rebuild">
+		<!-- do not fail on errors when building the XML editor components for the various versions of VS. -->		     
+		<msbuild project="${basedir}\VStudio.Xml.sln" target="Rebuild" failonerror="false">
 			<property name="Configuration" value="${configuration}"/>
-		</msbuild-->
+		</msbuild>
 		<msbuild project="${basedir}\VStudio.Android.sln" target="Rebuild">
 			<property name="Configuration" value="${configuration}"/>
 		</msbuild>

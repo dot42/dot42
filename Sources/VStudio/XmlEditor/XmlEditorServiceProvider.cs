@@ -28,6 +28,8 @@ namespace Dot42.VStudio.XmlEditor
                 extension = ".vs11";
             else if (dteVersion.StartsWith("12."))
                 extension = ".vs12";
+            else if (dteVersion.StartsWith("14."))
+                extension = ".vs14";
             else
                 throw new InvalidOperationException("Unknown Visual Studio version: " + dteVersion);
 

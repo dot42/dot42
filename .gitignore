@@ -4,6 +4,7 @@ Out/
 *.suo
 *.sln.cache
 *.user
+*.bak
 /Build
 Thumbs.db
 

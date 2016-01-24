@@ -4,14 +4,8 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VStudio.Extension.Android", "Sources\VStudio\VStudio.Extension.Android.csproj", "{CFBB8BAB-AA45-4B3D-8541-CACF96B94350}"
-	ProjectSection(ProjectDependencies) = postProject
-		{A3F2A9DB-6BB1-4BF2-3231-6BBDD129A6EB} = {A3F2A9DB-6BB1-4BF2-3231-6BBDD129A6EB}
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VStudio.Project.Android", "Sources\VStudio\VStudio.Project.Android.csproj", "{3E651A4C-97F4-41FC-9E0C-7D65A86BD794}"
-	ProjectSection(ProjectDependencies) = postProject
-		{A3F2A9DB-6BB1-4BF2-3231-6BBDD129A6EB} = {A3F2A9DB-6BB1-4BF2-3231-6BBDD129A6EB}
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpZipLib", "Common\SharpZipLib\SharpZipLib.csproj", "{13F162A6-BB55-40B6-A258-7AD5C0B4A386}"
 EndProject
@@ -84,8 +78,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceLib", "Sources\DeviceLib\DeviceLib.csproj", "{13F1BB11-B71A-A349-4BEE-7AD5C023BB22}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManifestTemplate.Android", "Sources\VStudio\ItemTemplates\Manifest\ManifestTemplate.Android.csproj", "{ED297359-84A4-40BF-84B3-3E5932C45DC2}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VStudio.Xml.vs12", "Sources\VStudio\Vs12\VStudio.Xml.vs12.csproj", "{A3F2A9DB-6BB1-4BF2-3231-6BBDD129A6EB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VStudio.Xml", "Sources\VStudio\VStudio.Xml.csproj", "{33F2A9DB-6BB1-49A2-9901-65E6A129A6EB}"
 EndProject
@@ -231,10 +223,6 @@ Global
 		{ED297359-84A4-40BF-84B3-3E5932C45DC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ED297359-84A4-40BF-84B3-3E5932C45DC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ED297359-84A4-40BF-84B3-3E5932C45DC2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A3F2A9DB-6BB1-4BF2-3231-6BBDD129A6EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A3F2A9DB-6BB1-4BF2-3231-6BBDD129A6EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A3F2A9DB-6BB1-4BF2-3231-6BBDD129A6EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A3F2A9DB-6BB1-4BF2-3231-6BBDD129A6EB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{33F2A9DB-6BB1-49A2-9901-65E6A129A6EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{33F2A9DB-6BB1-49A2-9901-65E6A129A6EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{33F2A9DB-6BB1-49A2-9901-65E6A129A6EB}.Release|Any CPU.ActiveCfg = Release|Any CPU

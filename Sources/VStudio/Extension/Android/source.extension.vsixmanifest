@@ -10,7 +10,7 @@
     <Icon>..\Graphics\Icons\App.ico</Icon>
     <InstalledByMsi>false</InstalledByMsi>
     <SupportedProducts>
-      <!--VisualStudio Version="10.0">
+      <VisualStudio Version="10.0">
         <Edition>Ultimate</Edition>
         <Edition>Premium</Edition>
         <Edition>Pro</Edition>
@@ -23,16 +23,25 @@
         <Edition>Pro</Edition>
         <Edition>VSTS</Edition>
         <Edition>VSTD</Edition>
-      </VisualStudio-->
+      </VisualStudio>
       <VisualStudio Version="12.0">
         <Edition>Ultimate</Edition>
         <Edition>Premium</Edition>
         <Edition>Pro</Edition>
         <Edition>VSTS</Edition>
         <Edition>VSTD</Edition>
-      </VisualStudio>      
+        <Edition>Community</Edition>
+      </VisualStudio>
+      <VisualStudio Version="14.0">
+        <Edition>Ultimate</Edition>
+        <Edition>Premium</Edition>
+        <Edition>Pro</Edition>
+        <Edition>VSTS</Edition>
+        <Edition>VSTD</Edition>
+        <Edition>Community</Edition>
+      </VisualStudio>
     </SupportedProducts>
-    <SupportedFrameworkRuntimeEdition MinVersion="4.0" MaxVersion="4.5" />
+    <SupportedFrameworkRuntimeEdition MinVersion="4.0" MaxVersion="4.6" />
   </Identifier>
   <References>
     <Reference Id="Microsoft.VisualStudio.MPF" MinVersion="10.0">
@@ -44,9 +53,11 @@
     <VsPackage>|VStudio.Project.Android;PkgdefProjectOutputGroup|</VsPackage>
     <Assembly AssemblyName="|VStudio.Project.Android;AssemblyName|">|VStudio.Project.Android|</Assembly>
     <MefComponent>|VStudio.Project.Android|</MefComponent>
-    <!--MefComponent>dot42.VStudio.Xml.vs10.dll<MefComponent>
-    <MefComponent>dot42.VStudio.Xml.vs11.dll</MefComponent-->
+    <!-- not sure what this MefComponent exactly does -->
+    <MefComponent>dot42.VStudio.Xml.vs10.dll</MefComponent>
+    <MefComponent>dot42.VStudio.Xml.vs11.dll</MefComponent>
     <MefComponent>dot42.VStudio.Xml.vs12.dll</MefComponent>
+    <MefComponent>dot42.VStudio.Xml.vs14.dll</MefComponent>
     <ProjectTemplate>ProjectTemplates</ProjectTemplate>
     <ItemTemplate>ItemTemplates</ItemTemplate>
   </Content>

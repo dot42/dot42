@@ -2,8 +2,11 @@
 <project name="Common" description="Common build properties and tasks">
 
 	<!-- Tools -->
-	<property name="buildtools" value="${environment::get-variable('BUILDTOOLS')}"/>
-	<property name="buildtoolsdir" value="${path::get-directory-name(buildtools)}"/>
+	<property name="buildtools" value="${environment::get-variable('BUILDTOOLS')}" if="${environment::variable-exists('BUILDTOOLS')}"/>
+	<property name="buildtoolsdir" value="${path::get-directory-name(buildtools)}" if="${environment::variable-exists('BUILDTOOLS')}"/>
+
+	<!-- select the used VS Version -->
+	<include buildfile="${buildtoolsdir}\SelectVS.build"/>
 
 	<!-- Load buildtools tasks -->
 	<!--loadtasks assembly="${buildtoolsdir}\Buildtools.Tasks.dll" />

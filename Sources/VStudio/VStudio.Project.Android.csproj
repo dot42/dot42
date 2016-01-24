@@ -465,82 +465,102 @@
     <ProjectReference Include="..\..\Common\BouncyCastle\v1.7\BouncyCastle-v1.7.csproj">
       <Project>{BB4562A6-BB44-BBB6-1111-22D5C0B4A386}</Project>
       <Name>BouncyCastle-v1.7</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;BuiltProjectOutputGroupDependencies;GetCopyToOutputDirectoryItems;PkgdefProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\..\Common\SharpZipLib\SharpZipLib.csproj">
       <Project>{13F162A6-BB55-40B6-A258-7AD5C0B4A386}</Project>
       <Name>SharpZipLib</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;BuiltProjectOutputGroupDependencies;GetCopyToOutputDirectoryItems;PkgdefProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\AdbLib\AdbLib.csproj">
       <Project>{13F1BB11-B71A-AA59-44DE-7AD5C0B4BB22}</Project>
       <Name>AdbLib</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;BuiltProjectOutputGroupDependencies;GetCopyToOutputDirectoryItems;PkgdefProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\ApkLib\ApkLib.csproj">
       <Project>{13F1BB11-ABB6-B755-CC77-7AD5C0B4BB22}</Project>
       <Name>ApkLib</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;BuiltProjectOutputGroupDependencies;GetCopyToOutputDirectoryItems;PkgdefProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\BarDeployLib\BarDeployLib.csproj">
       <Project>{13F1BB11-B27A-54DF-44DE-7AD263BFBB22}</Project>
       <Name>BarDeployLib</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;BuiltProjectOutputGroupDependencies;GetCopyToOutputDirectoryItems;PkgdefProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\BarLib\BarLib.csproj">
       <Project>{13F1BB11-45DE-B755-CC77-7AD5C0B4BB22}</Project>
       <Name>BarLib</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;BuiltProjectOutputGroupDependencies;GetCopyToOutputDirectoryItems;PkgdefProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\CryptoUI\CryptoUI.csproj">
       <Project>{EE083D57-34DD-4C67-71CF-3D42A96C86F9}</Project>
       <Name>CryptoUI</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;BuiltProjectOutputGroupDependencies;GetCopyToOutputDirectoryItems;PkgdefProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\DebuggerLib\DebuggerLib.csproj">
       <Project>{13F1BB11-B71A-AA59-32AE-7AD34AB4BB22}</Project>
       <Name>DebuggerLib</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;BuiltProjectOutputGroupDependencies;GetCopyToOutputDirectoryItems;PkgdefProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\DeviceLib\DeviceLib.csproj">
       <Project>{13F1BB11-B71A-A349-4BEE-7AD5C023BB22}</Project>
       <Name>DeviceLib</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;BuiltProjectOutputGroupDependencies;GetCopyToOutputDirectoryItems;PkgdefProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\DeviceUILib\DeviceUILib.csproj">
       <Project>{13F1BB11-B759-BB59-44DE-7AD5C0B4BB22}</Project>
       <Name>DeviceUILib</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;BuiltProjectOutputGroupDependencies;GetCopyToOutputDirectoryItems;PkgdefProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\DexLib\DexLib.csproj">
       <Project>{CAF03EFC-1CF0-49DA-8C2E-684949E08833}</Project>
       <Name>DexLib</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;BuiltProjectOutputGroupDependencies;GetCopyToOutputDirectoryItems;PkgdefProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\FrameworkDefinitions\FrameworkDefinitions.csproj">
       <Project>{13F162A6-AA66-BB55-CC77-7AD5C0B4BB22}</Project>
       <Name>FrameworkDefinitions</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;BuiltProjectOutputGroupDependencies;GetCopyToOutputDirectoryItems;PkgdefProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\Graphics\Graphics.csproj">
       <Project>{13F134AD-A566-E5B2-2FE7-7AD5C0B4A386}</Project>
       <Name>Graphics</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;BuiltProjectOutputGroupDependencies;GetCopyToOutputDirectoryItems;PkgdefProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\IdeLib\IdeLib.csproj">
       <Project>{14523AD1-45BD-BB59-44DE-7AD5C0B4BB22}</Project>
       <Name>IdeLib</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;BuiltProjectOutputGroupDependencies;GetCopyToOutputDirectoryItems;PkgdefProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\JvmClassLib\JvmClassLib.csproj">
       <Project>{13F162A6-F530-40B6-A258-7AD5C0B4A386}</Project>
       <Name>JvmClassLib</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;BuiltProjectOutputGroupDependencies;GetCopyToOutputDirectoryItems;PkgdefProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\Mapping\MappingLib.csproj">
       <Project>{13F162A6-F530-40F2-1234-7AD5123AA386}</Project>
       <Name>MappingLib</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;BuiltProjectOutputGroupDependencies;GetCopyToOutputDirectoryItems;PkgdefProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\ResourcesLib\ResourcesLib.csproj">
       <Project>{13F162A6-F530-45DE-BB18-7AD5C0B4A386}</Project>
       <Name>ResourcesLib</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;BuiltProjectOutputGroupDependencies;GetCopyToOutputDirectoryItems;PkgdefProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\SharedUI\SharedUI.csproj">
       <Project>{1456BD11-4559-BB59-44DE-7AD5C0B4BB22}</Project>
       <Name>SharedUI</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;BuiltProjectOutputGroupDependencies;GetCopyToOutputDirectoryItems;PkgdefProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\Utility\Utility.csproj">
       <Project>{13F162A6-F530-40B3-1234-7AD5C0B4A386}</Project>
       <Name>Utility</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;BuiltProjectOutputGroupDependencies;GetCopyToOutputDirectoryItems;PkgdefProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
     </ProjectReference>
     <ProjectReference Include="VStudio.Xml.csproj">
       <Project>{33f2a9db-6bb1-49a2-9901-65e6a129a6eb}</Project>
       <Name>VStudio.Xml</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;BuiltProjectOutputGroupDependencies;GetCopyToOutputDirectoryItems;PkgdefProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -566,6 +586,10 @@
   </PropertyGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
   <!--Import Project="..\..\Common\Build\BuildTools.MSBuildTasks.targets" />
   <Import Project="..\..\Binaries\VsSdk2010\SdkEnv.targets" /-->
 </Project>

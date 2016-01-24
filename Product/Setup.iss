@@ -105,6 +105,7 @@ SourceDir=..\Build
 Name: vstudio10; Description: "Install VisualStudio 2010 integration"; Check: VStudio10Installed;
 Name: vstudio11; Description: "Install VisualStudio 2012 integration"; Check: VStudio11Installed;
 Name: vstudio12; Description: "Install VisualStudio 2013 integration"; Check: VStudio12Installed;
+Name: vstudio14; Description: "Install VisualStudio 2015 integration"; Check: VStudio14Installed;
 #ifdef SHARPDEVELOP
 Name: sharpDevelop; Description: "Install SharpDevelop 4.3";
 #endif
@@ -122,6 +123,8 @@ Source: "{#SrcDir}\{#TargetName}\Extension\*"; DestDir: "{reg:HKLM32\SOFTWARE\Mi
 Source: "{#SrcDir}\{#TargetName}\Extension\*"; DestDir: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\11.0,InstallDir}\Extensions\{#CompanyName}\{#AppName}\1.0"; Flags: recursesubdirs; Tasks: vstudio11;
 ; Visual Studio 2013 extension
 Source: "{#SrcDir}\{#TargetName}\Extension\*"; DestDir: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\12.0,InstallDir}\Extensions\{#CompanyName}\{#AppName}\1.0"; Flags: recursesubdirs; Tasks: vstudio12;
+; Visual Studio 2015 extension
+Source: "{#SrcDir}\{#TargetName}\Extension\*"; DestDir: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\14.0,InstallDir}\Extensions\{#CompanyName}\{#AppName}\1.0"; Flags: recursesubdirs; Tasks: vstudio14;
 ; Android platform tools
 Source: "{#SrcDir}\Platform-tools\*"; DestDir: "{app}\Platform-tools";
 ; Android tools
@@ -187,6 +190,14 @@ Root: HKLM32; Subkey: "SOFTWARE\TallApplications\dot42"; ValueType: string; Valu
 #define VSASM     "Dot42.VStudio10.dll"
 #define VSTEMPLATES "VStudio10"
 #include "MSBuildSetup.iss"
+
+#define VS14ROOT   "SOFTWARE\Microsoft\VisualStudio\14.0"
+#define VSROOT    "SOFTWARE\Microsoft\VisualStudio\14.0\Configuration"
+#define VSTASK    "vstudio14"
+#define VSASM     "Dot42.VStudio10.dll"
+#define VSTEMPLATES "VStudio10"
+#include "MSBuildSetup.iss"
+
 
 #include "..\Build\Registry\Frameworks.iss"
 
@@ -328,6 +339,13 @@ function VStudio12Installed: Boolean;
 var root: string;
 begin
   root := ExpandConstant('{#VS12ROOT}');
+  Result := RegKeyExists(HKLM32, root) and RegValueExists(HKLM32, root, 'InstallDir');
+end;
+
+function VStudio14Installed: Boolean;
+var root: string;
+begin
+  root := ExpandConstant('{#VS14ROOT}');
   Result := RegKeyExists(HKLM32, root) and RegValueExists(HKLM32, root, 'InstallDir');
 end;
 

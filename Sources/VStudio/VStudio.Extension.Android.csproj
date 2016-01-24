@@ -8,7 +8,7 @@
     <ProjectGuid>{CFBB8BAB-AA45-4B3D-8541-CACF96B94350}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Dot42.VStudio</RootNamespace>
-    <AssemblyName>dot42.VStudio</AssemblyName>
+    <AssemblyName>dot42.Android</AssemblyName>
     <SignAssembly>false</SignAssembly>
     <AssemblyOriginatorKeyFile>..\Dot42.snk</AssemblyOriginatorKeyFile>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
@@ -37,18 +37,17 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Ext\Debug\</OutputPath>
+    <OutputPath>bin\VSIX\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE;ANDROID</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DeployExtension>True</DeployExtension>
+    <DeployExtension>False</DeployExtension>
     <CreateVsixContainer>True</CreateVsixContainer>
-    <CopyVsixExtensionFiles>False</CopyVsixExtensionFiles>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Ext\Release\</OutputPath>
+    <OutputPath>bin\VSIX\Release\</OutputPath>
     <DefineConstants>TRACE;ANDROID</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -56,7 +55,8 @@
     <DeployExtension>False</DeployExtension>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="..\..\Build\Application\dot42.VStudio.Xml.vs12.dll">
+    <Content Include="..\..\Build\VStudioXml\*.dll">
+      <Link>Links\%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
       <VSIXSubPath>/</VSIXSubPath>
@@ -176,7 +176,9 @@
       <Project>{3E651A4C-97F4-41FC-9E0C-7D65A86BD794}</Project>
       <Name>VStudio.Project.Android</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;BuiltProjectOutputGroupDependencies;GetCopyToOutputDirectoryItems;PkgdefProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
-      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
+      <IncludeOutputGroupsInVSIXLocalOnly>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bPkgdefProjectOutputGroup%3bSatelliteDllsProjectOutputGroup%3bDebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
+      <VSIXSubPath>/</VSIXSubPath>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
@@ -184,9 +186,6 @@
   <!--Import Project="..\..\Common\Build\BuildTools.MSBuildTasks.targets" />
   <Import Project="$(VsSDKInstall)\SdkEnv.targets" /-->
   <PropertyGroup>
-    <!--PostBuildEvent>xcopy /Y /C $(TargetDir)*.* $(SolutionDir)\Build\Application</PostBuildEvent-->
-  </PropertyGroup>
-  <PropertyGroup>
-    <PostBuildEvent>copy $(TargetDir)$(TargetName).vsix $(ProjectDir)..\..\Build\Application\dot42.Android.vsix</PostBuildEvent>
+    <PostBuildEvent>xcopy /Y /I $(TargetDir)$(TargetName).vsix $(SolutionDir)\Build\Application\</PostBuildEvent>
   </PropertyGroup>
 </Project>
