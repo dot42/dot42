@@ -6,7 +6,8 @@ Before building, make sure you have
 - `nant` installed and in you path
 - `git` in your path, e.g. msysgit. This dependency is not crucial, and could be easily removed from the buildfile.
 - have `msbuild.exe` in your path, i.e. have called `VsDevCmd.bat` (Developer command prompt).
-- the build script tries to autodetect the correct VS installation. If it fails, try to adjust the `Common\Build\SelectVs.build` script. 
+- VS 2013, 2012 or 2010. While you can perfectly use VS 2015 to compile your Dot42 projects, when compiling the Dot42 Framework itself the VS 2015 roslyn compiler crashes at the moment for unknown reasons. Recommended is VS 2013. 
+- The build script tries to autodetect the correct VS installation. If it fails, try to adjust the `Common\Build\SelectVs.build` script. 
 - if you want to compile the Visual Studio extension you will need an VS 201x SDK installed (and VS 201x as well). See also below. You might have to adjust the build files if you don't want the extension to be compiled, I did not test this.
 - to build the setup, you will need to have InnoSetup installed.
 - In the original dot42 GitHub-repository, some "Buildtools" where missing, making it impossible to compile the project with `nant`. I wrote a replacement that handles the most important usages and is a noop for others. You can compile it yourself by invoking `nant` in `.\Common\Build\NAnt.BuildTools.Tasks`.
@@ -14,7 +15,7 @@ Before building, make sure you have
 
 
 
-You can now go through the `.build` files in `Common\Build` and the  `NAnt.build` file in the root directory and adjust any obviously wrong paths. I successfully compiled with VS 2013 installed. Alternatively you can also come back to this step if you run into errors.
+You can now go through the `.build` files in `Common\Build` and the  `NAnt.build` file in the root directory and adjust any obviously wrong paths. I successfully compiled with VS 2013 installed. Alternatively you can also come back to this step if you run into errors. 
 
 To build, invoke `nant build-setup` from the root folder. It'll take a while to finish. You will find the installer in the `Build\Setup` folder.
 
