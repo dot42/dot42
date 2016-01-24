@@ -10,6 +10,6 @@
         /// <summary>
         /// Publick key token of all framework assemblies
         /// </summary>
-        public const string SdkPublicKeyToken = "0a72796057571e65";
+        public const string SdkPublicKeyToken = null; // "0a72796057571e65";
     }
 }

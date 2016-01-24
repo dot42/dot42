@@ -18,7 +18,7 @@
     </Project>
   </TemplateContent>
   <WizardExtension>
-    <Assembly>dot42.VStudio.Project.Android, Version=1.2.1505.1, Culture=neutral, PublicKeyToken=null</Assembly>
+    <Assembly>dot42.VStudio.Project.Android, Version=1.0.1.83</Assembly>
     <FullClassName>Dot42.VStudio.Wizards.ClassLibraryProjectWizard</FullClassName>
   </WizardExtension>
 </VSTemplate>

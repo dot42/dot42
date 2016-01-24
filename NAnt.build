@@ -60,6 +60,16 @@
 				<include name="dot42/**" />
 			</fileset>
 		</delete>
+		<delete verbose="true" failonerror="false">
+			<fileset basedir="${devenv11dir}\Extensions">
+				<include name="dot42/**" />
+			</fileset>
+		</delete>
+		<delete verbose="true" failonerror="false">
+			<fileset basedir="${devenv12dir}\Extensions">
+				<include name="dot42/**" />
+			</fileset>
+		</delete>
 	</target>
 
 	<target name="kill-adb">
@@ -580,4 +590,42 @@
 		<nant buildfile="${basedir}\RegressionTests\Test.build" target="small-test"/>
 	</target>	
 
+	<!-- All git and release related stuff -->
+	
+	<target name="prepare-release"> 
+		<!-- Increment buildnumber -->
+		<increment-version dir="${productdir}" />
+
+		<!-- Update changelog -->
+		<update-changelog dir="${productdir}" file="${productdir}\changelog.xml"/>
+
+		<!-- Create version.cs -->
+		<update-version dir="${productdir}" destdir="${srcdir}"/>
+	</target>
+
+	<target name="commit-template-changes">
+		<call target="compile"/>
+		<call target="generate-framework-versions"/>
+		<if test="${git::is-clean() == false}">
+			<echo message="Commiting changes"/>
+			<git-add path="${srcdir}/Framework">
+				<files basedir="${srcdir}/Framework">
+					<include name="**/*.vstemplate"/>
+					<include name="Generated/**"/>
+				</files>
+			</git-add>
+			<git-commit message="Update templates and generated files" path="${srcdir}/Framework" allow-empty="true" />
+		</if>
+	</target>
+
+	<target name="set-release-mode">
+		<property name="release-mode" value="true" overwrite="true"/>
+	</target>
+
+	<target name="label-release" depends="common-label-release, commit-template-changes" description="Label the current version for a release" />
+	<target name="label-build-test-and-tag-release" depends="label-release, build-release, test, tag-release" description="Label, build and copy release" />
+	<target name="build-release" depends="set-release-mode, common-build-release" description="Build and copy release" /> 
+	<target name="build-release-and-test" depends="build-release, test" description="Build, copy and test release" runas="1" />
+	<target name="tag-release" depends="common-tag-release" description="Tag a release" /> 
+	<target name="push-to-server" depends="common-push-to-server" description="Push develop, master and tags to server" />
 </project>

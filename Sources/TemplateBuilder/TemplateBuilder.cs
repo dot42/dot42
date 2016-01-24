@@ -42,7 +42,7 @@ namespace Dot42.TemplateBuilder
                 if ((assemblyE != null) && string.IsNullOrEmpty(assemblyE.Value))
                 {
                     var version = Assembly.GetExecutingAssembly().GetName().Version;
-                    assemblyE.Value = string.Format("Dot42.VStudio10.Editors, Version={0}, Culture=neutral, PublicKeyToken=0a72796057571e65", version);
+                    assemblyE.Value = string.Format("Dot42.VStudio10.Editors, Version={0}", version);
                 }
             }
             var templateContent = template.ToString();

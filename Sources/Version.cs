@@ -2,5 +2,5 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-[assembly: AssemblyVersion("1.2.1505.1")]
+[assembly: AssemblyVersion("1.0.1.83")]
 [assembly: AssemblyConfiguration("")]
