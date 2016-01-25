@@ -454,18 +454,67 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                 case AstCode.Conv_R_Un:
                 {
                     // This can be either to double or single.
+                    // We have special treatment for ulong/uint => float/double conversion,
+                    // to make sure the highest bit is handled correctly.
 
-                    // note: This is broken. when converting from uint=>float, ulong=>float or ulong=>double,
-                    //       the current code just treats the unsigned as a signed. this would result in
-                    //       negative results for large values.
-                    //       The problem could be solved - earlier - by converting uint to ulongs first, and 
-                    //       for ulong by treating the highest bit specially and multiplying the result by 2 if
-                    //       neccessary.
-                    
-                    if(node.GetResultType().IsFloat())
+                    // Maybe this should rather be an Ast Conversion?
+
+                    var sourceType = node.Arguments[0].GetResultType();
+                    var isToFloat = node.GetResultType().IsFloat();
+
+                    var targetType = isToFloat ? PrimitiveType.Float : PrimitiveType.Double;
+                    var longToTargetCode = isToFloat ? RCode.Long_to_float : RCode.Long_to_double;
+
+                    if (sourceType.IsUInt32())
+                    {
+                        // to be on the safe side when the highest bit is set, we convert to long first.
+                        var tmp1 = frame.AllocateTemp(PrimitiveType.Long);
+                        var tmp2 = frame.AllocateTemp(PrimitiveType.Long);
+                        var result = frame.AllocateTemp(targetType);
+                        var first = this.Add(node.SourceLocation, RCode.Int_to_long, tmp1, args[0].Result);
+                        this.Add(node.SourceLocation, RCode.Const_wide, 0xFFFFFFFFL, tmp2);
+                        this.Add(node.SourceLocation, RCode.And_long_2addr, tmp1, tmp2);
+                        var last = this.Add(node.SourceLocation, longToTargetCode, result, tmp1);
+                        return new RLRange(first, last, result);
+                    }
+                    if (sourceType.IsUInt64())
+                    {
+                        // It might make more sense to make this into a C# Framework method that we call here...
+
+                        // we first clear the highest bit, then decide if we need to multiply the result by 2
+                        var tmpLong = frame.AllocateTemp(PrimitiveType.Long);
+                        var tmpInt  = frame.AllocateTemp(PrimitiveType.Int);
+                        var tmpTarget = frame.AllocateTemp(targetType);
+                        var result   = frame.AllocateTemp(targetType);
+
+                        var first = this.Add(node.SourceLocation, RCode.Nop);
+                        this.Add(node.SourceLocation, RCode.Const_wide, 0, tmpLong);
+                        this.Add(node.SourceLocation, RCode.Cmp_long, tmpInt, args[0].Result, tmpLong); // check if the highest bit is set.
+                        var branchToTwiddle = this.Add(node.SourceLocation, RCode.If_ltz, tmpInt);      // branch if highest bit was et
+                        // simple case / highest bit unset
+                        this.Add(node.SourceLocation, longToTargetCode, result, args[0].Result);
+                        var gotoDone = this.Add(node.SourceLocation, RCode.Goto);
+                        // twiddeling case / highest bit set
+                        // value = (value&0x7FFFFFFFFFFFFFFF) + (float/double)0x8000000000000000UL;
+                        var twiddle = this.Add(node.SourceLocation, RCode.Const_wide, 0x7FFFFFFFFFFFFFFF, tmpLong);
+                        this.Add(node.SourceLocation, RCode.And_long_2addr, tmpLong, args[0].Result);
+                        this.Add(node.SourceLocation, longToTargetCode, result, tmpLong); //convert
+                        this.Add(node.SourceLocation, isToFloat ? RCode.Const : RCode.Const_wide, isToFloat ?
+                            (object)(float)0x8000000000000000UL : (object)(double)0x8000000000000000UL, tmpTarget); // value for highest bit
+                        this.Add(node.SourceLocation, isToFloat ? RCode.Add_float_2addr : RCode.Add_double_2addr, result, tmpTarget); 
+                        
+                        var last = this.Add(node.SourceLocation, RCode.Nop);
+
+                        branchToTwiddle.Operand = twiddle;
+                        gotoDone.Operand = last;
+                        return new RLRange(first, last, result);
+                    }
+
+                    // The normal case.
+                    if (isToFloat)
                         return ConvX(node.SourceLocation, node.Arguments[0].ConvR4(), PrimitiveType.Float, args[0]);
-                    else
-                        return ConvX(node.SourceLocation, node.Arguments[0].ConvR8(), PrimitiveType.Double, args[0]);
+                    // To Double
+                    return ConvX(node.SourceLocation, node.Arguments[0].ConvR8(), PrimitiveType.Double, args[0]);
                 }
                 case AstCode.Int_to_ubyte:
                     {

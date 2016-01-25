@@ -230,5 +230,26 @@ namespace Dot42.Tests.Compiler.Sources
             AssertNotSame(dNaN >  double.NaN ? 5 : 6, 5);
             AssertNotSame(dNaN >= double.NaN ? 5 : 6, 5);
         }
+
+        public void testUshortToFloatConversion()
+        {
+            ushort x = 0xF000;
+            float y = (float) x;
+            AssertEquals(61440f, y);
+        }
+
+        public void testUintToFloatConversion()
+        {
+            uint x = 0x80000000;
+            float y = (float)x;
+            AssertEquals(2.14748365E+09f, y); 
+        }
+
+        public void testUlongToFloatConversion()
+        {
+            ulong x = 0xF000000000000000;
+            float y = (float)x;
+            AssertEquals(1.72938226E+19f, y);
+        }
     }
 }
