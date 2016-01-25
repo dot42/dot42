@@ -220,22 +220,7 @@ namespace Dot42.CompilerLib.RL
                 if (destinationType.ExtendsIEnumerable())
                 {
                     // Use ArrayHelper.As...Enumerable to convert
-                    var convertMethodName = "AsObjectEnumerable";
-                    if (sourceArrayElementType.IsPrimitive)
-                    {
-                        if (sourceArrayElementType.IsBoolean()) convertMethodName = "AsBoolEnumerable";
-                        else if (sourceArrayElementType.IsByte()) convertMethodName = "AsByteEnumerable";
-                        else if (sourceArrayElementType.IsSByte()) convertMethodName = "AsSByteEnumerable";
-                        else if (sourceArrayElementType.IsChar()) convertMethodName = "AsCharEnumerable";
-                        else if (sourceArrayElementType.IsInt16()) convertMethodName = "AsInt16Enumerable";
-                        else if (sourceArrayElementType.IsUInt16()) convertMethodName = "AsUInt16Enumerable";
-                        else if (sourceArrayElementType.IsInt32()) convertMethodName = "AsInt32Enumerable";
-                        else if (sourceArrayElementType.IsUInt32()) convertMethodName = "AsUInt32Enumerable";
-                        else if (sourceArrayElementType.IsInt64()) convertMethodName = "AsInt64Enumerable";
-                        else if (sourceArrayElementType.IsFloat()) convertMethodName = "AsFloatEnumerable";
-                        else if (sourceArrayElementType.IsDouble()) convertMethodName = "AsDoubleEnumerable";
-                        else throw new ArgumentOutOfRangeException("Unknown primitive array element type " + sourceArrayElementType);
-                    }
+                    var convertMethodName = FrameworkReferences.GetAsEnumerableTMethodName(sourceArrayElementType);
                     var convertMethod = arrayType.GetMethod(convertMethodName);
                     // Add code
                     var tmp = builder.EnsureTemp(sequencePoint, source, frame);

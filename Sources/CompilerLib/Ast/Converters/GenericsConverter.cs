@@ -5,6 +5,7 @@ using Dot42.CompilerLib.Ast2RLCompiler.Extensions;
 using Dot42.CompilerLib.Extensions;
 using Dot42.CompilerLib.XModel;
 using Dot42.CompilerLib.XModel.DotNet;
+using java.nio.file;
 
 namespace Dot42.CompilerLib.Ast.Converters
 {
@@ -54,6 +55,32 @@ namespace Dot42.CompilerLib.Ast.Converters
                             {
                                 var expectedType = currentMethod.Method.ReturnType;
                                 BoxIfGeneric(expectedType, node.Arguments[0]);
+                            }
+                        }
+                        break;
+                    case AstCode.Box:
+                        {
+                            var type = (XTypeReference)node.Operand;
+
+                            // Honestly, the whole Generics code seems to be quite
+                            // complex. I hope this fix does not break anything else.
+                            // Also: is there any sense in having two codes 'box' and 'boxtogeneric'?
+
+                            // The Rosyln compiler apparently uses 'box' instructions to satisfy
+                            // generic constraints. Not sure if this is the right place to handle 
+                            // this. 
+                            // What we want to achive is to perform this conversion code only if the
+                            // expected type is assignable from any of the constraints. As we do not
+                            // have an 'IsAssignableFrom' logic for XTypes, a simpler check must suffice.
+                            
+                            if (type.IsGenericParameter 
+                                && ((XGenericParameter)type).Constraints.Any() 
+                                && node.ExpectedType != null && !node.ExpectedType.IsPrimitive
+                                && !node.ExpectedType.IsGenericParameter)
+                            {
+                                // or just enter the required cast here???
+                                node.Code = AstCode.BoxToGeneric;
+                                node.InferredType = node.ExpectedType;
                             }
                         }
                         break;

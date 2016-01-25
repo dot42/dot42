@@ -208,23 +208,43 @@ namespace Dot42.CompilerLib.Ast.Converters
         {
             var targetMethodRef = ((XMethodReference)node.Operand);
             var targetMethodDefOrRef = targetMethodRef;
-            
-            if (!targetMethodDefOrRef.DeclaringType.IsSystemCollectionsIEnumerable())
-                return;
-            if (targetMethodDefOrRef.Name != "IEnumerable_GetEnumerator")
-                return;
 
-            if (node.Arguments.Count != 1) return;
+            if (targetMethodDefOrRef.DeclaringType.IsSystemCollectionsIEnumerable()
+                && targetMethodDefOrRef.Name == "IEnumerable_GetEnumerator"
+                && node.Arguments.Count == 1)
+            {
+                var argument = node.Arguments[0];
+                if (!argument.InferredType.IsArray)
+                    return;
 
-            var argument = node.Arguments[0];
-            
-            if (!argument.InferredType.IsArray)
-                return;
-            
-            // swap the call to System.Array
-            var systemArray = compiler.GetDot42InternalType("System", "Array").Resolve();
-            var getEnumerator = systemArray.Methods.First(x => x.Name == "GetEnumerator" && !x.IsStatic && x.Parameters.Count == 0);
-            node.Operand = getEnumerator;
+                // swap the call to System.Array
+                var systemArray = compiler.GetDot42InternalType("System", "Array").Resolve();
+                var getEnumerator = systemArray.Methods.First(x => x.Name == "GetEnumerator" && !x.IsStatic && x.Parameters.Count == 0);
+                node.Operand = getEnumerator;
+            }
+            else if (targetMethodDefOrRef.DeclaringType.IsSystemCollectionsIEnumerableT()
+                  && targetMethodDefOrRef.Name.EndsWith("_GetEnumerator")
+                  && node.Arguments.Count == 1)
+            {
+                var argument = node.Arguments[0];
+                if (!argument.InferredType.IsArray)
+                    return;
+
+                var elementType = argument.InferredType.ElementType;
+
+                // Use As...Enumerable to convert
+                var asEnumerableName = FrameworkReferences.GetAsEnumerableTMethodName(elementType);
+                var compilerHelper = compiler.GetDot42InternalType(InternalConstants.CompilerHelperName).Resolve();
+                var asEnumerableMethod = compilerHelper.Methods.First(x => x.Name == asEnumerableName);
+                
+                var call = new AstExpression(node.SourceLocation, AstCode.Call, asEnumerableMethod, argument)
+                {
+                    InferredType = asEnumerableMethod.ReturnType
+                };
+                node.Arguments[0] = call;
+
+                argument.ExpectedType = argument.InferredType;
+            }
         }
 
         /// <summary>

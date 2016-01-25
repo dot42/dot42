@@ -633,6 +633,22 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                     }
                 case AstCode.Brtrue:
                 case AstCode.Brfalse:
+                    {
+                        var arg = node.Arguments[0];
+                        if (!arg.IsWide())
+                            goto case AstCode.BrIfEq; // normal handling
+
+                        var rZero = frame.AllocateTemp(PrimitiveType.Long);
+                        var rCmp = frame.AllocateTemp(PrimitiveType.Int);
+
+                        var label = (AstLabel)node.Operand;
+                        var start  = this.Add(node.SourceLocation, RCode.Const_wide, 0, rZero);
+                        var test   = this.Add(node.SourceLocation, RCode.Cmp_long, rCmp.Register, args[0].Result, rZero.Register);
+                        var branch = this.Add(node.SourceLocation, node.Code.ToIfTestZ(), rCmp);
+                        labelManager.AddResolveAction(label, x => branch.Operand = x);
+                        return new RLRange(start, branch, null);
+
+                    }
                 case AstCode.BrIfEq:
                 case AstCode.BrIfNe:
                 case AstCode.BrIfGe:

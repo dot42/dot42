@@ -1,4 +1,5 @@
-﻿using Dot42.CompilerLib.XModel;
+﻿using System;
+using Dot42.CompilerLib.XModel;
 using Dot42.DexLib;
 using Dot42.FrameworkDefinitions;
 
@@ -93,5 +94,31 @@ namespace Dot42.CompilerLib
         /// Reference to java.util.Arrays.fill(Object[], object)
         /// </summary>
         internal static readonly MethodReference ArraysFillObject = new MethodReference(Arrays, "fill", new Prototype(PrimitiveType.Void, new Parameter(ObjectArray, "array"), new Parameter(Object, "value")));
+
+        /// <summary>
+        /// Returns the method name when converting an array to an IEnumerableT in compiler helper.
+        /// 
+        /// (not sure if this is the best place for this method...)
+        /// </summary>
+        public static string GetAsEnumerableTMethodName(XTypeReference sourceArrayElementType)
+        {
+            var convertMethodName = "AsObjectEnumerable";
+            if (sourceArrayElementType.IsPrimitive)
+            {
+                if (sourceArrayElementType.IsBoolean()) convertMethodName = "AsBoolEnumerable";
+                else if (sourceArrayElementType.IsByte()) convertMethodName = "AsByteEnumerable";
+                else if (sourceArrayElementType.IsSByte()) convertMethodName = "AsSByteEnumerable";
+                else if (sourceArrayElementType.IsChar()) convertMethodName = "AsCharEnumerable";
+                else if (sourceArrayElementType.IsInt16()) convertMethodName = "AsInt16Enumerable";
+                else if (sourceArrayElementType.IsUInt16()) convertMethodName = "AsUInt16Enumerable";
+                else if (sourceArrayElementType.IsInt32()) convertMethodName = "AsInt32Enumerable";
+                else if (sourceArrayElementType.IsUInt32()) convertMethodName = "AsUInt32Enumerable";
+                else if (sourceArrayElementType.IsInt64()) convertMethodName = "AsInt64Enumerable";
+                else if (sourceArrayElementType.IsFloat()) convertMethodName = "AsFloatEnumerable";
+                else if (sourceArrayElementType.IsDouble()) convertMethodName = "AsDoubleEnumerable";
+                else throw new ArgumentOutOfRangeException("Unknown primitive array element type " + sourceArrayElementType);
+            }
+            return convertMethodName;
+        }
     }
 }

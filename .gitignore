@@ -1,5 +1,5 @@
-bin/
-obj/
+[bB]in/
+[oO]bj/
 Out/
 /.vs
 *.suo
