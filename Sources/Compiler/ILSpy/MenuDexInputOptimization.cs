@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Windows.Controls;
 using System.Windows.Input;
 using Dot42.CompilerLib.Ast.Optimizer;
 using Dot42.CompilerLib.Target;
@@ -34,29 +35,22 @@ namespace Dot42.Compiler.ILSpy
             DexInputLanguage.StopOptimizing = stopCode;
             
             MainWindow.Instance.RefreshDecompiledView();
-            //UpdateCheckedState(stopCode);
+            UpdateCheckedState(stopCode);
         }
 
-        //private static void UpdateCheckedState(StopAstConversion stopCode)
-        //{
-        //    // this does not work.
-        //    foreach (MenuItem item in MainWindow.Instance.GetMainMenuItems())
-        //    {
-        //        if (!(item.Command is StopMenuCommand))
-        //            continue;
-        //        var attr = GetAttribute(item.Command);
-
-        //        if (attr.StopCode == stopCode)
-        //        {
-        //            item.IsCheckable = true;
-        //            item.IsChecked = true;
-        //        }
-        //        else
-        //        {
-        //            item.IsChecked = false;
-        //        }
-        //    }
-        //}
+        private static void UpdateCheckedState(AstOptimizationStep stopCode)
+        {
+            foreach (MenuItem mainItem in MainWindow.Instance.GetMainMenuItems())
+            foreach (object itemObj in mainItem.Items)
+            {
+                var item = itemObj as MenuItem;
+                if(item == null || !(item.Command is StopOptimizeMenuCommand))
+                    continue;
+                item.IsCheckable = true;
+                var attr = GetAttribute(item.Command);
+                item.IsChecked = attr.StopCode == stopCode;
+            }
+        }
 
         private static StopOptimizeMenuCommandAttribute GetAttribute(ICommand command)
         {
