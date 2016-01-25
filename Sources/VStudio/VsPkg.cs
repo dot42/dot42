@@ -42,7 +42,7 @@ namespace Dot42.VStudio
         ProvideAutoLoad(UIContextGuids.SolutionHasMultipleProjects),
         ProvideProjectFactory(typeof(Dot42ProjectFlavorFactory), null, null, null, null, null, TemplateGroupIDsVsTemplate = "dot42"),
         DefaultRegistryRoot(@"Software\Microsoft\VisualStudio\10.0Exp"),
-        InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400),
+        InstalledProductRegistration("#110", "#112", "1.1", IconResourceID = 400),
         // Register project type
         //ProvideFlavoredProjectFactory(typeof(Dot42ProjectFactory)),
         //ProvideObject(typeof(BuildPropertyPage)),
@@ -51,7 +51,7 @@ namespace Dot42.VStudio
         // package needs to have a valid load key (it can be requested at 
         // http://msdn.microsoft.com/vstudio/extend/). This attributes tells the shell that this 
         // package has a load key embedded in its resources.
-        //ProvideLoadKey("Standard", "1.0", "dot42 C# for Android", "dot42", 104),
+        //ProvideLoadKey("Standard", "1.1", "dot42 C# for Android", "dot42", 104),
         ProvideObject(typeof(AndroidPropertyPage)),
         Clsid(typeof(DebugEngine)),
         Clsid(typeof(DebugPortSupplier)),
