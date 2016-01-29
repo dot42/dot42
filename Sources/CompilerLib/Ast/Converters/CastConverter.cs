@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Dot42.CompilerLib.XModel;
 using Dot42.FrameworkDefinitions;
 
@@ -176,7 +177,8 @@ namespace Dot42.CompilerLib.Ast.Converters
                 return;
             }
 
-            // Normal "as": Convert to (x instanceof T) ? T(x) : null
+            // Normal "as": Convert to (x instanceof T) ? (T)x : null
+            if(!type.IsPrimitive)
             {
                 // "instanceof x"
                 var instanceofExpr = new AstExpression(node.SourceLocation, AstCode.SimpleInstanceOf, type, storeTempVar).SetType(typeSystem.Bool);
@@ -192,6 +194,14 @@ namespace Dot42.CompilerLib.Ast.Converters
 
                 node.CopyFrom(conditional);
                 return;                
+            }
+            else
+            {
+                // treat as "x is T"
+                if(!node.ExpectedType.IsBoolean())
+                    throw new NotImplementedException(); // can this happen?
+
+                node.Code = AstCode.SimpleInstanceOf;
             }
         }
 

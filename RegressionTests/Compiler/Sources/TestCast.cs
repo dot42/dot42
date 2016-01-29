@@ -39,35 +39,39 @@ namespace Dot42.Tests.Compiler.Sources
 		{
 			AssertEquals(-1, Length(this));
 		}
-		
-		public void test5() 
-		{
-			object value = (int)123; 
-			AssertTrue(value is int);
-			value = (uint)123; 
-			AssertTrue(value is uint);
-			value = (bool)true; 
-			AssertTrue(value is bool);
-			value = (byte)123; 
-			AssertTrue(value is byte);
-			value = (sbyte)123; 
-			AssertTrue(value is sbyte);
-			value = (char)'a'; 
-			AssertTrue(value is char);
-			value = (short)12300; 
-			AssertTrue(value is short);
-			value = (ushort)12300; 
-			AssertTrue(value is ushort);
-			value = (long)123L; 
-			AssertTrue(value is long);
-			value = (ulong)1230000000L; 
-			AssertTrue(value is ulong);
-			value = (float)5.5f; 
-			AssertTrue(value is float);
-			value = (double)55555.5555; 
-			AssertTrue(value is double);
-		}
 
+        public void test5()
+        {
+            object value = (int) 123;
+            AssertTrue(value is int);
+            value = (uint) 123;
+            AssertTrue(value is uint);
+            value = (bool) true;
+            AssertTrue(value is bool);
+            value = (byte) 123;
+            AssertTrue(value is byte);
+            value = (sbyte) 123;
+            AssertTrue(value is sbyte);
+            value = (char) 'a';
+            AssertTrue(value is char);
+            value = (short) 12300;
+            AssertTrue(value is short);
+            value = (ushort) 12300;
+            AssertTrue(value is ushort);
+            value = (long) 123L;
+            AssertTrue(value is long);
+            value = (ulong) 1230000000L;
+            AssertTrue(value is ulong);
+            value = (float) 5.5f;
+            AssertTrue(value is float);
+            value = (double) 55555.5555;
+            AssertTrue(value is double);
+
+            if (value is double) 
+                AssertEquals(55555.5555, (double)value);
+            else
+                Fail("not a double?");
+        }
 
         public void test6()
         {
