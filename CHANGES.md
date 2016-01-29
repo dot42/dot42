@@ -1,6 +1,10 @@
-### 2016-01-22 
+### 2016-01-29 / commit id c846336bbff69533816a5f1213da55d557fb4409 
 
-Fix verification errors when using the ART runtime.
+- Support ART Runtime / Android 5.x Lollipop by fixing several verification errors
+- Support VS 2015 & Rosilyn compiler: allow both Dot42 and Apps be compiled with VS 2015
+- improve the build system to autodetect installed Visual Studio version
+- fix ulong/uint => float/double conversion when highest bit is set.
+- fix New Project Wizard sometimes not showing up in VS.
 
 ### 2015-06-29 commit id f27a0fb67a5b3d472a6133d3d2c284884dbf14a9
 
