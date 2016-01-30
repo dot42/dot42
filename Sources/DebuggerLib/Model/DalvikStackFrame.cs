@@ -21,6 +21,7 @@ namespace Dot42.DebuggerLib.Model
         private List<DalvikStackFrameValue> registers;
         private List<DalvikStackFrameValue> parameters;
         private List<VariableInfo> validVariables;
+        private RegisterNames registerNames;
 
         /// <summary>
         /// Default ctor
@@ -44,6 +45,19 @@ namespace Dot42.DebuggerLib.Model
         {
             if (documentLocation != null) return documentLocation.AsTask();
             return thread.Manager.Process.ResolveAsync(Location).SaveAndReturn(x => documentLocation = x);
+        }
+
+        public Task<RegisterNames> GetRegisterNamesAsync()
+        {
+            if (registerNames != null) return registerNames.AsTask();
+            return Task.Factory.StartNew(() =>
+            {
+                var loc = GetDocumentLocationAsync().Await(DalvikProcess.VmTimeout);
+                MethodDisassembly methodDiss = thread.Manager.Process.DisassemblyProvider.GetFromLocation(loc);
+                registerNames = new RegisterNames(methodDiss == null ? null : methodDiss.Method.Body,
+                    HasMethodParametersInLastRegisters);
+                return registerNames;
+            });
         }
 
         /// <summary>
@@ -70,7 +84,8 @@ namespace Dot42.DebuggerLib.Model
                 {
                     var slotRequests = validVariableTable.Select(x => new SlotRequest(x.Slot, x.Tag))
                                                          .ToArray();
-                    var frameValues = Debugger.StackFrame.GetValuesAsync(Thread.Id, Id, slotRequests).Await(DalvikProcess.VmTimeout);
+                    var frameValues = Debugger.StackFrame.GetValuesAsync(Thread.Id, Id, slotRequests)
+                                                         .Await(DalvikProcess.VmTimeout);
                     var list = new List<DalvikValue>();
                     for (var i = 0; i < slotRequests.Length; i++)
                     {
@@ -120,13 +135,17 @@ namespace Dot42.DebuggerLib.Model
                 
                 MethodDisassembly methodDiss = thread.Manager.Process.DisassemblyProvider.GetFromLocation(loc);
 
+                registerNames = registerNames ??
+                                new RegisterNames(methodDiss == null ? null : methodDiss.Method.Body, HasMethodParametersInLastRegisters);
+
                 if(indizes.Length == 0)
                 {
                     if (methodDiss == null)
                         return ret;
 
                     var body = methodDiss.Method.Body;
-                    regDefs = (parametersOnly ? body.Registers.Where(r=>body.IsComing(r))
+
+                    regDefs = (parametersOnly ? body.Registers.Where(r => registerNames.IsParameter(r))
                                               : body.Registers)
                               .Where(p => indizes.Length == 0 || indizes.Contains(p.Index))
                               .OrderBy(p=>p.Index)
@@ -146,25 +165,14 @@ namespace Dot42.DebuggerLib.Model
                 for (int i = 0; i < regDefs.Count && i < regValues.Count; ++i)
                 {
                     var reg = regDefs[i];
-                    if (methodDiss != null)
-                    {
-                        var body = methodDiss.Method.Body;
-                        bool isParam = body.IsComing(reg);
+                    int numRegs = methodDiss == null ? int.MaxValue : methodDiss.Method.Body.Instructions.Count;
+                    bool isParam = registerNames.IsParameter(reg);
+                    string regName = registerNames.GetName(reg);
 
-                        string regName = MethodDisassembly.FormatRegister(reg, body);
-                        var valInfo = new VariableInfo(0, regName, null, null, body.Instructions.Count, reg.Index);
+                    var valInfo = new VariableInfo(0, regName, null, null, numRegs, reg.Index);
 
-                        DalvikStackFrameValue val = new DalvikStackFrameValue(regValues[i], valInfo, isParam, process);
-                        ret.Add(val);
-                    }
-                    else
-                    {
-                        string regName = "r" + reg.Index;
-                        var valInfo = new VariableInfo(0, regName, null, null, int.MaxValue, reg.Index);
-
-                        var val = new DalvikStackFrameValue(regValues[i], valInfo, false, process);
-                        ret.Add(val);
-                    }
+                    DalvikStackFrameValue val = new DalvikStackFrameValue(regValues[i], valInfo, isParam, process);
+                    ret.Add(val);
                 }
 
                 if (indizes.Length > 0)
@@ -176,6 +184,21 @@ namespace Dot42.DebuggerLib.Model
                     registers = registers ?? ret;
                 return ret;
             });
+        }
+
+        public static string FormatRegister(Register r, MethodBody body)
+        {
+            if (body.IsComing(r))
+            {
+                int parameterIdx = r.Index - body.Registers.Count + body.IncomingArguments;
+                return "p" + parameterIdx;
+            }
+            return "r" + r.Index;
+        }
+
+        public bool HasMethodParametersInLastRegisters
+        {
+            get { return Debugger.IsDalvikVM; }
         }
 
         /// <summary>
@@ -216,5 +239,66 @@ namespace Dot42.DebuggerLib.Model
         /// Provide access to the low level debugger.
         /// </summary>
         protected Debugger Debugger { get { return thread.Manager.Debugger; } }
+
+
+        public class RegisterNames
+        {
+            private readonly MethodBody _body;
+            private readonly bool _hasMethodParametersInLastRegister;
+
+            public RegisterNames(MethodBody body, bool hasMethodParametersInLastRegister)
+            {
+                _body = body;
+                _hasMethodParametersInLastRegister = hasMethodParametersInLastRegister;
+            }
+
+            public string GetName(Register r)
+            {
+                if (_body == null)
+                    return "r" + r.Index;
+
+                if (_hasMethodParametersInLastRegister)
+                {
+                    if (r.Index > _body.IncomingArguments)
+                        return "p" + (r.Index - (_body.Registers.Count - _body.IncomingArguments));
+                    return "r" + r.Index;
+                }
+
+                if (r.Index < _body.IncomingArguments) 
+                    return "p" + r.Index;
+
+                return "r" + (r.Index - _body.IncomingArguments);
+            }
+
+            public int GetVmIndex(bool isParameter, int index)
+            {
+                if (_body == null && isParameter)
+                    return -1;
+                if (_body == null)
+                    return index;
+
+                if (_hasMethodParametersInLastRegister && isParameter)
+                    return index + (_body.Registers.Count - _body.IncomingArguments);
+                if(!_hasMethodParametersInLastRegister && !isParameter)
+                    return index + _body.IncomingArguments;
+
+                return index;
+            }
+
+            /// <summary>
+            /// returns true if the register on the Debugger is a parameter.
+            /// Works both on DalvikVM and ART.
+            /// </summary>
+            public bool IsParameter(Register register)
+            {
+                if (_body == null)
+                    return false;
+
+                if (_hasMethodParametersInLastRegister)
+                    return _body.IsComing(register);
+                return register.Index < _body.IncomingArguments;
+            }
+
+        }
     }
 }

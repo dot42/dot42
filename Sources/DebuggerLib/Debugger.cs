@@ -31,6 +31,8 @@ namespace Dot42.DebuggerLib
         private JdwpMonitor jdwpMonitor;
         private int pid = -1;
         private string apkFile;
+        
+        public bool IsDalvikVM { get { return connection.VmVersion.IsDalvikVm; } }
 
         /// <summary>
         /// Connected state has changed.

@@ -74,6 +74,16 @@ namespace Dot42.DebuggerLib
             SendHelo();
         }
 
+        public VersionInfo VmVersion
+        {
+            get
+            {
+                if (versionInfo == null)
+                    throw new Exception("debugging not active");
+                return versionInfo;
+            }
+        }
+
         /// <summary>
         /// Prepare this connection for actual debugging.
         /// </summary>
@@ -529,5 +539,6 @@ namespace Dot42.DebuggerLib
         {
             get { return GetIdSizeInfo(); }
         }
+
     }
 }

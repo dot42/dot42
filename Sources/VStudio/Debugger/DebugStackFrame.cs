@@ -104,20 +104,26 @@ namespace Dot42.VStudio.Debugger
             pbstrError = null;
             pichError = 0;
 
-            // Try to match a local variable
-            var locals = GetValues();
-            var localVariable = locals.FirstOrDefault(x => x.Name == pszCode);
-            if (localVariable != null)
-            {
-                ppExpr = new DebugExpression(new DebugStackFrameValueProperty(localVariable, null, this));
-                return VSConstants.S_OK;
-            }
-
             // special registers group?
             if (pszCode.StartsWith("$reg", StringComparison.InvariantCultureIgnoreCase))
             {
                 ppExpr = new DebugExpression(new DebugRegisterGroupProperty(this, false));
                 return VSConstants.S_OK;
+            }
+
+            // Try to match a local variable
+            try
+            {
+                var locals = GetValues();
+                var localVariable = locals == null ? null : locals.FirstOrDefault(x => x.Name == pszCode);
+                if (localVariable != null)
+                {
+                    ppExpr = new DebugExpression(new DebugStackFrameValueProperty(localVariable, null, this));
+                    return VSConstants.S_OK;
+                }
+            }
+            catch
+            {
             }
 
             // try to match any of the registers.

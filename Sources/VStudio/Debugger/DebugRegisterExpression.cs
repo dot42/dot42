@@ -56,7 +56,6 @@ namespace Dot42.VStudio.Debugger
             out IDebugProperty2 ppResult)
         {
             ppResult = null;
-            int idx = _index;
 
             if (string.IsNullOrEmpty(_castExpr))
             {
@@ -77,25 +76,18 @@ namespace Dot42.VStudio.Debugger
                     // this evaluation has "side effects" in that it might crash the VM
                     // if the cast is to "object" or "string", but the register does not 
                     // hold an object or string.
-                    ppResult = new DebugConstProperty(_expression, "(this cast might crash the VM if the register is not of the casted type)", _castExpr, null)
+                    ppResult = new DebugConstProperty(_expression, "(this cast might crash a DalvikVM if the register is not of the casted type)", _castExpr, null)
                                                      { HasSideEffects = true };
                     return VSConstants.E_FAIL;
                 }
 
-                var isParam = _registerType == "p";
+                var regNames = _stackFrame.GetRegisterNamesAsync().Await((int)dwTimeout);
+                var vmIdx = regNames.GetVmIndex(_registerType == "p", _index);
 
-                if (isParam)
-                {
-                    var loc = _stackFrame.GetDocumentLocationAsync().Await((int) dwTimeout);
-                    if (loc == null)
-                        return VSConstants.E_FAIL;
-                    var methodDiss = _stackFrame.Thread.Program.DisassemblyProvider.GetFromLocation(loc);
-                    if (methodDiss == null)
-                        return VSConstants.E_FAIL;
-                    idx += methodDiss.Method.Body.Registers.Count - methodDiss.Method.Body.IncomingArguments;
-                }
+                if (vmIdx < 0)
+                    return VSConstants.E_FAIL;
 
-                var reg = _stackFrame.GetRegistersAsync(false, tag, idx).Await((int) dwTimeout);
+                var reg = _stackFrame.GetRegistersAsync(false, tag, vmIdx).Await((int)dwTimeout);
 
                 if (reg != null && reg.Count > 0)
                 {

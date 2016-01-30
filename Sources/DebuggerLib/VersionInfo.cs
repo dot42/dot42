@@ -19,5 +19,12 @@
             VmJreVersion = vmJreVersion;
             VmName = vmName;
         }
+
+        public bool IsDalvikVm
+        {
+            // not so hot to use string comparison here, but looking at the values, this seems to be the
+            // reliable way.
+            get { return Description != null && Description.StartsWith("Android DalvikVM 1"); }
+        }
     }
 }
