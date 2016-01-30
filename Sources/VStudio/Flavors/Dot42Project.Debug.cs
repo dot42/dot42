@@ -16,8 +16,9 @@ using PackageFile = Dot42.BarLib.BarFile;
 
 namespace Dot42.VStudio.Flavors
 {
-    partial class Dot42Project 
+    partial class Dot42Project
     {
+        private DateTime _lastDeployApkTimestamp;
         /// <summary>
         /// Starts the debugger.
         /// </summary>
@@ -26,12 +27,22 @@ namespace Dot42.VStudio.Flavors
             // Open the package
             PackageFile packageFile;
             var packagePath = PackagePath;
+            bool needsDeploy = false;
+
             try
             {
                 packageFile = new PackageFile(packagePath);
+                
+                var curTime = File.GetLastWriteTimeUtc(packagePath);
+                if (curTime != _lastDeployApkTimestamp)
+                {
+                    _lastDeployApkTimestamp = curTime;
+                    needsDeploy = true;
+                }
             }
             catch (Exception ex)
             {
+                _lastDeployApkTimestamp = DateTime.MinValue;
                 MessageBox.Show(string.Format("Failed to open package because: {0}", ex.Message));
                 return;
             }
@@ -60,7 +71,15 @@ namespace Dot42.VStudio.Flavors
                 {
                     case DialogResult.OK:
                         var device = dialog.SelectedDevice;
-                        Package.Ide.LastUsedUniqueId = device.UniqueId;
+                        if (Package.Ide.LastUsedUniqueId == device.UniqueId)
+                        {
+                            runner.DeployApk = needsDeploy;
+                        }
+                        else
+                        {
+                            _lastDeployApkTimestamp = DateTime.MinValue;
+                            Package.Ide.LastUsedUniqueId = device.UniqueId;
+                        }
 
                         using (var xDialog = new LauncherDialog(packagePath, debuggable))
                         {

@@ -22,6 +22,8 @@ namespace Dot42.Ide.Debugger
         private Action<LauncherStates, string> stateUpdate;
         private readonly CancellationTokenSource cancellationTokenSource;
 
+        public bool DeployApk { get; set; }
+
         /// <summary>
         /// Default ctor
         /// </summary>
@@ -35,6 +37,7 @@ namespace Dot42.Ide.Debugger
             this.launchFlags = launchFlags;
             cancellationTokenSource = new CancellationTokenSource();
             outputPane = ide.CreateDot42OutputPane();
+            DeployApk = true;
 
             // Load package
             try
@@ -104,9 +107,13 @@ namespace Dot42.Ide.Debugger
             if (IsCancelled) return;
             var adb = new Adb();
             adb.Logger += LogLine;
-            LogLine(string.Format("----- Installing {0}", apkPath));
-            adb.InstallApk(device.Serial, apkPath, packageName, Adb.Timeout.InstallApk);
-            LogLine(string.Format("----- Installed {0}", apkPath));
+
+            if (DeployApk)
+            {
+                LogLine(string.Format("----- Installing {0}", apkPath));
+                adb.InstallApk(device.Serial, apkPath, packageName, Adb.Timeout.InstallApk);
+                LogLine(string.Format("----- Installed {0}", apkPath));
+            }
 
             // Prepare for debugger attachment (if debuggable)
             if (IsCancelled) return;
