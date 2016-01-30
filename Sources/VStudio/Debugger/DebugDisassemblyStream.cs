@@ -16,6 +16,7 @@ namespace Dot42.VStudio.Debugger
 
         SourceCodePosition _prevSource = null;
         int _prevSourceInstructionOffset = -1;
+        bool _justSeeked = true;
 
         public DebugDisassemblyStream(DebugProgram program, DebugCodeContext documentContext)
         {
@@ -31,8 +32,12 @@ namespace Dot42.VStudio.Debugger
                 return HResults.E_DISASM_NOTAVAILABLE;
 
             var method = _method.Method;
-
             var insCount = method.Body.Instructions.Count;
+
+            bool wantsDocumentUrl = (dwFields & enum_DISASSEMBLY_STREAM_FIELDS.DSF_DOCUMENTURL) != 0;
+            bool wantsPosition = (dwFields & enum_DISASSEMBLY_STREAM_FIELDS.DSF_POSITION) != 0;
+            bool wantsByteOffset = (dwFields & enum_DISASSEMBLY_STREAM_FIELDS.DSF_BYTEOFFSET) != 0;
+            bool wantsFlags = (dwFields & enum_DISASSEMBLY_STREAM_FIELDS.DSF_FLAGS) != 0;
 
             for (pdwInstructionsRead = 0; pdwInstructionsRead < dwInstructions; ++pdwInstructionsRead, ++_instructionPointer)
             {
@@ -44,112 +49,134 @@ namespace Dot42.VStudio.Debugger
                 var insd = new DisassemblyData();
                 var ins = method.Body.Instructions[ip];
 
+                
                 if ((dwFields & enum_DISASSEMBLY_STREAM_FIELDS.DSF_ADDRESS) != 0)
                 {
                     insd.bstrAddress = _method.FormatAddress(ins);
                     insd.dwFields |= enum_DISASSEMBLY_STREAM_FIELDS.DSF_ADDRESS;
                 }
 
-                insd.dwFields |= enum_DISASSEMBLY_STREAM_FIELDS.DSF_OPCODE 
-                              |  enum_DISASSEMBLY_STREAM_FIELDS.DSF_OPERANDS 
-                              |  enum_DISASSEMBLY_STREAM_FIELDS.DSF_CODELOCATIONID
-                              |  enum_DISASSEMBLY_STREAM_FIELDS.DSF_FLAGS;
+                if ((dwFields & enum_DISASSEMBLY_STREAM_FIELDS.DSF_CODELOCATIONID) != 0)
+                {
+                    insd.uCodeLocationId = (ulong)ins.Offset;    
+                    insd.dwFields |= enum_DISASSEMBLY_STREAM_FIELDS.DSF_CODELOCATIONID;
+                }
 
-                insd.bstrOpcode = _method.FormatOpCode(ins);
-                insd.bstrOperands = _method.FormatOperands(ins);
-                insd.uCodeLocationId = (ulong)ins.Offset;
+                if ((dwFields & enum_DISASSEMBLY_STREAM_FIELDS.DSF_OPCODE) != 0)
+                {
+                    insd.bstrOpcode = _method.FormatOpCode(ins);
+                    insd.dwFields |= enum_DISASSEMBLY_STREAM_FIELDS.DSF_OPCODE;
+                }
 
-                //if (ins.Operand is IMemberReference && (dwFields & enum_DISASSEMBLY_STREAM_FIELDS.DSF_OPERANDS_SYMBOLS) != 0)
-                //{
-                //    insd.bstrSymbol = ins.Operand.ToString();
-                //    insd.dwFields|= enum_DISASSEMBLY_STREAM_FIELDS.DSF_OPERANDS_SYMBOLS;
-                //}
+                if ((dwFields & enum_DISASSEMBLY_STREAM_FIELDS.DSF_OPERANDS) != 0)
+                {
+                    insd.bstrOperands = _method.FormatOperands(ins);
+                    insd.dwFields |= enum_DISASSEMBLY_STREAM_FIELDS.DSF_OPERANDS;
+                }
 
-                //if (_loc.Location.Index == (ulong)ins.Offset)
-                //    insd.dwFlags |= enum_DISASSEMBLY_FLAGS.DF_INSTRUCTION_ACTIVE;
-
-                bool wantsDocumentUrl = (dwFields & enum_DISASSEMBLY_STREAM_FIELDS.DSF_DOCUMENTURL) != 0;
-                bool wantsPosition = (dwFields & enum_DISASSEMBLY_STREAM_FIELDS.DSF_POSITION) != 0;
-                bool wantsByteOffset = (dwFields & enum_DISASSEMBLY_STREAM_FIELDS.DSF_BYTEOFFSET) != 0;
-
-                if (wantsDocumentUrl || wantsPosition || wantsByteOffset)
+                if (wantsDocumentUrl || wantsPosition || wantsByteOffset || wantsFlags)
                 {
                     var source = _method.FindSourceCode(ins.Offset);
+                    var hasSource = source != null && !source.IsSpecial;
 
-                    if(source != null && !source.IsSpecial)
+                    bool isSameDocAsPrevious, isSameDocPos;
+                    
+                    if (hasSource)
                     {
-                        var isSameDocAsPrevious = _prevSource != null 
-                                              && !_prevSource.IsSpecial 
-                                              &&  _prevSource.Document.Path == source.Document.Path;
+                        isSameDocAsPrevious = _prevSource != null
+                                              && !_prevSource.IsSpecial
+                                              && _prevSource.Document.Path == source.Document.Path;
+                        isSameDocPos = _prevSource != null && !_prevSource.IsSpecial
+                                              && isSameDocAsPrevious
+                                              && source.Position.CompareTo(_prevSource.Position) == 0;
 
-                        if (!isSameDocAsPrevious)
-                            insd.dwFlags |= enum_DISASSEMBLY_FLAGS.DF_DOCUMENTCHANGE;
+                    }
+                    else
+                    {
+                        isSameDocAsPrevious = (source == null && _prevSource == null) || (source != null && _prevSource != null && _prevSource.IsSpecial);
+                        isSameDocPos = isSameDocAsPrevious;
+                    }
 
-                        if (wantsDocumentUrl || wantsPosition)
+                    if (wantsDocumentUrl && (!isSameDocAsPrevious || _justSeeked))
+                    {
+                        if (hasSource)
                         {
                             insd.bstrDocumentUrl = "file://" + source.Document.Path;
                             insd.dwFields |= enum_DISASSEMBLY_STREAM_FIELDS.DSF_DOCUMENTURL;
                         }
+                        // how do I clear the document?
+                    }
 
-                        insd.dwFlags |= enum_DISASSEMBLY_FLAGS.DF_HASSOURCE;
+                    int byteOffset = 0;
 
-                        if (wantsByteOffset)
-                            insd.dwFields |= enum_DISASSEMBLY_STREAM_FIELDS.DSF_BYTEOFFSET;
-                        
-                        var pos = source.Position;
-                        if (!isSameDocAsPrevious || !_prevSource.Position.Start.Equals(pos.Start) || !_prevSource.Position.End.Equals(pos.End))
+                    if ((wantsByteOffset || wantsPosition) && hasSource)
+                    {
+                        if (isSameDocPos)
+                            byteOffset = ins.Offset - _prevSourceInstructionOffset;
+                        else
                         {
-                            if (wantsPosition)
-                            {
-                                // For reasons unknown to me, this crashes sometimes VS in debug mode,
-                                // and does not work in release mode. I've come to the conclusion
-                                // that this might be a bug in visual studio; In any case I don't
-                                // think anything is wrong with these lines.
-                                insd.posBeg.dwLine = (uint)(pos.Start.Line - 1);
-                                insd.posBeg.dwColumn = 0;
-                                insd.posEnd.dwLine = (uint)(pos.End.Line - 1);
-                                insd.posEnd.dwColumn = 0;
-                                if (insd.posEnd.dwLine - insd.posBeg.dwLine > 3) // never show more then 3 lines.
-                                    insd.posEnd.dwLine = insd.posBeg.dwLine + 3;
-                                
-                                insd.dwFields |= enum_DISASSEMBLY_STREAM_FIELDS.DSF_POSITION;
-                            }
+                            byteOffset = 0;
+                            _prevSourceInstructionOffset = ins.Offset;
+                        }
+                    }
 
+                    if (wantsPosition && hasSource && !isSameDocPos)
+                    {
+                        var pos = source.Position;
+
+                        insd.posBeg.dwLine      = (uint)(pos.Start.Line - 1);
+                        insd.posBeg.dwColumn    = (uint)(pos.Start.Column - 1);
+                        insd.posEnd.dwLine      = (uint)(pos.End.Line - 1);
+                        insd.posEnd.dwColumn    = (uint)(pos.End.Column - 1);
+
+                        if (insd.posEnd.dwLine - insd.posBeg.dwLine > 3) // never show more than 3 lines.
+                            insd.posEnd.dwLine = insd.posBeg.dwLine + 3;
+
+                        // Is this just me? I have no idea why my VS throws an exception when using this.
+                        //insd.dwFields |= enum_DISASSEMBLY_STREAM_FIELDS.DSF_POSITION;
+                    }
+
+                    if (wantsByteOffset && hasSource)
+                    {
+                        insd.dwByteOffset = (uint)byteOffset;
+                        insd.dwFields |= enum_DISASSEMBLY_STREAM_FIELDS.DSF_BYTEOFFSET;
+                    }
+
+                    if (wantsFlags)
+                    {
+                        if(!isSameDocAsPrevious)
+                            insd.dwFlags |= enum_DISASSEMBLY_FLAGS.DF_DOCUMENTCHANGE;
+                        if(hasSource)
+                            insd.dwFlags |= enum_DISASSEMBLY_FLAGS.DF_HASSOURCE;
+
+                        //if (_loc.Location.Index == (ulong)ins.Offset)
+                        //    insd.dwFlags |= enum_DISASSEMBLY_FLAGS.DF_INSTRUCTION_ACTIVE;
+
+
+                        insd.dwFields |= enum_DISASSEMBLY_STREAM_FIELDS.DSF_FLAGS;
+                    }
+
+                    if ((dwFields & enum_DISASSEMBLY_STREAM_FIELDS.DSF_OPERANDS_SYMBOLS) != 0)
+                    {
+                        if (!hasSource && !isSameDocPos)
+                        {
+                            insd.dwFields |= enum_DISASSEMBLY_STREAM_FIELDS.DSF_OPERANDS_SYMBOLS;
+                            insd.bstrSymbol = "(generated instructions)";
+                        }
+                        else if (hasSource && !isSameDocPos)
+                        {
                             // workaround to show something at least
                             if ((dwFields & enum_DISASSEMBLY_STREAM_FIELDS.DSF_OPERANDS_SYMBOLS) != 0)
                             {
                                 insd.dwFields |= enum_DISASSEMBLY_STREAM_FIELDS.DSF_OPERANDS_SYMBOLS;
-                                insd.bstrSymbol = "File Position: "  + pos.Start + " - " + pos.End;
+                                insd.bstrSymbol = "File Position: "  + source.Position.Start + " - " + source.Position.End;
                             }
-
-                            insd.dwByteOffset = 0;
-
-                            _prevSource = source;
-                            _prevSourceInstructionOffset = ins.Offset;
-                        }
-                        else
-                        {
-                            insd.dwByteOffset = (uint) (ins.Offset - _prevSourceInstructionOffset);
+                            
                         }
                     }
-                    else // no valid source
-                    {
-                        if (source != null && (_prevSource == null || !_prevSource.IsSpecial))
-                        {
-                            if ((dwFields & enum_DISASSEMBLY_STREAM_FIELDS.DSF_OPERANDS_SYMBOLS) != 0)
-                            {
-                                insd.dwFields |= enum_DISASSEMBLY_STREAM_FIELDS.DSF_OPERANDS_SYMBOLS;
-                                insd.bstrSymbol = "(generated instructions)";
-                            }
 
-                            insd.bstrDocumentUrl = "";
-                            insd.dwFields |= enum_DISASSEMBLY_STREAM_FIELDS.DSF_DOCUMENTURL;
-                            insd.dwFlags |= enum_DISASSEMBLY_FLAGS.DF_DOCUMENTCHANGE;
-                        }
-
-                        _prevSourceInstructionOffset = ins.Offset;
-                        _prevSource = source;
-                    }
+                    _justSeeked = false;
+                    _prevSource = source;
                 }
 
                 prgDisassembly[pdwInstructionsRead] = insd;
@@ -160,6 +187,10 @@ namespace Dot42.VStudio.Debugger
 
         public int Seek(enum_SEEK_START dwSeekStart, IDebugCodeContext2 pCodeContext, ulong uCodeLocationId, long iInstructions)
         {
+            _justSeeked = true;
+            _prevSource = null;
+            _prevSourceInstructionOffset = -1;
+
             if (_method == null)
                 return HResults.E_DISASM_NOTAVAILABLE;
 
@@ -185,9 +216,6 @@ namespace Dot42.VStudio.Debugger
             }
 
             _instructionPointer = newPos < 0 ? 0 : newPos >= insCount ? insCount - 1 : newPos;
-            
-            _prevSource = null;
-            _prevSourceInstructionOffset = -1;
 
             if (newPos < 0 || newPos >= insCount)
                 return VSConstants.S_FALSE;
