@@ -39,6 +39,9 @@ namespace Dot42.CompilerLib.Ast.Converters
             if (stop == StopAstConversion.AfterCompoundAssignmentConverter) return;
 
             // keep this order
+            FixAsyncStateMachine.Convert(ast, currentMethod, compiler);
+            if (stop == StopAstConversion.AfterFixAsyncStateMachine) return;
+
             InterlockedConverter.Convert(ast, currentMethod, compiler);
             if (stop == StopAstConversion.AfterInterlockedConverter) return;
             

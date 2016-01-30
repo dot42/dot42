@@ -75,6 +75,7 @@
     <Compile Include="Ast\AstVariable.cs" />
     <Compile Include="Ast\AstLabelKeyPair.cs" />
     <Compile Include="Ast\Converters\BranchOptimizer.cs" />
+    <Compile Include="Ast\Converters\FixAsyncStateMachine.cs" />
     <Compile Include="Ast\Converters\SetNextInstructionGenerator.cs" />
     <Compile Include="Ast\Converters\InitializeStructVariablesConverter.cs" />
     <Compile Include="Ast\Converters\GenericsConverter.cs" />

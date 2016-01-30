@@ -12,6 +12,8 @@ namespace Dot42.CompilerLib.Target
 {
     public enum StopAstConversion
     {
+        // Note: if adding values to this list, 
+        // make sure to update the DexInputLanguage in the ILSpy Plugin
         None,
         AfterILConversion,
         AfterOptimizing,
@@ -19,6 +21,7 @@ namespace Dot42.CompilerLib.Target
         AfterTypeOfConverter,
         AfterBranchOptimizer,
         AfterCompoundAssignmentConverter,
+        AfterFixAsyncStateMachine,
         AfterInterlockedConverter,
         AfterByReferenceParamConverter,
         AfterCompareUnorderedConverter,

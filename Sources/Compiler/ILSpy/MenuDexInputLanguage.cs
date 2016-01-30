@@ -139,4 +139,7 @@ namespace Dot42.Compiler.ILSpy
     [StopMenuCommand(StopAstConversion.AfterBranchOptimizer2)]
     public class DexInputLanguageCommand26 : StopMenuCommand { }
 
+    [StopMenuCommand(StopAstConversion.AfterFixAsyncStateMachine)]
+    public class DexInputLanguageCommand27 : StopMenuCommand { }
+
 }
