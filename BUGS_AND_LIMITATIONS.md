@@ -75,7 +75,8 @@ While Dot42s Visual Studio debugger is quite advanced, it does not yet have all 
 
 - The debugger can display local variables, including `this`, and fields of objects. It will not display properties or evaluate methods or expressions in general.
 - Sometimes local variables will not show up in the 'locals' watch window.
-  [This - at least sometimes - seems to be related to them being assigned to the `r0` Dalvik register. It appears to be a problem/feature of Dalvik itself, which tries to work around limitations of Eclipse by remapping registers. A fix might be to not use the `r0` register during debug builds.]
+  [This - at least sometimes - seems to be related to them being assigned to the `r0` Dalvik register. It appears to be a problem/feature of Dalvik itself, which tries to work around limitations of Eclipse by remapping registers. A fix might be to not use the `r0` register during debug builds. Then again, ART runtime might not have this problem.]
+- When using ART / Android >= 5.x, you might encounter problems when debugging release builds. If you do not disable break on exceptions, the process will be killed after you hit continue after the first caught exception. Workaround is to only debug debug builds.
 
 - Code breakpoints are supported. Currently, you can not set breakpoints on data.
 - When using partial classes in different files, the debugger will only step into methods in one of the files. You can set breakpoints in all of them though.

@@ -21,7 +21,7 @@ namespace Dot42.CompilerLib.Ast.Converters
     /// At the moment the special jump instructions are added at the beginning
     /// of a new source-code statement, and after a call statement.
     /// 
-    /// TODO: probalby the code should better work directly on RL to have 
+    /// TODO: possibly the code should better work directly on RL to have 
     ///       full control over when to go where, and to avoid possible breaking
     ///       optimizations.
     /// </summary>
@@ -128,7 +128,7 @@ namespace Dot42.CompilerLib.Ast.Converters
             }
 
             var branch = new AstExpression(currentLoc, AstCode.Brtrue, label,
-                                new AstExpression(currentLoc, AstCode.Ldloc, setInstructionTarget));
+                                new AstExpression(currentLoc, AstCode.Ldloc, setInstructionTarget) { InferredType = setInstructionTarget.Type });
             body.Insert(idx, branch);
             idx += 1;
         }
