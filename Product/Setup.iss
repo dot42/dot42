@@ -118,13 +118,13 @@ Source: "{#SrcDir}\dot42Check.exe"; DestDir: "{app}";
 Source: "{#SrcDir}\dot42Compiler.exe"; DestDir: "{app}";
 Source: "{#SrcDir}\dot42.MSBuild.Tasks.{#TargetName}.dll"; DestDir: "{app}";
 ; Visual Studio 2010 extension
-Source: "{#SrcDir}\{#TargetName}\Extension\*"; DestDir: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\10.0,InstallDir}\Extensions\{#CompanyName}\{#AppName}\1.0"; Flags: recursesubdirs; Tasks: vstudio10;
+Source: "{#SrcDir}\{#TargetName}\Extension\*"; DestDir: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\10.0,InstallDir}\Extensions\{#CompanyName}\{#AppName}\1.1"; Flags: recursesubdirs; Tasks: vstudio10;
 ; Visual Studio 2012 extension
-Source: "{#SrcDir}\{#TargetName}\Extension\*"; DestDir: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\11.0,InstallDir}\Extensions\{#CompanyName}\{#AppName}\1.0"; Flags: recursesubdirs; Tasks: vstudio11;
+Source: "{#SrcDir}\{#TargetName}\Extension\*"; DestDir: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\11.0,InstallDir}\Extensions\{#CompanyName}\{#AppName}\1.1"; Flags: recursesubdirs; Tasks: vstudio11;
 ; Visual Studio 2013 extension
-Source: "{#SrcDir}\{#TargetName}\Extension\*"; DestDir: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\12.0,InstallDir}\Extensions\{#CompanyName}\{#AppName}\1.0"; Flags: recursesubdirs; Tasks: vstudio12;
+Source: "{#SrcDir}\{#TargetName}\Extension\*"; DestDir: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\12.0,InstallDir}\Extensions\{#CompanyName}\{#AppName}\1.1"; Flags: recursesubdirs; Tasks: vstudio12;
 ; Visual Studio 2015 extension
-Source: "{#SrcDir}\{#TargetName}\Extension\*"; DestDir: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\14.0,InstallDir}\Extensions\{#CompanyName}\{#AppName}\1.0"; Flags: recursesubdirs; Tasks: vstudio14;
+Source: "{#SrcDir}\{#TargetName}\Extension\*"; DestDir: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\14.0,InstallDir}\Extensions\{#CompanyName}\{#AppName}\1.1"; Flags: recursesubdirs; Tasks: vstudio14;
 ; Android platform tools
 Source: "{#SrcDir}\Platform-tools\*"; DestDir: "{app}\Platform-tools";
 ; Android tools
@@ -230,6 +230,8 @@ Filename: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\10.0,InstallDir}\devenv.e
 Filename: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\11.0,InstallDir}\devenv.exe"; Parameters: "/setup"; StatusMsg: "{cm:ConfigureDevEnv11}"; Tasks: vstudio11;
 ; Setup devenv 12.0
 Filename: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\12.0,InstallDir}\devenv.exe"; Parameters: "/setup"; StatusMsg: "{cm:ConfigureDevEnv12}"; Tasks: vstudio12;
+; Setup devenv 14.0
+Filename: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\14.0,InstallDir}\devenv.exe"; Parameters: "/setup"; StatusMsg: "{cm:ConfigureDevEnv14}"; Tasks: vstudio14;
 ; Update samples
 Filename: "{app}\dot42DevCenter.exe"; Parameters: "-samplefolder ""{userdocs}\dot42\{#TargetName}\Samples"""; Description: "{cm:UpdatingSamples}"; Flags: runasoriginaluser; Check: UserDocsExists;
 ; Open sample folder
@@ -285,6 +287,7 @@ OpenSamples=Open {#AppName} Samples folder
 ConfigureDevEnv10=Configuring Visual Studio 2010 ...
 ConfigureDevEnv11=Configuring Visual Studio 2012 ...
 ConfigureDevEnv12=Configuring Visual Studio 2013 ...
+ConfigureDevEnv14=Configuring Visual Studio 2015 ...
 Optimize=Optimizing performance
 UnOptimize=Cleanup performance optimizations
 KillAdb=Stopping Android Debug Bridge ...
@@ -351,7 +354,7 @@ end;
 
 function AnyValidVStudioInstalled: Boolean;
 begin
-  Result := VStudio10Installed or VStudio11Installed or VStudio12Installed;
+  Result := VStudio10Installed or VStudio11Installed or VStudio12Installed or VStudio14Installed;
 end;
 
 //function VPDExpress10Installed: Boolean;
@@ -450,7 +453,7 @@ begin
   begin
     if ((not WizardSilent) and (not AnyValidVStudioInstalled)) then
     begin
-      if (MsgBox( 'You do not have Visual Studio 2010, 2012 or 2013 Professional installed. Hit Cancel if you want to install one of these first. Then restart the installer. Otherwise, continue and SharpDevelop will be installed.',
+      if (MsgBox( 'You do not have Visual Studio 2010, 2012, 2013 or 2015 Professional installed. Hit Cancel if you want to install one of these first. Then restart the installer. Otherwise, continue and SharpDevelop will be installed.',
              mbInformation, MB_OKCANCEL ) = IDCANCEL) then
       begin
         Result := false;
@@ -471,7 +474,7 @@ function LocalNextButtonClick(CurPageId: Integer): Boolean;
 begin
   if (CurPageId = wpSelectTasks) then
   begin
-    if (IsTaskSelected('vstudio10') or IsTaskSelected('vstudio11') or IsTaskSelected('vstudio12') or IsTaskSelected('sharpDevelop')) then
+    if (IsTaskSelected('vstudio10') or IsTaskSelected('vstudio11') or IsTaskSelected('vstudio12') or IsTaskSelected('vstudio14') or IsTaskSelected('sharpDevelop')) then
     begin
       // Normal install integrating into Visual Studio
       Result := true;
