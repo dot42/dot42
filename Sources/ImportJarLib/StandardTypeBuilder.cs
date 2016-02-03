@@ -21,6 +21,22 @@ namespace Dot42.ImportJarLib
         private NetTypeDefinition typeDef;
         private DocClass docClass;
 
+        private static readonly string[][] FixedNamespacePrefixRenames =
+        {
+            new[] {"android.accessibilityservice", "Android.AccessibilityServices"},
+            new[] {"android.content.pm", "Android.Content.PM"},
+            new[] {"android.gesture", "Android.Gestures"},
+            new[] {"android.graphics.drawable", "Android.Graphics.Drawables"},
+            new[] {"android.inputmethodservice", "Android.InputMethodServices"},
+            new[] {"android.location", "Android.Locations"},
+            new[] {"android.os", "Android.OS"},
+            new[] {"android.preference", "Android.Preferences"},
+            new[] {"android.renderscript", "Android.Renderscripts"},
+            new[] {"android.view.animation", "Android.Views.Animations"},
+            new[] {"android.view", "Android.Views"},
+            new[] {"java.io", "java.IO"},
+        };
+
         /// <summary>
         /// Create a builder
         /// </summary>
@@ -52,7 +68,7 @@ namespace Dot42.ImportJarLib
         }
 
         /// <summary>
-        /// Create a type defrinition for the given class file and all inner classes.
+        /// Create a type definition for the given class file and all inner classes.
         /// </summary>
         public override void CreateType(NetTypeDefinition declaringType, NetModule module, TargetFramework target)
         {
@@ -62,7 +78,7 @@ namespace Dot42.ImportJarLib
 
             var fullName = GetFullName();
             var dotIndex = fullName.LastIndexOf('.');
-            var ns = (dotIndex > 0) ? NameConverter.UpperCamelCase(fullName.Substring(0, dotIndex)) : String.Empty;
+            var ns = (dotIndex > 0) ? ConvertNamespace(fullName, dotIndex) : String.Empty;
             var name = (dotIndex > 0) ? NameConverter.UpperCamelCase(fullName.Substring(dotIndex + 1)) : fullName;
 
             name = CreateTypeName(null, cf, name, ns);
@@ -83,6 +99,24 @@ namespace Dot42.ImportJarLib
             var finalFullName = string.IsNullOrEmpty(ns) ? name : ns + "." + name;
             RegisterType(target, cf, typeDef);
             CreateNestedTypes(cf, typeDef, finalFullName, module, target);
+        }
+
+        private static string ConvertNamespace(string fullName, int dotIndex)
+        {
+            foreach (var fixedConv in FixedNamespacePrefixRenames)
+            {
+                var len = fixedConv[0].Length;
+                if (fullName.StartsWith(fixedConv[0]))
+                {
+                    if (fullName.Length == len || fullName[len] == '.')
+                    {
+                        fullName = fixedConv[1] + fullName.Substring(len);
+                        dotIndex += fixedConv[1].Length - len;
+                        break;
+                    }
+                }
+            }
+            return NameConverter.UpperCamelCase(fullName.Substring(0, dotIndex));
         }
 
         /// <summary>
@@ -187,7 +221,7 @@ namespace Dot42.ImportJarLib
         /// <summary>
         /// Gets the created CLR type
         /// </summary>
-        protected NetTypeDefinition TypeDefinition { get { return typeDef; } }
+        protected internal NetTypeDefinition TypeDefinition { get { return typeDef; } }
 
         /// <summary>
         /// Resolve the given generic parameter into a type reference.
@@ -216,7 +250,7 @@ namespace Dot42.ImportJarLib
         /// <summary>
         /// Full typename of the context without any generic types.
         /// </summary>
-        protected override string FullTypeName { get { return typeDef.Name + "." + typeDef.Name; } }
+        protected override string FullTypeName { get { return typeDef.Namespace + "." + typeDef.Name; } }
 
         /// <summary>
         /// Gets the documentation of this type.
@@ -268,6 +302,14 @@ namespace Dot42.ImportJarLib
             parent.Add(element);
         }
 
+        public override void FillTypemapXml(JarFile jf, XElement parent)
+        {
+            var element = new XElement("type");
+            element.Add(new XAttribute("fullname", TypeDefinition.FullName));
+            element.Add(new XAttribute("classname", TypeDefinition.OriginalJavaClassName));
+            parent.Add(element);
+        }
+
         /// <summary>
         /// Create a short name for the given classname.
         /// </summary>
@@ -298,6 +340,26 @@ namespace Dot42.ImportJarLib
                 if (!classFile.TryGetSuperClass(out classFile))
                     return null;
             }
+        }
+
+        public int? CompareByInheritance(StandardTypeBuilder other)
+        {
+            if (ReferenceEquals(other, this))
+                return 0;
+
+            var myBaseTypes = TypeDefinition.GetBaseTypes(true);
+            if (myBaseTypes.Any(other.TypeDefinition.AreSame))
+                return 1;
+            var otherBaseTypes = other.TypeDefinition.GetBaseTypes(true);
+            if (otherBaseTypes.Any(TypeDefinition.AreSame))
+                return -1;
+
+            return null;
+        }
+
+        public override string ToString()
+        {
+            return "TypeBuilder: " + TypeDefinition.FullName;
         }
     }
 }

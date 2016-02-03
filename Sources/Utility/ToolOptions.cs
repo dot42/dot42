@@ -51,6 +51,12 @@
         public static readonly ToolOption DebugInfo = new ToolOption("d|debug");
 
         /// <summary>
+        /// Generate set next instruction code. This can be only used for debug builds,
+        /// an will only generate code for debg assemblies.
+        /// </summary>
+        public static readonly ToolOption GenerateSetNextInstructionCode = new ToolOption("gensetnextinstr");
+
+        /// <summary>
         /// Input resources.arsc path
         /// </summary>
         public static readonly ToolOption InputResources = new ToolOption("resources=");
@@ -339,5 +345,12 @@
         /// Check forwarders in assembly
         /// </summary>
         public static readonly ToolOption CheckForwarders = new ToolOption("chkfwa=");
+
+        public static readonly ToolOption EnableCompilerCache = new ToolOption("enable-compiler-cache");
+
+        /// <summary>
+        /// Enble usage of 'dx' from Android SDK Tools to compile .jar classes.
+        /// </summary>
+        public static readonly ToolOption EnableDxJarCompilation = new ToolOption("enable-dx-jar-compilation");
     }
 }

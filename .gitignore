@@ -1,12 +1,16 @@
-bin/
-obj/
+[bB]in/
+[oO]bj/
 Out/
+/.vs
 *.suo
 *.sln.cache
 *.user
+*.bak
 /Build
 Thumbs.db
 
 /RegressionTests/Test.log
 *.DotSettings
 /Sources/Android/LocalDocs
+/Version.cs
+/Sources/Android/Docs

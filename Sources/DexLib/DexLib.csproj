@@ -47,7 +47,9 @@
     <Compile Include="AnnotationVisibility.cs" />
     <Compile Include="CompositeType.cs" />
     <Compile Include="ByReferenceType.cs" />
+    <Compile Include="DexLookup.cs" />
     <Compile Include="Extensions\ResolveExtensions.cs" />
+    <Compile Include="FreezableBase.cs" />
     <Compile Include="Generated\OpCodes.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -95,7 +97,6 @@
     <Compile Include="IO\Collectors\FieldReferenceComparer.cs" />
     <Compile Include="IO\Collectors\PrototypeComparer.cs" />
     <Compile Include="IO\Collectors\PrototypeCollector.cs" />
-    <Compile Include="IO\Collectors\TopologicalSorter.cs" />
     <Compile Include="IO\Collectors\TypeReferenceComparer.cs" />
     <Compile Include="IO\AnnotationSet.cs" />
     <Compile Include="IO\CatchSet.cs" />
@@ -121,6 +122,10 @@
     <Compile Include="Metadata\ValueFormats.cs" />
     <Compile Include="MethodReference.cs" />
     <Compile Include="FieldReference.cs" />
+    <Compile Include="OpcodeHelp\CSV\CSVFileStream.cs" />
+    <Compile Include="OpcodeHelp\CSV\DialectAndColumnDeterminer.cs" />
+    <Compile Include="OpcodeHelp\DalvikOpcodeHelp.cs" />
+    <Compile Include="OpcodeHelp\DalvikOpcodeHelpLookup.cs" />
     <Compile Include="PrimitiveType.cs" />
     <Compile Include="DebugCodes.cs" />
     <Compile Include="Instructions\DebugInfo.cs" />
@@ -143,7 +148,15 @@
     <Compile Include="ClassDefinition.cs" />
     <Compile Include="TypeReference.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\Utility\Utility.csproj">
+      <Project>{13f162a6-f530-40b3-1234-7ad5c0b4a386}</Project>
+      <Name>Utility</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="OpcodeHelp\DalvikOpcodes.csv" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

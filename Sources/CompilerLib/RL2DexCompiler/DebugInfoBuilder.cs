@@ -60,10 +60,7 @@ namespace Dot42.CompilerLib.RL2DexCompiler
 
                 // Set on type or when different in debug info.
                 var type = dbody.Owner.Owner;
-                if (string.IsNullOrEmpty(type.SourceFile))
-                    type.SourceFile = lastUrl;
-
-                if (type.SourceFile != lastUrl)
+                if(!type.SetSourceFile(lastUrl))
                 {
                     // Make sure the file is set when needed
                     lastUrl = null;
@@ -283,7 +280,7 @@ namespace Dot42.CompilerLib.RL2DexCompiler
                                                   seqPoint.EndColumn, 
                                                   compiledMethod.DexMethod.Owner.MapFileId,
                                                   compiledMethod.DexMethod.MapFileId,
-                                                  seqPointIns.Offset) { IsReturn = seqPointIns.OpCode.IsReturn() };
+                                                  seqPointIns.Offset) { AlwaysKeep = seqPointIns.OpCode.IsReturn() };
                 doc.Positions.Add(docPos);
             }            
         }

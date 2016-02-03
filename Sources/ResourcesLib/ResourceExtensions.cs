@@ -109,7 +109,15 @@ namespace Dot42.ResourcesLib
         /// </summary>
         public static string GetNormalizedResourcePath(string folder, string resourceFile, ResourceType resourceType)
         {
-            var configQualifiers = ConfigurationQualifiers.Parse(resourceFile);
+            // try the directory name first.
+            string directoryName = Path.GetDirectoryName(resourceFile);
+            var configQualifiers = ConfigurationQualifiers.Parse(directoryName);
+
+            if (string.IsNullOrEmpty(configQualifiers.ToString()))
+            {
+                configQualifiers = ConfigurationQualifiers.Parse(resourceFile);
+            }
+
             var outputFolder = Path.Combine(folder, resourceType.GetRelativeFolder() + configQualifiers);
             var normalizedResourceFileName = GetNormalizedResourceFileName(resourceFile);
             return Path.Combine(outputFolder, normalizedResourceFileName);

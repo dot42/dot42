@@ -28,11 +28,11 @@ namespace Dot42.DebuggerLib
             /// <summary>
             /// Notify the debug process of our suspension.
             /// </summary>
-            private void HandleSuspendPolicy(Jdwp.SuspendPolicy suspendPolicy, SuspendReason reason, DalvikThread thread)
+            private void HandleSuspendPolicy(Jdwp.SuspendPolicy suspendPolicy, SuspendReason reason, DalvikThread thread, StepRequest request = null)
             {
                 if (suspendPolicy == Jdwp.SuspendPolicy.All) 
                 {
-                    debugger.Process.OnSuspended(reason, thread);
+                    debugger.Process.OnSuspended(reason, thread, request);
                 }                
             }
 
@@ -74,7 +74,6 @@ namespace Dot42.DebuggerLib
             {
                 DalvikThread thread;
                 debugger.process.ThreadManager.TryGet(e.ThreadId, out thread);
-                HandleSuspendPolicy(Jdwp.SuspendPolicy.All, SuspendReason.Exception, thread);
                 debugger.Process.ExceptionManager.OnExceptionEvent(e, thread);
                 return true;
             }
@@ -87,12 +86,14 @@ namespace Dot42.DebuggerLib
                 var step = debugger.process.StepManager.GetAndRemove(e.RequestId);
                 var thread = (step != null) ? step.Thread : null;
                 var reason = (thread != null) ? SuspendReason.SingleStep : SuspendReason.ProcessSuspend;
+                StepRequest request = null;
                 if (step != null)
                 {
                     // Reset event
                     debugger.EventRequest.ClearAsync(Jdwp.EventKind.SingleStep, step.RequestId);
+                    request = step.StepRequest;
                 }
-                HandleSuspendPolicy(suspendPolicy, reason, thread);
+                HandleSuspendPolicy(suspendPolicy, reason, thread, request);
                 return true;
             }
         }

@@ -10,17 +10,17 @@ namespace Case668
     public sealed class R
     {
         
-        public sealed class Layouts
+        public sealed class Layout
         {
             
             public const int MainLayout = 0x7f020000;
         }
         
-        public sealed class Ids
+        public sealed class Id
         {
         }
         
-        public sealed class Styleables
+        public sealed class Styleable
         {
             
             public sealed class FragmentArguments
@@ -28,7 +28,7 @@ namespace Case668
                 
                 public const int label = Android.R.Attr.Label;
                 
-public static readonly int[] AllIds = new[] { Android.R.Attr.Label };
+                public static readonly int[] AllIds = new[] { Android.R.Attr.Label };
             }
         }
     }

@@ -46,6 +46,8 @@
     <Compile Include="..\Version.cs" />
     <Compile Include="AndroidConstants.cs" />
     <Compile Include="AndroidEncodings.cs" />
+    <Compile Include="ApkFileOpenOnAccessOnly.cs" />
+    <Compile Include="IApkFile.cs" />
     <Compile Include="Manifest\Activity.cs" />
     <Compile Include="Manifest\AndroidManifest.cs" />
     <Compile Include="ApkFile.cs" />

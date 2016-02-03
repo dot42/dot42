@@ -7,7 +7,7 @@ namespace Dot42.Mapping
     /// <summary>
     /// Method entry in map file
     /// </summary>
-    [DebuggerDisplay("{Name}, {Signature}")]
+    [DebuggerDisplay("{Name}{Signature}")]
     public sealed class MethodEntry
     {
         private readonly string name;
@@ -17,17 +17,19 @@ namespace Dot42.Mapping
         private readonly int mapFileId;
         private readonly VariableList variables;
         private readonly ParameterList parameters;
+        private readonly string scopeId;
 
         /// <summary>
         /// Default ctor
         /// </summary>
-        public MethodEntry(string name, string signature, string dexName, string dexSignature, int mapFileId)
+        public MethodEntry(string name, string signature, string dexName, string dexSignature, int mapFileId, string scopeId=null)
         {
             this.name = name;
             this.signature = signature;
             this.dexName = dexName;
             this.dexSignature = dexSignature;
             this.mapFileId = mapFileId;
+            this.scopeId = scopeId;
             variables  = new VariableList();
             parameters = new ParameterList();
         }
@@ -42,6 +44,7 @@ namespace Dot42.Mapping
             dexName = e.GetAttribute("dname");
             dexSignature = e.GetAttribute("dsignature");
             mapFileId = int.Parse(e.GetAttribute("id") ?? "0");
+            scopeId = e.GetAttribute("scopeid");
             variables = new VariableList(e);
             parameters = new ParameterList(e);
         }
@@ -57,6 +60,9 @@ namespace Dot42.Mapping
                 new XAttribute("dname", dexName),
                 new XAttribute("dsignature", dexSignature),
                 new XAttribute("id", mapFileId.ToString()));
+
+            if (scopeId != null) e.Add(new XAttribute("scopeid", scopeId));
+
             variables.AddTo(e);
             parameters.AddTo(e);
             return e;
@@ -86,6 +92,11 @@ namespace Dot42.Mapping
         /// Unique id of this entry in the map file.
         /// </summary>
         public int Id { get { return mapFileId; } }
+
+        /// <summary>
+        /// Unique id of this entry in its scope (as defined by the type it belongs to).
+        /// </summary>
+        public string ScopeId { get { return scopeId; } }
 
         /// <summary>
         /// All local variables

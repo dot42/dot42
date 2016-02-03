@@ -102,7 +102,16 @@ namespace Dot42.DebuggerLib
                 DLog.Debug(DContext.DebuggerLibDebugger, "JDWP event {0} {1}", eventKind, evt);
                 Task.Factory.StartNew(() => {
                     evt.Accept(compositeCommandProcessor, suspendPolicy);
-                });
+                }).ContinueWith(task =>
+                {
+                    DLog.Error(DContext.DebuggerLibJdwpConnection, "HandleCompositeCommand: Internal failure on event processing. SuspendPolicy was {1}; IsCancelled={0}. Exception={1}", suspendPolicy, task.IsCanceled, task.Exception);
+                    if (suspendPolicy != Jdwp.SuspendPolicy.None)
+                    {
+                        // we should better resume the VM, as the command handler may have failed to do so.
+                        if(Connected)
+                            VirtualMachine.ResumeAsync();
+                    }
+                }, TaskContinuationOptions.NotOnRanToCompletion);
             }
         }
     }

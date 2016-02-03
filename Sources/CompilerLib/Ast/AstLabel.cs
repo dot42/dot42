@@ -21,7 +21,7 @@ namespace Dot42.CompilerLib.Ast
         /// <summary>
         /// Write human readable output.
         /// </summary>
-        public override void WriteTo(ITextOutput output)
+        public override void WriteTo(ITextOutput output, FormattingOptions format)
         {
             output.WriteDefinition(Name + ":", this);
         }

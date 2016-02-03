@@ -10,13 +10,13 @@ namespace Dot42Radio
     public sealed class R
     {
         
-        public sealed class Drawables
+        public sealed class Drawable
         {
             
             public const int Icon = 0x7f020000;
         }
         
-        public sealed class Layouts
+        public sealed class Layout
         {
             
             public const int MainLayout = 0x7f030000;
@@ -24,12 +24,12 @@ namespace Dot42Radio
             public const int PlayItemLayout = 0x7f030001;
         }
         
-        public sealed class Ids
+        public sealed class Id
         {
             
-            public const int playList = 0x7f040035;
+            public const int playList = 0x7f040036;
             
-            public const int playItemText = 0x7f040036;
+            public const int playItemText = 0x7f040037;
         }
     }
 }

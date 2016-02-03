@@ -1,4 +1,6 @@
-﻿using Dot42.CompilerLib.Ast.Extensions;
+﻿using System.Linq;
+using Dot42.CompilerLib.Ast.Extensions;
+using Dot42.CompilerLib.Ast2RLCompiler.Extensions;
 using Dot42.CompilerLib.XModel;
 
 namespace Dot42.CompilerLib.Ast.Converters
@@ -16,15 +18,80 @@ namespace Dot42.CompilerLib.Ast.Converters
             foreach (var node in ast.GetExpressions(x => (x.Code == AstCode.Call) || (x.Code == AstCode.Calli) || (x.Code == AstCode.Callvirt)))
             {
                 var method = (XMethodReference)node.Operand;
+                bool processed = false;
                 XMethodDefinition methodDef;
-                if (method.TryResolve(out methodDef) && methodDef.IsConstructor && methodDef.DeclaringType.IsPrimitive && (node.Arguments.Count == 2))
+
+                if (method.TryResolve(out methodDef) && methodDef.DeclaringType.IsPrimitive)
                 {
-                    // primitive.ctor(addressof_primitive, value) -> primitive.cast(value)
-                    var locVar = node.Arguments[0].Operand;
-                    node.Arguments.RemoveAt(0);
-                    node.SetCode(AstCode.Stloc).SetType(node.Arguments[0].GetResultType()).Operand = locVar;
+                    if (methodDef.IsConstructor &&  (node.Arguments.Count == 2))
+                    {
+                        // primitive.ctor(addressof_primitive, value) -> primitive.cast(value)
+                        var locVar = node.Arguments[0].Operand;
+                        node.Arguments.RemoveAt(0);
+                        node.SetCode(AstCode.Stloc).SetType(node.Arguments[0].GetResultType()).Operand = locVar;
+                        processed = true;
+                    }
+                    else if (methodDef.Name == "GetHashCode" && node.Arguments.Count == 1 && methodDef.HasThis)
+                    {
+                        // we try to avoid boxing.
+                        var arg = node.Arguments[0];
+
+
+                        switch (arg.Code)
+                        {
+                            case AstCode.AddressOf:
+                                arg = arg.Arguments[0];
+                                break;
+                            case AstCode.Ldloca:
+                                arg.SetCode(AstCode.Ldloc);
+                                arg.SetType(arg.InferredType.ElementType);
+                                break;
+                            case AstCode.Ldflda:
+                                arg.SetCode(AstCode.Ldfld);
+                                arg.SetType(arg.InferredType.ElementType);
+                                break;
+                            case AstCode.Ldsflda:
+                                arg.SetCode(AstCode.Ldsfld);
+                                arg.SetType(arg.InferredType.ElementType);
+                                break;
+                            case AstCode.Ldelema:
+                                arg.SetCode(AstCode.Ldelem_Any);
+                                arg.SetType(arg.InferredType.ElementType);
+                                break;
+                        }
+
+                        var type = arg.GetResultType();
+
+                        if (type.IsBoolean()
+                            || type.IsFloat() || type.IsDouble()
+                            || type.IsInt64() || type.IsUInt64())
+                        {
+                            var ch = compiler.GetDot42InternalType("CompilerHelper").Resolve();
+
+                            // these need special handling
+
+                            var replMethod = ch.Methods.FirstOrDefault(m => m.Name == "GetHashCode" && m.IsStatic
+                                                 && m.Parameters[0].ParameterType.IsSame(type, true));
+                            if (replMethod != null)
+                            {
+                                node.Operand = replMethod;
+                                node.SetCode(AstCode.Call);
+                                node.Arguments.Clear();
+                                node.Arguments.Add(arg);
+                            }
+                        }
+                        else
+                        {
+                            // for the other primitive types, we just return the value itself.
+                            node.CopyFrom(arg);
+                            node.ExpectedType = compiler.Module.TypeSystem.Int;
+                        }
+
+                        processed = true;
+                    }
                 }
-                else
+
+                if(!processed)
                 {
                     for (var i = 0; i < node.Arguments.Count; i++)
                     {
@@ -82,7 +149,7 @@ namespace Dot42.CompilerLib.Ast.Converters
                             {
                                 var stloc = new AstExpression(node.SourceLocation, AstCode.Stloc, node.Operand) { InferredType = variable.Type };
                                 stloc.Arguments.Add(GetValueOutOfByRefArray(node, variable.Type, argIsGenByRefParam, assembly));
-                                ConvertToByRefArray(node, variable.Type, ldloc, stloc, argIsOut, argIsGenByRefParam, assembly);
+                                ConvertToByRefArray(node, variable.Type, ldloc, stloc, argIsOut, argIsGenByRefParam, argType.ElementType, assembly);
                             }
                             else
                             {
@@ -110,7 +177,7 @@ namespace Dot42.CompilerLib.Ast.Converters
                             var stExpr = new AstExpression(node.SourceLocation, AstCode.Nop, null);
                             var elementType = variable.Type;
                             if (elementType.IsByReference) elementType = elementType.ElementType;
-                            ConvertToByRefArray(node, elementType, ldclone, stExpr, argIsOut, argIsGenByRefParam, assembly);
+                            ConvertToByRefArray(node, elementType, ldclone, stExpr, argIsOut, argIsGenByRefParam, argType.ElementType, assembly);
                         }
                     }
                     break;
@@ -149,7 +216,7 @@ namespace Dot42.CompilerLib.Ast.Converters
                                 var stfld = new AstExpression(node.SourceLocation, stfldCode, node.Operand) { InferredType = field.FieldType };
                                 stfld.Arguments.AddRange(node.Arguments); // instance
                                 stfld.Arguments.Add(GetValueOutOfByRefArray(node, field.FieldType, argIsGenByRefParam, assembly)); // value
-                                ConvertToByRefArray(node, field.FieldType, ldfld, stfld, argIsOut, argIsGenByRefParam, assembly);
+                                ConvertToByRefArray(node, field.FieldType, ldfld, stfld, argIsOut, argIsGenByRefParam, argType.ElementType, assembly);
                             }
                             else
                             {
@@ -175,7 +242,7 @@ namespace Dot42.CompilerLib.Ast.Converters
                                 var stelem = new AstExpression(node.SourceLocation, stelemCode, node.Operand) { InferredType = type };
                                 stelem.Arguments.AddRange(node.Arguments);
                                 stelem.Arguments.Add(GetValueOutOfByRefArray(node, type, argIsGenByRefParam, assembly));
-                                ConvertToByRefArray(node, type, ldelem, stelem, argIsOut, argIsGenByRefParam, assembly);
+                                ConvertToByRefArray(node, type, ldelem, stelem, argIsOut, argIsGenByRefParam, argType.ElementType, assembly);
                             }
                             else
                             {
@@ -203,7 +270,7 @@ namespace Dot42.CompilerLib.Ast.Converters
         /// <summary>
         /// Convert the given node to a array creation operation with given element type and argument.
         /// </summary>
-        private static void ConvertToByRefArray(AstExpression node, XTypeReference elementType, AstExpression argument, AstExpression storeArgument, bool isOut, bool argIsGenParam, XModule assembly)
+        private static void ConvertToByRefArray(AstExpression node, XTypeReference elementType, AstExpression argument, AstExpression storeArgument, bool isOut, bool argIsGenParam, XTypeReference sourceType, XModule assembly)
         {
             var arrayElementType = argIsGenParam ? assembly.TypeSystem.Object : elementType;
 
@@ -218,6 +285,7 @@ namespace Dot42.CompilerLib.Ast.Converters
             node.ExpectedType = new XByReferenceType(arrayElementType);
             node.Arguments.Clear();
             node.Arguments.Add(argument);
+            node.Arguments.Add(new AstExpression(node.SourceLocation, AstCode.Nop, sourceType)); // how else can be keep this information?
             node.StoreByRefExpression = storeArgument;
         }
 

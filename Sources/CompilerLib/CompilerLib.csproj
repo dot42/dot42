@@ -32,6 +32,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="dx, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Binaries\tools\dx\dx.exe</HintPath>
+    </Reference>
+    <Reference Include="IKVM.OpenJDK.Core, Version=8.0.5449.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Binaries\tools\dx\IKVM.OpenJDK.Core.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
@@ -39,14 +47,17 @@
   <ItemGroup>
     <Compile Include="..\Version.cs" />
     <Compile Include="AssemblyCompiler.cs" />
+    <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Ast2RLCompiler\AstCompilerVisitor.cs" />
     <Compile Include="Ast2RLCompiler\AstCompilerVisitor.Expression.cs" />
+    <Compile Include="Ast2RLCompiler\AstCompilerVisitor.TryCatchFinally.cs" />
     <Compile Include="Ast2RLCompiler\AstInvocationFrame.cs" />
     <Compile Include="Ast2RLCompiler\Extensions\BoxInfo.cs" />
     <Compile Include="Ast2RLCompiler\Extensions\DexTyping.cs" />
     <Compile Include="Ast2RLCompiler\Extensions\DexJavaTyping.cs" />
     <Compile Include="Ast2RLCompiler\Extensions\DexDotNetTyping.cs" />
     <Compile Include="Ast2RLCompiler\Extensions\RCode.cs" />
+    <Compile Include="Ast2RLCompiler\MonitorManager.cs" />
     <Compile Include="Ast2RLCompiler\LabelManager.cs" />
     <Compile Include="Ast\AstBasicBlock.cs" />
     <Compile Include="Ast\AstBlock.cs" />
@@ -63,9 +74,13 @@
     <Compile Include="Ast\AstTryCatchBlock.cs" />
     <Compile Include="Ast\AstVariable.cs" />
     <Compile Include="Ast\AstLabelKeyPair.cs" />
+    <Compile Include="Ast\Converters\BranchOptimizer.cs" />
+    <Compile Include="Ast\Converters\FixAsyncStateMachine.cs" />
+    <Compile Include="Ast\Converters\SetNextInstructionGenerator.cs" />
     <Compile Include="Ast\Converters\InitializeStructVariablesConverter.cs" />
     <Compile Include="Ast\Converters\GenericsConverter.cs" />
     <Compile Include="Ast\Converters\EnumOptimizer.cs" />
+    <Compile Include="Ast\Converters\InterlockedConverter.cs" />
     <Compile Include="Ast\Converters\TargetConverters.cs" />
     <Compile Include="Ast\Converters\ConvertAfterLoadConversionConverter.cs" />
     <Compile Include="Ast\Converters\ConvertBeforeStoreConversionConverter.cs" />
@@ -78,7 +93,7 @@
     <Compile Include="Ast\Converters\EnumConverter.cs" />
     <Compile Include="Ast\Converters\StructCallConverter.cs" />
     <Compile Include="Ast\Extensions\CecilExt.cs" />
-    <Compile Include="Ast\Converters\BranchOptimizer.cs" />
+    <Compile Include="Ast\Converters\BranchOptimizer2.cs" />
     <Compile Include="Ast\Converters\ByReferenceParamConverter.cs" />
     <Compile Include="Ast\Converters\CompareUnorderedConverter.cs" />
     <Compile Include="Ast\Converters\CompoundAssignmentConverter.cs" />
@@ -110,6 +125,18 @@
     <Compile Include="CompilationMode.cs" />
     <Compile Include="CompilationTarget.cs" />
     <Compile Include="CompiledMethod.cs" />
+    <Compile Include="RL\ControlFlowGraph2.cs" />
+    <Compile Include="RL\RegisterUsageMap2.cs" />
+    <Compile Include="RL\Transformations\EliminateCheckCastToObject.cs" />
+    <Compile Include="RL\Transformations\InlineIntLiteralsTransformation.cs" />
+    <Compile Include="RL\Transformations\PredictableBranchOptimizer.cs" />
+    <Compile Include="RL\Transformations\EliminateRegistersOptimization.cs" />
+    <Compile Include="RL\Transformations\EliminateDeadAssignmentsOptimization.cs" />
+    <Compile Include="Structure\DotNet\GenericDefinitionAnnotationFactory.cs" />
+    <Compile Include="Target\CompilerCache\AssemblyModifiedDetector.cs" />
+    <Compile Include="Target\CompilerCache\CompilerCacheResolveException.cs" />
+    <Compile Include="Target\CompilerCache\DexMethodBodyCloner.cs" />
+    <Compile Include="Target\CompilerCache\DexMethodBodyCompilerCache.cs" />
     <Compile Include="CompilerException.cs" />
     <Compile Include="CompositionRoot.cs" />
     <Compile Include="DexOptimizer\BranchOptimizer.cs" />
@@ -124,7 +151,6 @@
     <Compile Include="Extensions\DexAnnotations.cs" />
     <Compile Include="Extensions\DexImport.cs" />
     <Compile Include="Extensions\DotNet.cs" />
-    <Compile Include="Extensions\Extensions.cs" />
     <Compile Include="Extensions\FieldDefinition.cs" />
     <Compile Include="Extensions\Java.cs" />
     <Compile Include="Extensions\JavaImport.cs" />
@@ -145,24 +171,28 @@
     <Compile Include="IL2Ast\AstCodeUtil.cs" />
     <Compile Include="IL2Ast\AstILVariable.cs" />
     <Compile Include="ILConversion\AsyncStateMachineConverter.cs" />
-    <Compile Include="ILConversion\GenericClassMethodOverrideConverter.cs" />
+    <Compile Include="ILConversion\FixMemberAccess.cs" />
+    <Compile Include="ILConversion\MethodGenericClassOverrideConverter.cs" />
+    <Compile Include="ILConversion\MethodInterfaceImportedlmpementationsConverter.cs" />
+    <Compile Include="ILConversion\MethodUniqueSignatureConverter.cs" />
+    <Compile Include="ILConversion\SystemEnumRedirectionConverter.cs" />
     <Compile Include="ILConversion\StructSemanticsMethods.cs" />
     <Compile Include="ILConversion\EnsureClassCtors.cs" />
     <Compile Include="ILConversion\InitializeInstanceStructFields.cs" />
     <Compile Include="ILConversion\InterfaceHelper.cs" />
-    <Compile Include="ILConversion\NewSlotMethodConverter.cs" />
+    <Compile Include="ILConversion\MethodNewSlotConverter.cs" />
     <Compile Include="ILConversion\DllImportLoadLibraryConverter.cs" />
     <Compile Include="ILConversion\InitializeStaticStructFields.cs" />
     <Compile Include="ILConversion\InlineMethods.cs" />
-    <Compile Include="ILConversion\StructDefaultCtors.cs" />
-    <Compile Include="ILConversion\ExplicitInterfaceMethodConverter.cs" />
+    <Compile Include="ILConversion\StructDefaultCtorsAndDefaultField.cs" />
+    <Compile Include="ILConversion\MethodExplicitInterfaceConverter.cs" />
     <Compile Include="ILConversion\ILConverter.cs" />
     <Compile Include="ILConversion\ILConverterFactory.cs" />
     <Compile Include="ILConversion\ILToJava.cs" />
     <Compile Include="ILConversion\InlineAndroidExtensionCtors.cs" />
     <Compile Include="ILConversion\NUnitTextFixtureBaseClass.cs" />
     <Compile Include="ILConversion\StructFields.cs" />
-    <Compile Include="ILConversion\SynchronizedMethods.cs" />
+    <Compile Include="ILConversion\MethodSynchronizedConverter.cs" />
     <Compile Include="ITypeResolver.cs" />
     <Compile Include="IParameter.cs" />
     <Compile Include="ISourceLocation.cs" />
@@ -177,7 +207,22 @@
     <Compile Include="Java2Ast\AstBuilder.ByteCodeBlock.cs" />
     <Compile Include="Java2Ast\AstBuilder.Category.cs" />
     <Compile Include="Java2Ast\SourceLocation.cs" />
+    <Compile Include="Reachable\PatternInclude.cs" />
+    <Compile Include="Reachable\PatternMatching\PatternApply.cs" />
+    <Compile Include="Reachable\PatternMatching\PatternMatcher.cs" />
+    <Compile Include="Reachable\PatternMatching\PatternParser.cs" />
+    <Compile Include="Reachable\PatternMatching\Pattern.cs" />
+    <Compile Include="RL\Transformations\EliminateDeadCodeTransformation.cs" />
+    <Compile Include="RL\Transformations\SwitchAndGotoOptimization.cs" />
+    <Compile Include="Structure\DotNet\AssemblyTypesBuilder.cs" />
+    <Compile Include="Structure\DotNet\FieldInterlockedBuilder.cs" />
+    <Compile Include="Structure\DotNet\NullableMarkerClassBuilder.cs" />
+    <Compile Include="Structure\DotNet\AndroidAppApplicationDerivedBuilder.cs" />
     <Compile Include="Target\Dex\DexMethodBodyCompiler.cs" />
+    <Compile Include="Target\Dx\DxClassfileMethodBodyCompiler.cs" />
+    <Compile Include="Target\Dx\DxException.cs" />
+    <Compile Include="Target\Dx\DxInvoker.cs" />
+    <Compile Include="Target\Dx\JarModifiedDetector.cs" />
     <Compile Include="Target\MethodBodyCompiler.cs" />
     <Compile Include="MethodSource.cs" />
     <Compile Include="NameConstants.cs" />
@@ -257,10 +302,9 @@
     <Compile Include="RL\Transformations\ShareRegistersTransformation.CrossBlocks.cs" />
     <Compile Include="RL\Transformations\ShareRegistersTransformation.InBlock.cs" />
     <Compile Include="RL\VariableRegisterSpec.cs" />
-    <Compile Include="Structure\DotNet\AnnotationBuilder.cs" />
+    <Compile Include="Structure\DotNet\AttributeAnnotationInstanceBuilder.cs" />
     <Compile Include="Structure\DotNet\AnnotationClassBuilder.cs" />
-    <Compile Include="Structure\DotNet\AttributeAnnotationInterface.cs" />
-    <Compile Include="Structure\DotNet\AttributeAnnotationInterfaceBuilder.cs" />
+    <Compile Include="Structure\DotNet\AttributeAnnotationMapping.cs" />
     <Compile Include="Structure\DotNet\AttributeClassBuilder.cs" />
     <Compile Include="Structure\DotNet\AttributeCtorArgumentMapping.cs" />
     <Compile Include="Structure\DotNet\ClassBuilder.cs" />

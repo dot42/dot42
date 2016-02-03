@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Dot42.CompilerLib.Extensions;
@@ -27,32 +28,64 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 var dparameter = new Parameter(method.DeclaringType.GetReference(targetPackage), "this");
                 result.Parameters.Add(dparameter);
             }
+            
             foreach (var p in method.Parameters)
             {
                 var dparameter = new Parameter(p.ParameterType.GetReference(targetPackage), p.Name);
                 result.Parameters.Add(dparameter);
             }
+            
+            AddGenericParameters(compiler, targetPackage, method, result);
+
+            result.Freeze();
+            return result;
+        }
+
+        /// <summary>
+        /// Add generic parameters to the prototype based on the given XMethodDefinition
+        /// </summary>
+        public static void AddGenericParameters(AssemblyCompiler compiler, DexTargetPackage targetPackage, XMethodDefinition method, Prototype result)
+        {
             if (method.NeedsGenericInstanceTypeParameter)
             {
-                // Add GenericInstance parameter (to pass the generic instance array of the declaring type)
-                var paramType = FrameworkReferences.ClassArray;
-                var dparameter = new Parameter(paramType, "__$$git");
                 var annType = compiler.GetDot42InternalType(InternalConstants.GenericTypeParameterAnnotation).GetClassReference(targetPackage);
-                dparameter.Annotations.Add(new Annotation(annType, AnnotationVisibility.Runtime));
-                result.Parameters.Add(dparameter);
-                result.GenericInstanceTypeParameter = dparameter;
+                int numParameters = method.DeclaringType.GenericParameters.Count;
+                var buildAsArray = numParameters > InternalConstants.GenericTypeParametersAsArrayThreshold;
+                var parameterArray = result.GenericInstanceTypeParameters;
+                AddGenericParameterArguments(result, buildAsArray, numParameters, "__$$git", annType, parameterArray);
             }
             if (method.NeedsGenericInstanceMethodParameter)
             {
                 // Add GenericInstance parameter
-                var paramType = FrameworkReferences.ClassArray;
-                var dparameter = new Parameter(paramType, "__$$gim");
                 var annType = compiler.GetDot42InternalType(InternalConstants.GenericMethodParameterAnnotation).GetClassReference(targetPackage);
+                int numParameters = method.GenericParameters.Count;
+                var buildAsArray = numParameters > InternalConstants.GenericMethodParametersAsArrayThreshold;
+                var parameterArray = result.GenericInstanceMethodParameters;
+                AddGenericParameterArguments(result, buildAsArray, numParameters, "__$$gim", annType, parameterArray);
+            }
+        }
+
+        private static void AddGenericParameterArguments(Prototype result, bool buildAsArray, int numParameters, string parameterBaseName, ClassReference annType, IList<Parameter> parameterArray)
+        {
+            if (buildAsArray)
+            {
+                // Add GenericInstance parameter (to pass the generic instance array of the declaring type)
+                var paramType = FrameworkReferences.ClassArray;
+                var dparameter = new Parameter(paramType, parameterBaseName);
                 dparameter.Annotations.Add(new Annotation(annType, AnnotationVisibility.Runtime));
                 result.Parameters.Add(dparameter);
-                result.GenericInstanceMethodParameter = dparameter;
+                parameterArray.Add(dparameter);
             }
-            return result;
+            else
+            {
+                for (int i = 0; i < numParameters; ++i)
+                {
+                    var dparameter = new Parameter(FrameworkReferences.Class, parameterBaseName + (i + 1));
+                    dparameter.Annotations.Add(new Annotation(annType, AnnotationVisibility.Runtime));
+                    result.Parameters.Add(dparameter);
+                    parameterArray.Add(dparameter);
+                }
+            }
         }
 
         /// <summary>

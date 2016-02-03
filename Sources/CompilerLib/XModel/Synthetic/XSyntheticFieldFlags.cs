@@ -9,5 +9,6 @@ namespace Dot42.CompilerLib.XModel.Synthetic
         Private = 0x0002,
         Protected = 0x004,
         ReadOnly = 0x0008,
+        Public = 0x0010,
     }
 }

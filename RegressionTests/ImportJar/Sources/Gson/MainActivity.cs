@@ -1,6 +1,6 @@
 ﻿using System;
 using Android.App;
-using Android.Os;
+using Android.OS;
 using Android.Widget;
 using Dot42;
 using Dot42.Manifest;
@@ -13,7 +13,7 @@ namespace ImportJar.Sources.Gson
         protected override void OnCreate(Bundle savedInstance)
         {
             base.OnCreate(savedInstance);
-			SetContentView(R.Layouts.GsonActivity);
+			SetContentView(R.Layout.GsonActivity);
         }
     }
 }

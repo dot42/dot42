@@ -3,6 +3,7 @@ using System.Linq;
 using Dot42.CompilerLib.Ast2RLCompiler;
 using Dot42.CompilerLib.RL;
 using Dot42.CompilerLib.Target.Dex;
+using Dot42.DexLib;
 
 namespace Dot42.CompilerLib.Target
 {
@@ -14,7 +15,7 @@ namespace Dot42.CompilerLib.Target
         /// <summary>
         /// Create a method body for the given method.
         /// </summary>
-        internal static MethodBody TranslateToRL(AssemblyCompiler compiler, DexTargetPackage targetPackage, MethodSource source, DexLib.MethodDefinition dmethod, out CompiledMethod compiledMethod)
+        internal static MethodBody TranslateToRL(AssemblyCompiler compiler, DexTargetPackage targetPackage, MethodSource source, MethodDefinition dmethod, bool generateSetNextInstructionCode, out CompiledMethod compiledMethod)
         {
             try
             {
@@ -27,18 +28,19 @@ namespace Dot42.CompilerLib.Target
 #endif
 
                 // Create Ast
-                var optimizedAst = CreateOptimizedAst(compiler, source);
+                var optimizedAst = CreateOptimizedAst(compiler, source, generateSetNextInstructionCode);
 
                 // Generate RL code
                 var rlBody = new MethodBody(source);
                 var rlGenerator = new AstCompilerVisitor(compiler, source, targetPackage, dmethod, rlBody);
                 optimizedAst.Accept(rlGenerator, null);
+                rlGenerator.Complete();
 
                 // Should we add return_void?
                 if (source.ReturnsVoid)
                 {
                     var instructions = rlBody.Instructions;
-                    if ((instructions.Count == 0) || (instructions.Last().Code != RCode.Return_void))
+                    if ((instructions.Count == 0) || (instructions.Last().Code != RCode.Return_void && instructions.Last().Code != RCode.Throw))
                     {
                         instructions.Add(new RL.Instruction(RCode.Return_void) { SequencePoint = source.GetLastSourceLine() });
                     }

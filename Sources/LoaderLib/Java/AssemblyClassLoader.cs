@@ -14,13 +14,15 @@ namespace Dot42.LoaderLib.Java
         private readonly object dataLock = new object();
         private readonly List<AssemblyClasses> loadedAssemblies = new List<AssemblyClasses>();
         private readonly Action<ClassFile> classLoaded;
+        private readonly Action<ClassSource> _jarLoaded;
 
         /// <summary>
         /// Default ctor
         /// </summary>
-        public AssemblyClassLoader(Action<ClassFile> classLoaded)
+        public AssemblyClassLoader(Action<ClassFile> classLoaded, Action<ClassSource> jarLoaded = null)
         {
             this.classLoaded = classLoaded;
+            _jarLoaded = jarLoaded;
         }
 
         /// <summary>
@@ -40,7 +42,7 @@ namespace Dot42.LoaderLib.Java
                     return;
                 }
 
-                var classes = new AssemblyClasses(assembly);
+                var classes = new AssemblyClasses(assembly, _jarLoaded);
                 loadedAssemblies.Add(classes);
                 if (initialize != null)
                 {
@@ -83,6 +85,21 @@ namespace Dot42.LoaderLib.Java
                 }
                 result = null;
                 return false;
+            }
+        }
+
+        public ClassSource TryGetClassSource(string className)
+        {
+            lock (dataLock)
+            {
+                foreach (var assemblyClasses in loadedAssemblies)
+                {
+                    JavaClass jClass;
+                    if (!assemblyClasses.TryGetJavaClass(className, out jClass) || jClass == null)
+                        continue;
+                    return jClass.ClassSource;
+                }
+                return null;
             }
         }
 
@@ -145,6 +162,18 @@ namespace Dot42.LoaderLib.Java
                     return loadedAssemblies.SelectMany(x => x.Packages).Distinct().ToList();
                 }
             }
+        }
+
+        public AssemblyDefinition GetAssembly(ClassFile classFile)
+        {
+            AssemblyClasses cl;
+            lock(dataLock)
+                cl = loadedAssemblies.SingleOrDefault(c => c.ClassNames.Contains(classFile.ClassName));
+            
+            if (cl == null)
+                return null;
+
+            return cl.Assembly;
         }
     }
 }

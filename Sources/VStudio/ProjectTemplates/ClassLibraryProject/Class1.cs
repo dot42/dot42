@@ -1,6 +1,6 @@
 ﻿using System;
 using Android.App;
-using Android.Os;
+using Android.OS;
 using Android.Widget;
 using Dot42;
 

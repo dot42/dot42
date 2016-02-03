@@ -5,7 +5,7 @@ using Dot42.ImportJarLib.Doxygen;
 
 namespace Dot42.ImportJarLib.Model
 {
-    [DebuggerDisplay("{@Name} {@PropertyTypes}")]
+    [DebuggerDisplay("{@Name} {@PropertyType}")]
     public sealed class NetPropertyDefinition : INetMemberDefinition
     {
         private readonly List<NetParameterDefinition> parameters = new List<NetParameterDefinition>();
@@ -34,7 +34,7 @@ namespace Dot42.ImportJarLib.Model
         /// <summary>
         /// Type of the property
         /// </summary>
-        public NetTypeReference PropertyType { get { return Getter.ReturnType; } }
+        public NetTypeReference PropertyType { get { return Getter !=null ? Getter.ReturnType : Setter.Parameters[0].ParameterType; } }
 
         /// <summary>
         /// All parameters
@@ -55,5 +55,10 @@ namespace Dot42.ImportJarLib.Model
         /// Set method
         /// </summary>
         public NetMethodDefinition Setter { get; set; }
+
+        /// <summary>
+        /// returns the Getter, or is the getter is null, the setter.
+        /// </summary>
+        public NetMethodDefinition MainMethod { get { return Getter ?? Setter; }}
     }
 }

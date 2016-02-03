@@ -15,8 +15,7 @@
  */
 
 using Support4Demos;
-
-using Android.Os;
+using Android.OS;
 using Android.Support.V4.App;
 
 using Dot42.Manifest;
@@ -33,7 +32,7 @@ namespace com.example.android.supportv4.app
 
             mTabHost = new FragmentTabHost(this);
             SetContentView(mTabHost);
-            mTabHost.Setup(this, GetSupportFragmentManager(), R.Ids.fragment1);
+            mTabHost.Setup(this, GetSupportFragmentManager(), R.Id.fragment1);
 
             mTabHost.AddTab(mTabHost.NewTabSpec("menus").SetIndicator("Menus"),
                     typeof(FragmentMenuFragmentSupport), null);

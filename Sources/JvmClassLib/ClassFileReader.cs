@@ -196,12 +196,15 @@ namespace Dot42.JvmClassLib
                     case RuntimeInvisibleAnnotationsAttribute.AttributeName:
                         attr = new RuntimeInvisibleAnnotationsAttribute(ReadAnnotationsAttribute(cp));
                         break;
-                    case RuntimeVisibleParameterAnnotationsAttribute.AttributeName:
-                        attr = new RuntimeVisibleParameterAnnotationsAttribute(ReadAnnotationsAttribute(cp));
-                        break;
-                    case RuntimeInvisibleParameterAnnotationsAttribute.AttributeName:
-                        attr = new RuntimeInvisibleParameterAnnotationsAttribute(ReadAnnotationsAttribute(cp));
-                        break;
+                    // The format of these is different from Runtime[In]]VisibleAnnotationsAttribute,
+                    // see 4.7.19. Since the parameter attributes are not used in the 
+                    // code, we skip loading them for now. 
+                    //case RuntimeVisibleParameterAnnotationsAttribute.AttributeName:
+                    //    attr = new RuntimeVisibleParameterAnnotationsAttribute(ReadParameterAnnotationsAttribute(cp));
+                    //    break;
+                    //case RuntimeInvisibleParameterAnnotationsAttribute.AttributeName:
+                    //    attr = new RuntimeInvisibleParameterAnnotationsAttribute(ReadParameterAnnotationsAttribute(cp));
+                    //    break;
                     case AnnotationDefaultAttribute.AttributeName:
                         attr = new AnnotationDefaultAttribute(ReadElementValue(cp));
                         break;

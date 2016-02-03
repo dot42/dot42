@@ -63,7 +63,7 @@ namespace KiloBoltRobotGame.Robotgame
 
         public override void backButton()
         {
-            Android.Os.Process.KillProcess(Android.Os.Process.MyPid());
+            Android.OS.Process.KillProcess(Android.OS.Process.MyPid());
         }
     }
 }

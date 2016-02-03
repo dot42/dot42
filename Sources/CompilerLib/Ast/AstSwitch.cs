@@ -36,15 +36,15 @@ namespace Dot42.CompilerLib.Ast
         /// <summary>
         /// Write human readable output.
         /// </summary>
-        public override void WriteTo(ITextOutput output)
+        public override void WriteTo(ITextOutput output, FormattingOptions format)
         {
             output.Write("switch (");
-            Condition.WriteTo(output);
+            Condition.WriteTo(output, format);
             output.WriteLine(") {");
             output.Indent();
             foreach (var caseBlock in CaseBlocks)
             {
-                caseBlock.WriteTo(output);
+                caseBlock.WriteTo(output, format);
             }
             output.Unindent();
             output.WriteLine("}");
@@ -85,7 +85,7 @@ namespace Dot42.CompilerLib.Ast
             /// <summary>
             /// Write human readable output.
             /// </summary>
-            public override void WriteTo(ITextOutput output)
+            public override void WriteTo(ITextOutput output, FormattingOptions format)
             {
                 if (Values != null)
                 {
@@ -99,7 +99,7 @@ namespace Dot42.CompilerLib.Ast
                     output.WriteLine("default:");
                 }
                 output.Indent();
-                base.WriteTo(output);
+                base.WriteTo(output, format);
                 output.Unindent();
             }
 

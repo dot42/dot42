@@ -1,6 +1,6 @@
 ﻿using System;
 using Android.App;
-using Android.Os;
+using Android.OS;
 using Android.Widget;
 using Dot42;
 using Dot42.Manifest;
@@ -15,7 +15,7 @@ namespace UsingSuportLibrary.Sources
         {
             base.OnCreate(savedInstance);
             // Calling this method triggers a validation error.
-         Android.Content.Context context = GetApplicationContext();
+         Android.Content.Context context = ApplicationContext;
          if (null != context)
          {
             int result = GooglePlayServicesUtil.IsGooglePlayServicesAvailable(context);

@@ -1,7 +1,6 @@
 ﻿using Android.Content;
 using Android.Graphics;
-using Android.Util;
-using Android.View;
+using Android.Util;using Android.Views;
 using Dot42;
 
 namespace Circle
@@ -32,7 +31,7 @@ namespace Circle
         {
             base.OnDraw(canvas);
             var paint = new Paint();
-            paint.SetColor(Color);
+            paint.Color =(Color);
             canvas.DrawCircle(Width / 2, Height / 2, Width / 2, paint);
         }
     }

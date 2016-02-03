@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-using Android.App;
-using Android.Os;
-using Android.Util;
-using Android.View;
+using Android.App;using Android.OS;
+using Android.Util;using Android.Views;
 using Android.Widget;
 using Dot42.Manifest;
 
@@ -68,13 +66,13 @@ namespace LunarLander
         {
             base.OnCreateOptionsMenu(menu);
 
-            menu.Add(0, MENU_START, 0, R.Strings.menu_start);
-            menu.Add(0, MENU_STOP, 0, R.Strings.menu_stop);
-            menu.Add(0, MENU_PAUSE, 0, R.Strings.menu_pause);
-            menu.Add(0, MENU_RESUME, 0, R.Strings.menu_resume);
-            menu.Add(0, MENU_EASY, 0, R.Strings.menu_easy);
-            menu.Add(0, MENU_MEDIUM, 0, R.Strings.menu_medium);
-            menu.Add(0, MENU_HARD, 0, R.Strings.menu_hard);
+            menu.Add(0, MENU_START, 0, R.String.menu_start);
+            menu.Add(0, MENU_STOP, 0, R.String.menu_stop);
+            menu.Add(0, MENU_PAUSE, 0, R.String.menu_pause);
+            menu.Add(0, MENU_RESUME, 0, R.String.menu_resume);
+            menu.Add(0, MENU_EASY, 0, R.String.menu_easy);
+            menu.Add(0, MENU_MEDIUM, 0, R.String.menu_medium);
+            menu.Add(0, MENU_HARD, 0, R.String.menu_hard);
 
             return true;
         }
@@ -87,13 +85,13 @@ namespace LunarLander
         ///         otherwise </returns>
         public override bool OnOptionsItemSelected(IMenuItem item)
         {
-            switch (item.GetItemId())
+            switch (item.ItemId)
             {
                 case MENU_START:
                     mLunarThread.DoStart();
                     return true;
                 case MENU_STOP:
-                    mLunarThread.SetState(LunarView.LunarThread.STATE_LOSE, GetText(R.Strings.message_stopped));
+                    mLunarThread.SetState(LunarView.LunarThread.STATE_LOSE, GetText(R.String.message_stopped));
                     return true;
                 case MENU_PAUSE:
                     mLunarThread.Pause();
@@ -125,14 +123,14 @@ namespace LunarLander
             base.OnCreate(savedInstanceState);
 
             // tell system to use the layout defined in our XML file
-            SetContentView(R.Layouts.lunar_layout);
+            SetContentView(R.Layout.lunar_layout);
 
             // get handles to the LunarView from XML, and its LunarThread
-            mLunarView = (LunarView) FindViewById(R.Ids.lunar);
+            mLunarView = (LunarView) FindViewById(R.Id.lunar);
             mLunarThread = mLunarView.Thread;
 
             // give the LunarView a handle to the TextView used for messages
-            mLunarView.TextView = (TextView) FindViewById(R.Ids.text);
+            mLunarView.TextView = (TextView) FindViewById(R.Id.text);
 
             if (savedInstanceState == null)
             {

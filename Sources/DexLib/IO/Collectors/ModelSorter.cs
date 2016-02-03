@@ -19,33 +19,33 @@ namespace Dot42.DexLib.IO.Collectors
             ac = new AnnotationComparer();
         }
 
-        public override void Collect(List<ClassDefinition> classes)
+        public override void Collect(IList<ClassDefinition> classes)
         {
-            classes.Sort(cdefc);
+            ((List<ClassDefinition>)classes).Sort(cdefc);
             base.Collect(classes);
         }
 
-        public override void Collect(List<ClassReference> classes)
+        public override void Collect(IList<ClassReference> classes)
         {
-            classes.Sort(crefc);
+            ((List<ClassReference>)classes).Sort(crefc);
             base.Collect(classes);
         }
 
-        public override void Collect(List<MethodDefinition> methods)
+        public override void Collect(IList<MethodDefinition> methods)
         {
-            methods.Sort(mdefc);
+            ((List<MethodDefinition>)methods).Sort(mdefc);
             base.Collect(methods);
         }
 
-        public override void Collect(List<FieldDefinition> fields)
+        public override void Collect(IList<FieldDefinition> fields)
         {
-            fields.Sort(fdefc);
+            ((List<FieldDefinition>)fields).Sort(fdefc);
             base.Collect(fields);
         }
 
-        public override void Collect(List<Annotation> annotations)
+        public override void Collect(IList<Annotation> annotations)
         {
-            annotations.Sort(ac);
+            ((List<Annotation>)annotations).Sort(ac);
             base.Collect(annotations);
         }
     }

@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using Dot42.ImportJarLib.Doxygen;
 using Dot42.JvmClassLib;
+using Dot42.Utility;
 
 namespace Dot42.ImportJarLib.Model
 {
@@ -22,7 +23,7 @@ namespace Dot42.ImportJarLib.Model
         private readonly NetMemberDefinitionCollection<NetPropertyDefinition> properties;
         private readonly NetMemberDefinitionCollection<NetMethodDefinition> methods;
         private readonly NetMemberDefinitionCollection<NetTypeDefinition> nestedTypes;
-        private readonly List<IFlushable> flushActions = new List<IFlushable>();
+        private readonly IndexLookupList<IFlushable> flushActions = new IndexLookupList<IFlushable>();
         private bool isStruct;
         private bool isEnum;
         private NetTypeReference baseType;

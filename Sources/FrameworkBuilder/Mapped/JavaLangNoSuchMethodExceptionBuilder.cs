@@ -19,7 +19,7 @@ namespace Dot42.FrameworkBuilder.Mapped
         /// Default ctor
         /// </summary>
         internal JavaLangNoSuchMethodExceptionBuilder(ClassFile cf)
-            : base(cf, "System.MissingMethodException", "java/lang/NoSuchMethodException")
+            : base(cf, "System.MissingMethodException", "java/lang/NoSuchMethodError")
         {
         }
     }

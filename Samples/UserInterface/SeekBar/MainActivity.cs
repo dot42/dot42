@@ -1,5 +1,4 @@
-﻿using Android.App;
-using Android.Os;
+﻿using Android.App;using Android.OS;
 using Android.Widget;
 using Dot42;
 using Dot42.Manifest;
@@ -14,10 +13,10 @@ namespace UsingSeekBar
         protected override void OnCreate(Bundle savedInstance)
         {
             base.OnCreate(savedInstance);
-            SetContentView(R.Layouts.MainLayout);
+            SetContentView(R.Layout.MainLayout);
 
-            var myBar = FindViewById<SeekBar>(R.Ids.myBar);
-            var myLabel = FindViewById<TextView>(R.Ids.myLabel);
+            var myBar = FindViewById<SeekBar>(R.Id.myBar);
+            var myLabel = FindViewById<TextView>(R.Id.myLabel);
             myBar.ProgressChanged += (s, x) => myLabel.Text = x.Progress.ToString();
         }
     }

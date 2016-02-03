@@ -34,7 +34,7 @@ namespace Dot42.DebuggerLib.Model
         public DalvikLocationBreakpoint SetAtLocation(string document, int startLine, int startCol, int endLine, int endCol, object data)
         {
             // Search matching document
-            var doc = MapFile.GetOrCreateDocument(document, false);
+            var doc = MapFile.FindDocument(document);
             if (doc == null)
                 throw new ArgumentException("Unknown document " + document);
 
@@ -44,23 +44,32 @@ namespace Dot42.DebuggerLib.Model
                 throw new ArgumentException(string.Format("No code found at position {0},{1}-{2},{3}", startLine, startCol, endLine, endCol));
 
             // Lookup class & method
-            var type = MapFile.GetTypeById(pos.TypeId);
+            var type = MapFile.GetTypeById(pos.Position.TypeId);
             if (type == null)
-                throw new ArgumentException(string.Format("Inconsistent map file, missing type {0}", pos.TypeId));
-            var method = type.GetMethodById(pos.MethodId);
+                throw new ArgumentException(string.Format("Inconsistent map file, missing type {0}", pos.Position.TypeId));
+            var method = type.GetMethodById(pos.Position.MethodId);
             if (method == null)
-                throw new ArgumentException(string.Format("Inconsistent map file, missing method {0}", pos.MethodId));
+                throw new ArgumentException(string.Format("Inconsistent map file, missing method {0}", pos.Position.MethodId));
 
             // Now create the breakpoint
             var bp = CreateLocationBreakpoint(pos, type, method, data);
 
+            SetBreakpoint(bp);
+
+            return bp;
+        }
+
+        /// <summary>
+        /// set the existing breakpoint.
+        /// </summary>
+        /// <param name="bp"></param>
+        public Task<bool> SetBreakpoint(DalvikBreakpoint bp)
+        {
             //  Record breakpoint
             Add(bp);
 
             // Try to bind now
-            Task.Factory.StartNew(() => bp.TryBind(process));
-
-            return bp;
+            return Task.Factory.StartNew(() => bp.TryBind(process));
         }
 
         /// <summary>
@@ -101,9 +110,9 @@ namespace Dot42.DebuggerLib.Model
         /// <summary>
         /// Create a new location breakpoint.
         /// </summary>
-        protected virtual DalvikLocationBreakpoint CreateLocationBreakpoint(DocumentPosition documentPosition, TypeEntry typeEntry, MethodEntry methodEntry, object data)
+        protected virtual DalvikLocationBreakpoint CreateLocationBreakpoint(SourceCodePosition sourcePosition, TypeEntry typeEntry, MethodEntry methodEntry, object data)
         {
-            return new DalvikLocationBreakpoint(Jdwp.EventKind.BreakPoint, documentPosition, typeEntry, methodEntry);
+            return new DalvikLocationBreakpoint(Jdwp.EventKind.BreakPoint, sourcePosition, typeEntry, methodEntry);
         }
 
         /// <summary>
@@ -173,6 +182,6 @@ namespace Dot42.DebuggerLib.Model
         /// <summary>
         /// Gets the debugging map file
         /// </summary>
-        protected MapFile MapFile { get { return process.MapFile; } }
+        protected MapFileLookup MapFile { get { return process.MapFile; } }
     }
 }

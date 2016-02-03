@@ -15,6 +15,17 @@ namespace Dot42.Ide.Project
         string ApkFilename { get; set; }
 
         /// <summary>
+        /// Filename of apk file.
+        /// </summary>
+        string RootNamespace { get; set; }
+
+        /// <summary>
+        /// Filename of apk file.
+        /// </summary>
+        string AssemblyName{ get; set; }
+
+
+        /// <summary>
         /// Do we generate an APK or a library?
         /// </summary>
         bool ApkOutputs { get; }
@@ -48,6 +59,17 @@ namespace Dot42.Ide.Project
         /// Name of libraries included in this project.
         /// </summary>
         IEnumerable<string> ReferencedLibraryNames { get; }
+
+        /// <summary>
+        /// Should special "set next instruction" code be included in the 
+        /// output?
+        /// </summary>
+        bool GenerateSetNextInstructionCode { get; set; }
+
+        /// <summary>
+        /// Should the compiler cache speed up incremental builds?
+        /// </summary>
+        bool EnableCompilerCache { get; set; }
 
         /// <summary>
         /// Add a reference to a library with given name.

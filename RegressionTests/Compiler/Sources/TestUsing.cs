@@ -36,7 +36,7 @@ namespace Dot42.Tests.Compiler.Sources
             AssertTrue("Finally not called", d.finallyVisited);
         }
 
-        public void _test4()
+        public void test4()
         {
             var d = new MyDisposable();
             var r = disp4(d);
@@ -46,7 +46,7 @@ namespace Dot42.Tests.Compiler.Sources
             AssertTrue("Finally not called", d.finallyVisited);
         }
 
-        public void _test5()
+        public void test5()
         {
             var d = new MyDisposable();
             var d2 = new MyDisposable();

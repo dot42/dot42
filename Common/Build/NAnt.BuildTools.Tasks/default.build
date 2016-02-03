@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<project name="NAnt.BuildTools.Tasks" default="build">
+
+	<property name="basedir" value="${project::get-base-directory()}" />
+	<property name="assemblyname" value="NAnt.BuildTools.Tasks" />
+	<property name="targetfullpath" value="${basedir}\..\${assemblyname}.dll" />
+	
+    <target name="build">
+        <mkdir dir="bin" />
+        <csc target="library" output="${targetfullpath}">
+            <sources>
+                <include name="**/*.cs"/>
+            </sources>
+            <references basedir="${nant::get-base-directory()}">
+                <include name="NAnt.Core.dll"/>
+            </references>
+        </csc>
+    </target>
+
+    <target name="clean">
+        <!-- Delete the build output. -->
+        <delete file="${targetfullpath}" if="${file::exists(${targetfullpath})}" />
+    </target>
+</project>

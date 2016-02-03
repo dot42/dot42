@@ -21,7 +21,7 @@ namespace Dot42.DexLib
         }
 
         public ClassReference Type { get; set; }
-        public List<AnnotationArgument> Arguments { get; private set; }
+        public IList<AnnotationArgument> Arguments { get; private set; }
         public AnnotationVisibility Visibility { get; set; }
 
         public override string ToString()

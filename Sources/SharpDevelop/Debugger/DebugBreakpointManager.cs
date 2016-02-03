@@ -23,9 +23,9 @@ namespace Dot42.SharpDevelop.Debugger
 		/// <summary>
 		/// Create custom breakpoint.
 		/// </summary>
-		protected override DalvikLocationBreakpoint CreateLocationBreakpoint(DocumentPosition documentPosition, TypeEntry typeEntry, MethodEntry methodEntry, object data)
+		protected override DalvikLocationBreakpoint CreateLocationBreakpoint(SourceCodePosition sourcePosition, TypeEntry typeEntry, MethodEntry methodEntry, object data)
 		{
-			return new DebugLocationBreakpoint(Jdwp.EventKind.BreakPoint, documentPosition, typeEntry, methodEntry, (BreakpointBookmark)data);
+            return new DebugLocationBreakpoint(Jdwp.EventKind.BreakPoint, sourcePosition, typeEntry, methodEntry, (BreakpointBookmark)data);
 		}
 
 		

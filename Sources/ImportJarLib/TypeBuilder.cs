@@ -27,7 +27,7 @@ namespace Dot42.ImportJarLib
         /// <summary>
         /// Helps in sorting type builders
         /// </summary>
-        public virtual int Priority { get { return int.MaxValue; } }
+        public virtual int Priority { get { return int.MaxValue/2; } }
 
         /// <summary>
         /// Create a type defrinition for the given class file and all inner classes.
@@ -240,7 +240,7 @@ namespace Dot42.ImportJarLib
         /// </summary>
         private static void AddPrivateDefaultCtor(NetTypeDefinition typeDef, TargetFramework target)
         {
-            var ctor = new NetMethodDefinition(".ctor", null, typeDef, target, false, "TypeBuilder.AddPrivateDefaultCtor")
+            var ctor = new NetMethodDefinition(".ctor", null, typeDef, target, SignedByteMode.None, "TypeBuilder.AddPrivateDefaultCtor")
             {
                 Attributes = MethodAttributes.Private, 
                 AccessFlags = (int)MethodAccessFlags.Private
@@ -274,7 +274,7 @@ namespace Dot42.ImportJarLib
                 }
             }
         }
-
+    
         /// <summary>
         /// Rename members that conflict with other members.
         /// </summary>
@@ -311,9 +311,9 @@ namespace Dot42.ImportJarLib
                 return;
 
             // Add default ctor
-            var ctor = new NetMethodDefinition(".ctor", null, typeDef, target, false, "TypeBuilder.AddDefaultConstructor")
+            var ctor = new NetMethodDefinition(".ctor", null, typeDef, target, SignedByteMode.None, "TypeBuilder.AddDefaultConstructor")
             {
-                Attributes = MethodAttributes.Assembly,
+                Attributes = MethodAttributes.FamORAssem,
                 AccessFlags = (int) MethodAccessFlags.Protected,
                 EditorBrowsableState = EditorBrowsableState.Never
             };
@@ -426,7 +426,7 @@ namespace Dot42.ImportJarLib
                         continue;
 
                     // Add abstract method
-                    var method = new NetMethodDefinition(iMethod.Name, null, typeDef, target, iMethod.IsSignConverted, "TypeBuilder.AddAbstractInterfaceMethods");
+                    var method = new NetMethodDefinition(iMethod.Name, null, typeDef, target, iMethod.SignConvertMode, "TypeBuilder.AddAbstractInterfaceMethods");
                     method.AccessFlags = iMethod.AccessFlags;
                     method.Attributes = iMethod.Attributes;
                     method.IsAbstract = false;
@@ -506,9 +506,10 @@ namespace Dot42.ImportJarLib
         /// <summary>
         /// Implement interface members
         /// </summary>
-        public void FinalizeProperties(TargetFramework target)
+        public void FinalizeProperties(TargetFramework target, MethodRenamer methodRenamer)
         {
-            if (propertyBuilder != null) propertyBuilder.Finalize(target);
+            if (propertyBuilder != null) propertyBuilder.Finalize(target, methodRenamer);
+            nestedTypeBuilders.ForEach(n => n.FinalizeProperties(target, methodRenamer));
         }
 
         /// <summary>
@@ -651,6 +652,7 @@ namespace Dot42.ImportJarLib
                 // Name conflict with generic parameter
                 newName = "Java" + name;
             }
+
             if (newName != name)
             {
                 renamer.Rename(method, newName);
@@ -725,6 +727,11 @@ namespace Dot42.ImportJarLib
         /// Add this type to the layout.xml file if needed.
         /// </summary>
         public abstract void FillLayoutXml(JarFile jf, XElement parent);
+
+        /// <summary>
+        /// Add this type to the typemap.xml file if needed.
+        /// </summary>
+        public abstract void FillTypemapXml(JarFile jf, XElement parent);
 
         /// <summary>
         /// Improve the type name for the given class.

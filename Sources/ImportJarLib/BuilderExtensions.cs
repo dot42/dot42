@@ -326,6 +326,10 @@ namespace Dot42.ImportJarLib
                 if (commaCount1 != commaCount2)
                     return false;
 
+                if ((gp1.Length == 0 || gp2.Length == 0) && gp1.Length != gp2.Length)
+                    return false; // TODO: check if this is correct, or if true is correct.
+
+
                 gp1 = gp1.Substring(1, gp1.Length - 2);
                 gp2 = gp2.Substring(1, gp2.Length - 2);
 
@@ -450,7 +454,7 @@ namespace Dot42.ImportJarLib
         }
 
         /// <summary>
-        /// Does the given method contain a parameter or return type that contains a signed byte.
+        /// Does the given type contains is a signed byte or a signed byte array?
         /// </summary>
         internal static bool ContainsSignedByte(this TypeReference type)
         {
@@ -466,5 +470,21 @@ namespace Dot42.ImportJarLib
             }
             return false;
         }
+
+        /// <summary>
+        /// Does the given type is an unsigned byte or references on in its
+        /// elements types or generic types?
+        /// </summary>
+        internal static bool ContainsUnsignedByte(this NetTypeReference type)
+        {
+            if (type == null)
+                return false;
+
+            if (type.IsByte())
+                return true;
+
+            return type.GetReferencedTypes().Any(r => r.IsByte());
+        }
+
     }
 }

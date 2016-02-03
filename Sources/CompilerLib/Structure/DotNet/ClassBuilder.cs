@@ -16,6 +16,7 @@ using Dot42.JvmClassLib;
 using Dot42.LoaderLib.Extensions;
 using Dot42.LoaderLib.Java;
 using Dot42.Mapping;
+using Dot42.Utility;
 using Mono.Cecil;
 using FieldDefinition = Dot42.DexLib.FieldDefinition;
 using MethodDefinition = Mono.Cecil.MethodDefinition;
@@ -37,6 +38,9 @@ namespace Dot42.CompilerLib.Structure.DotNet
         private List<MethodBuilder> methodBuilders;
         private XTypeDefinition xType;
 
+        public bool BuildGenericInstanceFieldAsArray { get { return XType.GenericParameters.Count > InternalConstants.GenericTypeParametersAsArrayThreshold; } }
+        protected bool IsNetGenericType { get { return typeDef.HasGenericParameters && !typeDef.HasDexImportAttribute(); } }
+
         /// <summary>
         /// Create a type builder for the given type.
         /// </summary>
@@ -54,6 +58,8 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 return new IClassBuilder[] {new DexImportClassBuilder(context, compiler, typeDef) };
             if (typeDef.HasJavaImportAttribute())
                 return new IClassBuilder[] {CreateJavaImportBuilder(context, compiler, typeDef)};
+            if (typeDef.BaseType != null && typeDef.BaseType.FullName == "Android.App.Application")
+                return new IClassBuilder[] { new AndroidAppApplicationDerivedBuilder(context,compiler,typeDef) };
             if (typeDef.IsEnum)
             {
                 if (typeDef.UsedInNullableT)
@@ -66,10 +72,13 @@ namespace Dot42.CompilerLib.Structure.DotNet
             }
             else
             {
-                IClassBuilder builder = new StandardClassBuilder(context, compiler, typeDef);
-                if (typeDef.UsedInNullableT)
-                    return new[] { builder, new NullableBaseClassBuilder(context, compiler, typeDef) };
-                return new[] { builder };
+                if (!typeDef.UsedInNullableT)
+                    return new[] { new StandardClassBuilder(context, compiler, typeDef) };
+
+                var builder = new StandardClassBuilder(context, compiler, typeDef);
+                var nullableBuilder = new NullableMarkerClassBuilder(context, compiler, typeDef, builder);
+
+                return new IClassBuilder[] { builder, nullableBuilder };
             }
         }
 
@@ -104,6 +113,8 @@ namespace Dot42.CompilerLib.Structure.DotNet
 
         /// <summary>
         /// Sorting low comes first
+        /// 
+        /// Note that this does not work globally for nested types.
         /// </summary>
         protected abstract int SortPriority { get; }
 
@@ -196,11 +207,13 @@ namespace Dot42.CompilerLib.Structure.DotNet
             {
                 // Add to parent if this is a nested type
                 classDef.Owner = parent;
-                parent.InnerClasses.Add(classDef);
+                parent.AddInnerClass(classDef);
             }
             else
             {
                 // Add to dex if it is a root class
+                // TODO: here we could simplify the names, e.g. remove the scope, as long as no
+                //       clashing does occur.
                 targetPackage.DexFile.AddClass(classDef);
             }
         }
@@ -218,7 +231,9 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// </summary>
         protected void CreateNestedClasses(DexTargetPackage targetPackage, ClassDefinition parent)
         {
-            nestedBuilders = CreateNestedClassBuilders(context, targetPackage, parent).OrderBy(x => x.SortPriority).ToList();
+            nestedBuilders = CreateNestedClassBuilders(context, targetPackage, parent)
+                                                     .OrderBy(x => x.SortPriority)
+                                                     .ToList();
             nestedBuilders.ForEach(x => x.Create(targetPackage, classDef, typeDef, XType));
         }
 
@@ -227,7 +242,9 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// </summary>
         protected virtual IEnumerable<ClassBuilder> CreateNestedClassBuilders(ReachableContext context, DexTargetPackage targetPackage, ClassDefinition parent)
         {
-            return typeDef.NestedTypes.Where(x => x.IsReachable).SelectMany(x => Create(context, compiler, x)).Cast<ClassBuilder>();
+            return typeDef.NestedTypes.Where(x => x.IsReachable)
+                                      .SelectMany(x => Create(context, compiler, x))
+                                      .Cast<ClassBuilder>();
         }
 
         /// <summary>
@@ -270,18 +287,32 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// <summary>
         /// Record the mapping from .NET to Dex
         /// </summary>
-        public void RecordMapping(MapFile mapFile)
+        public virtual void RecordMapping(MapFile mapFile)
         {
-            // Create mapping
-            var dexName = (classDef != null) ? classDef.Fullname : null;
-            var mapFileId = (classDef != null) ? classDef.MapFileId : 0;
-            var entry = new TypeEntry(typeDef.FullName, typeDef.Scope.Name, dexName, mapFileId);
-            if (fieldBuilders != null) fieldBuilders.ForEach(x => x.RecordMapping(entry));
-            if (methodBuilders != null) methodBuilders.ForEach(x => x.RecordMapping(entry));
+            var entry = CreateMappingEntry();
+
             mapFile.Add(entry);
+
+            if (fieldBuilders != null) fieldBuilders.ForEach(x => x.RecordMapping(entry));
+            if (methodBuilders != null) methodBuilders.ForEach(x => x.RecordMapping(entry, mapFile));
 
             // Create mapping of nested classes
             if (nestedBuilders != null) nestedBuilders.ForEach(x => x.RecordMapping(mapFile));
+        }
+
+        protected virtual TypeEntry CreateMappingEntry()
+        {
+            if (classDef == null)
+            {
+                DLog.Warning(DContext.CompilerCodeGenerator, "dexName not available for type {0}.", typeDef.FullName);
+            }
+            // Create mapping
+            var dexName = (classDef != null) ? classDef.Fullname : null;
+            var mapFileId = (classDef != null) ? classDef.MapFileId : 0;
+            // first part of XType.ScopeId contains the module name, cut it out.
+            var scopeId = XType.ScopeId.Substring(XType.ScopeId.IndexOf(':') + 1);
+            var entry = new TypeEntry(typeDef.FullName, typeDef.Scope.Name, dexName, mapFileId, scopeId);
+            return entry;
         }
 
         /// <summary>
@@ -297,7 +328,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
             }
             else if (typeDef.IsInterface)
             {
-                classDef.SuperClass = new ClassReference("java/lang/Object");
+                classDef.SuperClass = FrameworkReferences.Object;
             }
             else
             {
@@ -311,7 +342,15 @@ namespace Dot42.CompilerLib.Structure.DotNet
         protected virtual void ImplementInterfaces(DexTargetPackage targetPackage)
         {
             // Implement interfaces
-            classDef.Interfaces.AddRange(typeDef.Interfaces.Select(x => x.Interface.GetClassReference(targetPackage, compiler.Module)).Distinct());
+            foreach (var intf in typeDef.Interfaces.Select(x => x.Interface.GetClassReference(targetPackage, compiler.Module))
+                                                   .Distinct())
+                classDef.Interfaces.Add(intf);
+
+            if (IsNetGenericType)
+            {
+                var genericMarker = compiler.GetDot42InternalType(InternalConstants.GenericTypeDefinitionMarker);
+                classDef.Interfaces.Add(genericMarker.GetClassReference(targetPackage));
+            }
         }
 
         /// <summary>
@@ -369,17 +408,14 @@ namespace Dot42.CompilerLib.Structure.DotNet
         protected virtual void CreateMembers(DexTargetPackage targetPackage)
         {
             // Build fields
-            fieldBuilders = typeDef.Fields.Where(ShouldImplementField).Select(x => FieldBuilder.Create(compiler, x)).ToList();
+            fieldBuilders = typeDef.Fields.Where(ShouldImplementField).SelectMany(x => FieldBuilder.Create(compiler, x)).ToList();
             fieldBuilders.ForEach(x => x.Create(classDef, XType, targetPackage));
 
             // Build GenericInstance field (if generic)
-            if (typeDef.HasGenericParameters && !typeDef.HasDexImportAttribute())
+            if (IsNetGenericType && !typeDef.IsStatic())
             {
                 //Class.IsGenericClass = true;
-                if (!typeDef.IsStatic())
-                {
-                    CreateGenericInstanceField(targetPackage);
-                }
+                CreateGenericInstanceFields(targetPackage);
             }
 
             // Build methods
@@ -393,20 +429,36 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// <summary>
         /// Create and add GenericInstance field.
         /// </summary>
-        protected virtual void CreateGenericInstanceField(DexTargetPackage targetPackage)
+        protected virtual void CreateGenericInstanceFields(DexTargetPackage targetPackage)
         {
-            var field = new FieldDefinition {
-                Name = CreateUniqueFieldName("$g"),
-                Type = FrameworkReferences.ClassArray,
-                AccessFlags = AccessFlags.Protected | AccessFlags.Synthetic,
-                Owner = Class
-            };
-            Class.Fields.Add(field);
-            Class.GenericInstanceField = field;
-            var annType = compiler.GetDot42InternalType(InternalConstants.GenericInstanceClassAnnotation).GetClassReference(targetPackage);
-            var annotation = new Annotation(annType, AnnotationVisibility.Runtime,
-                new AnnotationArgument(InternalConstants.GenericInstanceClassArgumentsField, field));
-            Class.Annotations.Add(annotation);
+            if (BuildGenericInstanceFieldAsArray)
+            {
+                var field = new FieldDefinition
+                {
+                    Name = CreateUniqueFieldName("$g"),
+                    Type = FrameworkReferences.ClassArray,
+                    AccessFlags = AccessFlags.Protected | AccessFlags.Synthetic,
+                    Owner = Class
+                };
+                Class.Fields.Add(field);
+                Class.GenericInstanceFields.Add(field);
+            }
+            else
+            {
+                for (int i = 0; i < typeDef.GenericParameters.Count; ++i)
+                {
+                    var field = new FieldDefinition
+                    {
+                        Name = CreateUniqueFieldName("$g", 1),
+                        Type = FrameworkReferences.Class,
+                        AccessFlags = AccessFlags.Protected | AccessFlags.Synthetic,
+                        Owner = Class
+                    };
+                    Class.Fields.Add(field);
+                    Class.GenericInstanceFields.Add(field);
+                }
+            }
+
         }
 
         /// <summary>
@@ -426,68 +478,15 @@ namespace Dot42.CompilerLib.Structure.DotNet
             if (Class != null)
             {
                 // Custom attributes
-                AnnotationBuilder.Create(compiler, Type, Class, targetPackage);
+                AttributeAnnotationInstanceBuilder.CreateAttributeAnnotations(compiler, Type, Class, targetPackage);
 
                 // Properties
                 if ((methodBuilders != null) && compiler.AddPropertyAnnotations())
                 {
-                    // Find property accessors
-                    var propertyMap = new Dictionary<PropertyDefinition, MethodBuilder[]>();
-                    foreach (var methodBuilder in methodBuilders)
-                    {
-                        PropertyDefinition propertyDef;
-                        bool isSetter;
-                        if (!methodBuilder.IsPropertyAccessor(out propertyDef, out isSetter)) 
-                            continue;
-                        MethodBuilder[] accessors;
-                        if (!propertyMap.TryGetValue(propertyDef, out accessors))
-                        {
-                            accessors = new MethodBuilder[2];
-                            propertyMap[propertyDef] = accessors;
-                        }
-                        accessors[isSetter ? 1 : 0] = methodBuilder;
-                    }
-
-                    // Build annotations
-                    if (propertyMap.Count > 0)
-                    {
-                        var propertyClass = compiler.GetDot42InternalType("IProperty").GetClassReference(targetPackage);
-                        var propertiesClass = compiler.GetDot42InternalType("IProperties").GetClassReference(targetPackage);
-                        var propertyAnnotations = new List<Annotation>();
-
-                        foreach (var pair in propertyMap)
-                        {
-                            var provider = new PropertyAnnotationProvider { Annotations = new List<Annotation>() };
-                            AnnotationBuilder.Create(compiler, pair.Key, provider, targetPackage, true);
-                            var attributes = provider.Annotations.FirstOrDefault();
-                            var ann = new Annotation(propertyClass, AnnotationVisibility.Runtime, new AnnotationArgument("Name", pair.Key.Name));
-                            if (pair.Value[0] != null)
-                                ann.Arguments.Add(new AnnotationArgument("Get", new[] { pair.Value[0].DexMethod }));
-                            if (pair.Value[1] != null)
-                                ann.Arguments.Add(new AnnotationArgument("Set", new[] { pair.Value[1].DexMethod }));
-                            if (attributes != null) 
-                                ann.Arguments.Add(new AnnotationArgument("Attributes", new[] { attributes }));
-                            propertyAnnotations.Add(ann);
-                        }
-
-                        var propAnn = new Annotation(propertiesClass, AnnotationVisibility.Runtime,
-                                                     new AnnotationArgument("Properties", propertyAnnotations.ToArray()));
-                        Class.Annotations.Add(propAnn);
-                    }
+                    AddPropertiesAnnotation(targetPackage);
                 }
 
-                // Add annotation defaults
-                if ((Type.Namespace == InternalConstants.Dot42InternalNamespace) && (Type.Name == "IProperty"))
-                {
-                    var propertyClass = compiler.GetDot42InternalType("IProperty").GetClassReference(targetPackage);
-                    var defValue = new Annotation(propertyClass, AnnotationVisibility.Runtime,
-                                                  new AnnotationArgument("Get", new DexLib.MethodDefinition[0]),
-                                                  new AnnotationArgument("Set", new DexLib.MethodDefinition[0]),
-                                                  new AnnotationArgument("Attributes", new Annotation[0]));
-                    var defAnnotation = new Annotation(new ClassReference("dalvik.annotation.AnnotationDefault"), 
-                        AnnotationVisibility.System, new AnnotationArgument("value", defValue));
-                    Class.Annotations.Add(defAnnotation);
-                }
+                AddDefaultAnnotations(targetPackage);
             }
 
             // Build nested class annotation
@@ -498,6 +497,139 @@ namespace Dot42.CompilerLib.Structure.DotNet
 
             // Build method annotations
             if (methodBuilders != null) methodBuilders.ForEach(x => x.CreateAnnotations(targetPackage));
+        }
+
+        private void AddPropertiesAnnotation(DexTargetPackage targetPackage)
+        {
+            // Find property accessors
+            var propertyMap = new Dictionary<PropertyDefinition, MethodBuilder[]>();
+            foreach (var methodBuilder in methodBuilders)
+            {
+                PropertyDefinition propertyDef;
+                bool isSetter;
+                if (!methodBuilder.IsPropertyAccessor(out propertyDef, out isSetter))
+                    continue;
+                MethodBuilder[] accessors;
+                if (!propertyMap.TryGetValue(propertyDef, out accessors))
+                {
+                    accessors = new MethodBuilder[2];
+                    propertyMap[propertyDef] = accessors;
+                }
+                accessors[isSetter ? 1 : 0] = methodBuilder;
+            }
+
+            // Build annotations
+            if (propertyMap.Count > 0)
+            {
+                var propertyClass = compiler.GetDot42InternalType("IProperty").GetClassReference(targetPackage);
+                var propertiesClass = compiler.GetDot42InternalType("IProperties").GetClassReference(targetPackage);
+                var propertyAnnotations = new List<Annotation>();
+
+                foreach (var pair in propertyMap)
+                {
+                    var provider = new PropertyAnnotationProvider {Annotations = new List<Annotation>()};
+                    AttributeAnnotationInstanceBuilder.CreateAttributeAnnotations(compiler, pair.Key, provider, targetPackage, true);
+
+                    string propName = pair.Key.Name;
+
+                    var ann = new Annotation(propertyClass, AnnotationVisibility.Runtime,
+                        new AnnotationArgument("Name", propName));
+                    if (pair.Value[0] != null)
+                    {
+                        var getter = pair.Value[0].DexMethod;
+
+                        if (getter.Prototype.Parameters.Count > 0)
+                        {
+                            // When the VS plugin correctly supports DLog.Info,
+                            // this should be changed to Info again.
+                            DLog.Debug(DContext.CompilerCodeGenerator,
+                                        "not generating property for getter with arguments " + getter);
+                            continue;
+                        }
+
+                        var getterName = getter.Name;
+                        if (getterName != "get_" + propName)
+                            ann.Arguments.Add(new AnnotationArgument("Get", getterName));
+                    }
+
+                    if (pair.Value[1] != null)
+                    {
+                        var setter = pair.Value[1].DexMethod;
+                        if (setter.Prototype.Parameters.Count != 1)
+                        {
+                            DLog.Info(DContext.CompilerCodeGenerator,
+                                "not generating property for setter with wrong argument count " + setter);
+                            continue;
+                        }
+
+
+                        var setterName = setter.Name;
+                        if (setterName != "set_" + propName)
+                            ann.Arguments.Add(new AnnotationArgument("Set", setterName));
+                    }
+
+                    //propType = pair.Key.PropertyType;
+                    // Mono.Cecil.TypeReference propType = null;
+
+                    var attributes = provider.Annotations.FirstOrDefault();
+                    if (attributes != null && attributes.Arguments[0].Value != null)
+                    {
+                        ann.Arguments.Add(new AnnotationArgument("Attributes", attributes.Arguments[0].Value));
+                    }
+                    propertyAnnotations.Add(ann);
+                }
+
+                var propAnn = new Annotation(propertiesClass, AnnotationVisibility.Runtime,
+                    new AnnotationArgument("Properties", propertyAnnotations.ToArray()));
+                Class.Annotations.Add(propAnn);
+            }
+        }
+
+        private void AddDefaultAnnotations(DexTargetPackage targetPackage)
+        {
+            // Add annotation defaults
+            if ((Type.Namespace == InternalConstants.Dot42InternalNamespace) && (Type.Name == "IProperty"))
+            {
+                var propertyClass = compiler.GetDot42InternalType("IProperty").GetClassReference(targetPackage);
+                var defValue = new Annotation(propertyClass, AnnotationVisibility.Runtime,
+                    new AnnotationArgument("Get", ""),
+                    new AnnotationArgument("Set", ""),
+                    new AnnotationArgument("Attributes", new Annotation[0]),
+                    new AnnotationArgument("DeclaringTypeDescriptor", ""));
+                var defAnnotation = new Annotation(new ClassReference("dalvik.annotation.AnnotationDefault"),
+                    AnnotationVisibility.System, new AnnotationArgument("value", defValue));
+                Class.Annotations.Add(defAnnotation);
+            }
+            else if ((Type.Namespace == InternalConstants.Dot42InternalNamespace) 
+                  && (Type.Name == InternalConstants.TypeReflectionInfoAnnotation))
+            {
+                var annotationClass = compiler.GetDot42InternalType(InternalConstants.TypeReflectionInfoAnnotation)
+                                              .GetClassReference(targetPackage);
+
+                var defValue = new Annotation(annotationClass, AnnotationVisibility.Runtime,
+                    new AnnotationArgument("GenericArgumentField", ""),
+                    new AnnotationArgument("GenericArgumentCount", 0),
+                    new AnnotationArgument("GenericDefinitions", new Annotation[0]),
+                    new AnnotationArgument("Fields", new Annotation[0]));
+
+                var defAnnotation = new Annotation(new ClassReference("dalvik.annotation.AnnotationDefault"),
+                    AnnotationVisibility.System, new AnnotationArgument("value", defValue));
+                Class.Annotations.Add(defAnnotation);
+            }
+            else if ((Type.Namespace == InternalConstants.Dot42InternalNamespace)
+                  && (Type.Name == InternalConstants.ReflectionInfoAnnotation))
+            {
+                var annotationClass = compiler.GetDot42InternalType(InternalConstants.ReflectionInfoAnnotation)
+                                              .GetClassReference(targetPackage);
+
+                var defValue = new Annotation(annotationClass, AnnotationVisibility.Runtime,
+                    new AnnotationArgument(InternalConstants.ReflectionInfoAccessFlagsField, 0),
+                    new AnnotationArgument(InternalConstants.ReflectionInfoParameterNamesField, new string[0]));
+
+                var defAnnotation = new Annotation(new ClassReference("dalvik.annotation.AnnotationDefault"),
+                    AnnotationVisibility.System, new AnnotationArgument("value", defValue));
+                Class.Annotations.Add(defAnnotation);
+            }
         }
 
         /// <summary>
@@ -519,18 +651,43 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// <summary>
         /// Generate code for all methods.
         /// </summary>
-        void IClassBuilder.GenerateCode(ITargetPackage targetPackage)
+        void IClassBuilder.GenerateCode(ITargetPackage targetPackage, bool stopAtFirstError)
         {
-            GenerateCode((DexTargetPackage)targetPackage);
+            GenerateCode((DexTargetPackage)targetPackage, stopAtFirstError);
         }
 
         /// <summary>
         /// Generate code for all methods.
         /// </summary>
-        public virtual void GenerateCode(DexTargetPackage targetPackage)
+        public virtual void GenerateCode(DexTargetPackage targetPackage, bool stopAtFirstError)
         {
-            if (nestedBuilders != null) nestedBuilders.ForEach(x => x.GenerateCode(targetPackage));
-            if (methodBuilders != null) methodBuilders.ForEach(x => x.GenerateCode(classDef, targetPackage));
+            if (nestedBuilders != null) nestedBuilders.ForEach(x => x.GenerateCode(targetPackage, stopAtFirstError));
+            if (methodBuilders != null)
+            {
+                if(stopAtFirstError)
+                    methodBuilders.ForEach(x => x.GenerateCode(classDef, targetPackage));
+                else
+                {
+                    List<Exception> exs = new List<Exception>();
+
+                    foreach (var methodBuilder in methodBuilders)
+                    {
+                        try
+                        {
+                            methodBuilder.GenerateCode(classDef, targetPackage);
+                        }
+                        catch (Exception ex)
+                        {
+                            methodBuilder.GenerateFaultBody("compilation error");
+                            exs.Add(new Exception("Error while compiling method " + methodBuilder.DexMethod.Name + ": " + ex.Message, ex));
+                        }
+                    }
+
+                    if(exs.Count > 0)
+                        throw new AggregateException(exs);
+                    
+                }
+            }
         }
 
         /// <summary>
@@ -551,10 +708,15 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// <summary>
         /// Create a field name that is based on the given name, and is unique in this class.
         /// </summary>
-        protected string CreateUniqueFieldName(string name)
+        protected string CreateUniqueFieldName(string name, int start = -1)
         {
             var baseName = name;
             var index = 0;
+            if (start >= 0)
+            {
+                index = start;
+                name += index;
+            }
             while (true)
             {
                 if (Class.Fields.All(x => x.Name != name))
@@ -563,9 +725,20 @@ namespace Dot42.CompilerLib.Structure.DotNet
             }
         }
 
+        protected bool HasXType()
+        {
+            return xType != null;
+        }
+
         private class PropertyAnnotationProvider : IAnnotationProvider
         {
-            public List<Annotation> Annotations { get; set; }
+            private List<Annotation> _annotations;
+            public IList<Annotation> Annotations { get { return _annotations; } set { _annotations = new List<Annotation>(value); } }
+        }
+
+        public override string ToString()
+        {
+            return Type.ToString();
         }
     }
 }

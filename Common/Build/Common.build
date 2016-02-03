@@ -2,16 +2,21 @@
 <project name="Common" description="Common build properties and tasks">
 
 	<!-- Tools -->
-	<property name="buildtools" value="${environment::get-variable('BUILDTOOLS')}"/>
-	<property name="buildtoolsdir" value="${path::get-directory-name(buildtools)}"/>
+	<property name="buildtools" value="${environment::get-variable('BUILDTOOLS')}" if="${environment::variable-exists('BUILDTOOLS')}"/>
+	<property name="buildtoolsdir" value="${path::get-directory-name(buildtools)}" if="${environment::variable-exists('BUILDTOOLS')}"/>
+
+	<!-- select the used VS Version -->
+	<include buildfile="${buildtoolsdir}\SelectVS.build"/>
 
 	<!-- Load buildtools tasks -->
-	<loadtasks assembly="${buildtoolsdir}\Buildtools.Tasks.dll" />
+	<!--loadtasks assembly="${buildtoolsdir}\Buildtools.Tasks.dll" />
 	<loadtasks assembly="${buildtoolsdir}\Buildtools.GitTasks.dll" />
 	<loadtasks assembly="${buildtoolsdir}\Buildtools.SvnTasks.dll" />
 	<loadtasks assembly="${buildtoolsdir}\Buildtools.JavaTasks.dll" />
-	<loadtasks assembly="${buildtoolsdir}\Buildtools.TestTasks.dll" />
-
+	<loadtasks assembly="${buildtoolsdir}\Buildtools.TestTasks.dll" /-->
+	<loadtasks assembly="${buildtoolsdir}\NAnt.BuildTools.Tasks.dll" />
+	
+	
 	<!-- Common tools -->
 	<property name="peverify" value="${framework::get-sdk-directory(framework::get-target-framework())}\peverify.exe"/>
 	<property name="peverify4" value="${framework::get-sdk-directory('net-4.0')}\peverify.exe"/>

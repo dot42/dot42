@@ -801,7 +801,7 @@ namespace Dot42.CompilerLib.Ast.Optimizer
                 #endregion
                 #region Branch instructions
                 case AstCode.Brtrue:
-                //case AstCode.Brfalse:
+                case AstCode.Brfalse:
                     if (forceInferChildren)
                         InferTypeForExpression(expr.Arguments.Single(), typeSystem.Bool);
                     return null;
@@ -813,6 +813,11 @@ namespace Dot42.CompilerLib.Ast.Optimizer
                 case AstCode.BrIfLt:
                     if (forceInferChildren)
                         InferTypeForExpression(expr.Arguments.Single(), typeSystem.Int);
+                    return null;
+                case AstCode.__Beq:
+                case AstCode.__Bne_Un:
+                    if (forceInferChildren)
+                        InferArgumentsInBinaryOperator(expr, null, null);
                     return null;
                 case AstCode.Br:
                 case AstCode.Leave:
@@ -840,9 +845,10 @@ namespace Dot42.CompilerLib.Ast.Optimizer
                 case AstCode.LdGenericInstanceTypeArgument:
                 case AstCode.LdGenericInstanceMethodArgument:
                 case AstCode.StGenericInstanceField:
-                    return new XArrayType(new XTypeReference.SimpleXTypeReference(module, "System", "Type", null, false, null));
+                    return expr.ExpectedType;
+                //    return new XArrayType(new XTypeReference.SimpleXTypeReference(module, "System", "Type", null, false, null));
                 default:
-                    Debug.WriteLine("Type Inference: Can't handle " + expr.Code.GetName());
+                    Debug.WriteLine("Type Inference: Can't handle expression " + expr.Code.GetName());
                     return null;
             }
         }

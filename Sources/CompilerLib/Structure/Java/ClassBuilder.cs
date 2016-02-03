@@ -46,7 +46,7 @@ namespace Dot42.CompilerLib.Structure.Java
         /// <summary>
         /// Sorting low comes first
         /// </summary>
-        int IClassBuilder.SortPriority { get { return 0; } }
+        int IClassBuilder.SortPriority { get { return -1000; /* create java types before .Net types */ } }
 
         /// <summary>
         /// Gets fullname of the underlying type.
@@ -127,11 +127,13 @@ namespace Dot42.CompilerLib.Structure.Java
                 classDef.IsAnnotation = true;
             }
 
+            classDef.IsEnum = typeDef.IsEnum;
+
             if (parent != null)
             {
                 // Add to parent if this is a nested type
                 classDef.Owner = parent;
-                parent.InnerClasses.Add(classDef);
+                parent.AddInnerClass(classDef);
             }
             else
             {
@@ -214,7 +216,7 @@ namespace Dot42.CompilerLib.Structure.Java
             }
             else if (typeDef.IsInterface)
             {
-                classDef.SuperClass = new ClassReference("java/lang/Object");
+                classDef.SuperClass = FrameworkReferences.Object;
             }
             else
             {
@@ -228,7 +230,8 @@ namespace Dot42.CompilerLib.Structure.Java
         protected virtual void ImplementInterfaces(Dex target, NameConverter nsConverter)
         {
             // Implement interfaces
-            classDef.Interfaces.AddRange(typeDef.Interfaces.Select(x => new ClassReference(x.ClassName)));
+            foreach(var intf in typeDef.Interfaces.Select(x => new ClassReference(x.ClassName)))
+                classDef.Interfaces.Add(intf);
         }
 
         /// <summary>
@@ -320,7 +323,7 @@ namespace Dot42.CompilerLib.Structure.Java
         /// <summary>
         /// Generate code for all methods.
         /// </summary>
-        void IClassBuilder.GenerateCode(ITargetPackage targetPackage)
+        void IClassBuilder.GenerateCode(ITargetPackage targetPackage, bool stopAtFirstError)
         {
             GenerateCode((DexTargetPackage) targetPackage);
         }
@@ -362,6 +365,11 @@ namespace Dot42.CompilerLib.Structure.Java
                     return name;
                 name = baseName + (index++);
             }
+        }
+
+        public override string ToString()
+        {
+            return classDef.Fullname;
         }
     }
 }

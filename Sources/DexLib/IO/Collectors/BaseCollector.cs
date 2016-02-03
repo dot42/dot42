@@ -28,88 +28,88 @@ namespace Dot42.DexLib.IO.Collectors
 
         public virtual void Collect(Dex dex)
         {
-            Collect(dex.Classes);
+            Collect(dex.GetClassesList());
         }
 
-        public virtual void Collect(List<ClassDefinition> classes)
+        public virtual void Collect(IList<ClassDefinition> classes)
         {
             foreach (ClassDefinition @class in classes)
                 Collect(@class);
         }
 
-        public virtual void Collect(List<ClassReference> classes)
+        public virtual void Collect(IList<ClassReference> classes)
         {
             foreach (ClassReference @class in classes)
                 Collect(@class);
         }
 
-        public virtual void Collect(List<MethodDefinition> methods)
+        public virtual void Collect(IList<MethodDefinition> methods)
         {
             foreach (MethodDefinition method in methods)
                 Collect(method);
         }
 
-        public virtual void Collect(List<MethodReference> methods)
+        public virtual void Collect(IList<MethodReference> methods)
         {
             foreach (MethodReference method in methods)
                 Collect(method);
         }
 
-        public virtual void Collect(List<FieldDefinition> fields)
+        public virtual void Collect(IList<FieldDefinition> fields)
         {
             foreach (FieldDefinition field in fields)
                 Collect(field);
         }
 
-        public virtual void Collect(List<FieldReference> fields)
+        public virtual void Collect(IList<FieldReference> fields)
         {
             foreach (FieldReference field in fields)
                 Collect(field);
         }
 
-        public virtual void Collect(List<TypeReference> types)
+        public virtual void Collect(IList<TypeReference> types)
         {
             foreach (TypeReference type in types)
                 Collect(type);
         }
 
-        public virtual void Collect(List<Annotation> annotations)
+        public virtual void Collect(IList<Annotation> annotations)
         {
             foreach (Annotation annotation in annotations)
                 Collect(annotation);
         }
 
-        public virtual void Collect(List<Parameter> parameters)
+        public virtual void Collect(IList<Parameter> parameters)
         {
             foreach (Parameter parameter in parameters)
                 Collect(parameter);
         }
 
-        public virtual void Collect(List<AnnotationArgument> arguments)
+        public virtual void Collect(IList<AnnotationArgument> arguments)
         {
             foreach (AnnotationArgument argument in arguments)
                 Collect(argument);
         }
 
-        public virtual void Collect(List<Instruction> instructions)
+        public virtual void Collect(IList<Instruction> instructions)
         {
             foreach (Instruction instruction in instructions)
                 Collect(instruction);
         }
 
-        public virtual void Collect(List<DebugInstruction> instructions)
+        public virtual void Collect(IList<DebugInstruction> instructions)
         {
             foreach (DebugInstruction instruction in instructions)
                 Collect(instruction);
         }
 
-        public virtual void Collect(List<ExceptionHandler> exceptions)
+        public virtual void Collect(IList<ExceptionHandler> exceptions)
         {
             foreach (ExceptionHandler exception in exceptions)
                 Collect(exception);
         }
 
-        public virtual void Collect(List<Catch> catches)
+        public virtual void Collect(IList<Catch> catches)
         {
             foreach (Catch @catch in catches)
                 Collect(@catch);
@@ -119,7 +119,7 @@ namespace Dot42.DexLib.IO.Collectors
         {
             Collect(@class.Annotations);
             Collect(@class.Fields);
-            Collect(@class.InnerClasses);
+            Collect(@class.GetInnerClassesList());
             Collect(@class.Interfaces);
             Collect(@class.Methods);
             Collect(@class.SourceFile);

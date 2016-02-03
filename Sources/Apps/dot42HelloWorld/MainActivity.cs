@@ -1,5 +1,5 @@
 ﻿using Android.App;
-using Android.Os;
+using Android.OS;
 using Android.Text;
 using Android.Text.Method;
 using Android.Widget;
@@ -16,8 +16,8 @@ namespace dot42HelloWorld
         protected override void OnCreate(Bundle savedInstance)
         {
             base.OnCreate(savedInstance);
-            SetContentView(R.Layouts.MainLayout);
-            var view = FindViewById<TextView>(R.Ids.textView);
+            SetContentView(R.Layout.MainLayout);
+            var view = FindViewById<TextView>(R.Id.textView);
             view.Text = Html.FromHtml("<p>This is a simple 'Hello world' written in C# using dot42.</p>" +
                 "<p>Go to <a href='http://www.dot42.com?ref=631'>www.dot42.com</a> for more information.</p>");
             view.MovementMethod = LinkMovementMethod.GetInstance();

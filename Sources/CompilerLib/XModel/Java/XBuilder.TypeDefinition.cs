@@ -30,8 +30,14 @@ namespace Dot42.CompilerLib.XModel.Java
                 this.type = type;
                 fields = type.Fields.Select(x => new JavaFieldDefinition(this, x)).Cast<XFieldDefinition>().ToList().AsReadOnly();
                 methods = type.Methods.Select(x => new JavaMethodDefinition(this, x)).Cast<XMethodDefinition>().ToList().AsReadOnly();
-                nested = type.InnerClasses.Where(x => x.InnerClassFile.DeclaringClass == type).Select(x => new JavaTypeDefinition(module, this, x.InnerClassFile)).Cast<XTypeDefinition>().ToList().AsReadOnly();
                 interfaces = new List<XTypeReference>();
+                nested = type.InnerClasses.Where(x => x.InnerClassFile.DeclaringClass == type).Select(x => new JavaTypeDefinition(module, this, x.InnerClassFile)).Cast<XTypeDefinition>().ToList().AsReadOnly();
+
+                module.Register(this, FullName);
+                module.Register(this, type.ClassName);
+
+                foreach(var n in nested)
+                    module.Register(n);
             }
 
             /// <summary>
@@ -190,6 +196,8 @@ namespace Dot42.CompilerLib.XModel.Java
                 get { return false; }
             }
 
+            public override bool IsImmutableStruct { get { return false; } }
+
             /// <summary>
             /// Gets the type of the enum value field.
             /// </summary>
@@ -215,12 +223,19 @@ namespace Dot42.CompilerLib.XModel.Java
             }
 
             /// <summary>
+            /// our unique id, constant accross builds.
+            /// </summary>
+            public override string ScopeId { get { return type.ClassName; } }
+
+            /// <summary>
             /// Is this type reachable?
             /// </summary>
             public override bool IsReachable
             {
                 get { return false; }
             }
+
+            internal ClassFile ClassFile { get { return type; } }
 
             /// <summary>
             /// Is there a DexImport attribute on this type?
@@ -235,21 +250,6 @@ namespace Dot42.CompilerLib.XModel.Java
             /// </summary>
             public override bool HasCustomViewAttribute()
             {
-                return false;
-            }
-
-            /// <summary>
-            /// Try to get a type definition (me or one of my nested typed) by the given full name.
-            /// </summary>
-            public override bool TryGet(string fullName, bool noImports, out XTypeDefinition type)
-            {
-                if (base.TryGet(fullName, noImports, out type))
-                    return true;
-                if (fullName == this.type.ClassName)
-                {
-                    type = this;
-                    return true;
-                }
                 return false;
             }
 

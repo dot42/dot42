@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Xml.Linq;
 using Dot42.Utility;
 
@@ -8,9 +7,10 @@ namespace Dot42.Mapping
     /// <summary>
     /// Code position within a document
     /// </summary>
-    [DebuggerDisplay("{Start}-{End} {TypeId}:{MethodId}:{MethodOffset}")]
     public sealed class DocumentPosition : IComparable<DocumentPosition>
     {
+        public const int SpecialOffset = 0xfeefee;
+
         /// <summary>
         /// Default ctor
         /// </summary>
@@ -63,13 +63,20 @@ namespace Dot42.Mapping
         public int TypeId { get; set; }
         public int MethodId { get; set; }
         public int MethodOffset { get; set; }
-        public bool IsReturn { get; set; } // Not persisted, used to avoid removing mapping for return address
+        
+        /// <summary>
+        /// Not persisted, used to avoid removing mapping for return address
+        /// </summary>
+        public bool AlwaysKeep { get; set; } 
 
         /// <summary>
         /// Compares the current object with another object of the same type.
         /// </summary>
         /// <returns>
-        /// A value that indicates the relative order of the objects being compared. The return value has the following meanings: Value Meaning Less than zero This object is less than the <paramref name="other"/> parameter.Zero This object is equal to <paramref name="other"/>. Greater than zero This object is greater than <paramref name="other"/>. 
+        /// A value that indicates the relative order of the objects being compared. The return value has the following meanings:
+        /// Value Meaning Less than zero: This object is less than the <paramref name="other"/> parameter.
+        /// Zero This object is equal to <paramref name="other"/>. Greater than zero This object is greater 
+        /// than <paramref name="other"/>. 
         /// </returns>
         /// <param name="other">An object to compare with this object.</param>
         public int CompareTo(DocumentPosition other)
@@ -135,6 +142,21 @@ namespace Dot42.Mapping
                    (End == other.End) &&
                    (TypeId == other.TypeId) &&
                    (MethodId == other.MethodId);
+        }
+
+        /// <summary>
+        /// return true if this is a compiler generated instruction
+        /// with no source code attached. Debuggers should step through
+        /// the instruction.
+        /// </summary>
+        public bool IsSpecial
+        {
+            get { return Start.Line == SpecialOffset; }
+        }
+
+        public override string ToString()
+        {
+            return string.Format("{0}-{1} {2}:{3}:{4:X3}", Start, End, TypeId, MethodId, MethodOffset);
         }
     }
 }

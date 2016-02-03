@@ -1,6 +1,5 @@
 ﻿using System;
-using Android.Content;
-using Android.View;
+using Android.Content;using Android.Views;
 using SorterenMaar.Games;
 
 namespace SorterenMaar.Palette
@@ -28,11 +27,11 @@ namespace SorterenMaar.Palette
 
     public bool OnTouch(View view, MotionEvent ev)
     {
-      //if (ev.GetAction() == MotionEvent.ACTION_MOVE)
+      //if (ev.Action == MotionEvent.ACTION_MOVE)
       {
         ClipData data = ClipData.NewPlainText("DragData", "");
         view.StartDrag(data,
-                       new Android.View.View.DragShadowBuilder(view),
+                       new Android.Views.View.DragShadowBuilder(view),
                        (Object)new MoveDragData { draggedView = view, dragHandler = this }, 0);
         
       }
@@ -43,7 +42,7 @@ namespace SorterenMaar.Palette
     {
       ClipData data = ClipData.NewPlainText("DragData", "");
       view.StartDrag(data, 
-                     new Android.View.View.DragShadowBuilder(view), 
+                     new Android.Views.View.DragShadowBuilder(view), 
                      (Object)new MoveDragData{ draggedView=view, dragHandler=this}, 0);
 
       return true;
@@ -51,9 +50,9 @@ namespace SorterenMaar.Palette
 
     public bool OnDrag(View view, DragEvent dragEvent)
     {
-      if (dragEvent.GetLocalState() is MoveDragData)
+      if (dragEvent.LocalState is MoveDragData)
       {
-        if (((MoveDragData)dragEvent.GetLocalState()).dragHandler != this)
+        if (((MoveDragData)dragEvent.LocalState).dragHandler != this)
         {
           // Not this object
           return false;
@@ -69,15 +68,15 @@ namespace SorterenMaar.Palette
 
       bool result = true;
 
-      switch (dragEvent.GetAction())
+      switch (dragEvent.Action)
       {
         case DragEvent.ACTION_DRAG_STARTED:
-          view.SetAlpha(0.3f);
+          view.Alpha = (0.3f);
           //view.SetVisibility(View.INVISIBLE);
           inDrag = true;
           break;
         case DragEvent.ACTION_DRAG_ENDED:
-          view.SetAlpha(1.00f);
+          view.Alpha = (1.00f);
           //view.SetVisibility(View.VISIBLE);
           inDrag = false;
           break;

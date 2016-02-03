@@ -46,6 +46,11 @@
     <Compile Include="..\..\Common\Util\ErrorLog.cs" />
     <Compile Include="BigEndianBitConverter.cs" />
     <Compile Include="Browser.cs" />
+    <Compile Include="IndexLookupList.cs" />
+    <Compile Include="ReferenceEqualityComparer.cs" />
+    <Compile Include="ListExtensions.cs" />
+    <Compile Include="TopologicalSort.cs" />
+    <Compile Include="HashCodeUtility.cs" />
     <Compile Include="CollectionExtensions.cs" />
     <Compile Include="CompressedXml.cs" />
     <Compile Include="DContext.cs" />

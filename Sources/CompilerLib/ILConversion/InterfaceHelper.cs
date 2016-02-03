@@ -1,4 +1,7 @@
-﻿using Dot42.CompilerLib.Extensions;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Dot42.CecilExtensions;
+using Dot42.CompilerLib.Extensions;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
@@ -10,18 +13,28 @@ namespace Dot42.CompilerLib.ILConversion
         /// Create a new method in the declaring type of the given implicit implementation with the given name.
         /// This method will call the implicit implementation.
         /// </summary>
-        internal static MethodDefinition CreateExplicitStub(MethodDefinition implicitImpl, string name, MethodDefinition iMethod, bool avoidGenericParam)
+        internal static MethodDefinition CreateExplicitStub(TypeDefinition targetType, MethodDefinition implicitImpl, string name, MethodDefinition iMethod, bool avoidGenericParam)
         {
+            MethodReference implicitImplRef = implicitImpl;
+            GenericInstanceMethod implicitGenericInstanceMethod=null;
             // Create method
-            var newMethod = new MethodDefinition(name, implicitImpl.Attributes, implicitImpl.ReturnType);
-            newMethod.IsVirtual = false;
-            newMethod.IsAbstract = false;
-            newMethod.IsFinal = true;
+            var newMethod = new MethodDefinition(name, implicitImpl.Attributes, implicitImpl.ReturnType)
+            {
+                IsVirtual = false,
+                IsAbstract = false,
+                IsFinal = true,
+            };
+
+            if (implicitImpl.GenericParameters.Count > 0)
+            {
+                implicitImplRef = implicitGenericInstanceMethod = new GenericInstanceMethod(implicitImpl);
+            }
 
             // Clone generic parameters
             foreach (var gp in implicitImpl.GenericParameters)
             {
                 newMethod.GenericParameters.Add(new GenericParameter(gp.Name, newMethod));
+                implicitGenericInstanceMethod.GenericArguments.Add(gp);
             }
 
             // Update according to new context
@@ -35,7 +48,6 @@ namespace Dot42.CompilerLib.ILConversion
             }
 
             // Add the method
-            var targetType = implicitImpl.DeclaringType;
             targetType.Methods.Add(newMethod);
 
 
@@ -59,7 +71,7 @@ namespace Dot42.CompilerLib.ILConversion
                     worker.Emit(OpCodes.Box, implicitImpl.Parameters[i].ParameterType);
                 }
             }
-            worker.Emit(implicitImpl.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, implicitImpl);
+            worker.Emit(implicitImpl.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, implicitImplRef);
             worker.Emit(OpCodes.Ret);
 
             // Mark method reachable
@@ -69,6 +81,46 @@ namespace Dot42.CompilerLib.ILConversion
             }
 
             return newMethod;
+        }
+
+        public static IEnumerable<MethodReference> GetReachableMethodReferences(IEnumerable<MethodDefinition> reachableMethods)
+        {
+            var reachableMethodReferences = reachableMethods.Select(x => x.Body)
+                                                            .Where(x => x != null)
+                                                            .SelectMany(x => x.Instructions)
+                                                            .Where(i => i.Operand is MethodReference)
+                                                            .Select(i => ((MethodReference)i.Operand).GetElementMethod());
+            return reachableMethodReferences;
+        }
+
+        public static ILookup<string, MethodReference> GetReachableMethodReferencesByName(IEnumerable<MethodDefinition> reachableMethods)
+        {
+            return GetReachableMethodReferences(reachableMethods)
+                  .ToLookup(m=>m.Name);
+        }
+
+
+        /// <summary>
+        /// Rename the given method and all references to it from code.
+        /// 
+        /// Note that the passed lookup will not be accurate after completion of this method.
+        /// If you rename methods multiple times, but know that you will rename each single method
+        /// only once, this should not be a problem.
+        /// </summary>
+        public static void Rename(MethodDefinition method, string newName, ILookup<string, MethodReference> reachableMethodReferencesByMethodName)
+        {
+            var resolver = new GenericsResolver(method.DeclaringType);
+
+            // Rename reference to method
+            foreach (var methodRef in reachableMethodReferencesByMethodName[method.Name])
+            {
+                if (!ReferenceEquals(methodRef, method) && methodRef.AreSameIncludingDeclaringType(method, resolver.Resolve))
+                {
+                    methodRef.Name = newName;
+                }
+            }
+            // Rename method itself
+            method.SetName(newName);
         }
     }
 }

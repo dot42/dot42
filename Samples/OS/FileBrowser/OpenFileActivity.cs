@@ -1,6 +1,5 @@
 ﻿using System.Linq;
-using Android.App;
-using Android.Os;
+using Android.App;using Android.OS;
 using Android.Widget;
 using Dot42.Manifest;
 
@@ -20,10 +19,10 @@ namespace FileBrowser
         {
             base.OnCreate(savedInstance);
             SetResult(RESULT_CANCELED);
-            SetContentView(R.Layouts.OpenFileLayout);
+            SetContentView(R.Layout.OpenFileLayout);
 
             var intent = GetIntent();
-            var list = FindViewById<ListView>(R.Ids.list);
+            var list = FindViewById<ListView>(R.Id.list);
             list.ItemClick += OnItemClick;
 
             startPath = intent.GetStringExtra(StartPath) ?? Root;
@@ -48,14 +47,14 @@ namespace FileBrowser
 
         private void SetPath(string path)
         {
-            var lbPath = FindViewById<TextView>(R.Ids.lbPath);
+            var lbPath = FindViewById<TextView>(R.Id.lbPath);
             lbPath.Text = path;
 
             entries = GetEntries(path);
             var names = entries.Select(x => x.IsDirectory() ? "/" + x.Name : x.Name).ToArray();
 
-            var list = FindViewById<ListView>(R.Ids.list);
-            list.SetAdapter(new ArrayAdapter<string>(this, R.Layouts.OpenFileRowLayout, names));
+            var list = FindViewById<ListView>(R.Id.list);
+            list.SetAdapter(new ArrayAdapter<string>(this, R.Layout.OpenFileRowLayout, names));
             
         }
 

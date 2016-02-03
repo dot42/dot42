@@ -1,4 +1,6 @@
-﻿namespace Dot42.Utility
+﻿using System.Linq;
+
+namespace Dot42.Utility
 {
     public static class NameConverter
     {

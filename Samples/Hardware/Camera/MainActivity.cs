@@ -1,12 +1,10 @@
 ﻿using System;
 using Android.App;
-using Android.Hardware;
-using Android.Os;
-using Android.Util;
-using Android.View;
+using Android.Hardware;using Android.OS;
+using Android.Util;using Android.Views;
 using Android.Widget;
 using Dot42.Manifest;
-using Java.Io;
+using Java.IO;
 using Java.Text;
 using Java.Util;
 using Environment = Android.Os.Environment;
@@ -30,12 +28,12 @@ namespace SimpleCamera
         protected override void OnCreate(Bundle savedInstance)
         {
             base.OnCreate(savedInstance);
-            SetContentView(R.Layouts.MainLayout);
+            SetContentView(R.Layout.MainLayout);
 
             var camera = GetCamera();
-            var preview = FindViewById<FrameLayout>(R.Ids.preview);
-            var captureButton = FindViewById<Button>(R.Ids.captureButton);
-            var previewButton = FindViewById<Button>(R.Ids.previewButton);
+            var preview = FindViewById<FrameLayout>(R.Id.preview);
+            var captureButton = FindViewById<Button>(R.Id.captureButton);
+            var previewButton = FindViewById<Button>(R.Id.previewButton);
 
             if (camera != null)
             {

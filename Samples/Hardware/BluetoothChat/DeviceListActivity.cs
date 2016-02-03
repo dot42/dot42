@@ -17,10 +17,8 @@
 using System;
 using Android.App;
 using Android.Bluetooth;
-using Android.Content;
-using Android.Os;
-using Android.Util;
-using Android.View;
+using Android.Content;using Android.OS;
+using Android.Util;using Android.Views;
 using Android.Widget;
 using Dot42;
 using Dot42.Manifest;
@@ -63,13 +61,13 @@ namespace BluetoothChat
 
 			// Setup the window
 			RequestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
-			SetContentView(R.Layouts.device_list);
+			SetContentView(R.Layout.device_list);
 
 			// Set result CANCELED in case the user backs out
 			SetResult(Activity.RESULT_CANCELED);
 
 			// Initialize the button to perform device discovery
-			var scanButton = (Button) FindViewById(R.Ids.button_scan);
+			var scanButton = (Button) FindViewById(R.Id.button_scan);
 		    scanButton.Click += (s, x) => {
 		        doDiscovery();
                 ((View)s).SetVisibility(View.GONE);
@@ -77,16 +75,16 @@ namespace BluetoothChat
 
 			// Initialize array adapters. One for already paired devices and
 			// one for newly discovered devices
-			mPairedDevicesArrayAdapter = new ArrayAdapter<string>(this, R.Layouts.device_name);
-			mNewDevicesArrayAdapter = new ArrayAdapter<string>(this, R.Layouts.device_name);
+			mPairedDevicesArrayAdapter = new ArrayAdapter<string>(this, R.Layout.device_name);
+			mNewDevicesArrayAdapter = new ArrayAdapter<string>(this, R.Layout.device_name);
 
 			// Find and set up the ListView for paired devices
-			var pairedListView = (ListView) FindViewById(R.Ids.paired_devices);
+			var pairedListView = (ListView) FindViewById(R.Id.paired_devices);
 			pairedListView.Adapter = mPairedDevicesArrayAdapter;
 		    pairedListView.ItemClick += OnDeviceClick;
 
 			// Find and set up the ListView for newly discovered devices
-			ListView newDevicesListView = (ListView) FindViewById(R.Ids.new_devices);
+			ListView newDevicesListView = (ListView) FindViewById(R.Id.new_devices);
 			newDevicesListView.Adapter = mNewDevicesArrayAdapter;
 			newDevicesListView.ItemClick += OnDeviceClick;
 
@@ -107,7 +105,7 @@ namespace BluetoothChat
 			// If there are paired devices, add each one to the ArrayAdapter
 			if (pairedDevices.Size() > 0)
 			{
-				FindViewById(R.Ids.title_paired_devices).Visibility = View.VISIBLE;
+				FindViewById(R.Id.title_paired_devices).Visibility = View.VISIBLE;
 				foreach (BluetoothDevice device in pairedDevices.AsEnumerable())
 				{
 					mPairedDevicesArrayAdapter.Add(device.Name + "\n" + device.Address);
@@ -115,7 +113,7 @@ namespace BluetoothChat
 			}
 			else
 			{
-				string noDevices = GetResources().GetText(R.Strings.none_paired).ToString();
+				string noDevices = Resources.GetText(R.String.none_paired).ToString();
 				mPairedDevicesArrayAdapter.Add(noDevices);
 			}
 		}
@@ -147,10 +145,10 @@ namespace BluetoothChat
 
 			// Indicate scanning in the title
 			SetProgressBarIndeterminateVisibility(true);
-			SetTitle(R.Strings.scanning);
+			SetTitle(R.String.scanning);
 
 			// Turn on sub-title for new devices
-			FindViewById(R.Ids.title_new_devices).Visibility = View.VISIBLE;
+			FindViewById(R.Id.title_new_devices).Visibility = View.VISIBLE;
 
 			// If we're already discovering, stop it
 			if (mBtAdapter.IsDiscovering())
@@ -193,7 +191,7 @@ namespace BluetoothChat
 
             public override void OnReceive(Context context, Intent intent)
             {
-                String action = intent.GetAction();
+                String action = intent.Action;
 
                 // When discovery finds a device
                 if (BluetoothDevice.ACTION_FOUND.Equals(action))
@@ -210,10 +208,10 @@ namespace BluetoothChat
                 else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.Equals(action))
                 {
                     activity.SetProgressBarIndeterminateVisibility(false);
-                    activity.SetTitle(R.Strings.select_device);
+                    activity.SetTitle(R.String.select_device);
                     if (activity.mNewDevicesArrayAdapter.GetCount() == 0)
                     {
-                        var noDevices = activity.GetResources().GetText(R.Strings.none_found).ToString();
+                        var noDevices = activity.Resources.GetText(R.String.none_found).ToString();
                         activity.mNewDevicesArrayAdapter.Add(noDevices);
                     }
                 }

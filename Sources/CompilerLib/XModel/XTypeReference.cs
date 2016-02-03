@@ -14,6 +14,7 @@ namespace Dot42.CompilerLib.XModel
         private readonly ReadOnlyCollection<XGenericParameter> genericParameters;
         private string fullNameCache;
         private XTypeDefinition resolvedType;
+        private XTypeReference withoutModifiers;
 
         /// <summary>
         /// Default ctor
@@ -108,6 +109,25 @@ namespace Dot42.CompilerLib.XModel
         public virtual XTypeReference GetElementType()
         {
             return this;
+        }
+
+        /// <summary>
+        /// get the ElementType stripped of Required- or OptionalModifierTypes
+        /// (is this correct to do here?)
+        /// </summary>
+        /// <returns></returns>
+        public virtual XTypeReference GetWithoutModifiers()
+        {
+            if (withoutModifiers != null) 
+                return withoutModifiers;
+
+            XTypeReference ret = this;
+            while (ret is XRequiredModifierType || ret is XOptionalModifierType)
+            {
+                ret = ret.ElementType;
+            }
+            withoutModifiers = ret;
+            return ret;
         }
 
         /// <summary>
@@ -301,6 +321,7 @@ namespace Dot42.CompilerLib.XModel
                 var generics = "";
                 if (!noGenerics)
                 {
+                    // TODO: why does resharper show a suspicious cast?
                     var genericInstance = this as IXGenericInstance;
                     if (genericInstance != null)
                     {

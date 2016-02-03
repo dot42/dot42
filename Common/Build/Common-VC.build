@@ -1,17 +1,28 @@
 ﻿<?xml version="1.0"?>
 <project name="Common-VC" description="Common VC++ properties">
 
+	<!-- select the used VS Version -->
+	<include buildfile="SelectVS.build"/>
+	
+	
 	<readregistry property="CurrentSdkVersion" key="SOFTWARE\Microsoft\Microsoft SDKs\Windows\CurrentVersion" />
 	<property name="sdkversion" value="${CurrentSdkVersion}" overwrite="false"/>
 	<readregistry property="sdkdir" key="SOFTWARE\Microsoft\Microsoft SDKs\Windows\${sdkversion}\InstallationFolder" />
 	<!-- Tools changes for frameworks -->
+	<property name="sdktoolsdir" value="" />
 	<readregistry property="sdktoolsdir" key="SOFTWARE\Microsoft\Microsoft SDKs\Windows\${sdkversion}\WinSDK-NetFx40Tools\InstallationFolder" failonerror="false" />
 	<property name="sdktoolsdir" value="${sdkdir}\bin" if="${string::get-length(sdktoolsdir) == 0}" />
-	<readregistry property="sdk7dir" key="SOFTWARE\Microsoft\Microsoft SDKs\Windows\v7.0A\InstallationFolder" />
-	<property name="rcdir" value="${sdk7dir}\bin" />
-
-	<property name='vcdir' value="${environment::get-variable('VS90COMNTOOLS')}\..\..\Vc" if="${environment::variable-exists('VS90COMNTOOLS')}"/>
-	<property name='vcdir' value="${environment::get-variable('VS100COMNTOOLS')}\..\..\Vc" if="${environment::variable-exists('VS100COMNTOOLS')}"/>
+	
+	<!--property name="rcdir" value="${sdk7dir}\bin" /-->
+	<!--readregistry property="sdk7dir" key="SOFTWARE\Microsoft\Microsoft SDKs\Windows\v7.0A\InstallationFolder" failonerror="false"/-->
+	<!--property name="rcdir" value="${sdk7dir}\bin" /-->
+	
+	<!-- hardcoded to get it to work... -->
+	<property name="sdk7dir" value="c:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Bin" />
+	<property name="rcdir" value="c:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Bin" />
+	
+	
+	<property name='vcdir' value="${vscomntools}\..\..\Vc" />
 	<property name='vcinc' value='${vcdir}\include'/>
 	<property name='vc32lib' value='${vcdir}\lib'/>
 	<property name='vc64lib' value='${vcdir}\lib\amd64'/>

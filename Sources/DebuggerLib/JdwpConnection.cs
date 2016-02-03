@@ -74,6 +74,16 @@ namespace Dot42.DebuggerLib
             SendHelo();
         }
 
+        public VersionInfo VmVersion
+        {
+            get
+            {
+                if (versionInfo == null)
+                    throw new Exception("debugging not active");
+                return versionInfo;
+            }
+        }
+
         /// <summary>
         /// Prepare this connection for actual debugging.
         /// </summary>
@@ -168,7 +178,7 @@ namespace Dot42.DebuggerLib
         private void ReadLoop()
         {
             var myThread = Thread.CurrentThread;
-            var readBuffer = new byte[1024 * 1024];
+            var readBuffer = new byte[1024 * 4024];
             var readBufferOffset = 0;
 
             while (readThread == myThread)
@@ -177,9 +187,9 @@ namespace Dot42.DebuggerLib
                 if ((!tcpClient.Connected) || (readThread != myThread))
                     return; 
 
-                // Read all available data
+                // Read all available data, at least if we are processing the input fast enough
                 var available = tcpClient.Available;
-                if (available > 0)
+                if (available > 0 && readBufferOffset + available < readBuffer.Length)
                 {
                     Read(readBuffer, readBufferOffset, available);
                     readBufferOffset += available;
@@ -228,38 +238,38 @@ namespace Dot42.DebuggerLib
                     DLog.Debug(DContext.DebuggerLibJdwpConnection,
                                "Read packet " + (packet.IsChunk() ? packet.AsChunk() : packet));
 #endif
-
-                    // Find callback
-                    var processed = false;
-                    if (packet.IsReply)
+                    try
                     {
-                        var packetId = packet.Id;
-                        Action<JdwpPacket> callback;
-                        if (callbacks.TryRemove(packetId, out callback))
+                        // Find callback
+                        var processed = false;
+                        if (packet.IsReply)
                         {
-                            // Perform callback.
-                            processed = true;
-                            callback(packet);
+                            var packetId = packet.Id;
+                            Action<JdwpPacket> callback;
+                            if (callbacks.TryRemove(packetId, out callback))
+                            {
+                                // Perform callback.
+                                processed = true;
+                                callback(packet);
+                            }
+                        }
+                        if (!processed)
+                        {
+                            if (packet.IsChunk())
+                            {
+                                // Handle non-reply chunks
+                                chunkHandler(packet.AsChunk());
+                            }
+                            else if (!packet.IsReply)
+                            {
+                                // Handle non-reply packet
+                                packetHandler(packet);
+                            }
                         }
                     }
-                    if (!processed)
+                    catch (Exception ex)
                     {
-                        if (packet.IsChunk())
-                        {
-                            // Handle non-reply chunks
-                            chunkHandler(packet.AsChunk());
-                        }
-                        else if (!packet.IsReply)
-                        {
-                            // Handle non-reply packet
-                            packetHandler(packet);
-                        }
-                        processed = true;
-                    }
-
-                    if (!processed)
-                    {
-                        DLog.Debug(DContext.DebuggerLibJdwpConnection, "Unknown JDWP packet read {0}", packet);
+                        DLog.Error(DContext.DebuggerLibJdwpConnection, "JdwpConnection: Exception while handling packet. IsReply={1}; {2}", ex, packet.IsReply, packet);
                     }
                 }
             }            
@@ -529,5 +539,6 @@ namespace Dot42.DebuggerLib
         {
             get { return GetIdSizeInfo(); }
         }
+
     }
 }

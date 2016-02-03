@@ -323,6 +323,14 @@ namespace Dot42.CecilExtensions
         }
 
         /// <summary>
+        /// Is the given type System.ThreadingInterlocked?
+        /// </summary>
+        public static bool IsSystemThreadingInterlocked(this TypeReference type)
+        {
+            return (type.FullName == "System.Threading.Interlocked");
+        }
+
+        /// <summary>
         /// Is the given type System.Collections.ICollection or a derived interface?
         /// </summary>
         public static bool ExtendsICollection(this TypeReference type)

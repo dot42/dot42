@@ -8,6 +8,7 @@ using Dot42.FrameworkDefinitions;
 using Dot42.Ide;
 using Dot42.Ide.Debugger;
 using Dot42.Mapping;
+using Dot42.VStudio.Flavors;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -37,6 +38,8 @@ namespace Dot42.VStudio.Services
         /// </summary>
         public void LaunchDebugEngine(string apkPath, DebuggerLib.Debugger debugger, Guid debuggerGuid, int launchFlags, Action<LauncherStates, string> stateUpdate)
         {
+            StatusBarLog.EnsureLoaded();
+
             var info = new VsDebugTargetInfo2[1];
             info[0].cbSize = (uint)Marshal.SizeOf(typeof(VsDebugTargetInfo2));
             info[0].dlo = (uint)DEBUG_LAUNCH_OPERATION.DLO_CreateProcess;
@@ -96,9 +99,17 @@ namespace Dot42.VStudio.Services
         /// <summary>
         /// Open or create an output pane for the debug engine.
         /// </summary>
-        public IIdeOutputPane CreateDebugOutputPane()
+        public IIdeOutputPane CreateDot42OutputPane()
         {
             return new IdeOutputPane();
+        }
+
+        /// <summary>
+        /// Open or create an output pane for the debug engine.
+        /// </summary>
+        public IIdeOutputPane CreateDebugOutputPane()
+        {
+            return new IdeOutputPane(VSConstants.OutputWindowPaneGuid.DebugPane_guid, "Debugging");
         }
 
         /// <summary>

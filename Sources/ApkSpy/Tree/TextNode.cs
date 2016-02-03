@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using Dot42.DexLib;
 using Dot42.JvmClassLib.Attributes;
+using Dot42.Utility;
+using ICSharpCode.TextEditor;
 
 namespace Dot42.ApkSpy.Tree
 {
@@ -14,12 +17,8 @@ namespace Dot42.ApkSpy.Tree
         /// </summary>
         internal override Control CreateView(ISpyContext settings)
         {
-            var tb = new TextBox();
-            tb.ReadOnly = true;
-            tb.MaxLength = 64 * 1024 * 1024;
-            tb.Multiline = true;
-            tb.ScrollBars = ScrollBars.Both;
-            tb.WordWrap = false;
+            var tb = CreateTextBox();
+
             try
             {
                 tb.Text = LoadText(settings);
@@ -29,6 +28,48 @@ namespace Dot42.ApkSpy.Tree
                 tb.Text = string.Format("Error: {0}\n\n{1}", ex.Message, ex.StackTrace);
             }
             return tb;
+        }
+
+        private TextEditorControl CreateTextBox()
+        {
+            var tb = new TextEditorControl();
+            tb.IsReadOnly = true;            
+            
+            // TODO: set proper highlighting.
+            tb.SetHighlighting("C#");
+
+            var high = (ICSharpCode.TextEditor.Document.DefaultHighlightingStrategy)tb.Document.HighlightingStrategy;
+            var def = high.Rules.First();
+            var delim = " ,().:\t\n\r";
+            for(int i = 0; i < def.Delimiters.Length; ++i)
+                def.Delimiters[i] = delim.Contains((char)i);
+
+            tb.ShowLineNumbers = false;
+            tb.ShowInvalidLines = false;
+            tb.ShowVRuler = false;
+            tb.ActiveTextAreaControl.TextArea.ToolTipRequest += OnToolTipRequest;
+            tb.ActiveTextAreaControl.TextArea.MouseMove += OnTextAreaMouseMove;
+
+            string[] tryFonts = new[] { "Consolas", "Lucida Console" };
+
+            foreach (var fontName in tryFonts)
+            {
+                tb.Font = new Font(fontName, 9, FontStyle.Regular);
+                if (tb.Font.Name == fontName) break;
+            }
+
+            if (!tryFonts.Contains(tb.Font.Name))
+                tb.Font = new Font(FontFamily.GenericMonospace, 9);
+            
+            return tb;
+        }
+
+        protected virtual void OnTextAreaMouseMove(object sender, MouseEventArgs e)
+        {
+        }
+
+        protected virtual void OnToolTipRequest(object sender, ToolTipRequestEventArgs e)
+        {
         }
 
         /// <summary>
@@ -60,20 +101,21 @@ namespace Dot42.ApkSpy.Tree
             var nl = Environment.NewLine;
             foreach (var attr in annAttributes)
             {
-                sb.Append("\t");
+                sb.Append("    ");
                 sb.Append(attr.Name);
                 sb.Append(nl);
 
                 foreach (var ann in attr.Annotations)
                 {
-                    sb.Append("\t\t");
+                    sb.Append("        -");
                     sb.Append(ann.AnnotationTypeName);
                     sb.Append(nl);
 
                     foreach (var pair in ann.ValuePairs)
                     {
-                        sb.Append("\t\t\t");
-                        sb.AppendFormat("{0} \t - {1}{2}", pair.ElementName, pair.Value, nl);
+                        sb.Append("            -");
+                        sb.AppendFormat("{0} \t - {1}", pair.ElementName, pair.Value);
+                        sb.Append(nl);
                     }
                 }
             }

@@ -20,6 +20,11 @@
         bool IsCompilerGenerated { get; }
 
         /// <summary>
+        /// Disallow any optimizations regarding this variable?
+        /// </summary>
+        bool PreventOptimization { get; }
+
+        /// <summary>
         /// Gets the type of this variable.
         /// </summary>
         TTypeRef GetType<TTypeRef>(ITypeResolver<TTypeRef> nameConverter);

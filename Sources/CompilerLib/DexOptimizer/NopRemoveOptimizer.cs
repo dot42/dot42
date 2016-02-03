@@ -36,6 +36,10 @@ namespace Dot42.CompilerLib.DexOptimizer
                 }
 
                 var next = instructions[i + 1];
+
+                // TODO: prevent removal of nop if the next instruction branches to this nop,
+                //       (i.e. a spin loop); or, better, handle this case in the RL to dex compiler.
+
                 rerouter.Reroute(inst, next);
                 instructions.RemoveAt(i);
             }

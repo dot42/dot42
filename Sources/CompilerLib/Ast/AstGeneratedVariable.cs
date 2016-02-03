@@ -7,11 +7,12 @@ namespace Dot42.CompilerLib.Ast
         /// <summary>
         /// Generated ctor
         /// </summary>
-        public AstGeneratedVariable(string name, string originalName)
+        public AstGeneratedVariable(string name, string originalName, bool preventOptimization = false)
         {
             this.originalName = originalName ?? name;
             Name = name;
             IsGenerated = true;
+            PreventOptimizations = preventOptimization;
         }
 
         /// <summary>

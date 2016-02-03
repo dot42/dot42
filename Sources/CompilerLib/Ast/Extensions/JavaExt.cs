@@ -51,20 +51,35 @@ namespace Dot42.CompilerLib.Ast.Extensions
         public static MethodDefinition GetBaseInterfaceMethod(this MethodDefinition method)
         {
             var declaringType = method.DeclaringClass;
+            HashSet<ClassFile> visitedInterfaces = new HashSet<ClassFile>();
+            Queue<TypeReference> nonVisitedInterfaces = new Queue<TypeReference>();
+
             while (declaringType != null)
             {
-                if (declaringType.Interfaces != null)
-                {
-                    foreach (var ifaceRef in declaringType.Interfaces)
-                    {
-                        ClassFile iface;
-                        if (!declaringType.Loader.TryLoadClass(ifaceRef.ClassName, out iface))
-                            continue;
+                if(declaringType.Interfaces != null)
+                    foreach(var iface in declaringType.Interfaces)
+                        nonVisitedInterfaces.Enqueue(iface);
 
-                        var result = iface.Methods.FirstOrDefault(x => x.AreSame(method));
-                        if (result != null)
-                            return result;
-                    }
+                while (nonVisitedInterfaces.Count > 0)
+                {
+                    var ifaceRef = nonVisitedInterfaces.Dequeue();
+
+                    ClassFile iface;
+                    if (!declaringType.Loader.TryLoadClass(ifaceRef.ClassName, out iface))
+                        continue;
+
+                    if (visitedInterfaces.Contains(iface))
+                        continue;
+                    visitedInterfaces.Add(iface);
+
+                    var result = iface.Methods.FirstOrDefault(x => x.AreSame(method));
+                    if (result != null)
+                        return result;
+
+                    if (iface.Interfaces != null)
+                        foreach (var ifaceiface in iface.Interfaces)
+                            nonVisitedInterfaces.Enqueue(ifaceiface);
+
                 }
                 if (!declaringType.TryGetSuperClass(out declaringType))
                     break;
@@ -80,6 +95,8 @@ namespace Dot42.CompilerLib.Ast.Extensions
         {
             while (method != null)
             {
+                // TODO: is it not possible that a method implements multiple
+                //       interfaces?
                 var @base = method.GetBaseInterfaceMethod();
                 if (@base == null)
                     yield break;

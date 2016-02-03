@@ -66,11 +66,12 @@ namespace Dot42.DexLib.IO
 
         private void ReadMapList(BinaryReader reader)
         {
-            reader.PreserveCurrentPosition(header.MapOffset, () => {
+            reader.PreserveCurrentPosition(header.MapOffset, () =>
+            {
                 var mapsize = reader.ReadUInt32();
                 for (var i = 0; i < mapsize; i++)
                 {
-                    var type = (TypeCodes)reader.ReadUInt16();
+                    var type = (TypeCodes) reader.ReadUInt16();
                     reader.ReadUInt16(); // unused
                     var size = reader.ReadUInt32();
                     var offset = reader.ReadUInt32();
@@ -82,37 +83,30 @@ namespace Dot42.DexLib.IO
 
         private void ReadStrings(BinaryReader reader)
         {
-            reader.PreserveCurrentPosition(header.StringsOffset, () => {
-                                                                     uint StringsDataOffset = reader.ReadUInt32();
-                                                                     reader.BaseStream.Seek(StringsDataOffset,
-                                                                                            SeekOrigin.Begin);
-                                                                     for (int i = 0; i < header.StringsSize; i++)
-                                                                     {
-                                                                         strings.Add(reader.ReadMUTF8String());
-                                                                     }
-                                                                 });
+            reader.PreserveCurrentPosition(header.StringsOffset, () =>
+            {
+                uint StringsDataOffset = reader.ReadUInt32();
+                reader.BaseStream.Seek(StringsDataOffset, SeekOrigin.Begin);
+                for (int i = 0; i < header.StringsSize; i++)
+                {
+                    strings.Add(reader.ReadMUTF8String());
+                }
+            });
         }
 
         private void PrefetchTypeReferences(BinaryReader reader)
         {
-            reader.PreserveCurrentPosition(header.TypeReferencesOffset, () => {
-                                                                            reader.BaseStream.Seek(
-                                                                                header.TypeReferencesOffset,
-                                                                                SeekOrigin.Begin);
+            reader.PreserveCurrentPosition(header.TypeReferencesOffset, () =>
+            {
+                reader.BaseStream.Seek(header.TypeReferencesOffset, SeekOrigin.Begin);
 
-                                                                            for (int i = 0;
-                                                                                 i < header.TypeReferencesSize;
-                                                                                 i++)
-                                                                            {
-                                                                                int descriptorIndex =
-                                                                                    reader.ReadInt32();
-                                                                                string descriptor =
-                                                                                    strings[descriptorIndex];
-                                                                                typeReferences.Add(
-                                                                                    TypeDescriptor.Allocate(
-                                                                                        descriptor));
-                                                                            }
-                                                                        });
+                for (int i = 0; i < header.TypeReferencesSize; i++)
+                {
+                    int descriptorIndex = reader.ReadInt32();
+                    string descriptor = strings[descriptorIndex];
+                    typeReferences.Add(TypeDescriptor.Allocate(descriptor));
+                }
+            });
         }
 
         private void PrefetchFieldDefinitions(BinaryReader reader, ClassDefinition classDefinition, uint fieldcount)
@@ -156,163 +150,143 @@ namespace Dot42.DexLib.IO
 
         private void PrefetchClassDefinition(BinaryReader reader, ClassDefinition classDefinition, uint classDataOffset)
         {
-            reader.PreserveCurrentPosition(classDataOffset, () => {
-                                                                uint staticFieldSize = reader.ReadULEB128();
-                                                                uint instanceFieldSize = reader.ReadULEB128();
-                                                                uint directMethodSize = reader.ReadULEB128();
-                                                                uint virtualMethodSize = reader.ReadULEB128();
+            reader.PreserveCurrentPosition(classDataOffset, () =>
+            {
+                uint staticFieldSize = reader.ReadULEB128();
+                uint instanceFieldSize = reader.ReadULEB128();
+                uint directMethodSize = reader.ReadULEB128();
+                uint virtualMethodSize = reader.ReadULEB128();
 
-                                                                PrefetchFieldDefinitions(reader, classDefinition,
-                                                                                         staticFieldSize);
-                                                                PrefetchFieldDefinitions(reader, classDefinition,
-                                                                                         instanceFieldSize);
-                                                                PrefetchMethodDefinitions(reader, classDefinition,
-                                                                                          directMethodSize);
-                                                                PrefetchMethodDefinitions(reader, classDefinition,
-                                                                                          virtualMethodSize);
-                                                            });
+                PrefetchFieldDefinitions(reader, classDefinition, staticFieldSize);
+                PrefetchFieldDefinitions(reader, classDefinition, instanceFieldSize);
+                PrefetchMethodDefinitions(reader, classDefinition, directMethodSize);
+                PrefetchMethodDefinitions(reader, classDefinition, virtualMethodSize);
+            });
         }
 
         private void PrefetchClassDefinitions(BinaryReader reader, bool prefetchMembers)
         {
-            reader.PreserveCurrentPosition(header.ClassDefinitionsOffset, () => {
-                                                                              for (int i = 0;
-                                                                                   i < header.ClassDefinitionsSize;
-                                                                                   i++)
-                                                                              {
-                                                                                  int classIndex =
-                                                                                      reader.ReadInt32();
+            reader.PreserveCurrentPosition(header.ClassDefinitionsOffset, () =>
+            {
+                for (int i = 0; i < header.ClassDefinitionsSize; i++)
+                {
+                    int classIndex = reader.ReadInt32();
 
-                                                                                  ClassDefinition cdef;
-                                                                                  if (
-                                                                                      typeReferences[classIndex]
-                                                                                      is ClassDefinition)
-                                                                                  {
-                                                                                      cdef = (ClassDefinition)typeReferences[classIndex];
-                                                                                  }
-                                                                                  else
-                                                                                  {
-                                                                                      cdef =
-                                                                                          new ClassDefinition(
-                                                                                              (ClassReference)
-                                                                                              typeReferences[
-                                                                                                  classIndex]);
-                                                                                      typeReferences[classIndex]
-                                                                                          = cdef;
-                                                                                      classes.Add(cdef);
-                                                                                  }
+                    ClassDefinition cdef;
+                    if (typeReferences[classIndex] is ClassDefinition)
+                    {
+                        cdef = (ClassDefinition) typeReferences[classIndex];
+                    }
+                    else
+                    {
+                        cdef = new ClassDefinition((ClassReference) typeReferences[classIndex]);
+                        typeReferences[classIndex] = cdef;
+                        classes.Add(cdef);
+                    }
 
-                                                                                  reader.ReadInt32();
-                                                                                  // skip access_flags
-                                                                                  reader.ReadInt32();
-                                                                                  // skip superclass_idx
-                                                                                  reader.ReadInt32();
-                                                                                  // skip interfaces_off
-                                                                                  reader.ReadInt32();
-                                                                                  // skip source_file_idx
-                                                                                  reader.ReadInt32();
-                                                                                  // skip annotations_off
+                    reader.ReadInt32();
+                    // skip access_flags
+                    reader.ReadInt32();
+                    // skip superclass_idx
+                    reader.ReadInt32();
+                    // skip interfaces_off
+                    reader.ReadInt32();
+                    // skip source_file_idx
+                    reader.ReadInt32();
+                    // skip annotations_off
 
-                                                                                  uint classDataOffset =
-                                                                                      reader.ReadUInt32();
-                                                                                  if ((classDataOffset > 0) &&
-                                                                                      prefetchMembers)
-                                                                                  {
-                                                                                      PrefetchClassDefinition(
-                                                                                          reader, cdef,
-                                                                                          classDataOffset);
-                                                                                  }
+                    uint classDataOffset = reader.ReadUInt32();
+                    if ((classDataOffset > 0) && prefetchMembers)
+                    {
+                        PrefetchClassDefinition(reader, cdef, classDataOffset);
+                    }
 
-                                                                                  reader.ReadInt32();
-                                                                                  // skip static_values_off
-                                                                              }
-                                                                          });
+                    reader.ReadInt32();
+                    // skip static_values_off
+                }
+            });
         }
 
         private void ReadAnnotationDirectory(BinaryReader reader, ClassDefinition classDefinition, uint annotationOffset)
         {
-            reader.PreserveCurrentPosition(annotationOffset, () => {
-                                                                 uint classAnnotationOffset = reader.ReadUInt32();
-                                                                 uint annotatedFieldsSize = reader.ReadUInt32();
-                                                                 uint annotatedMethodsSize = reader.ReadUInt32();
-                                                                 uint annotatedParametersSize = reader.ReadUInt32();
+            reader.PreserveCurrentPosition(annotationOffset, () =>
+            {
+                uint classAnnotationOffset = reader.ReadUInt32();
+                uint annotatedFieldsSize = reader.ReadUInt32();
+                uint annotatedMethodsSize = reader.ReadUInt32();
+                uint annotatedParametersSize = reader.ReadUInt32();
 
-                                                                 if (classAnnotationOffset > 0)
-                                                                     classDefinition.Annotations =
-                                                                         ReadAnnotationSet(reader,
-                                                                                           classAnnotationOffset);
+                if (classAnnotationOffset > 0)
+                    classDefinition.Annotations =
+                        ReadAnnotationSet(reader,
+                            classAnnotationOffset);
 
-                                                                 for (int j = 0; j < annotatedFieldsSize; j++)
-                                                                     (fieldReferences[reader.ReadInt32()] as
-                                                                      FieldDefinition).Annotations =
-                                                                         ReadAnnotationSet(reader,
-                                                                                           reader.ReadUInt32());
+                for (int j = 0; j < annotatedFieldsSize; j++)
+                    ((FieldDefinition) fieldReferences[reader.ReadInt32()]).Annotations =
+                        ReadAnnotationSet(reader, reader.ReadUInt32());
 
-                                                                 for (int j = 0; j < annotatedMethodsSize; j++)
-                                                                     (methodReferences[reader.ReadInt32()] as
-                                                                      MethodDefinition).Annotations =
-                                                                         ReadAnnotationSet(reader,
-                                                                                           reader.ReadUInt32());
+                for (int j = 0; j < annotatedMethodsSize; j++)
+                    ((MethodDefinition) methodReferences[reader.ReadInt32()]).Annotations =
+                        ReadAnnotationSet(reader, reader.ReadUInt32());
 
-                                                                 for (int j = 0; j < annotatedParametersSize; j++)
-                                                                 {
-                                                                     int methodIndex = reader.ReadInt32();
-                                                                     uint offset = reader.ReadUInt32();
-                                                                     var annotations =
-                                                                         ReadAnnotationSetRefList(reader, offset);
-                                                                     var mdef =
-                                                                         (methodReferences[methodIndex] as
-                                                                          MethodDefinition);
+                for (int j = 0; j < annotatedParametersSize; j++)
+                {
+                    int methodIndex = reader.ReadInt32();
+                    uint offset = reader.ReadUInt32();
+                    var annotations = ReadAnnotationSetRefList(reader, offset);
+                    var mdef = (methodReferences[methodIndex] as MethodDefinition);
 
-                                                                     for (int i = 0; i < annotations.Count; i++)
-                                                                     {
-                                                                         if (annotations[i].Count > 0)
-                                                                         {
-                                                                             mdef.Prototype.Parameters[i].
-                                                                                 Annotations = annotations[i];
-                                                                         }
-                                                                     }
-                                                                 }
-                                                             });
+                    for (int i = 0; i < annotations.Count; i++)
+                    {
+                        if (annotations[i].Count > 0)
+                        {
+                            mdef.Prototype.Parameters[i].Annotations = annotations[i];
+                        }
+                    }
+                }
+            });
         }
 
         private List<List<Annotation>> ReadAnnotationSetRefList(BinaryReader reader, uint annotationOffset)
         {
             var result = new List<List<Annotation>>();
-            reader.PreserveCurrentPosition(annotationOffset, () => {
-                                                                 uint size = reader.ReadUInt32();
-                                                                 for (uint i = 0; i < size; i++)
-                                                                 {
-                                                                     uint offset = reader.ReadUInt32();
-                                                                     result.Add(ReadAnnotationSet(reader, offset));
-                                                                 }
-                                                             });
+            reader.PreserveCurrentPosition(annotationOffset, () =>
+            {
+                uint size = reader.ReadUInt32();
+                for (uint i = 0; i < size; i++)
+                {
+                    uint offset = reader.ReadUInt32();
+                    result.Add(ReadAnnotationSet(reader, offset));
+                }
+            });
             return result;
         }
 
         private List<Annotation> ReadAnnotationSet(BinaryReader reader, uint annotationOffset)
         {
             var result = new List<Annotation>();
-            reader.PreserveCurrentPosition(annotationOffset, () => {
-                                                                 uint size = reader.ReadUInt32();
-                                                                 for (uint i = 0; i < size; i++)
-                                                                 {
-                                                                     uint offset = reader.ReadUInt32();
-                                                                     result.Add(ReadAnnotation(reader, offset));
-                                                                 }
-                                                             });
+            reader.PreserveCurrentPosition(annotationOffset, () =>
+            {
+                uint size = reader.ReadUInt32();
+                for (uint i = 0; i < size; i++)
+                {
+                    uint offset = reader.ReadUInt32();
+                    result.Add(ReadAnnotation(reader, offset));
+                }
+            });
             return result;
         }
 
         private Annotation ReadAnnotation(BinaryReader reader, uint annotationOffset)
         {
             Annotation annotation = null;
-            reader.PreserveCurrentPosition(annotationOffset, () => {
-                                                                 byte visibility = reader.ReadByte();
-                                                                 annotation = ReadEncodedAnnotation(reader);
-                                                                 annotation.Visibility =
-                                                                     (AnnotationVisibility) visibility;
-                                                             });
+            reader.PreserveCurrentPosition(annotationOffset, () =>
+            {
+                byte visibility = reader.ReadByte();
+                annotation = ReadEncodedAnnotation(reader);
+                annotation.Visibility =
+                    (AnnotationVisibility) visibility;
+            });
             return annotation;
         }
 
@@ -338,137 +312,113 @@ namespace Dot42.DexLib.IO
 
         private void ReadPrototypes(BinaryReader reader)
         {
-            reader.PreserveCurrentPosition(header.PrototypesOffset, () => {
-                                                                        for (int i = 0;
-                                                                             i < header.PrototypesSize;
-                                                                             i++)
-                                                                        {
-                                                                            long thisOffset =
-                                                                                reader.BaseStream.Position;
-                                                                            int shortyIndex = reader.ReadInt32();
-                                                                            int returnTypeIndex = reader.ReadInt32();
-                                                                            uint parametersOffset =
-                                                                                reader.ReadUInt32();
+            reader.PreserveCurrentPosition(header.PrototypesOffset, () =>
+            {
+                for (int i = 0; i < header.PrototypesSize; i++)
+                {
+                    long thisOffset = reader.BaseStream.Position;
+                    int shortyIndex = reader.ReadInt32();
+                    int returnTypeIndex = reader.ReadInt32();
+                    uint parametersOffset = reader.ReadUInt32();
 
-                                                                            var prototype = new Prototype();
-                                                                            prototype.ReturnType =
-                                                                                typeReferences[returnTypeIndex];
+                    var prototype = new Prototype();
+                    prototype.ReturnType = typeReferences[returnTypeIndex];
 
-                                                                            if (parametersOffset > 0)
-                                                                            {
-                                                                                ReadParameters(reader, prototype,
-                                                                                               parametersOffset);
-                                                                            }
+                    if (parametersOffset > 0)
+                    {
+                        ReadParameters(reader, prototype, parametersOffset);
+                    }
 
-                                                                            prototypes.Add(prototype);
-                                                                        }
-                                                                    });
+                    prototype.Freeze();
+
+                    // cache the signature and hashcode.
+                    // ReSharper disable once ReturnValueOfPureMethodIsNotUsed
+                    prototype.GetHashCode();
+                    prototype.ToSignature();
+                    
+                    prototypes.Add(prototype);
+                }
+            });
         }
 
         private void ReadParameters(BinaryReader reader, Prototype prototype, uint parametersOffset)
         {
-            reader.PreserveCurrentPosition(parametersOffset, () => {
-                                                                 uint typecount = reader.ReadUInt32();
-                                                                 for (int j = 0; j < typecount; j++)
-                                                                 {
-                                                                     var parameter = new Parameter();
-                                                                     ushort typeIndex = reader.ReadUInt16();
-                                                                     parameter.Type = typeReferences[typeIndex];
-                                                                     prototype.Parameters.Add(parameter);
-                                                                 }
-                                                             });
+            reader.PreserveCurrentPosition(parametersOffset, () =>
+            {
+                uint typecount = reader.ReadUInt32();
+                for (int j = 0; j < typecount; j++)
+                {
+                    var parameter = new Parameter();
+                    ushort typeIndex = reader.ReadUInt16();
+                    parameter.Type = typeReferences[typeIndex];
+                    prototype.Parameters.Add(parameter);
+                }
+            });
         }
 
         private void ReadClassDefinitions(BinaryReader reader)
         {
-            reader.PreserveCurrentPosition(header.ClassDefinitionsOffset, () => {
-                                                                              for (int i = 0;
-                                                                                   i < header.ClassDefinitionsSize;
-                                                                                   i++)
-                                                                              {
-                                                                                  uint classIndex =
-                                                                                      reader.ReadUInt32();
+            reader.PreserveCurrentPosition(header.ClassDefinitionsOffset, () =>
+            {
+                for (int i = 0; i < header.ClassDefinitionsSize; i++)
+                {
+                    uint classIndex = reader.ReadUInt32();
 
-                                                                                  var cdef =
-                                                                                      (ClassDefinition)
-                                                                                      typeReferences[
-                                                                                          (int) classIndex];
-                                                                                  cdef.AccessFlags =
-                                                                                      (AccessFlags)
-                                                                                      reader.ReadUInt32();
+                    var cdef = (ClassDefinition) typeReferences[(int) classIndex];
+                    cdef.AccessFlags = (AccessFlags) reader.ReadUInt32();
 
-                                                                                  uint superClassIndex =
-                                                                                      reader.ReadUInt32();
-                                                                                  if (superClassIndex !=
-                                                                                      DexConsts.NoIndex)
-                                                                                      cdef.SuperClass =
-                                                                                          (ClassReference)
-                                                                                          typeReferences[
-                                                                                              (int) superClassIndex];
+                    uint superClassIndex = reader.ReadUInt32();
+                    if (superClassIndex != DexConsts.NoIndex)
+                        cdef.SuperClass = (ClassReference) typeReferences[(int) superClassIndex];
 
-                                                                                  uint interfaceOffset =
-                                                                                      reader.ReadUInt32();
-                                                                                  uint sourceFileIndex =
-                                                                                      reader.ReadUInt32();
-                                                                                  uint annotationOffset =
-                                                                                      reader.ReadUInt32();
-                                                                                  uint classDataOffset =
-                                                                                      reader.ReadUInt32();
-                                                                                  uint staticValuesOffset =
-                                                                                      reader.ReadUInt32();
+                    uint interfaceOffset = reader.ReadUInt32();
+                    uint sourceFileIndex = reader.ReadUInt32();
+                    uint annotationOffset= reader.ReadUInt32();
+                    uint classDataOffset = reader.ReadUInt32();
+                    uint staticValuesOffset = reader.ReadUInt32();
 
-                                                                                  if (interfaceOffset > 0)
-                                                                                      ReadInterfaces(reader, cdef,
-                                                                                                     interfaceOffset);
+                    if (interfaceOffset > 0) ReadInterfaces(reader, cdef, interfaceOffset);
 
-                                                                                  if (sourceFileIndex !=
-                                                                                      DexConsts.NoIndex)
-                                                                                      cdef.SourceFile =
-                                                                                          strings[
-                                                                                              (int) sourceFileIndex];
+                    if (sourceFileIndex != DexConsts.NoIndex)
+                        cdef.SourceFile = strings[(int) sourceFileIndex];
 
-                                                                                  if (classDataOffset > 0)
-                                                                                      ReadClassDefinition(reader,
-                                                                                                          cdef,
-                                                                                                          classDataOffset);
+                    if (classDataOffset > 0)
+                        ReadClassDefinition(reader, cdef, classDataOffset);
 
-                                                                                  if (annotationOffset > 0)
-                                                                                      ReadAnnotationDirectory(
-                                                                                          reader, cdef,
-                                                                                          annotationOffset);
+                    if (annotationOffset > 0)
+                        ReadAnnotationDirectory(reader, cdef, annotationOffset);
 
-                                                                                  if (staticValuesOffset > 0)
-                                                                                  {
-                                                                                      ReadStaticValues(reader, cdef,
-                                                                                                       staticValuesOffset);
-                                                                                  }
-                                                                              }
-                                                                          });
+                    if (staticValuesOffset > 0)
+                    {
+                        ReadStaticValues(reader, cdef, staticValuesOffset);
+                    }
+                }
+            });
         }
 
         private void ReadStaticValues(BinaryReader reader, ClassDefinition classDefinition, uint staticValuesOffset)
         {
-            reader.PreserveCurrentPosition(staticValuesOffset, () => {
-                                                                   object[] values = ReadValues(reader);
-                                                                   for (int j = 0; j < values.Length; j++)
-                                                                   {
-                                                                       classDefinition.Fields[j].Value = values[j];
-                                                                   }
-                                                               });
+            reader.PreserveCurrentPosition(staticValuesOffset, () =>
+            {
+                object[] values = ReadValues(reader);
+                for (int j = 0; j < values.Length; j++)
+                {
+                    classDefinition.Fields[j].Value = values[j];
+                }
+            });
         }
 
         private void ReadInterfaces(BinaryReader reader, ClassDefinition classDefinition, uint interfaceOffset)
         {
-            reader.PreserveCurrentPosition(interfaceOffset, () => {
-                                                                uint typecount = reader.ReadUInt32();
-                                                                for (int j = 0; j < typecount; j++)
-                                                                {
-                                                                    ushort typeIndex = reader.ReadUInt16();
-                                                                    classDefinition.Interfaces.Add(
-                                                                        (ClassReference)
-                                                                        typeReferences[typeIndex]);
-                                                                }
-                                                            });
+            reader.PreserveCurrentPosition(interfaceOffset, () =>
+            {
+                uint typecount = reader.ReadUInt32();
+                for (int j = 0; j < typecount; j++)
+                {
+                    ushort typeIndex = reader.ReadUInt16();
+                    classDefinition.Interfaces.Add((ClassReference)typeReferences[typeIndex]);
+                }
+            });
         }
 
         private object[] ReadValues(BinaryReader reader)
@@ -545,7 +495,7 @@ namespace Dot42.DexLib.IO
         }
 
         private void ReadMethodDefinitions(BinaryReader reader, ClassDefinition classDefinition, uint methodcount,
-                                           bool isVirtual)
+            bool isVirtual)
         {
             uint methodIndex = 0;
             for (int i = 0; i < methodcount; i++)
@@ -568,147 +518,141 @@ namespace Dot42.DexLib.IO
 
         private void ReadMethodBody(BinaryReader reader, MethodDefinition mdef, uint codeOffset)
         {
-            reader.PreserveCurrentPosition(codeOffset, () => {
-                                                           ushort registersSize = reader.ReadUInt16();
-                                                           ushort incomingArgsSize = reader.ReadUInt16();
-                                                           ushort outgoingArgsSize = reader.ReadUInt16();
-                                                           ushort triesSize = reader.ReadUInt16();
-                                                           uint debugOffset = reader.ReadUInt32();
+            reader.PreserveCurrentPosition(codeOffset, () =>
+            {
+                ushort registersSize = reader.ReadUInt16();
+                ushort incomingArgsSize = reader.ReadUInt16();
+                ushort outgoingArgsSize = reader.ReadUInt16();
+                ushort triesSize = reader.ReadUInt16();
+                uint debugOffset = reader.ReadUInt32();
 
-                                                           mdef.Body = new MethodBody(mdef, registersSize);
-                                                           mdef.Body.IncomingArguments = incomingArgsSize;
-                                                           mdef.Body.OutgoingArguments = outgoingArgsSize;
+                mdef.Body = new MethodBody(mdef, registersSize);
+                mdef.Body.IncomingArguments = incomingArgsSize;
+                mdef.Body.OutgoingArguments = outgoingArgsSize;
 
-                                                           var ireader = new InstructionReader(this, mdef);
-                                                           ireader.ReadFrom(reader);
+                var ireader = new InstructionReader(this, mdef);
+                ireader.ReadFrom(reader);
 
-                                                           if ((triesSize != 0) && (ireader.Codes.Length%2 != 0))
-                                                               reader.ReadUInt16(); // padding (4-byte alignment)
+                if ((triesSize != 0) && (ireader.Codes.Length%2 != 0))
+                    reader.ReadUInt16(); // padding (4-byte alignment)
 
-                                                           if (triesSize != 0)
-                                                               ReadExceptionHandlers(reader, mdef, ireader,
-                                                                                     triesSize);
+                if (triesSize != 0)
+                    ReadExceptionHandlers(reader, mdef, ireader,
+                        triesSize);
 
-                                                           if (debugOffset != 0)
-                                                               ReadDebugInfo(reader, mdef, ireader, debugOffset);
-                                                       });
+                if (debugOffset != 0)
+                    ReadDebugInfo(reader, mdef, ireader, debugOffset);
+            });
         }
 
         private void ReadDebugInfo(BinaryReader reader, MethodDefinition mdef, InstructionReader instructionReader,
-                                   uint debugOffset)
+            uint debugOffset)
         {
-            reader.PreserveCurrentPosition(debugOffset, () => {
-                                                            var debugInfo = new DebugInfo(mdef.Body);
-                                                            mdef.Body.DebugInfo = debugInfo;
+            reader.PreserveCurrentPosition(debugOffset, () =>
+            {
+                var debugInfo = new DebugInfo(mdef.Body);
+                mdef.Body.DebugInfo = debugInfo;
 
-                                                            uint lineStart = reader.ReadULEB128();
-                                                            debugInfo.LineStart = lineStart;
+                uint lineStart = reader.ReadULEB128();
+                debugInfo.LineStart = lineStart;
 
-                                                            uint parametersSize = reader.ReadULEB128();
-                                                            for (int i = 0; i < parametersSize; i++)
-                                                            {
-                                                                long index = reader.ReadULEB128p1();
-                                                                string name = null;
-                                                                if (index != DexConsts.NoIndex && index >= 0)
-                                                                    name = strings[(int) index];
-                                                                debugInfo.Parameters.Add(name);
-                                                            }
+                uint parametersSize = reader.ReadULEB128();
+                for (int i = 0; i < parametersSize; i++)
+                {
+                    long index = reader.ReadULEB128p1();
+                    string name = null;
+                    if (index != DexConsts.NoIndex && index >= 0)
+                        name = strings[(int) index];
+                    debugInfo.Parameters.Add(name);
+                }
 
-                                                            while (true)
-                                                            {
-                                                                var ins = new DebugInstruction((DebugOpCodes) reader.ReadByte());
-                                                                debugInfo.DebugInstructions.Add(ins);
+                while (true)
+                {
+                    var ins = new DebugInstruction((DebugOpCodes) reader.ReadByte());
+                    debugInfo.DebugInstructions.Add(ins);
 
-                                                                uint registerIndex;
-                                                                uint addrDiff;
-                                                                long nameIndex;
-                                                                long typeIndex;
-                                                                long signatureIndex;
-                                                                int lineDiff;
-                                                                string name;
+                    uint registerIndex;
+                    uint addrDiff;
+                    long nameIndex;
+                    long typeIndex;
+                    long signatureIndex;
+                    int lineDiff;
+                    string name;
 
-                                                                switch (ins.OpCode)
-                                                                {
-                                                                    case DebugOpCodes.AdvancePc:
-                                                                        // uleb128 addr_diff
-                                                                        addrDiff = reader.ReadULEB128();
-                                                                        ins.Operands.Add(addrDiff);
-                                                                        break;
-                                                                    case DebugOpCodes.AdvanceLine:
-                                                                        // sleb128 line_diff
-                                                                        lineDiff = reader.ReadSLEB128();
-                                                                        ins.Operands.Add(lineDiff);
-                                                                        break;
-                                                                    case DebugOpCodes.EndLocal:
-                                                                    case DebugOpCodes.RestartLocal:
-                                                                        // uleb128 register_num
-                                                                        registerIndex = reader.ReadULEB128();
-                                                                        ins.Operands.Add(
-                                                                            mdef.Body.Registers[(int) registerIndex]);
-                                                                        break;
-                                                                    case DebugOpCodes.SetFile:
-                                                                        // uleb128p1 name_idx
-                                                                        nameIndex = reader.ReadULEB128p1();
-                                                                        name = null;
-                                                                        if (nameIndex != DexConsts.NoIndex &&
-                                                                            nameIndex >= 0)
-                                                                            name = strings[(int) nameIndex];
-                                                                        ins.Operands.Add(name);
-                                                                        break;
-                                                                    case DebugOpCodes.StartLocalExtended:
-                                                                    case DebugOpCodes.StartLocal:
-                                                                        // StartLocalExtended : uleb128 register_num, uleb128p1 name_idx, uleb128p1 type_idx, uleb128p1 sig_idx
-                                                                        // StartLocal : uleb128 register_num, uleb128p1 name_idx, uleb128p1 type_idx
-                                                                        Boolean isExtended = ins.OpCode ==
-                                                                                             DebugOpCodes.
-                                                                                                 StartLocalExtended;
+                    switch (ins.OpCode)
+                    {
+                        case DebugOpCodes.AdvancePc:
+                            // uleb128 addr_diff
+                            addrDiff = reader.ReadULEB128();
+                            ins.Operands.Add(addrDiff);
+                            break;
+                        case DebugOpCodes.AdvanceLine:
+                            // sleb128 line_diff
+                            lineDiff = reader.ReadSLEB128();
+                            ins.Operands.Add(lineDiff);
+                            break;
+                        case DebugOpCodes.EndLocal:
+                        case DebugOpCodes.RestartLocal:
+                            // uleb128 register_num
+                            registerIndex = reader.ReadULEB128();
+                            ins.Operands.Add(mdef.Body.Registers[(int) registerIndex]);
+                            break;
+                        case DebugOpCodes.SetFile:
+                            // uleb128p1 name_idx
+                            nameIndex = reader.ReadULEB128p1();
+                            name = null;
+                            if (nameIndex != DexConsts.NoIndex && nameIndex >= 0)
+                                name = strings[(int) nameIndex];
+                            ins.Operands.Add(name);
+                            break;
+                        case DebugOpCodes.StartLocalExtended:
+                        case DebugOpCodes.StartLocal:
+                            // StartLocalExtended : uleb128 register_num, uleb128p1 name_idx, uleb128p1 type_idx, uleb128p1 sig_idx
+                            // StartLocal : uleb128 register_num, uleb128p1 name_idx, uleb128p1 type_idx
+                            Boolean isExtended = ins.OpCode ==
+                                                 DebugOpCodes.
+                                                     StartLocalExtended;
 
-                                                                        registerIndex = reader.ReadULEB128();
-                                                                        ins.Operands.Add(
-                                                                            mdef.Body.Registers[(int) registerIndex]);
+                            registerIndex = reader.ReadULEB128();
+                            ins.Operands.Add(mdef.Body.Registers[(int) registerIndex]);
 
-                                                                        nameIndex = reader.ReadULEB128p1();
-                                                                        name = null;
-                                                                        if (nameIndex != DexConsts.NoIndex &&
-                                                                            nameIndex >= 0)
-                                                                            name = strings[(int) nameIndex];
-                                                                        ins.Operands.Add(name);
+                            nameIndex = reader.ReadULEB128p1();
+                            name = null;
+                            if (nameIndex != DexConsts.NoIndex && nameIndex >= 0)
+                                name = strings[(int) nameIndex];
+                            ins.Operands.Add(name);
 
-                                                                        typeIndex = reader.ReadULEB128p1();
-                                                                        TypeReference type = null;
-                                                                        if (typeIndex != DexConsts.NoIndex &&
-                                                                            typeIndex >= 0)
-                                                                            type =
-                                                                                typeReferences[(int) typeIndex];
-                                                                        ins.Operands.Add(type);
+                            typeIndex = reader.ReadULEB128p1();
+                            TypeReference type = null;
+                            if (typeIndex != DexConsts.NoIndex && typeIndex >= 0)
+                                type = typeReferences[(int) typeIndex];
+                            ins.Operands.Add(type);
 
-                                                                        if (isExtended)
-                                                                        {
-                                                                            signatureIndex = reader.ReadULEB128p1();
-                                                                            string signature = null;
-                                                                            if (signatureIndex != DexConsts.NoIndex &&
-                                                                                signatureIndex >= 0)
-                                                                                signature =
-                                                                                    strings[(int) signatureIndex];
-                                                                            ins.Operands.Add(signature);
-                                                                        }
+                            if (isExtended)
+                            {
+                                signatureIndex = reader.ReadULEB128p1();
+                                string signature = null;
+                                if (signatureIndex != DexConsts.NoIndex && signatureIndex >= 0)
+                                    signature = strings[(int) signatureIndex];
+                                ins.Operands.Add(signature);
+                            }
 
-                                                                        break;
-                                                                    case DebugOpCodes.EndSequence:
-                                                                        return;
-                                                                    case DebugOpCodes.Special:
-                                                                        // between 0x0a and 0xff (inclusive)
-                                                                    case DebugOpCodes.SetPrologueEnd:
-                                                                    case DebugOpCodes.SetEpilogueBegin:
-                                                                    default:
-                                                                        break;
-                                                                }
-                                                            }
-                                                        });
+                            break;
+                        case DebugOpCodes.EndSequence:
+                            return;
+                        case DebugOpCodes.Special:
+                        // between 0x0a and 0xff (inclusive)
+                        case DebugOpCodes.SetPrologueEnd:
+                        case DebugOpCodes.SetEpilogueBegin:
+                        default:
+                            break;
+                    }
+                }
+            });
         }
 
         private void ReadExceptionHandlers(BinaryReader reader, MethodDefinition mdef,
-                                           InstructionReader instructionReader, ushort triesSize)
+            InstructionReader instructionReader, ushort triesSize)
         {
             var exceptionLookup = new Dictionary<uint, List<ExceptionHandler>>();
             for (int i = 0; i < triesSize; i++)
@@ -763,91 +707,77 @@ namespace Dot42.DexLib.IO
 
         private void ReadClassDefinition(BinaryReader reader, ClassDefinition classDefinition, uint classDataOffset)
         {
-            reader.PreserveCurrentPosition(classDataOffset, () => {
-                                                                uint staticFieldSize = reader.ReadULEB128();
-                                                                uint instanceFieldSize = reader.ReadULEB128();
-                                                                uint directMethodSize = reader.ReadULEB128();
-                                                                uint virtualMethodSize = reader.ReadULEB128();
+            reader.PreserveCurrentPosition(classDataOffset, () =>
+            {
+                uint staticFieldSize = reader.ReadULEB128();
+                uint instanceFieldSize = reader.ReadULEB128();
+                uint directMethodSize = reader.ReadULEB128();
+                uint virtualMethodSize = reader.ReadULEB128();
 
-                                                                ReadFieldDefinitions(reader, classDefinition,
-                                                                                     staticFieldSize);
-                                                                ReadFieldDefinitions(reader, classDefinition,
-                                                                                     instanceFieldSize);
-                                                                ReadMethodDefinitions(reader, classDefinition,
-                                                                                      directMethodSize, false);
-                                                                ReadMethodDefinitions(reader, classDefinition,
-                                                                                      virtualMethodSize, true);
-                                                            });
+                ReadFieldDefinitions(reader, classDefinition, staticFieldSize);
+                ReadFieldDefinitions(reader, classDefinition, instanceFieldSize);
+                ReadMethodDefinitions(reader, classDefinition, directMethodSize, false);
+                ReadMethodDefinitions(reader, classDefinition, virtualMethodSize, true);
+            });
         }
 
         private void ReadMethodReferences(BinaryReader reader)
         {
-            reader.PreserveCurrentPosition(header.MethodReferencesOffset, () => {
-                                                                              for (int i = 0;
-                                                                                   i < header.MethodReferencesSize;
-                                                                                   i++)
-                                                                              {
-                                                                                  int classIndex =
-                                                                                      reader.ReadUInt16();
-                                                                                  int prototypeIndex =
-                                                                                      reader.ReadUInt16();
-                                                                                  int nameIndex = reader.ReadInt32();
+            reader.PreserveCurrentPosition(header.MethodReferencesOffset, () =>
+            {
+                for (int i = 0; i < header.MethodReferencesSize; i++)
+                {
+                    int classIndex = reader.ReadUInt16();
+                    int prototypeIndex = reader.ReadUInt16();
+                    int nameIndex = reader.ReadInt32();
 
-                                                                                  var mref = new MethodReference();
-                                                                                  mref.Owner =
-                                                                                      (CompositeType)
-                                                                                      typeReferences[classIndex];
-                                                                                  // Clone the prototype so we can annotate & update it easily
-                                                                                  mref.Prototype = prototypes[prototypeIndex].Clone();
-                                                                                  mref.Name = strings[nameIndex];
+                    var mref = new MethodReference();
+                    mref.Owner = (CompositeType) typeReferences[classIndex];
+                    // Clone the prototype so we can annotate & update it easily
+                    mref.Prototype = prototypes[prototypeIndex].Clone();
+                    mref.Name = strings[nameIndex];
 
-                                                                                  methodReferences.Add(mref);
-                                                                              }
-                                                                          });
+                    methodReferences.Add(mref);
+                }
+            });
         }
 
         private void ReadFieldReferences(BinaryReader reader)
         {
-            reader.PreserveCurrentPosition(header.FieldReferencesOffset, () => {
-                                                                             for (int i = 0;
-                                                                                  i < header.FieldReferencesSize;
-                                                                                  i++)
-                                                                             {
-                                                                                 int classIndex =
-                                                                                     reader.ReadUInt16();
-                                                                                 int typeIndex = reader.ReadUInt16();
-                                                                                 int nameIndex = reader.ReadInt32();
+            reader.PreserveCurrentPosition(header.FieldReferencesOffset, () =>
+            {
+                for (int i = 0; i < header.FieldReferencesSize; i++)
+                {
+                    int classIndex = reader.ReadUInt16();
+                    int typeIndex  = reader.ReadUInt16();
+                    int nameIndex  = reader.ReadInt32();
 
-                                                                                 var fref = new FieldReference();
+                    var fref = new FieldReference();
 
-                                                                                 fref.Owner =
-                                                                                     (ClassReference)
-                                                                                     typeReferences[classIndex];
-                                                                                 fref.Type =
-                                                                                     typeReferences[typeIndex];
-                                                                                 fref.Name = strings[nameIndex];
+                    fref.Owner = (ClassReference) typeReferences[classIndex];
+                    fref.Type  = typeReferences[typeIndex];
+                    fref.Name  = strings[nameIndex];
 
-                                                                                 fieldReferences.Add(fref);
-                                                                             }
-                                                                         });
+                    fieldReferences.Add(fref);
+                }
+            });
         }
 
         private void ReadTypesReferences(BinaryReader reader)
         {
-            reader.PreserveCurrentPosition(header.TypeReferencesOffset, () => {
-                                                                            for (int i = 0;
-                                                                                 i < header.TypeReferencesSize;
-                                                                                 i++)
-                                                                            {
-                                                                                int descriptorIndex =
-                                                                                    reader.ReadInt32();
-                                                                                string descriptor =
-                                                                                    strings[descriptorIndex];
-                                                                                TypeDescriptor.Fill(descriptor,
-                                                                                                    typeReferences
-                                                                                                        [i]);
-                                                                            }
-                                                                        });
+            reader.PreserveCurrentPosition(header.TypeReferencesOffset, () =>
+            {
+                for (int i = 0; i < header.TypeReferencesSize; i++)
+                {
+                    int descriptorIndex = reader.ReadInt32();
+                    string descriptor = strings[descriptorIndex];
+                    TypeDescriptor.Fill(descriptor, typeReferences[i]);
+
+                    // freeze the references and cache the encoded value.
+                    typeReferences[i].Freeze();
+                    TypeDescriptor.Encode(typeReferences[i]);
+                }
+            });
         }
 
         internal Dex ReadFrom(BinaryReader reader)
@@ -869,7 +799,7 @@ namespace Dot42.DexLib.IO
 
             var topLevelClasses = ClassDefinition.Hierarchicalize(classes);
             var dex = new Dex();
-            dex.Classes.AddRange(topLevelClasses);
+            dex.AddRange(topLevelClasses);
             return dex;
         }
 

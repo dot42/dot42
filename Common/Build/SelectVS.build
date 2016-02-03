@@ -1,0 +1,72 @@
+﻿<?xml version="1.0"?>
+<project name="SelectVS" description="Selects a VS Version">
+
+	<property name="preferredVsVersion" value="VS 2013" if="${not property::exists('preferredVsVersion')}"/>
+	
+	<!-- Note: it might also make sense to just select the VS version from 'DevEnvDir' which was set by VsDevCmd.bat -->
+	
+	<property name="supportedVsVersions" value="VS100COMNTOOLS,10,VS 2010" />
+	<property name="supportedVsVersions" value="${supportedVsVersions}|VS110COMNTOOLS,11,VS 2012" />
+	<property name="supportedVsVersions" value="${supportedVsVersions}|VS120COMNTOOLS,12,VS 2013" />
+	<property name="supportedVsVersions" value="${supportedVsVersions}|VS140COMNTOOLS,14,VS 2015" />
+	
+	<foreach item="String" in="${supportedVsVersions}" delim="|" property="vsversion">
+		<regex pattern="^(?'envvar'[^,]+),(?'no'[^,]+),(?'name'[^,]+)$" input="${vsversion}" />
+
+		<if test="${environment::variable-exists(envvar)}">
+			<property name="newestvs" value="${name}"/>
+			<property name="newestvscomntools" value="${environment::get-variable(envvar)}" />
+			<property name="newestdevenvdir" value="${path::get-full-path(path::combine(newestvscomntools, '..\IDE\'))}"/>
+			<property name="newestdevenv" value="${newestdevenvdir}devenv.com"/>			
+		
+			<property name="vs${no}0comntools" value="${newestvscomntools}" />
+			<property name="devenv${no}dir" value="${newestdevenvdir}"/>
+			<property name="devenv${no}" value="${newestdevenv}"/>
+			
+			<echo>found ${name} in ${newestvscomntools}</echo>
+			
+			<!-- select if this is the version initialized by VsDevCmd.bat -->
+			<if test="${environment::variable-exists('DevEnvDir') and (environment::get-variable('DevEnvDir') == newestdevenvdir)}">
+				<property name="vs" value="${newestvs}" />
+				<property name="vscomntools" value="${newestvscomntools}" />
+				<property name="devenvdir" value="${newestdevenvdir}" />
+				<property name="devenv" value="${newestdevenvdir}" />				
+			</if>			
+			
+			<!-- select if no other version has been selected, and this is the preferred version -->
+			<if test="${(not property::exists('vs')) and (name == preferredVsVersion)}">
+				<property name="vs" value="${newestvs}" />
+				<property name="vscomntools" value="${newestvscomntools}" />
+				<property name="devenvdir" value="${newestdevenvdir}" />
+				<property name="devenv" value="${newestdevenvdir}" />				
+			</if>
+		</if>	
+		
+	</foreach>
+
+	<if test="${not property::exists('newestvs')}">
+		<fail message="no supported Visual Studio found."/>
+	</if>
+	
+	<if test="${not property::exists('vs')}">
+		<property name="vs" value="${newestvs}" />
+		<property name="vscomntools" value="${newestvscomntools}" />
+		<property name="devenvdir" value="${newestdevenvdir}" />
+		<property name="devenv" value="${newestdevenvdir}" />				
+	</if>
+			
+	
+	<!-- give feedback -->
+	<echo>selected ${vs} in ${vscomntools}</echo>
+	
+	<!-- check if VsDevCmd.bat has been called. -->
+	<if test="${(not environment::variable-exists('DevEnvDir')) or (environment::get-variable('DevEnvDir') != devenvdir)}">
+		<if test="${environment::variable-exists('DevEnvDir')}">
+			<echo message="VsDevCmd.bat has been called before for a different VS version." />			
+		</if>
+		<!-- TODO: check if we could call it here (probably not) -->
+		<fail message="call '${vscomntools}\VsDevCmd.bat' before running this script."/>
+
+	</if>
+
+</project>

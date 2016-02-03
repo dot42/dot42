@@ -2,9 +2,7 @@ using System;
 using Android.App;
 using Android.Content;
 using Android.Content.Res;
-using Android.Graphics;
-using Android.Os;
-using Android.View;
+using Android.Graphics;using Android.OS;using Android.Views;
 
 namespace KiloBoltRobotGame.Framework
 {
@@ -23,22 +21,22 @@ namespace KiloBoltRobotGame.Framework
             base.OnCreate(savedInstanceState);
 
             RequestWindowFeature(Window.FEATURE_NO_TITLE);
-            GetWindow().SetFlags(IWindowManager_LayoutParams.FLAG_FULLSCREEN,
+            Window.SetFlags(IWindowManager_LayoutParams.FLAG_FULLSCREEN,
                                  IWindowManager_LayoutParams.FLAG_FULLSCREEN);
 
-            bool isPortrait = GetResources().GetConfiguration().Orientation == Configuration.ORIENTATION_PORTRAIT;
+            bool isPortrait = Resources.Configuration.Orientation == Configuration.ORIENTATION_PORTRAIT;
             int frameBufferWidth = isPortrait ? 480 : 800;
             int frameBufferHeight = isPortrait ? 800 : 480;
             Bitmap frameBuffer = Bitmap.CreateBitmap(frameBufferWidth,
                                                      frameBufferHeight, Bitmap.Config.RGB_565);
 
             float scaleX = (float)frameBufferWidth
-                           / GetWindowManager().GetDefaultDisplay().GetWidth();
+                           /WindowManager.DefaultDisplay.Width;
             float scaleY = (float)frameBufferHeight
-                           / GetWindowManager().GetDefaultDisplay().GetHeight();
+                           /WindowManager.DefaultDisplay.Height;
 
             renderView = new AndroidFastRenderView(this, frameBuffer);
-            graphics = new AndroidGraphics(GetAssets(), GetAssetsPrefix(), frameBuffer);
+            graphics = new AndroidGraphics(Assets, GetAssetsPrefix(), frameBuffer);
             fileIO = new AndroidFileIO(this);
             audio = new AndroidAudio(this);
             input = new AndroidInput(this, renderView, scaleX, scaleY);
@@ -64,7 +62,7 @@ namespace KiloBoltRobotGame.Framework
             renderView.pause();
             screen.pause();
 
-            if (IsFinishing())
+            if (IsFinishing)
                 screen.dispose();
         }
 

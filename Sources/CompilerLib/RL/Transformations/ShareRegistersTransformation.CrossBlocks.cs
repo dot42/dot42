@@ -21,8 +21,11 @@ namespace Dot42.CompilerLib.RL.Transformations
                 return; // No need for this transformation
 
             var availableShortRegisters = new List<Register>(); // List of register available from previous blocks
-            var availableWideRegisters = new List<Register>(); // List of register available from previous blocks
-            var allTempRegisterRanges = CollectTempRegisterUsageRanges(basicBlocks).Values.Where(x => !x.Register.IsKeepWithNext).ToList();
+            var availableWideRegisters  = new List<Register>(); // List of register available from previous blocks
+            var allTempRegisterRanges   = CollectTempRegisterUsageRanges(basicBlocks)
+                                                .Values
+                                                .Where(x => x.Register.KeepWith != RFlags.KeepWithPrev)
+                                                .ToList();
 
             foreach (var iterator in basicBlocks)
             {
@@ -40,7 +43,7 @@ namespace Dot42.CompilerLib.RL.Transformations
                     }
 
                     var r = range.Register;
-                    var availableList = r.IsKeepWithNext ? availableWideRegisters : availableShortRegisters;
+                    var availableList = r.KeepWith == RFlags.KeepWithNext ? availableWideRegisters : availableShortRegisters;
                     var replacement = availableList.FirstOrDefault(x => r.Type == x.Type);
                     if (replacement != null)
                     {
@@ -55,7 +58,7 @@ namespace Dot42.CompilerLib.RL.Transformations
                 foreach (var range in registerRanges)
                 {
                     var r = range.Register;
-                    var availableList = r.IsKeepWithNext ? availableWideRegisters : availableShortRegisters;
+                    var availableList = r.KeepWith == RFlags.KeepWithNext ? availableWideRegisters : availableShortRegisters;
                     if (!availableList.Contains(r))
                         availableList.Add(r);
                 }

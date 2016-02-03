@@ -17,18 +17,20 @@ namespace Dot42.ImportJarLib.Model
 #endif
         private readonly JvmClassLib.MethodDefinition javaMethod;
         private readonly TargetFramework target;
-        private readonly bool isSignConverted;
         private readonly List<NetParameterDefinition> parameters = new List<NetParameterDefinition>();
         private readonly List<NetGenericParameter> genericParameters = new List<NetGenericParameter>();
         private readonly List<NetCustomAttribute> customAttributes = new List<NetCustomAttribute>();
         private readonly OverrideCollection overrides;
         private readonly string createReason;
+        private SignedByteMode signMode;
         private bool requiredNewSlot;
+        private NetPropertyDefinition property;
+        
 
         /// <summary>
         /// Default ctor
         /// </summary>
-        public NetMethodDefinition(string name, JvmClassLib.MethodDefinition javaMethod, NetTypeDefinition declaringType, TargetFramework target, bool isSignConverted, string createReason)
+        public NetMethodDefinition(string name, JvmClassLib.MethodDefinition javaMethod, NetTypeDefinition declaringType, TargetFramework target, SignedByteMode signMode, string createReason)
         {
             if (name == null)
                 throw new ArgumentNullException("name");
@@ -40,7 +42,7 @@ namespace Dot42.ImportJarLib.Model
             DeclaringType = declaringType;
             this.javaMethod = javaMethod; // Can be null
             this.target = target;
-            this.isSignConverted = isSignConverted;
+            this.signMode = signMode;
             this.createReason = createReason;
             overrides = new OverrideCollection(this);
         }
@@ -145,6 +147,7 @@ namespace Dot42.ImportJarLib.Model
         public bool IsFinal
         {
             get { return Attributes.HasFlag(MethodAttributes.Final); }
+            set { Attributes = Attributes.Set(value, MethodAttributes.Final); }
         }
 
         /// <summary>
@@ -290,7 +293,17 @@ namespace Dot42.ImportJarLib.Model
         /// <summary>
         /// Is this method an overload of another method with sign convertion?
         /// </summary>
-        public bool IsSignConverted { get { return isSignConverted; } }
+        public bool IsSignConverted
+        {
+            get { return signMode == SignedByteMode.Convert || signMode == SignedByteMode.ConvertWithoutPartner; }
+            set { signMode = value ? SignedByteMode.Convert : SignedByteMode.None; } }
+
+        /// <summary>
+        /// when IsSignConverted, was an unsigned partner generated?
+        /// </summary>
+        public bool HasUnsignedPartner { get { return signMode == SignedByteMode.HasUnsignedPartner || signMode == SignedByteMode.HasUnsignedPartnerOnlyInReturnType; } }
+
+        public SignedByteMode SignConvertMode { get { return signMode; } }
 
         /// <summary>
         /// Method name of the original java method (if any)
@@ -440,6 +453,15 @@ namespace Dot42.ImportJarLib.Model
             {
                 IsFamily = true;
             }
+        }
+        
+        /// <summary>
+        /// Is this method getter or setter of a property?
+        /// </summary>
+        public NetPropertyDefinition Property
+        {
+            get { return property; }
+            set { property = value; }
         }
     }
 }

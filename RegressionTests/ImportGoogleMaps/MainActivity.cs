@@ -1,6 +1,5 @@
 ﻿using System;
-using Android.App;
-using Android.Os;
+using Android.App;using Android.OS;
 using Android.Widget;
 using Com.Google.Android.Maps;
 using Dot42;
@@ -18,14 +17,18 @@ namespace MapsTest
         protected override void OnCreate(Bundle savedInstance)
         {
             base.OnCreate(savedInstance);
-            SetContentView(R.Layouts.MainLayout);
+            SetContentView(R.Layout.MainLayout);
 
-            var mapView = FindViewById<MapView>(R.Ids.theMap);
+            var mapView = FindViewById<MapView>(R.Id.theMap);
         }
 
-        protected internal override bool IsRouteDisplayed()
+        protected internal override bool IsRouteDisplayed
         {
-            return true;
+            get
+            {
+                return true;    
+            }
+            
         }
     }
 }

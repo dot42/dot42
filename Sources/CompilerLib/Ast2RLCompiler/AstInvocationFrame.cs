@@ -1,10 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Dot42.CompilerLib.Ast;
 using Dot42.CompilerLib.Extensions;
 using Dot42.CompilerLib.RL;
-using Dot42.CompilerLib.Target;
 using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel.Synthetic;
 using Dot42.DexLib;
@@ -102,16 +102,24 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
             // Add GenericInstanceType parameter (if any)
             if (source.Method.NeedsGenericInstanceTypeParameter)
             {
-                var type = prototype.GenericInstanceTypeParameter.Type;
-                GenericInstanceTypeArgument = (ArgumentRegisterSpec) Allocate(type, false, RCategory.Argument, null);
-                arguments.Add(GenericInstanceTypeArgument);                
+                GenericInstanceTypeArguments = new List<ArgumentRegisterSpec>();
+                foreach (var param in prototype.GenericInstanceTypeParameters)
+                {
+                    var r = (ArgumentRegisterSpec) Allocate(param.Type, false, RCategory.Argument, null);
+                    GenericInstanceTypeArguments.Add(r);
+                    arguments.Add(r);
+                }
             }
             // Add GenericInstanceMethod parameter (if any)
             if (source.Method.NeedsGenericInstanceMethodParameter)
             {
-                var type = prototype.GenericInstanceMethodParameter.Type;
-                GenericInstanceMethodArgument = (ArgumentRegisterSpec) Allocate(type, false, RCategory.Argument, null);
-                arguments.Add(GenericInstanceMethodArgument);
+                GenericInstanceMethodArguments = new List<ArgumentRegisterSpec>();
+                foreach (var param in prototype.GenericInstanceMethodParameters)
+                {
+                    var r = (ArgumentRegisterSpec)Allocate(param.Type, false, RCategory.Argument, null);
+                    GenericInstanceMethodArguments.Add(r);
+                    arguments.Add(r);
+                }
             }
             // Check register count
             var expected = prototype.Parameters.Sum(x => x.Type.IsWide() ? 2 : 1);
@@ -137,10 +145,14 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
             {
                 return arguments.First(x => (x.Parameter != null) && x.Parameter.Equals(variable));
             }
+
             VariableRegisterSpec r;
             if (!variables.TryGetValue(variable, out r))
             {
-                r = (VariableRegisterSpec) Allocate(variable.Type.GetReference(targetPackage), false, RCategory.Variable, variable);
+                bool isPreventOpt = variable.PreventOptimizations;
+                bool isTempVariable = !isPreventOpt && (variable.IsGenerated || variable.IsCompilerGenerated);
+                var category = isPreventOpt ? RCategory.VariablePreventOptimization : isTempVariable ? RCategory.TempVariable : RCategory.Variable;
+                r = (VariableRegisterSpec) Allocate(variable.Type.GetReference(targetPackage), false, category, variable);
                 variables.Add(variable, r);
             }
             return r;
@@ -160,6 +172,8 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                     case RCategory.Temp:
                         return new RegisterSpec(pair.Item1, pair.Item2, type);
                     case RCategory.Variable:
+                    case RCategory.VariablePreventOptimization:
+                    case RCategory.TempVariable:
                         return new VariableRegisterSpec(pair.Item1, pair.Item2, type, (AstVariable)parameter);
                     case RCategory.Argument:
                         return new ArgumentRegisterSpec(pair.Item1, pair.Item2, type, ParameterWrapper.Wrap(parameter));
@@ -174,6 +188,8 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                 case RCategory.Temp:
                     return new RegisterSpec(register, null, type);
                 case RCategory.Variable:
+                case RCategory.VariablePreventOptimization:
+                case RCategory.TempVariable:
                     return new VariableRegisterSpec(register, null, type, (AstVariable) parameter);
                 case RCategory.Argument:
                     return new ArgumentRegisterSpec(register, null, type, ParameterWrapper.Wrap(parameter));

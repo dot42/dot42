@@ -1,10 +1,8 @@
 ﻿using System;
 
-using Android.App;
-using Android.Os;
+using Android.App;using Android.OS;
 using Android.Widget;
-using Android.Content;
-using Android.View;
+using Android.Content;using Android.Views;
 
 using Dot42;
 using Dot42.Manifest;
@@ -22,13 +20,13 @@ namespace GooglePlusClient
       protected override void OnCreate(Bundle savedInstance)
       {
          base.OnCreate(savedInstance);
-         SetContentView(R.Layouts.MainLayout);
-         FindViewById(R.Ids.sign_in_button).SetOnClickListener(this);
+         SetContentView(R.Layout.MainLayout);
+         FindViewById(R.Id.sign_in_button).SetOnClickListener(this);
       }
 
       public void OnClick(View view)
       {
-         if (view.GetId() == R.Ids.sign_in_button)
+         if (view.Id == R.Id.sign_in_button)
          {
          }
       }

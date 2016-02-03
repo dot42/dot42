@@ -15,8 +15,7 @@
  */
 
 using Support4Demos;
-
-using Android.Os;
+using Android.OS;
 using Android.Support.V4.App;
 
 using Dot42.Manifest;
@@ -35,9 +34,9 @@ namespace com.example.android.supportv4.app
         protected override void OnCreate(Bundle savedInstanceState) {
             base.OnCreate(savedInstanceState);
 
-            SetContentView(R.Layouts.fragment_tabs);
+            SetContentView(R.Layout.fragment_tabs);
             mTabHost = (FragmentTabHost)FindViewById(global::Android.R.Id.Tabhost);
-            mTabHost.Setup(this, GetSupportFragmentManager(), R.Ids.realtabcontent);
+            mTabHost.Setup(this, GetSupportFragmentManager(), R.Id.realtabcontent);
 
             mTabHost.AddTab(mTabHost.NewTabSpec("simple").SetIndicator("Simple"),
                     typeof(FragmentStackSupport.CountingFragment), null);

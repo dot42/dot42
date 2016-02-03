@@ -57,6 +57,15 @@ namespace Dot42.MSBuild.Tasks
         /// </summary>
         public bool GenerateDebugInfo { get; set; }
 
+        public bool GenerateSetNextInstructionCode { get; set; }
+
+        public bool EnableCompilerCache { get; set; }
+
+        /// <summary>
+        /// Enble usage of 'dx' from Android SDK Tools to compile .jar classes.
+        /// </summary>
+        public bool EnableDxJarCompilation { get; set; }
+
         /// <summary>
         /// Path of Free Apps Key file
         /// </summary>
@@ -121,6 +130,22 @@ namespace Dot42.MSBuild.Tasks
             {
                 builder.Add(ToolOptions.DebugInfo.AsArg());
             }
+
+            if (GenerateSetNextInstructionCode)
+            {
+                builder.Add(ToolOptions.GenerateSetNextInstructionCode.AsArg());
+            }
+
+            if (EnableCompilerCache)
+            {
+                builder.Add(ToolOptions.EnableCompilerCache.AsArg());
+            }
+
+            if (EnableDxJarCompilation)
+            {
+                builder.Add(ToolOptions.EnableDxJarCompilation.AsArg());
+            }
+
 
             if (Assemblies != null)
             {

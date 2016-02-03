@@ -17,9 +17,7 @@
 using Support4Demos;
 
 using Android.Support.V4.App;
-
-using Android.Os;
-using Android.View;
+using Android.OS;using Android.Views;
 using Android.Widget;
 
 namespace com.example.android.supportv4.app
@@ -35,7 +33,7 @@ namespace com.example.android.supportv4.app
 
         public override View OnCreateView(LayoutInflater Inflater, ViewGroup container,
                 Bundle savedInstanceState) {
-            View v = Inflater.Inflate(R.Layouts.fragment_menu, container, false);
+            View v = Inflater.Inflate(R.Layout.fragment_menu, container, false);
 
             // Make sure the two menu fragments are created.
             FragmentManager fm = GetChildFragmentManager();
@@ -53,9 +51,9 @@ namespace com.example.android.supportv4.app
             ft.Commit();
         
             // Watch check box clicks.
-            mCheckBox1 = (CheckBox)v.FindViewById(R.Ids.menu1);
+            mCheckBox1 = (CheckBox)v.FindViewById(R.Id.menu1);
             mCheckBox1.Click += (o, a) => UpdateFragmentVisibility();
-            mCheckBox2 = (CheckBox)v.FindViewById(R.Ids.menu2);
+            mCheckBox2 = (CheckBox)v.FindViewById(R.Id.menu2);
             mCheckBox2.Click += (o, a) => UpdateFragmentVisibility();
         
             // Make sure fragments start out with correct visibility.

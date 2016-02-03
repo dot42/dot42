@@ -1,6 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel.Composition.Primitives;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
+using Dot42.CompilerLib.Extensions;
 using Dot42.CompilerLib.XModel;
 
 namespace Dot42.CompilerLib.Ast.Optimizer
@@ -14,19 +17,20 @@ namespace Dot42.CompilerLib.Ast.Optimizer
             List<AstExpression> args;
             if (expr.Match(AstCode.Newobj, out r, out args) && r.DeclaringType.IsSystemDecimal())
             {
-                if (args.Count == 1)
-                {
-                    int val;
-                    if (args[0].Match(AstCode.Ldc_I4, out val))
-                    {
-                        expr.Code = AstCode.Ldc_Decimal;
-                        expr.Operand = new decimal(val);
-                        expr.InferredType = r.DeclaringType;
-                        expr.Arguments.Clear();
-                        return true;
-                    }
-                }
-                else if (args.Count == 5)
+                //if (args.Count == 1)
+                //{
+                //    int val;
+                //    if (args[0].Match(AstCode.Ldc_I4, out val))
+                //    {
+                //        expr.Code = AstCode.Ldc_Decimal;
+                //        expr.Operand = new decimal(val);
+                //        expr.InferredType = r.DeclaringType;
+                //        expr.Arguments.Clear();
+                //        return true;
+                //    }
+                //}
+                //else 
+                if (args.Count == 5)
                 {
                     int lo, mid, hi, isNegative, scale;
                     if (expr.Arguments[0].Match(AstCode.Ldc_I4, out lo) &&
@@ -35,10 +39,15 @@ namespace Dot42.CompilerLib.Ast.Optimizer
                         expr.Arguments[3].Match(AstCode.Ldc_I4, out isNegative) &&
                         expr.Arguments[4].Match(AstCode.Ldc_I4, out scale))
                     {
-                        expr.Code = AstCode.Ldc_Decimal;
-                        expr.Operand = new decimal(lo, mid, hi, isNegative != 0, (byte)scale);
-                        expr.InferredType = r.DeclaringType;
+                        // convert to a static string conversion method.
+                        var dec = new decimal(lo, mid, hi, isNegative != 0, (byte)scale);
+                        var str = dec.ToString(CultureInfo.InvariantCulture);
+
+                        expr.Code = AstCode.Call;
+                        expr.Operand = r.DeclaringType.Resolve().Methods.First(p => p.Name == "FromInvariantString" && p.IsStatic && p.Parameters.Count == 1);
                         expr.Arguments.Clear();
+                        expr.Arguments.Add(new AstExpression(expr.SourceLocation, AstCode.Ldstr, str));
+                        expr.InferredType = r.DeclaringType;
                         return true;
                     }
                 }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 using Dot42.Utility;
@@ -61,11 +62,23 @@ namespace Dot42.Mapping
         /// Try to find the position that has the best match with the given parameters.
         /// </summary>
         /// <returns>Null if not found</returns>
-        public DocumentPosition Find(int startLine, int startCol, int endLine, int endCol)
+        public SourceCodePosition Find(int startLine, int startCol, int endLine, int endCol)
         {
-        	var array = positions.ToArray();
-        	var count = positions.Count;
-      		return positions.FirstOrDefault(x => x.Intersects(startLine, startCol, endLine, endCol));
+            // find the intersecting position that has the smallest distance to startLine/startCol
+            return FindAll(startLine,startCol, endLine, endCol).FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Finds all positions that match with the given parameters, order by best match.
+        /// </summary>
+        /// <returns>Null if not found</returns>
+        public IEnumerable<SourceCodePosition> FindAll(int startLine, int startCol, int endLine, int endCol)
+        {
+            // order by distance, but strongly prefer earlier locations.
+            return positions.Where(x => x.Intersects(startLine, startCol, endLine, endCol))
+                            .Select(pos=>new {pos, dist=(startLine - pos.Start.Line) * 1000 + startCol - pos.Start.Column})
+                            .OrderBy(t => t.dist < 0 ? -t.dist + 1000000: t.dist)
+                            .Select(t=>new SourceCodePosition(this, t.pos));
         }
 
         /// <summary>
@@ -83,7 +96,7 @@ namespace Dot42.Mapping
                 var last = positions[i - 1];
                 var pos = positions[i];
 
-                if (last.EqualExceptOffset(pos) && !pos.IsReturn)
+                if (!pos.AlwaysKeep && last.EqualExceptOffset(pos))
                 {
                     // Remove current position
                     positions.RemoveAt(i);

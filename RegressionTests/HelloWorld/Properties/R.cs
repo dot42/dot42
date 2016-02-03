@@ -10,13 +10,13 @@ namespace Dot42Application1
     public sealed class R
     {
         
-        public sealed class Drawables
+        public sealed class Drawable
         {
             
             public const int AppWidget = 0x7f020000;
         }
         
-        public sealed class Layouts
+        public sealed class Layout
         {
             
             public const int Activity1_Layout = 0x7f030000;
@@ -26,30 +26,30 @@ namespace Dot42Application1
             public const int MainActivityLayout = 0x7f030002;
         }
         
-        public sealed class Xmls
+        public sealed class Xml
         {
             
             public const int dot42_app_widget_provider_0 = 0x7f040000;
         }
         
-        public sealed class Ids
+        public sealed class Id
         {
             
-            public const int label = 0x7f050035;
+            public const int label = 0x7f050038;
             
-            public const int editor = 0x7f050036;
+            public const int editor = 0x7f050039;
             
-            public const int button = 0x7f050037;
+            public const int button = 0x7f05003a;
             
-            public const int item1 = 0x7f050038;
+            public const int item1 = 0x7f05003b;
             
-            public const int firstGroup = 0x7f050039;
+            public const int firstGroup = 0x7f05003c;
             
-            public const int groupItem1 = 0x7f05003a;
+            public const int groupItem1 = 0x7f05003d;
             
-            public const int submenu = 0x7f05003b;
+            public const int submenu = 0x7f05003e;
             
-            public const int submenu_item1 = 0x7f05003c;
+            public const int submenu_item1 = 0x7f05003f;
         }
         
         public sealed class Plurals
@@ -58,7 +58,7 @@ namespace Dot42Application1
             public const int numerOfBirdsInTheSky = 0x7f060000;
         }
         
-        public sealed class Strings
+        public sealed class String
         {
             
             public const int some_string = 0x7f070000;
@@ -72,7 +72,7 @@ namespace Dot42Application1
             public const int Hello_world = 0x7f070004;
         }
         
-        public sealed class Menus
+        public sealed class Menu
         {
             
             public const int Menu1 = 0x7f080000;

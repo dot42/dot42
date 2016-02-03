@@ -1,40 +1,72 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Dot42.DexLib.Metadata;
 
 namespace Dot42.DexLib
 {
-    public class Prototype : ICloneable, IEquatable<Prototype>
+    public sealed class Prototype : FreezableBase, ICloneable, IEquatable<Prototype>
     {
+        private TypeReference _returnType;
+        private List<Parameter> _parameters;
+        private List<Parameter> _genericInstanceTypeParameters;
+        private List<Parameter> _genericInstanceMethodParameters;
+        private int _hashCode;
+        private string _signatureCache;
+
+        /// <summary>
+        /// when using this constructor, the prototype will be in unfrozen state
+        /// </summary>
         public Prototype()
         {
             Parameters = new List<Parameter>();
+            _genericInstanceTypeParameters = new List<Parameter>();
+            _genericInstanceMethodParameters = new List<Parameter>();
         }
 
+        /// <summary>
+        /// When using this constructor, the Prototype will be in frozen state.
+        /// Use Unfreeze if you need to make modifications.
+        /// </summary>
         public Prototype(TypeReference returntype, params Parameter[] parameters)
-            : this()
         {
-            ReturnType = returntype;
-            Parameters = new List<Parameter>(parameters);
+            _returnType = returntype;
+            Parameters = parameters;
+            _genericInstanceTypeParameters = new List<Parameter>();
+            _genericInstanceMethodParameters = new List<Parameter>();
+
+            Freeze();
         }
 
-        public TypeReference ReturnType { get; set; }
-        public List<Parameter> Parameters { get; set; }
+        public TypeReference ReturnType { get { return _returnType; } set { ThrowIfFrozen(); _returnType = value; } }
+
+        public IList<Parameter> Parameters 
+        {
+            get { return IsFrozen?(IList<Parameter>)_parameters.AsReadOnly():_parameters; } 
+            set { ThrowIfFrozen(); _parameters = new List<Parameter>(value); } }
 
         /// <summary>
         /// Parameter in which the GenericInstance for generic types is passed to the method.
         /// </summary>
-        public Parameter GenericInstanceTypeParameter { get; set; }
+        public IList<Parameter> GenericInstanceTypeParameters
+        {
+            get { return IsFrozen ? (IList<Parameter>)_genericInstanceTypeParameters.AsReadOnly() : _genericInstanceTypeParameters; }
+            set { ThrowIfFrozen();_genericInstanceTypeParameters = new List<Parameter>(value); }
+        }
 
         /// <summary>
         /// Parameter in which the GenericInstance for generic methods is passed to the method.
         /// </summary>
-        public Parameter GenericInstanceMethodParameter { get; set; }
+        public IList<Parameter> GenericInstanceMethodParameters
+        {
+            get { return IsFrozen ? (IList<Parameter>)_genericInstanceMethodParameters.AsReadOnly() : _genericInstanceMethodParameters; }
+            set { ThrowIfFrozen(); _genericInstanceMethodParameters = new List<Parameter>(value); }
+        }
 
         public bool ContainsAnnotation()
         {
-            foreach (Parameter parameter in Parameters)
+            foreach (Parameter parameter in _parameters)
             {
                 if (parameter.Annotations.Count > 0)
                     return true;
@@ -47,7 +79,7 @@ namespace Dot42.DexLib
         /// </summary>
         public int IndexOf(Parameter parameter)
         {
-            return Parameters.IndexOf(parameter);
+            return _parameters.IndexOf(parameter);
         }
 
         /// <summary>
@@ -55,14 +87,21 @@ namespace Dot42.DexLib
         /// </summary>
         public string ToSignature()
         {
+            if (IsFrozen && _signatureCache != null)
+                return _signatureCache;
+
             var builder = new StringBuilder();
             builder.Append("(");
-            foreach (var p in Parameters)
+            foreach (var p in _parameters)
             {
                 builder.Append(p.Type.Descriptor);
             }
             builder.Append(")");
             builder.Append(ReturnType.Descriptor);
+
+            if (IsFrozen)
+                return _signatureCache = builder.ToString();
+
             return builder.ToString();            
         }
 
@@ -70,12 +109,12 @@ namespace Dot42.DexLib
         {
             var builder = new StringBuilder();
             builder.Append("(");
-            for (int i = 0; i < Parameters.Count; i++)
+            for (int i = 0; i < _parameters.Count; i++)
             {
                 if (i > 0)
                     builder.Append(", ");
 
-                builder.Append(Parameters[i]);
+                builder.Append(_parameters[i]);
             }
             builder.Append(")");
             builder.Append(" : ");
@@ -90,17 +129,33 @@ namespace Dot42.DexLib
             var result = new Prototype();
             result.ReturnType = ReturnType;
 
-            foreach (Parameter p in Parameters)
+            foreach (Parameter p in _parameters)
             {
                 result.Parameters.Add(p.Clone());
+            }
+
+            result._genericInstanceTypeParameters = new List<Parameter>(_genericInstanceTypeParameters);
+            result._genericInstanceMethodParameters = new List<Parameter>(_genericInstanceMethodParameters); ;
+
+            if (IsFrozen)
+            {
+                result._signatureCache = _signatureCache;
+                result._hashCode = _hashCode;
             }
 
             return result;
         }
 
+        /// <summary>
+        /// this will return the cloned prototype in a frozen state.
+        /// use Unfreeze if you need to modify it.
+        /// </summary>
+        /// <returns></returns>
         internal Prototype Clone()
         {
-            return (Prototype) (this as ICloneable).Clone();
+            var prot = (Prototype) (this as ICloneable).Clone();
+            prot.Freeze();
+            return prot;
         }
 
         #endregion
@@ -109,11 +164,11 @@ namespace Dot42.DexLib
 
         public bool Equals(Prototype other)
         {
-            bool result = ReturnType.Equals(other.ReturnType) && Parameters.Count.Equals(other.Parameters.Count);
+            bool result = _returnType.Equals(other._returnType) && _parameters.Count.Equals(other._parameters.Count);
             if (result)
             {
-                for (int i = 0; i < Parameters.Count; i++)
-                    result = result && Parameters[i].Equals(other.Parameters[i]);
+                for (int i = 0; i < _parameters.Count; i++)
+                    result = result && _parameters[i].Equals(other._parameters[i]);
             }
             return result;
         }
@@ -130,17 +185,68 @@ namespace Dot42.DexLib
             return false;
         }
 
+
+        [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
         public override int GetHashCode()
         {
+            if (IsFrozen && _hashCode != 0)
+                return _hashCode;
+
             var builder = new StringBuilder();
             builder.AppendLine(TypeDescriptor.Encode(ReturnType));
 
             foreach (Parameter parameter in Parameters)
                 builder.AppendLine(TypeDescriptor.Encode(parameter.Type));
 
-            return builder.ToString().GetHashCode();
+            var ret = builder.ToString().GetHashCode();
+
+            if (IsFrozen)
+                _hashCode = ret;
+
+            return ret;
         }
 
+        #endregion
+
+        #region Freezable
+
+        public override bool Freeze()
+        {
+            bool gotFrozen = base.Freeze();
+            if (gotFrozen)
+            {
+                if (_returnType != null)
+                    _returnType.Freeze();
+                foreach (var p in _parameters)
+                    p.Freeze();
+                foreach (var p in _genericInstanceTypeParameters)
+                    p.Freeze();
+                foreach (var p in _genericInstanceMethodParameters)
+                    p.Freeze();
+            }
+
+            return gotFrozen;
+        }
+
+        public override bool Unfreeze()
+        {
+            bool thawed = base.Unfreeze();
+            if (thawed)
+            {
+                _hashCode = 0; _signatureCache = null;
+
+                if (_returnType != null)
+                    _returnType.Unfreeze();
+                foreach (var p in _parameters)
+                    p.Unfreeze();
+                foreach (var p in _genericInstanceTypeParameters)
+                    p.Unfreeze();
+                foreach (var p in _genericInstanceMethodParameters)
+                    p.Unfreeze();
+            }
+
+            return thawed;
+        }
         #endregion
     }
 }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using Dot42.ApkLib.Resources;
 using Dot42.CompilerLib.Ast;
@@ -11,8 +10,6 @@ using Dot42.CompilerLib.RL;
 using Dot42.CompilerLib.Structure.DotNet;
 using Dot42.CompilerLib.XModel;
 using Dot42.DexLib;
-using Dot42.DexLib.Instructions;
-using Dot42.FrameworkDefinitions;
 using ArrayType = Dot42.DexLib.ArrayType;
 using FieldDefinition = Dot42.DexLib.FieldDefinition;
 using Instruction = Dot42.CompilerLib.RL.Instruction;
@@ -80,7 +77,7 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                         if (type.IsPrimitive)
                         {
                             var r = frame.AllocateTemp(type.GetReference(targetPackage));
-                            return new RLRange(args, this.Add(node.SourceLocation, node.Arguments[0].Const(), 0, r), r);
+                            return new RLRange(args, this.Add(node.SourceLocation, type.Const(), 0, r), r);
                         }
                         if (type.IsEnum())
                         {
@@ -98,9 +95,21 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                 case AstCode.TypeOf:
                     {
                         var type = (XTypeReference) node.Operand;
-                        var dtype = type.IsVoid() ? PrimitiveType.Void : type.GetReference(targetPackage);
                         var typeReg = frame.AllocateTemp(FrameworkReferences.Class);
-                        var first = this.Add(node.SourceLocation, RCode.Const_class, dtype, typeReg);
+                        Instruction first;
+
+                        if (!type.IsVoid())
+                        {
+                            var dtype = type.GetReference(targetPackage);
+                            first = this.Add(node.SourceLocation, RCode.Const_class, dtype, typeReg);
+                        }
+                        else
+                        {
+                            // for some reasons ART does not accept 'void' when using 'const-class'. 
+                            // Not so advanced after all?
+                            first = this.Add(node.SourceLocation, RCode.Sget_object, FrameworkReferences.VoidType, typeReg);
+                        }
+
                         return new RLRange(first, typeReg);
                     }
                 case AstCode.BoxedTypeOf:
@@ -108,6 +117,17 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                         var type = (XTypeReference) node.Operand;
                         var typeReg = frame.AllocateTemp(FrameworkReferences.Class);
                         var first = this.Add(node.SourceLocation, RCode.Const_class, type.GetBoxedType(), typeReg);
+                        return new RLRange(first, typeReg);
+                    }
+
+                case AstCode.NullableTypeOf:
+                    {
+                        var type = (XTypeReference)node.Operand;
+                        var typeReg = frame.AllocateTemp(FrameworkReferences.Class);
+                        var dbaseType = (ClassReference)type.GetReference(targetPackage);
+                        var dnullabeType = targetPackage.DexFile.GetClass(dbaseType.Fullname)   
+                                                        .NullableMarkerClass;
+                        var first = this.Add(node.SourceLocation, RCode.Const_class, dnullabeType, typeReg);
                         return new RLRange(first, typeReg);
                     }
 
@@ -359,34 +379,6 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                                            this.Add(node.SourceLocation, node.UShr2Addr(), localReg, args[0].Result),
                                            localReg);
                     }
-                case AstCode.Conditional: // arg[0] ? arg[1] : arg[2]
-                    {
-                        var valueType = (XTypeReference) node.Operand;
-                        var result = frame.AllocateTemp(valueType.GetReference(targetPackage));
-                        var move = node.Arguments[1].Move();
-                        var move2 = node.Arguments[2].Move();
-                        if (move2 == RCode.Move_object) move = move2;
-
-                        // condition
-                        var gotoArg2 = this.Add(node.SourceLocation, RCode.If_eqz, null, args[0].Result.Registers);
-
-                        // Generate code for arg[1]
-                        var arg1 = node.Arguments[1].Accept(this, node);
-                        this.Add(node.SourceLocation, move, result, arg1.Result);
-                        var gotoEnd = this.Add(node.SourceLocation, RCode.Goto, null);
-
-                        // Generate code for arg[2]
-                        var arg2Start = this.Add(node.SourceLocation, RCode.Nop);
-                        var arg2 = node.Arguments[2].Accept(this, node);
-                        this.Add(node.SourceLocation, move, result, arg2.Result);
-
-                        var end = this.Add(node.SourceLocation, RCode.Nop);
-                        // Set branch targets
-                        gotoArg2.Operand = arg2Start;
-                        gotoEnd.Operand = end;
-
-                        return new RLRange(gotoArg2, end, result);
-                    }
 
                     #endregion
 
@@ -458,8 +450,72 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                 case AstCode.Conv_R4:
                     return ConvX(node.SourceLocation, node.Arguments[0].ConvR4(), PrimitiveType.Float, args[0]);
                 case AstCode.Conv_R8:
-                case AstCode.Conv_R_Un:
                     return ConvX(node.SourceLocation, node.Arguments[0].ConvR8(), PrimitiveType.Double, args[0]);
+                case AstCode.Conv_R_Un:
+                {
+                    // This can be either to double or single.
+                    // We have special treatment for ulong/uint => float/double conversion,
+                    // to make sure the highest bit is handled correctly.
+
+                    // Maybe this should rather be an Ast Conversion?
+
+                    var sourceType = node.Arguments[0].GetResultType();
+                    var isToFloat = node.GetResultType().IsFloat();
+
+                    var targetType = isToFloat ? PrimitiveType.Float : PrimitiveType.Double;
+                    var longToTargetCode = isToFloat ? RCode.Long_to_float : RCode.Long_to_double;
+
+                    if (sourceType.IsUInt32())
+                    {
+                        // to be on the safe side when the highest bit is set, we convert to long first.
+                        var tmp1 = frame.AllocateTemp(PrimitiveType.Long);
+                        var tmp2 = frame.AllocateTemp(PrimitiveType.Long);
+                        var result = frame.AllocateTemp(targetType);
+                        var first = this.Add(node.SourceLocation, RCode.Int_to_long, tmp1, args[0].Result);
+                        this.Add(node.SourceLocation, RCode.Const_wide, 0xFFFFFFFFL, tmp2);
+                        this.Add(node.SourceLocation, RCode.And_long_2addr, tmp1, tmp2);
+                        var last = this.Add(node.SourceLocation, longToTargetCode, result, tmp1);
+                        return new RLRange(first, last, result);
+                    }
+                    if (sourceType.IsUInt64())
+                    {
+                        // It might make more sense to make this into a C# Framework method that we call here...
+
+                        // we first clear the highest bit, then decide if we need to multiply the result by 2
+                        var tmpLong = frame.AllocateTemp(PrimitiveType.Long);
+                        var tmpInt  = frame.AllocateTemp(PrimitiveType.Int);
+                        var tmpTarget = frame.AllocateTemp(targetType);
+                        var result   = frame.AllocateTemp(targetType);
+
+                        var first = this.Add(node.SourceLocation, RCode.Nop);
+                        this.Add(node.SourceLocation, RCode.Const_wide, 0, tmpLong);
+                        this.Add(node.SourceLocation, RCode.Cmp_long, tmpInt, args[0].Result, tmpLong); // check if the highest bit is set.
+                        var branchToTwiddle = this.Add(node.SourceLocation, RCode.If_ltz, tmpInt);      // branch if highest bit was et
+                        // simple case / highest bit unset
+                        this.Add(node.SourceLocation, longToTargetCode, result, args[0].Result);
+                        var gotoDone = this.Add(node.SourceLocation, RCode.Goto);
+                        // twiddeling case / highest bit set
+                        // value = (value&0x7FFFFFFFFFFFFFFF) + (float/double)0x8000000000000000UL;
+                        var twiddle = this.Add(node.SourceLocation, RCode.Const_wide, 0x7FFFFFFFFFFFFFFF, tmpLong);
+                        this.Add(node.SourceLocation, RCode.And_long_2addr, tmpLong, args[0].Result);
+                        this.Add(node.SourceLocation, longToTargetCode, result, tmpLong); //convert
+                        this.Add(node.SourceLocation, isToFloat ? RCode.Const : RCode.Const_wide, isToFloat ?
+                            (object)(float)0x8000000000000000UL : (object)(double)0x8000000000000000UL, tmpTarget); // value for highest bit
+                        this.Add(node.SourceLocation, isToFloat ? RCode.Add_float_2addr : RCode.Add_double_2addr, result, tmpTarget); 
+                        
+                        var last = this.Add(node.SourceLocation, RCode.Nop);
+
+                        branchToTwiddle.Operand = twiddle;
+                        gotoDone.Operand = last;
+                        return new RLRange(first, last, result);
+                    }
+
+                    // The normal case.
+                    if (isToFloat)
+                        return ConvX(node.SourceLocation, node.Arguments[0].ConvR4(), PrimitiveType.Float, args[0]);
+                    // To Double
+                    return ConvX(node.SourceLocation, node.Arguments[0].ConvR8(), PrimitiveType.Double, args[0]);
+                }
                 case AstCode.Int_to_ubyte:
                     {
                         var tmp = this.EnsureTemp(node.SourceLocation, args[0].Result, frame);
@@ -495,17 +551,32 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                 case AstCode.Enum_to_long:
                     {
                         var enumType = node.Arguments[0].GetResultType().Resolve();
-                        var isWide = enumType.GetEnumUnderlyingType().IsWide();
-                        var internalEnumType = compiler.GetDot42InternalType("Enum").GetClassReference(targetPackage);
-                        var methodName = isWide ? "LongValue" : "IntValue";
-                        var enumNumericType = isWide ? PrimitiveType.Long : PrimitiveType.Int;
-                        var rvalue = frame.AllocateTemp(enumNumericType);
-                        var convMethodDex = new MethodReference(internalEnumType, methodName,
-                                                                new Prototype(enumNumericType));
-                        var call = this.Add(node.SourceLocation, RCode.Invoke_virtual, convMethodDex, args[0].Result);
-                        var last = this.Add(node.SourceLocation, isWide ? RCode.Move_result_wide : RCode.Move_result,
-                                            rvalue);
-                        return new RLRange(call, last, rvalue);
+                        var valueField = enumType.Fields.First/*OrDefault*/(f => f.Name == NameConstants.Enum.ValueFieldName);
+
+                        //if (valueField != null)
+                        {
+                            var dField = valueField.GetReference(targetPackage);
+                            var fieldType = valueField.FieldType;
+                            // Allocate register
+                            var valueR = frame.AllocateTemp(fieldType.GetReference(targetPackage));
+                            // Get from field
+                            var iget = this.Add(node.SourceLocation, valueField.IGet(), dField, valueR, args[0].Result);
+                            return new RLRange(iget, valueR);
+                        }
+                        //else  // I believe this code can be deleted.
+                        //{
+                        //    var isWide = enumType.GetEnumUnderlyingType().IsWide();
+                        //    var internalEnumType = compiler.GetDot42InternalType("Enum").GetClassReference(targetPackage);
+                        //    var methodName = isWide ? "LongValue" : "IntValue";
+                        //    var enumNumericType = isWide ? PrimitiveType.Long : PrimitiveType.Int;
+                        //    var rvalue = frame.AllocateTemp(enumNumericType);
+                        //    var convMethodDex = new MethodReference(internalEnumType, methodName,
+                        //                                            new Prototype(enumNumericType));
+                        //    var call = this.Add(node.SourceLocation, RCode.Invoke_virtual, convMethodDex, args[0].Result);
+                        //    var last = this.Add(node.SourceLocation, isWide ? RCode.Move_result_wide : RCode.Move_result,
+                        //                        rvalue);
+                        //    return new RLRange(call, last, rvalue);                            
+                        //}
                     }
 
                 case AstCode.Int_to_enum:
@@ -561,17 +632,22 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                         Instruction test;
                         var narg0 = node.Arguments[0];
                         var narg1 = node.Arguments[1];
+
                         if (narg0.IsWide() || narg1.IsWide())
                         {
+                            bool needLBias = node.Code == AstCode.Cgt || node.Code == AstCode.Cge || node.Code == AstCode.Cle_Un || node.Code == AstCode.Clt_Un;
+
                             var r2 = frame.AllocateTemp(PrimitiveType.Int);
-                            var code = narg0.IsDouble() ? RCode.Cmpg_double : RCode.Cmp_long;
+                            var code = narg0.IsDouble() ? (needLBias? RCode.Cmpl_double : RCode.Cmpg_double) : RCode.Cmp_long;
                             this.Add(node.SourceLocation, code, r2, args[0].Result, args[1].Result);
                             test = this.Add(node.SourceLocation, node.Code.Reverse().ToIfTestZ(), r2);
                         }
                         else if (narg0.IsFloat() || narg1.IsFloat())
                         {
+                            bool needLBias = node.Code == AstCode.Cgt || node.Code == AstCode.Cge || node.Code == AstCode.Cle_Un || node.Code == AstCode.Clt_Un;
+
                             var r2 = frame.AllocateTemp(PrimitiveType.Int);
-                            this.Add(node.SourceLocation, RCode.Cmpg_float, r2, args[0].Result, args[1].Result);
+                            this.Add(node.SourceLocation, needLBias ? RCode.Cmpl_float : RCode.Cmpg_float, r2, args[0].Result, args[1].Result);
                             test = this.Add(node.SourceLocation, node.Code.Reverse().ToIfTestZ(), r2);
                         }
                         else
@@ -580,7 +656,7 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                                             args[1].Result);
                         }
                         this.Add(node.SourceLocation, RCode.Const, 1, r);
-                        var end = this.Add(node.SourceLocation, RCode.Nop, null);
+                        var end = this.Add(node.SourceLocation, RCode.Nop);
                         test.Operand = end;
                         return new RLRange(args, start, end, r);
                     }
@@ -600,12 +676,28 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                         var start = this.Add(node.SourceLocation, RCode.Const, 0, r);
                         var test = this.Add(node.SourceLocation, node.Code.Reverse().ToIfTestZ(), args[0].Result);
                         this.Add(node.SourceLocation, RCode.Const, 1, r);
-                        var end = this.Add(node.SourceLocation, RCode.Nop, null);
+                        var end = this.Add(node.SourceLocation, RCode.Nop);
                         test.Operand = end;
                         return new RLRange(args, start, end, r);
                     }
                 case AstCode.Brtrue:
                 case AstCode.Brfalse:
+                    {
+                        var arg = node.Arguments[0];
+                        if (!arg.IsWide())
+                            goto case AstCode.BrIfEq; // normal handling
+
+                        var rZero = frame.AllocateTemp(PrimitiveType.Long);
+                        var rCmp = frame.AllocateTemp(PrimitiveType.Int);
+
+                        var label = (AstLabel)node.Operand;
+                        var start  = this.Add(node.SourceLocation, RCode.Const_wide, 0, rZero);
+                        var test   = this.Add(node.SourceLocation, RCode.Cmp_long, rCmp.Register, args[0].Result, rZero.Register);
+                        var branch = this.Add(node.SourceLocation, node.Code.ToIfTestZ(), rCmp);
+                        labelManager.AddResolveAction(label, x => branch.Operand = x);
+                        return new RLRange(start, branch, null);
+
+                    }
                 case AstCode.BrIfEq:
                 case AstCode.BrIfNe:
                 case AstCode.BrIfGe:
@@ -639,16 +731,22 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                 case AstCode.Br:
                     {
                         var label = (AstLabel) node.Operand;
-                        var branch = this.Add(node.SourceLocation, RCode.Goto, null);
+                        var branch = this.Add(node.SourceLocation, RCode.Goto);
                         labelManager.AddResolveAction(label, x => branch.Operand = x);
                         return new RLRange(branch, null);
                     }
                 case AstCode.Leave:
                     {
-                        var label = (AstLabel) node.Operand;
-                        var branch = this.Add(node.SourceLocation, RCode.Leave, null);
-                        labelManager.AddResolveAction(label, x => branch.Operand = x);
-                        return new RLRange(branch, null);
+                        // this code indicates that we leave a try block.
+                        var tryCatch = tryCatchStack.FirstOrDefault(l => l.HasFinally);
+                        if (tryCatch == null)
+                        {
+                            var label = (AstLabel) node.Operand;
+                            var branch = this.Add(node.SourceLocation, RCode.Leave);
+                            labelManager.AddResolveAction(label, x => branch.Operand = x);
+                            return new RLRange(branch, null);
+                        }
+                        return tryCatch.BranchToFinally_Leave(node.SourceLocation, (AstLabel)node.Operand, args);
                     }
                 case AstCode.Switch:
                     {
@@ -676,13 +774,45 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                         var @switch = this.Add(node.SourceLocation, RCode.Sparse_switch, targetPairs, args[0].Result);
                         return new RLRange(@switch, null);
                     }
-                case AstCode.NullCoalescing:
+
+                case AstCode.Conditional: // arg[0] ? arg[1] : arg[2]
                     {
-                        var r = frame.AllocateTemp(node.InferredType.GetReference(targetPackage));
+                        var valueType = (XTypeReference)node.Operand;
+                        var result = frame.AllocateTemp(valueType.GetReference(targetPackage));
+                        var move = node.Arguments[1].Move();
+                        var move2 = node.Arguments[2].Move();
+                        if (move2 == RCode.Move_object) move = move2;
+
+                        // condition
+                        var gotoArg2 = this.Add(node.SourceLocation, RCode.If_eqz, (object)null, args[0].Result.Registers);
+
+                        // Generate code for arg[1]
+                        var arg1 = node.Arguments[1].Accept(this, node);
+                        this.Add(node.SourceLocation, move, result, arg1.Result);
+                        var gotoEnd = this.Add(node.SourceLocation, RCode.Goto, (object)null);
+
+                        // Generate code for arg[2]
+                        var arg2Start = this.Add(node.SourceLocation, RCode.Nop);
+                        var arg2 = node.Arguments[2].Accept(this, node);
+                        this.Add(node.SourceLocation, move, result, arg2.Result);
+
+                        var end = this.Add(node.SourceLocation, RCode.Nop);
+                        // Set branch targets
+                        gotoArg2.Operand = arg2Start;
+                        gotoEnd.Operand = end;
+
+                        return new RLRange(gotoArg2, end, result);
+                    }
+
+                case AstCode.NullCoalescing: // arg[0] ?? arg[1]
+                {
+                        var r = frame.AllocateTemp(node.GetResultType().GetReference(targetPackage));
                         var first = this.Add(node.SourceLocation, RCode.Move_object, r, args[0].Result);
-                        // r := leftExpr
                         var if_nez = this.Add(node.SourceLocation, RCode.If_nez, r); // if r not null, skip
-                        this.Add(node.SourceLocation, RCode.Move_object, r, args[1].Result); // r := rightExpr
+
+                        // generate code for arg[1]
+                        var arg1 = node.Arguments[1].Accept(this, node);
+                        this.Add(node.SourceLocation, RCode.Move_object, r, arg1.Result);
                         var end = this.Add(node.SourceLocation, RCode.Nop);
                         if_nez.Operand = end;
                         return new RLRange(first, end, r);
@@ -700,10 +830,34 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                         return VisitCallExpression(node, args, parent);
                     }
                 case AstCode.Ret:
-                    if (currentMethod.ReturnsVoid)
-                        return new RLRange(args, this.Add(node.SourceLocation, RCode.Return_void), null);
-                    return new RLRange(args, this.Add(node.SourceLocation, node.Return(currentMethod), args[0].Result),
-                                       null);
+                {
+                        var tryCatch = tryCatchStack.FirstOrDefault(tc => tc.HasFinally);
+
+                        if (tryCatch == null)
+                        {
+                            if (currentMethod.ReturnsVoid)
+                                return new RLRange(args, this.Add(node.SourceLocation, RCode.Return_void), null);
+                            return new RLRange(args,
+                                this.Add(node.SourceLocation, node.Return(currentMethod), args[0].Result), null);
+                        }
+                        else
+                        {
+                            // We need to branch to the finally statement, but set up the correct return value.
+                            // and indicate that the finally handler should return that value.
+                            if (!currentMethod.ReturnsVoid)
+                            {
+                                if (finallyState.ReturnValueRegister == null)
+                                    finallyState.ReturnValueRegister =
+                                        frame.AllocateTemp(currentDexMethod.Prototype.ReturnType);
+                                var start = this.Add(node.SourceLocation, node.Move(), finallyState.ReturnValueRegister,
+                                    args[0].Result);
+                                var range = tryCatch.BranchToFinally_Ret(node.SourceLocation, args);
+                                return new RLRange(args, start, range.Last, null);
+                            }
+
+                            return tryCatch.BranchToFinally_Ret(node.SourceLocation, args);
+                        }
+                    }
 
                     #endregion
 
@@ -753,23 +907,45 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                     }
                 case AstCode.InitStructArray:
                     {
-                        var defaultCtor = (XMethodReference) node.Operand;
-                        var dDefaultCtor = defaultCtor.GetReference(targetPackage);
+                        var defaultCtor = node.Operand as XMethodReference;
+                        var staticField = node.Operand as XFieldReference;
+                        MethodReference dDefaultCtor = null;
+
+                        RegisterSpec elementR;
+
+                        if (defaultCtor != null)
+                        {
+                            dDefaultCtor = defaultCtor.GetReference(targetPackage);
+                            elementR = frame.AllocateTemp(dDefaultCtor.Owner);
+                        }
+                        else
+                        {
+                            var dStaticField = staticField.GetReference(targetPackage);
+                            elementR = frame.AllocateTemp(dStaticField.Owner);
+                            this.Add(node.SourceLocation, RCode.Sget_object, dStaticField, elementR);
+                        }
+
                         var arrayR = args[0].Result;
                         var indexR = frame.AllocateTemp(PrimitiveType.Int);
                         var oneR = frame.AllocateTemp(PrimitiveType.Int);
-                        var elementR = frame.AllocateTemp(dDefaultCtor.Owner);
                         var first = this.Add(node.SourceLocation, RCode.Array_length, indexR, arrayR);
+
                         this.Add(node.SourceLocation, RCode.Const, 1, oneR);
                         var ifZero = this.Add(node.SourceLocation, RCode.If_eqz, indexR);
-                            // if (index == 0) goto end;  (Operand set later)
+                        // if (index == 0) goto end;  (Operand set later)
                         this.Add(node.SourceLocation, RCode.Sub_int_2addr, indexR, oneR); // index--;
-                        this.Add(node.SourceLocation, RCode.New_instance, dDefaultCtor.Owner, elementR);
+
+                        if (dDefaultCtor != null)
+                        {
+                            this.Add(node.SourceLocation, RCode.New_instance, dDefaultCtor.Owner, elementR);
                             // element = new Struct;
-                        this.Add(node.SourceLocation, RCode.Invoke_direct, dDefaultCtor, elementR);
+                            this.Add(node.SourceLocation, RCode.Invoke_direct, dDefaultCtor, elementR);
                             // invoke element.ctor()
+                        }
+
                         this.Add(node.SourceLocation, RCode.Aput_object, elementR, arrayR, indexR);
-                            // Store element in array
+                        // Store element in array
+
                         this.Add(node.SourceLocation, RCode.Goto, ifZero); // End of loop
                         var end = this.Add(node.SourceLocation, RCode.Nop);
                         ifZero.Operand = end;
@@ -780,24 +956,40 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                         var arrType = (XTypeReference) node.Operand;
                         var darrType = arrType.GetReference(targetPackage);
                         var compType = arrType;
+
                         // Unwind array type to component type
                         for (var i = 0; i < node.Arguments.Count; i++)
                         {
                             compType = compType.ElementType;
                         }
+
                         var dcompType = new ArrayType(compType.GetReference(targetPackage));
                         var dimArrayR = frame.AllocateTemp(new ArrayType(PrimitiveType.Int));
-                        var lengthR = frame.AllocateTemp(PrimitiveType.Int);
+                        
                         var first = this.Add(node.SourceLocation, RCode.Nop);
-                        // Allocate dimensions array
-                        this.Add(node.SourceLocation, RCode.Const, node.Arguments.Count, lengthR);
-                        this.Add(node.SourceLocation, RCode.New_array, PrimitiveType.Int, dimArrayR, lengthR);
-                        var indexR = lengthR;
-                        // Initialize dimensions array
-                        for (var i = 0; i < node.Arguments.Count; i++)
+
+                        var dimensionsArrayType = new ArrayType(PrimitiveType.Int);
+
+                        if (node.Arguments.Count <= 5)
                         {
-                            this.Add(node.SourceLocation, RCode.Const, i, indexR);
-                            this.Add(node.SourceLocation, RCode.Aput, args[i], dimArrayR, indexR);
+                            this.Add(node.SourceLocation, RCode.Filled_new_array, dimensionsArrayType, args.Select(a=>a.Result.Register));
+                            this.Add(node.SourceLocation, RCode.Move_result_object, (object)null, dimArrayR);
+                        }
+                        else
+                        {
+                            var lengthR = frame.AllocateTemp(PrimitiveType.Int);
+
+                            // Allocate dimensions array
+                            this.Add(node.SourceLocation, RCode.Const, node.Arguments.Count, lengthR);
+                            this.Add(node.SourceLocation, RCode.New_array, dimensionsArrayType, dimArrayR, lengthR);
+
+                            var indexR = lengthR;
+                            // Initialize dimensions array
+                            for (var i = 0; i < node.Arguments.Count; i++)
+                            {
+                                this.Add(node.SourceLocation, RCode.Const, i, indexR);
+                                this.Add(node.SourceLocation, RCode.Aput, null, args[i].Result, dimArrayR, indexR);
+                            }
                         }
 
                         // Load component type
@@ -810,8 +1002,8 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                         var methodRef = new MethodReference(reflectArrayType, "newInstance", prototype);
                         var arrayR = frame.AllocateTemp(darrType);
                         this.Add(node.SourceLocation, RCode.Invoke_static, methodRef, compTypeR, dimArrayR);
-                        var last = this.Add(node.SourceLocation, RCode.Move_result_object, arrayR);
-
+                        this.Add(node.SourceLocation, RCode.Move_result_object, arrayR);
+                        var last = this.Add(node.SourceLocation, RCode.Check_cast, darrType, arrayR);
                         return new RLRange(first, last, arrayR);
                     }
                 case AstCode.ByRefArray:
@@ -1070,7 +1262,7 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                         if (dBaseType == null)
                             throw new CompilerException(string.Format("Type {0} base no superclass as definition", dtype.Fullname));
                         var paramCount = node.Arguments.Count - 1;
-                        var baseCtor = dBaseType.Methods.Single(x => x.IsConstructor && (x.Prototype.Parameters.Count == paramCount));
+                        var baseCtor = dBaseType.Methods.Single(x => x.IsConstructor && !x.IsStatic && (x.Prototype.Parameters.Count == paramCount));
                         var call = this.Add(node.SourceLocation, RCode.Invoke_direct, baseCtor, args.SelectMany(x => x.Result.Registers));
                         return new RLRange(call, args[0].Result);
                     }
@@ -1121,33 +1313,35 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
 #region Generics
                 case AstCode.LdGenericInstanceField:
                     {
-                        var giField = GetGenericInstanceField();
-                        var r = frame.AllocateTemp(FrameworkReferences.ClassArray);
+                        var giField = GetGenericInstanceField((int)node.Operand);
+                        var r = frame.AllocateTemp(giField.Type);
                         var iget = this.Add(node.SourceLocation, RCode.Iget_object, giField, r, frame.ThisArgument);
                         return new RLRange(iget, r);
                     }
                 case AstCode.StGenericInstanceField:
                     {
-                        var giField = GetGenericInstanceField();
+                        var giField = GetGenericInstanceField((int)node.Operand);
                         var r = args[0].Result;
                         var iput = this.Add(node.SourceLocation, RCode.Iput_object, giField, r, frame.ThisArgument);
                         return new RLRange(iput, r);
                     }
                 case AstCode.LdGenericInstanceTypeArgument:
-                    {
-                        if (frame.GenericInstanceTypeArgument == null)
+                {
+                        int index = (int) node.Operand;
+                        if (index <0 || index >= frame.GenericInstanceTypeArguments.Count)
                         {
-                            throw new CompilerException(string.Format("Method {0} has no generic instance type argument", currentMethod.FullName));
+                            throw new CompilerException(string.Format("Method {0} has no generic instance type argument " + index, currentMethod.FullName));
                         }
-                        return new RLRange(frame.GenericInstanceTypeArgument);
+                        return new RLRange(frame.GenericInstanceTypeArguments[index]);
                     }
                 case AstCode.LdGenericInstanceMethodArgument:
                     {
-                        if (frame.GenericInstanceMethodArgument == null)
+                        int index = (int)node.Operand;
+                        if (index < 0 || index >= frame.GenericInstanceMethodArguments.Count)
                         {
-                            throw new CompilerException(string.Format("Method {0} has no generic instance method argument", currentMethod.FullName));
+                            throw new CompilerException(string.Format("Method {0} has no generic instance method argument " + index, currentMethod.FullName));
                         }
-                        return new RLRange(frame.GenericInstanceMethodArgument);
+                        return new RLRange(frame.GenericInstanceMethodArguments[index]);
                     }
                 case AstCode.UnboxFromGeneric:
                     {
@@ -1161,6 +1355,7 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                         if (elementType.IsGenericParameter)
                         {
                             var returnType = node.GetResultType();
+
                             var tmp = this.Unbox(node.SourceLocation, r, returnType, compiler, targetPackage, frame);
                             last = tmp.Last;
                             r = tmp.Result;
@@ -1183,6 +1378,42 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                         }
                         return new RLRange(start, last, r);
                     }
+
+                case AstCode.BoxToGeneric:
+                    {
+                        // Get result
+                        var elementType = (XTypeReference)node.Operand;
+                        var r = args[0].Result;
+                        var start = this.Add(node.SourceLocation, RCode.Nop);
+                        var last = start;
+
+                        // Convert result when needed
+                        if (elementType.IsGenericParameter)
+                        {
+                            var returnType = node.GetResultType();
+
+                            var tmp = this.Box(node.SourceLocation, r, returnType, targetPackage, frame);
+                            last = tmp.Last;
+                            r = tmp.Result;
+                        }
+                        else if (elementType.IsGenericParameterArray())
+                        {
+                            var returnType = node.GetResultType();
+                            if (returnType.IsPrimitiveArray())
+                            {
+                                var tmp = this.BoxGenericArray(node.SourceLocation, r, returnType, targetPackage, frame, compiler);
+                                last = tmp.Last;
+                                r = tmp.Result;
+                            }
+                            else
+                            {
+                                var tmp = this.Box(node.SourceLocation, r, returnType, targetPackage, frame);
+                                last = tmp.Last;
+                                r = tmp.Result;
+                            }
+                        }
+                        return new RLRange(start, last, r);
+                    }
 #endregion
 
                 case AstCode.Throw:
@@ -1192,34 +1423,38 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                     }
                 case AstCode.Rethrow:
                     {
-                        if (currentExceptionRegister == null)
+                        if (currentExceptionRegister.Count == 0)
                             throw new CompilerException("retrow outside catch block");
-                        var @throw = this.Add(node.SourceLocation, RCode.Throw, currentExceptionRegister);
+                        var @throw = this.Add(node.SourceLocation, RCode.Throw, currentExceptionRegister.Peek());
                         return new RLRange(@throw, null);                        
                     }
                 case AstCode.Delegate:
                     {
                         //Debugger.Launch();
-                        var delegateInfo = (Tuple<XTypeDefinition, XMethodDefinition>)node.Operand;
+                        var delegateInfo = (Tuple<XTypeDefinition, XMethodReference>)node.Operand;
                         var delegateType = compiler.GetDelegateType(delegateInfo.Item1);
-                        var delegateInstanceType = delegateType.GetOrCreateInstance(node.SourceLocation, targetPackage, delegateInfo.Item2);
+                        var delegateInstanceType = delegateType.GetOrCreateInstance(node.SourceLocation, targetPackage, delegateInfo.Item2.GetElementMethod().Resolve());
+
+                        var r = frame.AllocateTemp(delegateInstanceType.InstanceDefinition);
 
                         // Create instance
-                        var r = frame.AllocateTemp(delegateInstanceType.InstanceDefinition);
                         var newobj = this.Add(node.SourceLocation, RCode.New_instance, delegateInstanceType.InstanceDefinition, r);
-                        // Call ctor
-                        if (delegateInstanceType.CalledMethodIsStatic)
-                        {
-                            // Call without instance argument
-                            var invokeCtor = this.Add(node.SourceLocation, RCode.Invoke_direct, delegateInstanceType.InstanceCtor, r);
-                            return new RLRange(newobj, invokeCtor, r);
-                        }
-                        else
-                        {
-                            // Call with instance argument
-                            var invokeCtor = this.Add(node.SourceLocation, RCode.Invoke_direct, delegateInstanceType.InstanceCtor, r, args[0].Result);
-                            return new RLRange(newobj, invokeCtor, r);
-                        }
+
+                        // collect parameters.
+                        List<RL.Register> registerArgs = new List<RL.Register>();
+                        
+                        registerArgs.Add(r);
+                        
+                        if (delegateInstanceType.ConstructorNeedsInstanceArgument)
+                            registerArgs.Add(args[0].Result);
+
+                        for(int i = 1; i < args.Count; ++i) // generic method / instance type arguments.
+                            registerArgs.Add(args[i].Result);
+
+                        // call .ctor
+                        var invokeCtor = this.Add(node.SourceLocation, RCode.Invoke_direct,
+                                                  delegateInstanceType.InstanceCtor, registerArgs);
+                        return new RLRange(newobj, invokeCtor, r);
                     }
                 case AstCode.InitArray:
                     {
@@ -1267,7 +1502,7 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                                 if (i + 1 < arrayData.Length)
                                 {
                                     // Increment index
-                                    this.Add(node.SourceLocation, RCode.Add_int_lit, 1, rIndex, rIndex);
+                                    this.Add(node.SourceLocation, RCode.Add_int_lit8, 1, rIndex, rIndex);
                                 }
                             }
                         }
@@ -1303,7 +1538,7 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                             if (i + 1 < size)
                             {
                                 // Increment index
-                                this.Add(node.SourceLocation, RCode.Add_int_lit, 1, rIndex, rIndex);
+                                this.Add(node.SourceLocation, RCode.Add_int_lit8, 1, rIndex, rIndex);
                             }
                         }
                         return new RLRange(start, this.Add(node.SourceLocation, RCode.Nop), rArray);
@@ -1590,9 +1825,10 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                             switch (ilMethod.Name)
                             {
                                 case "Enter":
-                                    return new RLRange(this.Add(node.SourceLocation, RCode.Monitor_enter, args[0].Result), null);
+                                    return monitorManager.Enter(this, node, args);
+                                    
                                 case "Exit":
-                                    return new RLRange(this.Add(node.SourceLocation, RCode.Monitor_exit, args[0].Result), null);
+                                    return monitorManager.Exit(this, node, args);
                             }
                         }
                     }
@@ -1605,7 +1841,7 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                             var start = this.Add(node.SourceLocation, RCode.Const, 0, r);
                             var test = this.Add(node.SourceLocation, AstCode.Ceq.Reverse().ToIfTest(), args[0].Result, args[1].Result);
                             this.Add(node.SourceLocation, RCode.Const, 1, r);
-                            var end = this.Add(node.SourceLocation, RCode.Nop, null);
+                            var end = this.Add(node.SourceLocation, RCode.Nop);
                             test.Operand = end;
                             return new RLRange(args, start, end, r);                           
                         }
@@ -1770,15 +2006,14 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
         /// Gets the generic instance field of the current method.
         /// Throws an exception when there is no such field.
         /// </summary>
-        private FieldDefinition GetGenericInstanceField()
+        private FieldDefinition GetGenericInstanceField(int index)
         {
             var owner = currentDexMethod.Owner;
-            var giField = owner.GenericInstanceField;
-            if (giField == null)
+            if (owner.GenericInstanceFields.Count <= index || index < 0)
             {
                 throw new CompilerException(string.Format("Expected GenericInstance field in {0}", owner.Fullname));
             }
-            return giField;
+            return owner.GenericInstanceFields[index];
         }
     }
 }

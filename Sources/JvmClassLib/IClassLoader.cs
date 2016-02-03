@@ -13,5 +13,7 @@ namespace Dot42.JvmClassLib
         /// Gets all package names found in this loader.
         /// </summary>
         IEnumerable<string> Packages { get; }
+
+        ClassSource TryGetClassSource(string className);
     }
 }

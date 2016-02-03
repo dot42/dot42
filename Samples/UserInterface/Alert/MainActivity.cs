@@ -1,6 +1,5 @@
 ﻿using System;
-using Android.App;
-using Android.Os;
+using Android.App;using Android.OS;
 using Android.Widget;
 using Dot42.Manifest;
 
@@ -17,8 +16,8 @@ namespace Alert
         protected override void OnCreate(Bundle savedInstance)
         {
             base.OnCreate(savedInstance);
-            SetContentView(R.Layouts.MainLayout);
-            var button = FindViewById<Button>(R.Ids.button);
+            SetContentView(R.Layout.MainLayout);
+            var button = FindViewById<Button>(R.Id.button);
             button.Click += ButtonOnClick;
         }
 

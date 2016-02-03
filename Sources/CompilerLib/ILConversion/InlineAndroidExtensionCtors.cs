@@ -56,7 +56,7 @@ namespace Dot42.CompilerLib.ILConversion
             }
 
             /// <summary>
-            /// Convert calls to android extension ctors in the3 given method body.
+            /// Convert calls to android extension ctors in the given method body.
             /// </summary>
             private static void Convert(MethodBody body)
             {

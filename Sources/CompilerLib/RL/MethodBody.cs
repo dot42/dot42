@@ -57,8 +57,8 @@ namespace Dot42.CompilerLib.RL
         public Tuple<Register, Register> AllocateWideRegister(RCategory category)
         {
             // Allow an additional register
-            var first = new Register(lastRegisterIndex++, category, RType.Wide) { Flags = RFlags.KeepWithNext };
-            var second = new Register(lastRegisterIndex++, category, RType.Wide2);
+            var first  = new Register(lastRegisterIndex++, category, RType.Wide)   { Flags = RFlags.KeepWithNext };
+            var second = new Register(lastRegisterIndex++, category, RType.Wide2)  { Flags = RFlags.KeepWithPrev };
             registers.Add(first);
             registers.Add(second);
 

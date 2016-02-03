@@ -17,9 +17,7 @@
 using Support4Demos;
 
 using Android.Support.V4.App;
-
-using Android.Os;
-using Android.View;
+using Android.OS;using Android.Views;
 using Android.Widget;
 
 using Dot42.Manifest;
@@ -33,16 +31,16 @@ namespace com.example.android.supportv4.app
 
         protected override void OnCreate(Bundle savedInstanceState) {
             base.OnCreate(savedInstanceState);
-            SetContentView(R.Layouts.fragment_dialog);
+            SetContentView(R.Layout.fragment_dialog);
 
-            View tv = FindViewById(R.Ids.text);
+            View tv = FindViewById(R.Id.text);
             ((TextView)tv).SetText("Example of displaying dialogs with a DialogFragment.  "
                     + "Press the show button below to see the first dialog; pressing "
                     + "successive show buttons will display other dialog styles as a "
                     + "stack, with dismissing or back going to the previous dialog.");
 
             // Watch for button clicks.
-            Button button = (Button)FindViewById(R.Ids.show);
+            Button button = (Button)FindViewById(R.Id.show);
             button.Click += (x,y) => ShowDialog();
 
             if (savedInstanceState != null) {
@@ -135,13 +133,13 @@ namespace com.example.android.supportv4.app
 
             public override View OnCreateView(LayoutInflater Inflater, ViewGroup container,
                     Bundle savedInstanceState) {
-                View v = Inflater.Inflate(R.Layouts.fragment_dialog, container, false);
-                View tv = v.FindViewById(R.Ids.text);
+                View v = Inflater.Inflate(R.Layout.fragment_dialog, container, false);
+                View tv = v.FindViewById(R.Id.text);
                 ((TextView)tv).SetText("Dialog #" + mNum + ": using style "
                         + GetNameForNum(mNum));
 
                 // Watch for button clicks.
-                Button button = (Button)v.FindViewById(R.Ids.show);
+                Button button = (Button)v.FindViewById(R.Id.show);
                 button.Click += (o, a) => ((FragmentDialogSupport)GetActivity()).ShowDialog();
 
                 return v;

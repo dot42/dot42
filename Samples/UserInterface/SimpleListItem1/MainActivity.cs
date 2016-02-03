@@ -1,5 +1,4 @@
-﻿using Android.App;
-using Android.Os;
+﻿using Android.App;using Android.OS;
 using Android.Widget;
 using Dot42.Manifest;
 
@@ -13,7 +12,7 @@ namespace SimpleListItem1
         protected override void OnCreate(Bundle savedInstance)
         {
             base.OnCreate(savedInstance);
-            SetContentView(R.Layouts.MainLayout);
+            SetContentView(R.Layout.MainLayout);
 
             var titles = new[] { "Title1", "Title2" };
             SetListAdapter(new ArrayAdapter<string>(this, Android.R.Layout.Simple_list_item_1, titles));

@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Dot42.ApkLib.Resources;
 using Dot42.Compiler.Manifest;
 using Dot42.Compiler.Resources;
 using Dot42.CompilerLib;
+using Dot42.CompilerLib.Target.CompilerCache;
+using Dot42.CompilerLib.Target.Dx;
 using Dot42.CompilerLib.XModel;
 using Dot42.ImportJarLib;
+using Dot42.JvmClassLib;
 using Dot42.LoaderLib.DotNet;
 using Dot42.LoaderLib.Java;
 using Dot42.Utility;
@@ -16,7 +18,6 @@ using Dot42.WcfTools.ProxyBuilder;
 using Mono.Cecil;
 using TallComponents.Common.Util;
 using NameConverter = Dot42.CompilerLib.NameConverter;
-using ResourceType = Dot42.ResourcesLib.ResourceType;
 
 namespace Dot42.Compiler
 {
@@ -187,7 +188,7 @@ namespace Dot42.Compiler
                     SymbolReaderProvider = new SafeSymbolReaderProvider(),
                     ReadSymbols = true
                 };
-                var assemblies = options.WcfProxyInputAssemblies.Select(x => AssemblyDefinition.ReadAssembly(x, readerParameters)).ToList();
+                var assemblies = options.WcfProxyInputAssemblies.Select(x => resolver.Load(x, readerParameters)).ToList();
                 var proxyTool = new ProxyBuilderTool(assemblies, options.GeneratedProxySourcePath);
                 proxyTool.Build();
             }
@@ -210,8 +211,8 @@ namespace Dot42.Compiler
 #if DEBUG
                         //Debugger.Launch();
 #endif
-
-                        CompileAssembly(options, nsConverter);
+                        using (AssemblyCompiler.Profile("total processing time", true))
+                            CompileAssembly(options, nsConverter);
                     }
                 }
 
@@ -233,32 +234,51 @@ namespace Dot42.Compiler
             // Load resource type usage info file
             var usedTypeNames = LoadResourceTypeUsageInformation(options);
 
+
             // Load assemblies
-            var assemblies = new List<AssemblyDefinition>();
+            List<AssemblyDefinition> assemblies = new List<AssemblyDefinition>();
+            List<AssemblyDefinition> references= new List<AssemblyDefinition>();
+
+            var dxJarCompiler = options.EnableDxJarCompilation
+                ? new DxClassfileMethodBodyCompiler(options.OutputFolder, options.DebugInfo)
+                : null;
+            Action<ClassSource> jarLoaded = dxJarCompiler != null ? dxJarCompiler.PreloadJar : (Action<ClassSource>)null;
+
             var module = new XModule();
             var classLoader = new AssemblyClassLoader(module.OnClassLoaded);
             var resolver = new AssemblyResolver(options.ReferenceFolders, classLoader, module.OnAssemblyLoaded);
-            var readerParameters = new ReaderParameters(ReadingMode.Immediate)
+
+            // initialize compiler cache in background.
+            var ccache = options.EnableCompilerCache ? new DexMethodBodyCompilerCache(options.OutputFolder, resolver.GetFileName)
+                                                     : new DexMethodBodyCompilerCache();
+
+            var readerParameters = new ReaderParameters
             {
                 AssemblyResolver = resolver,
                 SymbolReaderProvider = new SafeSymbolReaderProvider(),
-                ReadSymbols = true
+                ReadSymbols = true,
+                ReadingMode = ReadingMode.Immediate
             };
-            foreach (var asmPath in options.Assemblies)
+
+            // load assemblies
+            var toLoad = options.Assemblies.Select(path => new {path, target = assemblies})
+                 .Concat(options.References.Select(path => new {path, target = references}))
+                 // Some micro optimizations... 
+                 // Our startup is IO bound until we have loaded first assembly from disk.
+                 // So just load from smallest to largest.
+                 .Select(load => new { load.path, load.target, length = new FileInfo(resolver.ResolvePath(load.path)).Length})
+                 .OrderBy(load=>load.length)
+                 .ToList();
+
+            using (AssemblyCompiler.Profile("for loading assemblies"))
             {
-                var asm = resolver.Load(asmPath, readerParameters);
-                module.OnAssemblyLoaded(asm);
-                classLoader.LoadAssembly(asm);
-                assemblies.Add(asm);
-            }
-            // Load references
-            var references = new List<AssemblyDefinition>();
-            foreach (var refPath in options.References)
-            {
-                var asm = resolver.Load(refPath, readerParameters);
-                module.OnAssemblyLoaded(asm);
-                classLoader.LoadAssembly(asm);
-                references.Add(asm);
+                toLoad.AsParallel().ForAll(
+                //toLoad.ForEach(
+                    load =>
+                    {
+                        var assm = resolver.Load(load.path, readerParameters);
+                        lock (load.target) load.target.Add(assm);
+                    });
             }
 
             // Load resources
@@ -269,9 +289,19 @@ namespace Dot42.Compiler
             }
 
             // Create compiler
-            var compiler = new AssemblyCompiler(options.CompilationMode, assemblies, references, table, nsConverter, options.DebugInfo, classLoader, usedTypeNames, module);
-            compiler.Compile();
-            compiler.Save(options.OutputFolder, options.FreeAppsKeyPath);
+            var compiler = new AssemblyCompiler(options.CompilationMode, assemblies, references, table, nsConverter,
+                                                options.DebugInfo, classLoader, resolver.GetFileName, ccache, 
+                                                usedTypeNames, module, options.GenerateSetNextInstructionCode);
+            compiler.DxClassfileMethodBodyCompiler = dxJarCompiler;
+            using (AssemblyCompiler.Profile("total compilation time", true))
+                compiler.Compile();
+
+            ccache.PrintStatistics();
+
+            using (AssemblyCompiler.Profile("saving results"))
+                compiler.Save(options.OutputFolder, options.FreeAppsKeyPath);
+
+            
         }
 
         private static HashSet<string> LoadResourceTypeUsageInformation(CommandLineOptions options)

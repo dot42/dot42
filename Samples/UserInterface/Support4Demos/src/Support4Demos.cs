@@ -16,9 +16,7 @@
 
 using Android.App;
 using Android.Content;
-using Android.Content.Pm;
-using Android.Os;
-using Android.View;
+using Android.Content.Pm;using Android.OS;using Android.Views;
 using Android.Widget;
 
 using Java.Lang;

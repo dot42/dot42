@@ -1,4 +1,5 @@
-﻿using Dot42.CompilerLib.Target;
+﻿using System;
+using Dot42.CompilerLib.Target;
 using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel;
 using Dot42.CompilerLib.XModel.Java;
@@ -46,6 +47,7 @@ namespace Dot42.CompilerLib.Structure.Java
             dmethod.Name = GetMethodName(method, targetPackage);
             dmethod.MapFileId = compiler.GetNextMapFileId();
             AddMethodToDeclaringClass(declaringClass, dmethod, targetPackage);
+
             targetPackage.Record(xMethod, dmethod);
 
             // Set access flags
@@ -103,12 +105,35 @@ namespace Dot42.CompilerLib.Structure.Java
                 return;
 
             // Create body (if any)
-            if (method.HasCode)
+            if (!method.HasCode) 
+                return;
+
+            if (compiler.DxClassfileMethodBodyCompiler != null)
             {
-                //ExpandSequencePoints(method.Body);
-                var source = new MethodSource(xMethod, method);
-                DexMethodBodyCompiler.TranslateToRL(compiler, targetPackage, source, dmethod, out compiledMethod);
+                var dxBody = compiler.DxClassfileMethodBodyCompiler.GetMethodBody(dmethod, xMethod);
+                if (dxBody == null) 
+                    throw new Exception("unable to get method body through 'dx': " + dmethod);
+
+                dmethod.Body = dxBody;
+                dmethod.Owner.SetSourceFile(dxBody.Owner.Owner.SourceFile);
+                return;
             }
+
+            var cachedBody = compiler.MethodBodyCompilerCache.GetFromCache(dmethod, xMethod, compiler, targetPackage);
+
+            if (cachedBody != null)
+            {
+                dmethod.Body = cachedBody.Body;
+                // important to fix the owners source file as early as possible, 
+                // so it can't be changed later. Else we would have to recreate
+                // all cached method bodies debug infos.
+                dmethod.Owner.SetSourceFile(cachedBody.ClassSourceFile);
+                return;
+            }
+
+            //ExpandSequencePoints(method.Body);
+            var source = new MethodSource(xMethod, method);
+            DexMethodBodyCompiler.TranslateToRL(compiler, targetPackage, source, dmethod, false, out compiledMethod);
         }
 
         /// <summary>

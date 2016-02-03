@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using Dot42.ApkLib.Resources;
 
 namespace Dot42.DebuggerLib.Model
 {
@@ -16,6 +18,14 @@ namespace Dot42.DebuggerLib.Model
         public ExceptionBehaviorMap()
         {
             ResetDefaults();
+        }
+
+        private ExceptionBehaviorMap(ExceptionBehaviorMap copy)
+        {
+            DefaultStopOnThrow = copy.DefaultStopOnThrow;
+            DefaultStopUncaught = copy.DefaultStopUncaught;
+            map = new Dictionary<string, ExceptionBehavior>(copy.map);
+
         }
 
         /// <summary>
@@ -52,6 +62,15 @@ namespace Dot42.DebuggerLib.Model
             }
         }
 
+        public IEnumerable<ExceptionBehavior> Behaviors
+        {
+            get
+            {
+                lock (mapLock)
+                    return map.Values.ToList();
+            }
+        }
+
         /// <summary>
         /// Set to default values to the initial state.
         /// </summary>
@@ -73,20 +92,57 @@ namespace Dot42.DebuggerLib.Model
             }
         }
 
-        /// <summary>
-        /// Copy the state of the given object to me.
-        /// </summary>
-        public void CopyFrom(ExceptionBehaviorMap source)
+        private ExceptionBehaviorMap Clone()
         {
             lock (mapLock)
             {
-                DefaultStopOnThrow = source.DefaultStopOnThrow;
-                DefaultStopUncaught = source.DefaultStopUncaught;
+                return new ExceptionBehaviorMap(this);
+            }
+        }
+
+        /// <summary>
+        /// Copy the state of the given object to me.
+        /// 
+        /// Returns all behaviors that have changed, with their new  values.
+        /// If the default behavior was changed, the first returned behavior
+        /// will be null.
+        /// </summary>
+        public IList<ExceptionBehavior> CopyFrom(ExceptionBehaviorMap source)
+        {
+            source = source.Clone();
+
+            lock (mapLock)
+            {
+                List<string> changed = new List<string>();
+
+                // find changed values
+                foreach (var entry in source.map)
+                {
+                    if (!Equals(this[entry.Key], entry.Value))
+                        changed.Add(entry.Key);
+                }
+
+                // add all values that have been removed.
+                changed.AddRange(map.Keys.ToList()
+                                         .Where(key => !source.map.ContainsKey(key)));
+
                 map.Clear();
                 foreach (var entry in source.map)
                 {
                     map[entry.Key] = entry.Value;
                 }
+
+                List<ExceptionBehavior> ret = new List<ExceptionBehavior>();
+
+                if(DefaultStopUncaught != source.DefaultStopUncaught || DefaultStopOnThrow  != source.DefaultStopOnThrow)
+                    ret.Insert(0, null);
+
+                ret.AddRange(changed.Select(x => this[x]));
+
+                DefaultStopOnThrow = source.DefaultStopOnThrow;
+                DefaultStopUncaught = source.DefaultStopUncaught;
+
+                return ret;
             }
         }
     }

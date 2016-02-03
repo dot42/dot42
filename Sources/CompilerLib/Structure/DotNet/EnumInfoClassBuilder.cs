@@ -1,12 +1,12 @@
 ﻿using System.Linq;
 using Dot42.CompilerLib.Ast;
 using Dot42.CompilerLib.Extensions;
-using Dot42.CompilerLib.Target;
 using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel;
 using Dot42.CompilerLib.XModel.Synthetic;
 using Dot42.DexLib;
 using Dot42.CecilExtensions;
+using Dot42.Utility;
 using Mono.Cecil;
 
 namespace Dot42.CompilerLib.Structure.DotNet
@@ -54,7 +54,8 @@ namespace Dot42.CompilerLib.Structure.DotNet
         protected override XTypeDefinition CreateXType(XTypeDefinition parentXType)
         {
             var baseType = Compiler.GetDot42InternalType("EnumInfo");
-            return XSyntheticTypeDefinition.Create(Compiler.Module, parentXType, XSyntheticTypeFlags.Private, null, ClassName, baseType);
+            return XSyntheticTypeDefinition.Create(Compiler.Module, parentXType, XSyntheticTypeFlags.Private, null, ClassName, 
+                                                   baseType, parentXType.ScopeId + ":Info");
         }
 
         /// <summary>
@@ -102,11 +103,11 @@ namespace Dot42.CompilerLib.Structure.DotNet
             var valueType = isWide ? module.TypeSystem.Long : module.TypeSystem.Int;
 
             // Build default ctor
-            defaultCtor = XSyntheticMethodDefinition.Create(XType, XSyntheticMethodFlags.Constructor, "<init>", module.TypeSystem.Void);
+            defaultCtor = XSyntheticMethodDefinition.Create(XType, XSyntheticMethodFlags.Constructor, "<init>", null, module.TypeSystem.Void);
             Class.Methods.Add(defaultCtor.GetDexMethod(Class, targetPackage));
 
             // Build Create method
-            create = XSyntheticMethodDefinition.Create(XType, XSyntheticMethodFlags.Protected, "Create", enumType,
+            create = XSyntheticMethodDefinition.Create(XType, XSyntheticMethodFlags.Protected, "Create", null, enumType,
                 XParameter.Create("value", valueType));
             Class.Methods.Add(create.GetDexMethod(Class, targetPackage));
         }
@@ -114,9 +115,9 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// <summary>
         /// Generate code for all methods.
         /// </summary>
-        public override void GenerateCode(DexTargetPackage targetPackage)
+        public override void GenerateCode(DexTargetPackage targetPackage, bool stopAtFirstError)
         {
-            base.GenerateCode(targetPackage);
+            base.GenerateCode(targetPackage, stopAtFirstError);
 
             // Create method bodies
             defaultCtor.Body = CreateCtorBody();
@@ -131,10 +132,15 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// </summary>
         private AstBlock CreateCtorBody()
         {
+            // here we could also preserve the original underlying type.
+            bool isWide = Type.GetEnumUnderlyingType().Resolve().IsWide();
+            var underlying = isWide ? Compiler.Module.TypeSystem.Long : Compiler.Module.TypeSystem.Int;
+
             return AstBlock.CreateOptimizedForTarget(
                 // Call base ctor
                 new AstExpression(AstNode.NoSource, AstCode.CallBaseCtor, 0,
-                    new AstExpression(AstNode.NoSource, AstCode.Ldthis, null)),
+                    new AstExpression(AstNode.NoSource, AstCode.Ldthis, null),
+                    new AstExpression(AstNode.NoSource, AstCode.TypeOf, underlying)),
                 // Return
                 new AstExpression(AstNode.NoSource, AstCode.Ret, null));
         }

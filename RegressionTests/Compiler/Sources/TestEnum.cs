@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Reflection;
 using Junit.Framework;
 
 namespace Dot42.Tests.Compiler.Sources
@@ -62,6 +65,9 @@ namespace Dot42.Tests.Compiler.Sources
 
         private EnumULong? instanceEnumULongN;
         private static EnumULong? staticEnumULongN;
+
+        private enum E { Val1, Val2 };
+        private enum TwoFields { Aap, Noot }
 
         public void testEnumSByte1()
         {
@@ -534,6 +540,153 @@ namespace Dot42.Tests.Compiler.Sources
         {
             var result = ReturnInt(EnumInt.V2);
             AssertTrue(result == (int)EnumInt.V2);
+        }
+
+        public void testCallStaticMethodWithEnum()
+        {
+            AssertEquals("Noot", ClassEnumStaticTest.CalledMethod(TwoFields.Noot));
+            AssertEquals("1", ClassEnumStaticTest.CalledMethodD(TwoFields.Noot));
+        }
+
+        public void testCallMethodWithEnum()
+        {
+            AssertEquals("Noot", MethodWithSystemEnumParameter(TwoFields.Noot));
+        }
+
+        private string MethodWithSystemEnumParameter(Enum e)
+        {
+            return e.ToString();
+        }
+
+        public void testEnumGetType()
+        {
+            Assert.AssertEquals(typeof(E), E.Val1.GetType());
+        }
+
+        public void testIsEnum()
+        {
+            Assert.AssertTrue(typeof(E).IsEnum);
+            Assert.AssertTrue(E.Val1.GetType().IsEnum);
+        }
+
+        public void testRetrieveEnumValuesThroughReflection()
+        {
+            Assert.AssertEquals(2, GetValues(typeof(E)).Count);
+        }
+
+        public void testEnumToObjectConversion()
+        {
+            new EnumConversionFromVariableTests().ConvertToObject();
+            new EnumConversionFromVariableTests().SetInObjectArray();
+            new EnumConversionFromVariableTests().CallVarArg();
+        }
+
+        public void testEnumToSbyteConversion()
+        {
+            new EnumConversionFromVariableTests().TestCallSByteMethod();
+            new EnumConversionFromVariableTests().TestCallSByteMethod1();
+        }
+
+        public void testEnumByReference()
+        {
+            new EnumConversionFromVariableTests().TestCallByReference();
+        }
+
+        public static IList<object> GetValues(Type enumType)
+        {
+            if (!enumType.IsEnum)
+                throw new ArgumentException("Type '" + enumType.Name + "' is not an enum.");
+
+            List<object> values = new List<object>();
+
+            var fields = enumType.GetFields();
+
+            foreach (FieldInfo field in fields)
+            {
+                if (!field.IsLiteral)
+                    continue;
+                Debug.WriteLine("retrieving value of field {0}", field.Name);
+                object value = field.GetValue(enumType);
+                values.Add(value);
+            }
+
+            return values;
+        }
+
+        static class ClassEnumStaticTest
+        {
+            public static string CalledMethod(Enum e)
+            {
+                return e.ToString();
+            }
+
+            public static string CalledMethodD(Enum e)
+            {
+                return e.ToString("D");
+            }
+
+        }
+
+        class EnumConversionFromVariableTests
+        {
+            public void ConvertToObject()
+            {
+                var obj = TwoFields.Noot;
+                AssertEquals(TwoFields.Noot, obj);
+            }
+
+            public void SetInObjectArray()
+            {
+                object[] objs = new object[1];
+                TwoFields twoFields = TwoFields.Noot;
+                objs[0] = twoFields;
+                AssertEquals(TwoFields.Noot, objs[0]);
+            }
+
+            public void CallVarArg()
+            {
+                TwoFields twoFields = TwoFields.Noot;
+                AssertEquals(TwoFields.Noot, WithVarArg(twoFields));
+                AssertTrue(VarArgsIsNoot(twoFields));
+            }
+
+
+            public void TestCallByReference()
+            {
+                TwoFields twoFields = TwoFields.Noot;
+                AssertTrue(EnumReferenceIsNoot(ref twoFields));
+            }
+            public void TestCallSByteMethod()
+            {
+                EnumSByte e = EnumSByte.V1;
+                SByteMethod((sbyte)e);
+            }
+
+            public void TestCallSByteMethod1()
+            {
+                int i = 0x44;
+                SByteMethod((sbyte)i);
+            }
+
+            private void SByteMethod(sbyte b)
+            {
+            }
+
+            public static object WithVarArg(params object[] args)
+            {
+                return args[0];
+            }
+
+            public static bool VarArgsIsNoot(params object[] args)
+            {
+                return TwoFields.Noot == (TwoFields)args[0];
+            }
+
+            public static bool EnumReferenceIsNoot(ref TwoFields val)
+            {
+                return TwoFields.Noot == val;
+            }
+
         }
 
         private EnumInt ReturnEnum(object o)

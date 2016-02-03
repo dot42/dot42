@@ -71,7 +71,7 @@ namespace Dot42.CompilerLib.ILConversion
 
                 // Add "SetThis(object)" method
                 var method = new MethodDefinition("SetThis", MethodAttributes.Public, type.Module.TypeSystem.Void);
-                method.SetReachable(reachableContext);
+                
                 type.Methods.Add(method);
                 var valueParam = new ParameterDefinition(type.Module.TypeSystem.Object);
                 method.Parameters.Add(valueParam);
@@ -83,6 +83,8 @@ namespace Dot42.CompilerLib.ILConversion
                 seq.Emit(OpCodes.Stfld, thisField);
                 seq.Emit(OpCodes.Ret);
                 seq.AppendTo(method.Body);
+
+                method.SetReachable(reachableContext);
             }
         }
     }    

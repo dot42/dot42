@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Dot42.CompilerLib.Extensions;
@@ -59,7 +60,7 @@ namespace Dot42.CompilerLib.Target.Dex
                 generatedCodeClass.Name = "__generated";
                 generatedCodeClass.Namespace = nameConverter.PackageName;
                 generatedCodeClass.AccessFlags = AccessFlags.Public | AccessFlags.Synthetic;
-                generatedCodeClass.SuperClass = new ClassReference("java/lang/Object");
+                generatedCodeClass.SuperClass = FrameworkReferences.Object;
                 dex.AddClass(generatedCodeClass);
             }
             return generatedCodeClass;
@@ -115,6 +116,13 @@ namespace Dot42.CompilerLib.Target.Dex
         void ITargetPackage.CompileToTarget(bool generateDebugInfo, MapFile mapFile)
         {
             compiledMethods.ForEach(x => x.CompileToTarget(this, generateDebugInfo, mapFile));
+
+            if (mapFile != null && generatedCodeClass != null)
+            {
+                // Only generate the type name; the methods are generated under their respective type. 
+                var typeEntry = new TypeEntry("(generated)", "(none)", generatedCodeClass.Fullname, -1);
+                mapFile.Add(typeEntry);
+            }
         }
 
         /// <summary>
@@ -130,7 +138,7 @@ namespace Dot42.CompilerLib.Target.Dex
         /// </summary>
         private void AddStructureAnnotations()
         {
-            foreach (var @class in dex.GetClasses())
+            foreach (var @class in dex.Classes)
             {
                 AddStructureAnnotations(@class);
             }

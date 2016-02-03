@@ -1,5 +1,6 @@
 ﻿using System;
 using Junit.Framework;
+using System.Linq;
 
 namespace Dot42.Tests.Compiler.Sources
 {
@@ -59,7 +60,7 @@ namespace Dot42.Tests.Compiler.Sources
             AssertSame(32, myDerivedClass.Value);
 		}
 
-        public void _test3a()
+        public void test3a()
         {
             var myDerivedClass = new MyDerivedClass();
             AssertSame(42, myDerivedClass.ReturnOnly());
@@ -105,6 +106,24 @@ namespace Dot42.Tests.Compiler.Sources
 
             AssertSame(42, myDerivedClass.Value);
             AssertTrue(myDerivedClass.Called);
+        }
+
+        public void testGenericFieldAccess()
+        {
+            var myField = new GenericField<int>();
+            myField.x += 1;
+            AssertEquals(1, myField.x);
+        }
+
+        public void testEnumerableRange()
+        {
+            AssertEquals(5, global::System.Linq.Enumerable.Range(0, 5).Count());
+        }
+        
+        class GenericField<T>
+        {
+            public T x;
+
         }
 
         public class StructArray<T>

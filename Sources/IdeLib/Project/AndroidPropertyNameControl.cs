@@ -71,6 +71,18 @@ namespace Dot42.VStudio.Flavors
             }
         }
 
+        private string RootNamespace
+        {
+            get { return tbRootNamespace.Text; }
+            set { tbRootNamespace.Text = value.Trim(); }
+        }
+
+        private string AssemblyName
+        {
+            get { return tbAssemblyName.Text; }
+            set { tbAssemblyName.Text = value.Trim();  }
+        }
+
         /// <summary>
         /// Path of the signing certificate
         /// </summary>
@@ -125,6 +137,10 @@ namespace Dot42.VStudio.Flavors
             ApkCertificatePath = source.ApkCertificatePath;
             ApkCertificateThumbprint = source.ApkCertificateThumbprint;
             cbGenerateWcfProxy.Checked = source.GenerateWcfProxy;
+            cbGenerateSetNextInstructionCode.Checked = source.GenerateSetNextInstructionCode;
+            cbEnableCompilerCache.Checked = source.EnableCompilerCache;
+            AssemblyName = source.AssemblyName;
+            RootNamespace = source.RootNamespace;
 
             var libNames = new HashSet<string>(source.ReferencedLibraryNames.Select(x => x.ToLowerInvariant()));
             foreach (var libNode in additionalLibrariesControl.Libraries)
@@ -132,8 +148,59 @@ namespace Dot42.VStudio.Flavors
                 var key = libNode.DllName.ToLowerInvariant();
                 if (libNames.Contains(key))
                 {
-                    libNode.Checked = false;
+                    libNode.Checked = true;
                 }
+            }
+
+            SetVisibleRows(source);
+
+        }
+
+        private void SetVisibleRows(IAndroidProjectProperties source)
+        {
+            ShowRow(tbApkFilename, source.ApkOutputs);
+            ShowRow(tbPackageName, source.ApkOutputs);
+            ShowRow(tbCertificate, source.ApkOutputs);
+            ShowRow(cbGenerateSetNextInstructionCode, source.ApkOutputs);
+            ShowRow(labelSetNextInstructionHelp, source.ApkOutputs);
+            ShowRow(cbEnableCompilerCache, source.ApkOutputs);
+            ShowRow(labelCompilerCacheHelp, source.ApkOutputs);
+            
+            // TODO: not sure about the other properties.
+        }
+
+        private void ShowRow(Control crtl, bool show)
+        {
+            int row = tlpMain.GetRow(crtl);
+            if (row == -1) return;
+
+            List<Control> ctrls = (from Control c in tlpMain.Controls 
+                                   where tlpMain.GetRow(c) == row 
+                                   select c)
+                                  .ToList();
+            // get all the controls in the row
+
+            //var rowStyle = tlpMain.RowStyles[row];
+
+            if (!show)
+            {
+                foreach (var c in ctrls)
+                {
+                    c.Enabled = false;
+                    c.Visible = false;
+                }
+
+                //rowStyle.SizeType = SizeType.Absolute;
+                //rowStyle.Height = 0;
+            }
+            else
+            {
+                foreach (var c in ctrls)
+                {
+                    c.Enabled = true;
+                    c.Visible = true;
+                }
+                //rowStyle.SizeType = SizeType.AutoSize;
             }
         }
 
@@ -178,6 +245,11 @@ namespace Dot42.VStudio.Flavors
             destination.ApkCertificatePath = ApkCertificatePath;
             destination.ApkCertificateThumbprint = ApkCertificateThumbprint;
             destination.GenerateWcfProxy = cbGenerateWcfProxy.Checked;
+            destination.AssemblyName = AssemblyName;
+            destination.RootNamespace = RootNamespace;
+            destination.GenerateSetNextInstructionCode = cbGenerateSetNextInstructionCode.Checked;
+            destination.EnableCompilerCache= cbEnableCompilerCache.Checked;
+
             foreach (var node in nodesToRemove) destination.RemoveReferencedLibrary(node.DllName);
             foreach (var node in nodesToAdd) destination.AddReferencedLibrary(node.DllName);
 

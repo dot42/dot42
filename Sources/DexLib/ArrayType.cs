@@ -54,5 +54,21 @@ namespace Dot42.DexLib
         {
             return Equals(other as ArrayType);
         }
+
+        public override bool Freeze()
+        {
+            bool gotFrozen = base.Freeze();
+            if (gotFrozen)
+                ElementType.Freeze();
+            return gotFrozen;
+        }
+
+        public override bool Unfreeze()
+        {
+            bool thawed = base.Unfreeze();
+            if (thawed)
+                ElementType.Unfreeze();
+            return thawed;
+        }
     }
 }

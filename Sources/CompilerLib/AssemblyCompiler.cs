@@ -1,15 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Dot42.ApkLib.Resources;
 using Dot42.CompilerLib.Reachable;
+using Dot42.CompilerLib.Structure;
 using Dot42.CompilerLib.Structure.DotNet;
 using Dot42.CompilerLib.Target;
+using Dot42.CompilerLib.Target.CompilerCache;
+using Dot42.CompilerLib.Target.Dx;
 using Dot42.CompilerLib.XModel;
 using Dot42.FrameworkDefinitions;
 using Dot42.LoaderLib.Java;
 using Dot42.Mapping;
+using Dot42.Utility;
 using Mono.Cecil;
 
 namespace Dot42.CompilerLib
@@ -17,7 +24,9 @@ namespace Dot42.CompilerLib
     public class AssemblyCompiler
     {
         private readonly XModule module;
+        private readonly bool generateSetNextInstructionCode;
         private readonly AssemblyClassLoader assemblyClassLoader;
+        private readonly Func<AssemblyDefinition, string> assemblyToFilename;
         private readonly HashSet<string> rootClassNames;
         private readonly CompilationMode mode;
         private readonly List<AssemblyDefinition> assemblies;
@@ -25,19 +34,39 @@ namespace Dot42.CompilerLib
         private readonly Table resources;
         private readonly bool generateDebugInfo;
         private readonly Dictionary<XTypeDefinition, DelegateType> delegateTypes = new Dictionary<XTypeDefinition, DelegateType>();
-        private readonly Dictionary<TypeDefinition, AttributeAnnotationInterface> attributeAnnotationTypes = new Dictionary<TypeDefinition, AttributeAnnotationInterface>();
+        private readonly Dictionary<TypeDefinition, AttributeAnnotationMapping> attributeAnnotations = new Dictionary<TypeDefinition, AttributeAnnotationMapping>();
         private readonly MapFile mapFile = new MapFile();
+        private bool optimizedMapFile = false;
         private int lastMapFileId;
         private readonly Dictionary<string, XTypeReference> internalTypeReferences = new Dictionary<string, XTypeReference>();
         private string freeAppsKey;
-        private bool? addPropertyAnnotations;
+        private bool? addPropertyAnnotations, addFrameworkPropertyAnnotations;
+        private bool? addAssemblyTypesAnnotation;
         private readonly ITargetPackage targetPackage;
+        private readonly DexMethodBodyCompilerCache methodBodyCompilerCache;
 
         /// <summary>
-        /// Default ctor
+        /// If true, the compiler will stop compilation just before
+        /// generating code. Useful for debugging the compiler.
         /// </summary>
-        public AssemblyCompiler(CompilationMode mode, List<AssemblyDefinition> assemblies, List<AssemblyDefinition> references, Table resources, NameConverter nameConverter, bool generateDebugInfo, AssemblyClassLoader assemblyClassLoader,
-            HashSet<string> rootClassNames, XModule module)
+        public bool StopCompilationBeforeGeneratingCode { get; set; }
+
+        /// <summary>
+        /// If false, compilation errors will be accumulated and thrown as
+        /// a AggregateException
+        /// </summary>
+        public bool StopAtFirstError { get; set; }
+
+        public DxClassfileMethodBodyCompiler DxClassfileMethodBodyCompiler { get; set; }
+
+        /// <summary>
+        /// TODO: the list of parameters has gotten way to long.
+        /// </summary>
+        public AssemblyCompiler(CompilationMode mode, List<AssemblyDefinition> assemblies, 
+                                List<AssemblyDefinition> references, Table resources, NameConverter nameConverter, 
+                                bool generateDebugInfo, AssemblyClassLoader assemblyClassLoader, 
+                                Func<AssemblyDefinition, string> assemblyToFilename, DexMethodBodyCompilerCache ccache,
+                                HashSet<string> rootClassNames, XModule module, bool generateSetNextInstructionCode)
         {
             this.mode = mode;
             this.assemblies = assemblies;
@@ -45,16 +74,37 @@ namespace Dot42.CompilerLib
             this.resources = resources;
             this.generateDebugInfo = generateDebugInfo;
             this.assemblyClassLoader = assemblyClassLoader;
+            this.assemblyToFilename = assemblyToFilename;
             this.rootClassNames = rootClassNames;
             this.module = module;
+            this.generateSetNextInstructionCode = generateDebugInfo && generateSetNextInstructionCode;
             targetPackage = new Target.Dex.DexTargetPackage(nameConverter, this);
+            methodBodyCompilerCache = ccache;
+            StopAtFirstError = true;
         }
 
         public CompilationMode CompilationMode { get { return mode; } }
         public XModule Module { get { return module; } }
         public List<AssemblyDefinition> Assemblies { get { return assemblies; } }
         public Table ResourceTable { get { return resources; } }
-        public MapFile MapFile { get { return mapFile; } }
+        public bool GenerateSetNextInstructionCode { get { return generateSetNextInstructionCode; } }
+        internal DexMethodBodyCompilerCache MethodBodyCompilerCache { get { return methodBodyCompilerCache; } }
+
+        public MapFile MapFile
+        {
+            get
+            {
+                if (!optimizedMapFile && mapFile != null)
+                {
+                    lock (mapFile)
+                    {
+                        mapFile.Optimize();
+                        optimizedMapFile = true;
+                    } 
+                }
+                return mapFile;
+            }
+        }
 
         /// <summary>
         /// Gets the classloader used by this compiler.
@@ -63,6 +113,8 @@ namespace Dot42.CompilerLib
         {
             get { return assemblyClassLoader; }
         }
+
+        internal ITargetPackage TargetPackage { get { return targetPackage; } }
 
         /// <summary>
         /// Compile all types and members
@@ -81,29 +133,88 @@ namespace Dot42.CompilerLib
             // Detect all types to include in the compilation
             var reachableContext = new ReachableContext(this, assemblies.Select(x => x.Name), rootClassNames);
             const bool includeAllJavaCode = false;
-            foreach (var assembly in assemblies)
+
+            using (Profile("for marking roots"))
             {
-                reachableContext.MarkRoots(assembly, includeAllJavaCode);
+                assemblies.Concat(references.Where(IsLibraryProject))
+                          .ToList()
+                          .AsParallel()
+                          .ForAll(assembly => reachableContext.MarkRoots(assembly, includeAllJavaCode));
+
+                reachableContext.MarkPatternIncludes(assemblies.Concat(references).ToList());
             }
-            foreach (var assembly in references.Where(IsLibraryProject))
-            {
-                reachableContext.MarkRoots(assembly, includeAllJavaCode);                
-            }
-            reachableContext.Complete();
+
+            using (Profile("for finding reachables"))
+                reachableContext.Complete();
 
             // Convert IL to java compatible constructs.
-            ILConversion.ILToJava.Convert(reachableContext);
+            using (Profile("for IL conversion"))
+                ILConversion.ILToJava.Convert(reachableContext);
 
             // Convert all types
-            var classBuilders = reachableContext.ClassBuilders.OrderBy(x => x.SortPriority).ThenBy(x => x.FullName).ToList();
-            classBuilders.ForEach(x => x.Create(targetPackage));
-            classBuilders.ForEach(x => x.Implement(targetPackage));
-            classBuilders.ForEach(x => x.FixUp(targetPackage));
-            classBuilders.ForEach(x => x.GenerateCode(targetPackage));
-            classBuilders.ForEach(x => x.CreateAnnotations(targetPackage));
+            var classBuilders = reachableContext.ClassBuilders.OrderBy(x => x.SortPriority)
+                                                              .ThenBy(x => x.FullName)
+                                                              .ToList();
+            using (Profile("for creating/implementing/fixup"))
+            {
+                classBuilders.ForEachWithExceptionMessage(x => x.Create(targetPackage));
+
+                classBuilders.ForEachWithExceptionMessage(x => x.Implement(targetPackage));
+                classBuilders.ForEachWithExceptionMessage(x => x.FixUp(targetPackage));
+
+                // update sort priority which might have changed after XType creation.
+                classBuilders = classBuilders.OrderBy(x => x.SortPriority)
+                                             .ThenBy(x => x.FullName)
+                                             .ToList();
+            }
+
+            if (StopCompilationBeforeGeneratingCode)
+                return;
+
+            List<Exception> errors = new List<Exception>() ;
+
+            using (Profile("for generating code"))
+            {
+                if (StopAtFirstError)
+                    classBuilders.ForEachWithExceptionMessage(x => x.GenerateCode(targetPackage, StopAtFirstError));
+                else
+                {
+                    foreach (var classBuilder in classBuilders)
+                    {
+                        try
+                        {
+                            classBuilder.GenerateCode(targetPackage, StopAtFirstError);
+                        }
+                        catch (AggregateException ex)
+                        {
+                            errors.Add(new Exception("Error while compiling class " + classBuilder.FullName + ": " 
+                                                    + string.Join("; ", ex.Flatten().InnerExceptions.Select(e=>e.Message)), 
+                                                    ex));
+                        }
+                        catch (Exception ex)
+                        {
+                            errors.Add(new Exception("Error while compiling " + classBuilder.FullName + ": " + ex.Message, ex));
+                        }
+                    }
+                }
+            }
+
+            using (Profile("for creating annotations"))
+            {
+                classBuilders.ForEachWithExceptionMessage(x => x.CreateAnnotations(targetPackage));
+
+                if (AddAssemblyTypesAnnotations())
+                    AssemblyTypesBuilder.CreateAssemblyTypes(this, (Target.Dex.DexTargetPackage) targetPackage,
+                        reachableContext.ReachableTypes);
+
+                if (AddFrameworkPropertyAnnotations())
+                    DexImportClassBuilder.FinalizeFrameworkPropertyAnnotations(this, 
+                        (Target.Dex.DexTargetPackage) targetPackage);
+            }
 
             // Compile all methods
-            targetPackage.CompileToTarget(generateDebugInfo, mapFile);
+            using (Profile("for compiling to target"))
+                targetPackage.CompileToTarget(generateDebugInfo, mapFile);
 
             // Add structure annotations
             targetPackage.AfterCompileMethods();
@@ -111,9 +222,14 @@ namespace Dot42.CompilerLib
             // Verify
             targetPackage.VerifyBeforeSave(freeAppsKey);
 
-            // Optimize map file
-            classBuilders.ForEach(x => x.RecordMapping(mapFile));
-            mapFile.Optimize();
+
+            // Create MapFile, but don't optimize jet.
+            optimizedMapFile = false;
+            RecordScopeMapping(reachableContext);
+            classBuilders.ForEachWithExceptionMessage(x => x.RecordMapping(mapFile));
+
+            if (errors.Count > 0)
+                throw new AggregateException(errors);
         }
 
         /// <summary>
@@ -123,10 +239,13 @@ namespace Dot42.CompilerLib
         {
             if (!Directory.Exists(outputFolder))
                 Directory.CreateDirectory(outputFolder);
-            targetPackage.Save(outputFolder);
+
+            var task1 = Task.Factory.StartNew(() => targetPackage.Save(outputFolder));
 
             var mapPath = Path.Combine(outputFolder, "classes.d42map");
-            mapFile.Save(mapPath);
+            var task2 = Task.Factory.StartNew(() => { MapFile.Save(mapPath); });
+
+            Task.WaitAll(task1, task2);
 
             // Save free apps key
             if (!string.IsNullOrEmpty(freeAppsKeyPath))
@@ -161,18 +280,18 @@ namespace Dot42.CompilerLib
         /// <summary>
         /// Record the attribute annotation information for the given attribute type.
         /// </summary>
-        internal void Record(TypeDefinition attributeType, AttributeAnnotationInterface attributeAnnotationInterface)
+        internal void Record(TypeDefinition attributeType, AttributeAnnotationMapping attributeAnnotationMapping)
         {
-            attributeAnnotationTypes.Add(attributeType, attributeAnnotationInterface);
+            attributeAnnotations.Add(attributeType, attributeAnnotationMapping);
         }
 
         /// <summary>
         /// Gets the recorded annotation information for the given attribute type.
         /// </summary>
-        internal AttributeAnnotationInterface GetAttributeAnnotationType(TypeDefinition attributeType)
+        internal AttributeAnnotationMapping GetAttributeAnnotationMapping(TypeDefinition attributeType)
         {
-            AttributeAnnotationInterface result;
-            if (attributeAnnotationTypes.TryGetValue(attributeType, out result))
+            AttributeAnnotationMapping result;
+            if (attributeAnnotations.TryGetValue(attributeType, out result))
                 return result;
             throw new ArgumentException(string.Format("No annotation information found for attribute type {0}", attributeType.FullName));
         }
@@ -182,7 +301,7 @@ namespace Dot42.CompilerLib
         /// </summary>
         internal int GetNextMapFileId()
         {
-            return ++lastMapFileId;
+            return Interlocked.Increment(ref lastMapFileId);
         }
 
         /// <summary>
@@ -224,6 +343,39 @@ namespace Dot42.CompilerLib
         }
 
         /// <summary>
+        /// Should property annotations be added?
+        /// </summary>
+        internal bool AddFrameworkPropertyAnnotations()
+        {
+            if (!addFrameworkPropertyAnnotations.HasValue)
+            {
+                if (!AddPropertyAnnotations())
+                    addFrameworkPropertyAnnotations = false;
+                else
+                {
+                    var fpRef = GetDot42InternalType("Dot42", "IncludeFrameworkProperties");
+                    XTypeDefinition typeDef;
+                    addFrameworkPropertyAnnotations = fpRef.TryResolve(out typeDef) && typeDef.IsReachable;
+                }
+            }
+            return addFrameworkPropertyAnnotations.Value;
+        }
+
+        /// <summary>
+        /// Should property annotations be added?
+        /// </summary>
+        internal bool AddAssemblyTypesAnnotations()
+        {
+            if (!addAssemblyTypesAnnotation.HasValue)
+            {
+                var assemblyTypes = GetDot42InternalType("AssemblyTypes");
+                XTypeDefinition typeDef;
+                addAssemblyTypesAnnotation = assemblyTypes.TryResolve(out typeDef) && typeDef.IsReachable;
+            }
+            return addAssemblyTypesAnnotation.Value;
+        }
+
+        /// <summary>
         /// Does the given assembly contain one of more LibraryProjectReference attributes?
         /// </summary>
         private static bool IsLibraryProject(AssemblyDefinition assembly)
@@ -233,5 +385,40 @@ namespace Dot42.CompilerLib
                     x => (x.AttributeType.Name == AttributeConstants.LibraryProjectReferenceAttributeName) &&
                          (x.AttributeType.Namespace == AttributeConstants.Dot42AttributeNamespace));
         }
+
+        private void RecordScopeMapping(ReachableContext reachableContext)
+        {
+            foreach (var scope in reachableContext.ReachableTypes.GroupBy(g => g.Scope, g => g.Module.Assembly))
+            {
+                var assm = scope.Distinct().ToList();
+                if (assm.Count > 1)
+                {
+                    DLog.Warning(DContext.CompilerCodeGenerator, "More than one assembly for scope {0}", scope.Key.Name);
+                    // let's not risk a wrong mapping.
+                    continue;
+                }
+
+                var filename = assemblyToFilename(assm.First());
+
+                if (filename != null)
+                {
+                    var scopeEntry = new ScopeEntry(scope.Key.Name, filename, File.GetLastWriteTimeUtc(filename),
+                                                    Hash.HashFileMD5(filename));
+                    mapFile.Add(scopeEntry);
+                }
+            }
+        }
+
+        internal CompiledMethod GetCompiledMethod(XMethodDefinition method)
+        {
+            return ((Target.Dex.DexTargetPackage) targetPackage).GetMethod(method);
+        }
+
+
+        public static IDisposable Profile(string msg, bool isSummary=false)
+        {
+            return Profiler.Profile(x => Console.WriteLine("{2}{0} ms {1}", x.TotalMilliseconds.ToString("#,000", CultureInfo.InvariantCulture).PadLeft(6), msg, isSummary?"------\n":""));
+        }
+
     }
 }

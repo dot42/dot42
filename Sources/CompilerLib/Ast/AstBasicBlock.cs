@@ -41,14 +41,14 @@ namespace Dot42.CompilerLib.Ast
         /// <summary>
         /// Write human readable output.
         /// </summary>
-        public override void WriteTo(ITextOutput output)
+        public override void WriteTo(ITextOutput output, FormattingOptions format)
         {
             output.Write("BasicBlock{");
             output.WriteLine();
             output.Indent();
             foreach (var child in GetChildren())
             {
-                child.WriteTo(output);
+                child.WriteTo(output, format);
                 output.WriteLine();
             }
             output.Unindent();

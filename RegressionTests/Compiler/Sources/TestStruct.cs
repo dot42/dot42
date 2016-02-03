@@ -178,7 +178,7 @@ namespace Dot42.Tests.Compiler.Sources
             AssertNotNull(myStruct);
         }
 
-        public void _testMyStruct9Int()
+        public void testMyStruct9Int()
         {
             var mc9 = new MyClass9<int>();
             AssertEquals(16, mc9.array.Length);

@@ -14,7 +14,7 @@ namespace Dot42.CompilerLib.RL.Transformations
         /// <summary>
         /// Transform the given body.
         /// </summary>
-        public void Transform(Dex target, MethodBody body)
+        public bool Transform(Dex target, MethodBody body)
         {
             // Build the control flow graph
             var cfg = new ControlFlowGraph(body);
@@ -58,6 +58,8 @@ namespace Dot42.CompilerLib.RL.Transformations
 
             // Go over all blocks to collect the register that really need initialization
             var needInitialization = new HashSet<Register>();
+            var firstBlockData = (BasicBlockData)cfg[0].Tag;
+
             foreach (var iterator in cfg)
             {
                 var block = iterator;
@@ -70,8 +72,13 @@ namespace Dot42.CompilerLib.RL.Transformations
                     if (needInitialization.Contains(reg))
                         continue;
 
+                    bool isInitializedInFirstBlock = block != cfg[0] && firstBlockData.IsInitialized(reg);
+
                     // If the register is initialized in all entry blocks, we do not need to initialize it
-                    if (block.EntryBlocks.Select(x => (BasicBlockData) x.Tag).Any(x => !x.IsInitialized(reg)))
+                    // Note that this code is not complete: if a register is initialize in all entry blocks
+                    // of the checked entry block, it should be treated as initialized as well.
+                    // For simplification, we just check initialization in the very first block though.
+                    if (!isInitializedInFirstBlock && block.EntryBlocks.Select(x => (BasicBlockData)x.Tag).Any(x => !x.IsInitialized(reg)))
                     {
                         // There is an entry block that does not initialize the register, so we have to initialize it
                         needInitialization.Add(reg);
@@ -124,6 +131,7 @@ namespace Dot42.CompilerLib.RL.Transformations
                 }
             }
 
+            return false;
         }
 
         private class BasicBlockData

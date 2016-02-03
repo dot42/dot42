@@ -13,8 +13,8 @@ namespace KiloBoltRobotGame.Framework
 
         public AndroidAudio(Activity activity)
         {
-            activity.SetVolumeControlStream(AudioManager.STREAM_MUSIC);
-            this.assets = activity.GetAssets();
+            activity.VolumeControlStream = (AudioManager.STREAM_MUSIC);
+            this.assets = activity.Assets;
             this.soundPool = new SoundPool(20, AudioManager.STREAM_MUSIC, 0);
         }
 

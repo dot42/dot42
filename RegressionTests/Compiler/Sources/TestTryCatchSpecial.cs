@@ -223,6 +223,10 @@ namespace Dot42.Tests.Compiler.Sources
             {
                 try
                 {
+                    int x = 0;
+                    if (x != 0)
+                    {
+                    }
                 }
                 catch (ApplicationException)
                 {

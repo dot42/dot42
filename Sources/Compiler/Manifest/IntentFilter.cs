@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 using Mono.Cecil;
@@ -51,6 +52,30 @@ namespace Dot42.Compiler.Manifest
             {
                 intentFilter.Add(new XElement("category", new XAttribute(XName.Get("name", Namespace), cat)));
             }
+
+            List<Tuple<string,string>> data = new List<Tuple<string, string>>();
+            AddDataAttr(data, attr, "host");
+            AddDataAttr(data, attr, "mimeType");
+            AddDataAttr(data, attr, "path");
+            AddDataAttr(data, attr, "pathPattern");
+            AddDataAttr(data, attr, "pathPrefix");
+            AddDataAttr(data, attr, "port");
+            AddDataAttr(data, attr, "scheme");
+
+            if (data.Count > 0)
+            {
+                var attrs = data.Select(d => new XAttribute(XName.Get(d.Item1, Namespace), d.Item2));
+                intentFilter.Add(new XElement("data", attrs));
+            }
+        }
+
+        private void AddDataAttr(List<Tuple<string, string>> data, CustomAttribute attr, string attrName)
+        {
+            string propertyName = "Data" + char.ToUpperInvariant(attrName[0]) + attrName.Substring(1);
+            string value = attr.GetValue<string>(-1, propertyName);
+            if (value == null)
+                return;
+            data.Add(Tuple.Create(attrName, value));
         }
     }
 }

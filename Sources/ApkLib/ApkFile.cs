@@ -11,7 +11,7 @@ namespace Dot42.ApkLib
     /// <summary>
     /// Read-only APK file.
     /// </summary>
-    public class ApkFile : IDisposable
+    public class ApkFile : IApkFile
     {
         private readonly ZipFile file;
         private AndroidManifest manifest;

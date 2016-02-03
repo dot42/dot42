@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Linq;
 using Dot42.CompilerLib.Structure.DotNet;
-using Dot42.CompilerLib.Target;
 using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel;
 using Dot42.DexLib;
@@ -41,6 +40,11 @@ namespace Dot42.CompilerLib.Extensions
                     var prototype = PrototypeBuilder.ParseFieldType(descriptor);
                     return new FieldReference(new ClassReference(className), memberName, prototype);
                 }
+                if (fieldDef.TryGetJavaImportNames(out memberName, out descriptor, out className))
+                {
+                    var prototype = PrototypeBuilder.ParseFieldType(descriptor);
+                    return new FieldReference(new ClassReference(className), memberName, prototype);
+                }
 
                 // Field is in the assembly itself
                 // Use the mapping
@@ -65,12 +69,12 @@ namespace Dot42.CompilerLib.Extensions
             if (method == null)
                 throw new ArgumentNullException("method");
 
-#if DEBUG
-            if (method.DeclaringType.IsArray)
-            {
-                Debugger.Launch();
-            }
-#endif
+//#if DEBUG
+//            if (method.DeclaringType.IsArray)
+//            {
+//                Debugger.Launch();
+//            }
+//#endif
 
             // Resolve the type to a method definition
             XMethodDefinition methodDef;
@@ -109,7 +113,7 @@ namespace Dot42.CompilerLib.Extensions
         {
             if (className.StartsWith("["))
             {
-                className = "java/lang/Object";
+                return FrameworkReferences.Object;
             }
             return new ClassReference(className);
         }
@@ -121,6 +125,8 @@ namespace Dot42.CompilerLib.Extensions
         {
             if (type == null)
                 throw new ArgumentNullException("type");
+
+            type = type.GetWithoutModifiers();
 
             // Handle array's
             if (type.IsArray)
@@ -137,9 +143,16 @@ namespace Dot42.CompilerLib.Extensions
             }
 
             // Handle generic parameters
-            if (type.IsGenericParameter)
+            if (type.IsGenericParameter || (type.IsByReference && type.ElementType.IsGenericParameter))
             {
-                return new ClassReference("java/lang/Object");
+                if (type.IsByReference) // this should be possible as well, but would need some more code at some other places.
+                    return new ByReferenceType(FrameworkReferences.Object);
+
+                var gp = (XGenericParameter) type;
+                if (gp.AllowConstraintAsTypeReference())
+                    return gp.Constraints[0].GetReference(targetPackage);
+
+                return FrameworkReferences.Object;
             }
 
             // Handle out/ref types
@@ -165,14 +178,27 @@ namespace Dot42.CompilerLib.Extensions
                     if (arg.IsDouble()) return new ClassReference("java/lang/Double");
                     if (arg.IsFloat()) return new ClassReference("java/lang/Float");
 
-                    // Use nullable base class of T
+                    
                     var typeofT = git.GenericArguments[0];
+
+                    if(typeofT.IsGenericParameter) // use object.
+                        return FrameworkReferences.Object;
+
                     XTypeDefinition typeofTDef;
                     if (!typeofT.TryResolve(out typeofTDef))
                         throw new XResolutionException(typeofT);
+
                     var className = targetPackage.NameConverter.GetConvertedFullName(typeofTDef);
                     var classDef = targetPackage.DexFile.GetClass(className);
-                    return classDef.SuperClass;
+                    
+                    // Use nullable base class of T, if enum.
+                    if (classDef.IsEnum) 
+                        return classDef.SuperClass;
+
+                    // I like the base class concept for enums. unfortunately it seems to be 
+                    // impossible for structs and/or might have performance implications.
+                    // Just return the type for structs.
+                    return classDef; 
                 }
             }
 
@@ -285,6 +311,7 @@ namespace Dot42.CompilerLib.Extensions
                 case XTypeReferenceKind.UIntPtr:
                     return PrimitiveType.Int; // Is this correct?
             }
+
             return null;
         }
     }

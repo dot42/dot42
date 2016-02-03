@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Threading;
-using Android.Os;
+using Android.OS;
 using Junit.Framework;
 
 namespace Dot42.Tests.System.ComponentModel
@@ -28,7 +28,7 @@ namespace Dot42.Tests.System.ComponentModel
             {                
             }
 
-            protected override void OnLooperPrepared()
+            protected internal override void OnLooperPrepared()
             {
                 var worker = new BackgroundWorker();
                 worker.DoWork += WorkerOnDoWork;

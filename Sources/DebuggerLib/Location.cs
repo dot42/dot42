@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Configuration;
 
 namespace Dot42.DebuggerLib
 {
     /// <summary>
     /// An executable location
     /// </summary>
-    public sealed class Location : IEquatable<Location>
+    public sealed class Location : IEquatable<Location>, IComparable<Location>
     {
         public readonly ReferenceTypeId Class;
         public readonly MethodId Method;
@@ -59,9 +60,20 @@ namespace Dot42.DebuggerLib
             return (other != null) && Class.Equals(other.Class) && Method.Equals(other.Method) && (Index == other.Index);
         }
 
+        public int CompareTo(Location other)
+        {
+            int @class = Class.CompareTo(other.Class);
+            if (@class != 0) return @class;
+
+            int method = Method.CompareTo(other.Method);
+            if(method != 0) return method;
+
+            return Index.CompareTo(other.Index);
+        }
+
         public override string ToString()
         {
-            return Class + "." + Method + " (" + Index + ")";
+            return Class + "." + Method + " (" + Index.ToString("X3") + ")";
         }
 
         /// <summary>
@@ -78,6 +90,26 @@ namespace Dot42.DebuggerLib
             if (classId is InterfaceId) return Jdwp.TypeTag.Interface;
             if (classId is ArrayTypeId) return Jdwp.TypeTag.Array;
             throw new ArgumentException("Unknown classid " + classId);
+        }
+
+        public bool IsSameMethod(Location location)
+        {
+            return location.Class.Equals(Class) && location.Method.Equals(Method);
+        }
+
+        /// <summary>
+        /// will return a location in the same method, but with the specified index
+        /// </summary>
+        public Location GetAtIndex(uint index)
+        {
+            return new Location(Class, Method, index);
+        }
+        /// <summary>
+        /// will return a location in the same method, but with the specified index
+        /// </summary>
+        public Location GetAtIndex(int index)
+        {
+            return new Location(Class, Method, (uint)index);
         }
     }
 }

@@ -20,12 +20,10 @@ using Android.Support.V4.View;
 using Android.Support.V4.Widget;
 
 using Android.Database;
-using Android.Net;
-using Android.Os;
+using Android.Net;using Android.OS;
 using Android.Provider;
 using Android.Text;
-using Android.Util;
-using Android.View;
+using Android.Util;using Android.Views;
 
 using Dot42.Manifest;
 

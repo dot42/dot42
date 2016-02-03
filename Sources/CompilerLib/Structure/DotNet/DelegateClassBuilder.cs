@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Linq;
 using Dot42.CompilerLib.Ast;
-using Dot42.CompilerLib.Extensions;
-using Dot42.CompilerLib.Target;
 using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel;
 using Dot42.CompilerLib.XModel.Synthetic;
 using Dot42.DexLib;
 using Dot42.DexLib.Instructions;
+using Dot42.Mapping;
+using Dot42.Utility;
 using Mono.Cecil;
 using MethodDefinition = Dot42.DexLib.MethodDefinition;
 
@@ -18,6 +18,8 @@ namespace Dot42.CompilerLib.Structure.DotNet
     /// </summary>
     internal sealed class DelegateClassBuilder : ClassBuilder
     {
+        private DelegateType delegateType;
+
         /// <summary>
         /// Default ctor
         /// </summary>
@@ -41,7 +43,8 @@ namespace Dot42.CompilerLib.Structure.DotNet
             Class.IsAbstract = true;
             //Class.IsInterface = true;
             // Record in compiler
-            Compiler.Record(new DelegateType(Compiler, XType, Class, targetPackage.DexFile, targetPackage.NameConverter));
+            delegateType = new DelegateType(Compiler, XType, Class, targetPackage.DexFile, targetPackage.NameConverter);
+            Compiler.Record(delegateType);
         }
 
         /// <summary>
@@ -53,14 +56,18 @@ namespace Dot42.CompilerLib.Structure.DotNet
 
             // Build default ctor
             XTypeSystem typeSystem = Compiler.Module.TypeSystem;
-            XSyntheticMethodDefinition ctor = XSyntheticMethodDefinition.Create(XType, XSyntheticMethodFlags.Constructor, "<init>", typeSystem.Void);
+            XSyntheticMethodDefinition ctor = XSyntheticMethodDefinition.Create(XType, XSyntheticMethodFlags.Constructor, "<init>", null, typeSystem.Void);
             ctor.Body = CreateCtorBody();
             Class.Methods.Add(ctor.GetDexMethod(Class, targetPackage));
 
             // Build Invoke method.
             XMethodDefinition sourceMethod = XType.Methods.Single(x => x.EqualsName("Invoke"));
             Prototype prototype = PrototypeBuilder.BuildPrototype(Compiler, targetPackage, Class, sourceMethod);
-            MethodDefinition method = new MethodDefinition(Class, sourceMethod.Name, prototype) { AccessFlags = AccessFlags.Public | AccessFlags.Abstract };
+            MethodDefinition method = new MethodDefinition(Class, sourceMethod.Name, prototype)
+            {
+                AccessFlags = AccessFlags.Public | AccessFlags.Abstract,
+                MapFileId = Compiler.GetNextMapFileId()
+            };
             Class.Methods.Add(method);
 
             // Find xSource method
@@ -86,9 +93,9 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// <summary>
         /// Generate code for all methods.
         /// </summary>
-        public override void GenerateCode(DexTargetPackage targetPackage)
+        public override void GenerateCode(DexTargetPackage targetPackage, bool stopAtFirstError)
         {
-            base.GenerateCode(targetPackage);
+            base.GenerateCode(targetPackage, stopAtFirstError);
 
             // Compile synthetic methods
             XType.Methods.OfType<XSyntheticMethodDefinition>().ForEach(x => x.Compile(Compiler, targetPackage));
@@ -121,6 +128,37 @@ namespace Dot42.CompilerLib.Structure.DotNet
                     new AstExpression(AstNode.NoSource, AstCode.Ldthis, null)),
                 // Return
                 new AstExpression(AstNode.NoSource, AstCode.Ret, null));
+        }
+
+        public override void RecordMapping(MapFile mapFile)
+        {
+            base.RecordMapping(mapFile);
+
+            // create the mapping for all our instance type.
+            foreach (var instance in delegateType.Instances)
+            {
+                // Create mapping
+                var dexName = instance.InstanceDefinition.Fullname;
+                var mapFileId = instance.InstanceDefinition.MapFileId;
+                var scopeId = XType.ScopeId.Substring(XType.ScopeId.IndexOf(':') + 1);
+                scopeId += ":delegate:" + instance.CalledMethod.DeclaringType.ScopeId + "|" + instance.CalledMethod.ScopeId;
+                
+                var entry = new TypeEntry(Type.FullName, Type.Scope.Name, dexName, mapFileId, scopeId);
+                mapFile.Add(entry);
+            }
+        }
+
+        protected override TypeEntry CreateMappingEntry()
+        {
+            var ret = base.CreateMappingEntry();
+            foreach (var methodName in new[] {"Invoke" /*...*/})
+            {
+                var xMethod = XType.Methods.Single(x => x.EqualsName(methodName));
+                var dMethod = Class.Methods.Single(x => x.Name == methodName);
+                var method = Type.Methods.Single(x => x.Name == methodName);
+                MethodBuilder.RecordMapping(ret, xMethod, method, dMethod, null);
+            }
+            return ret;
         }
     }
 }

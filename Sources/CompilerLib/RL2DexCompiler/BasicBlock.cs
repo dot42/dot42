@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Linq;
 using Dot42.DexLib.Instructions;
+using Dot42.Utility;
 
 namespace Dot42.CompilerLib.RL2DexCompiler
 {
@@ -163,13 +164,14 @@ namespace Dot42.CompilerLib.RL2DexCompiler
         /// </summary>
         public static List<BasicBlock> Find(MethodBody body)
         {
-            var instructions = body.Instructions;
-            if (instructions.Count == 0)
+            var bodyInstructions = body.Instructions;
+            if (bodyInstructions.Count == 0)
                 return new List<BasicBlock>();
+            var instructions = new IndexLookupList<Instruction>(bodyInstructions);
 
-            var targetInstructions = body.Instructions.Select(x => x.Operand).OfType<Instruction>().ToList();
-            targetInstructions.AddRange(instructions.Select(x => x.Operand).OfType<ISwitchData>().SelectMany(x => x.GetTargets()));
-            targetInstructions.AddRange(instructions.Where(x => x.OpCode.IsBranch()).Select(x => GetNextOrDefault(instructions, x)));
+            var targetInstructions = bodyInstructions.Select(x => x.Operand).OfType<Instruction>().ToList();
+            targetInstructions.AddRange(bodyInstructions.Select(x => x.Operand).OfType<ISwitchData>().SelectMany(x => x.GetTargets()));
+            targetInstructions.AddRange(bodyInstructions.Where(x => x.OpCode.IsBranch()).Select(x => GetNextOrDefault(instructions, x)));
             targetInstructions.AddRange(body.Exceptions.Select(x => x.TryStart));
             targetInstructions.AddRange(body.Exceptions.Select(x => GetNextOrDefault(instructions, x.TryEnd)));
             targetInstructions.AddRange(body.Exceptions.SelectMany(x => x.Catches, (h, y) => y.Instruction));
@@ -185,7 +187,7 @@ namespace Dot42.CompilerLib.RL2DexCompiler
                 var exit = (i + 1 < startInstructions.Count)
                                ? GetPrevious(instructions, startInstructions[i + 1])
                                : body.Instructions[body.Instructions.Count - 1];
-                result.Add(new BasicBlock(body.Instructions, entry, exit));
+                result.Add(new BasicBlock(instructions, entry, exit));
             }
             return result;
         }

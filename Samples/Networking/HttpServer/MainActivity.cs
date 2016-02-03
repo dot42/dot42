@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Threading;
-using Android.App;
-using Android.Os;
+using Android.App;using Android.OS;
 using Android.Util;
 using Android.Widget;
 using Dot42;
 using Dot42.Manifest;
-using Java.Io;
+using Java.IO;
 using Java.Net;
 using Java.Util;
 using Org.Apache.Http.Conn.Util;
@@ -30,12 +29,12 @@ namespace SimpleHttpServer
         protected override void OnCreate(Bundle savedInstance)
         {
             base.OnCreate(savedInstance);
-            SetContentView(R.Layouts.MainLayout);
+            SetContentView(R.Layout.MainLayout);
 
             var thread = new Thread(new ThreadStart(RunServer));
             thread.Start();
 
-            var status = FindViewById<TextView>(R.Ids.status);
+            var status = FindViewById<TextView>(R.Id.status);
             status.Text = string.Format("Connect to http://{0}:{1}", GetIPAddress(), PORT);
         }
 
@@ -46,7 +45,7 @@ namespace SimpleHttpServer
         {
             base.OnStop();
             stop = true;
-            var status = FindViewById<TextView>(R.Ids.status);
+            var status = FindViewById<TextView>(R.Id.status);
             status.Text = "Stopped";
         }
 

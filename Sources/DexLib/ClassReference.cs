@@ -6,9 +6,10 @@ namespace Dot42.DexLib
 {
     public class ClassReference : CompositeType, IMemberReference
     {
-        private string ns;
-        private string fullNameCache;
-        private string name;
+        protected string ns;
+        protected string fullNameCache;
+        private string descriptorCache;
+        protected string name;
         public const char NamespaceSeparator = '.';
         public const char InternalNamespaceSeparator = '/';
 
@@ -18,21 +19,27 @@ namespace Dot42.DexLib
         }
 
         /// <summary>
-        /// Fullname ctor
+        /// When using this constructor, the ClassReference object
+        /// will be in a frozen state. Use Unfreeze if you need to
+        /// change the state.
         /// </summary>
         public ClassReference(string fullname) : this()
         {
             Fullname = fullname;
+            base.Freeze();
         }
 
         /// <summary>
-        /// Namespace + name ctor
+        /// When using this constructor, the ClassReference object
+        /// will be in a frozen state. Use Unfreeze if you need to
+        /// change the state.
         /// </summary>
         public ClassReference(string @namespace, string name)
             : this()
         {
-            Namespace = @namespace;
-            Name = name;
+            ns = @namespace;
+            this.name = name;
+            base.Freeze();
         }
 
         /// <summary>
@@ -70,17 +77,19 @@ namespace Dot42.DexLib
         /// <summary>
         /// Namespace
         /// </summary>
-        public string Namespace
+        public virtual string Namespace
         {
             get { return ns; }
             set
             {
+                ThrowIfFrozen();
                 ns = value;
                 fullNameCache = null;
+                descriptorCache = null;
             }
         }
 
-        public string Fullname
+        public virtual string Fullname
         {
             get
             {
@@ -96,35 +105,38 @@ namespace Dot42.DexLib
             }
             set
             {
+                ThrowIfFrozen();
+
                 value = value.Replace(InternalNamespaceSeparator, NamespaceSeparator);
                 var items = value.Split(NamespaceSeparator);
                 if (items.Length > 0)
                 {
-                    Name = items[items.Length - 1];
+                    name = items[items.Length - 1];
                     Array.Resize(ref items, items.Length - 1);
-                    Namespace = string.Join(NamespaceSeparator.ToString(), items);
+                    ns = string.Join(NamespaceSeparator.ToString(), items);
                 }
                 else
                 {
-                    Name = string.Empty;
-                    Namespace = string.Empty;
+                    name = string.Empty;
+                    ns = string.Empty;
                 }
+                fullNameCache = value;
+                descriptorCache = null;
             }
         }
 
-        #region IMemberReference Members
-
-        public string Name
+        public virtual string Name
         {
             get { return name; }
             set
             {
+                ThrowIfFrozen();
+
                 name = value;
                 fullNameCache = null;
+                descriptorCache = null;
             }
         }
-
-        #endregion
 
         public override string ToString()
         {
@@ -136,7 +148,7 @@ namespace Dot42.DexLib
         /// </summary>
         public override string Descriptor
         {
-            get { return "L" + Fullname.Replace(NamespaceSeparator, InternalNamespaceSeparator) + ";"; }
+            get { return descriptorCache ?? (descriptorCache = "L" + Fullname.Replace(NamespaceSeparator, InternalNamespaceSeparator) + ";"); }
         }
     }
 }

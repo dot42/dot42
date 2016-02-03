@@ -26,14 +26,17 @@ namespace Dot42.ImportJarLib
             foreach (var iterator in assemblyNames)
             {
                 var name = (iterator == "corlib") ? "mscorlib" : iterator;
-                root.Add(new XElement("File",
+                var element = new XElement("File",
                     new XAttribute("AssemblyName", name),
                     new XAttribute("Version", assemblyVersion),
-                    new XAttribute("PublicKeyToken", publicKeyToken),
                     new XAttribute("Culture", "neutral"),
                     new XAttribute("ProcessorArchitecture", "MSIL"),
-                    new XAttribute("InGac", "false")
-                    ));
+                    new XAttribute("InGac", "false"));
+
+                if (publicKeyToken != null)
+                    element.Add(new XAttribute("PublicKeyToken", publicKeyToken));
+
+                root.Add(element);
             }
 
             var path = Path.Combine(folder, "FrameworkList.xml");

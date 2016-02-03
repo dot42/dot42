@@ -1,12 +1,17 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Dot42.CecilExtensions;
+using Dot42.CompilerLib.Ast;
 using Dot42.CompilerLib.Ast.Extensions;
+using Dot42.CompilerLib.Ast2RLCompiler.Extensions;
 using Dot42.CompilerLib.Extensions;
 using Dot42.FrameworkDefinitions;
 using Dot42.JvmClassLib;
 using Dot42.LoaderLib.Extensions;
+using Dot42.Utility;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using AstCodeUtil = Dot42.CompilerLib.IL2Ast.AstCodeUtil;
 using ExceptionHandler = Mono.Cecil.Cil.ExceptionHandler;
 using FieldDefinition = Mono.Cecil.FieldDefinition;
 using MethodDefinition = Mono.Cecil.MethodDefinition;
@@ -80,8 +85,11 @@ namespace Dot42.CompilerLib.Reachable.DotNet
             GenericParameter genericParam;
             if ((typeDef = type as TypeDefinition) != null)
             {
+                var isUsedInSerialization = typeDef.IsUsedInSerialization && !type.IsPrimitive && !typeDef.IsEnum 
+                                            && !type.Namespace.StartsWith("System");
+
                 // Mark base type reachable
-                typeDef.BaseType.MarkReachable(context);
+                typeDef.BaseType.MarkReachable(context, isUsedInSerialization);
 
                 // Mark declaring type reachable
                 typeDef.DeclaringType.MarkReachable(context);
@@ -95,12 +103,11 @@ namespace Dot42.CompilerLib.Reachable.DotNet
                     }
                 }
 
-                // If is an an attribute include related types
+                // If this is an attribute, include related types
                 if (typeDef.IsAttribute())
                 {
                     GetDot42InternalType(context, "IAttribute").MarkReachable(context);
                     GetDot42InternalType(context, "IAttributes").MarkReachable(context);
-                    GetDot42InternalType(context, "IAnnotationType").MarkReachable(context);
                 }
                 else if (typeDef.IsEnum)
                 {
@@ -127,9 +134,12 @@ namespace Dot42.CompilerLib.Reachable.DotNet
                 {
                     foreach (var field in typeDef.Fields)
                     {
-                        if ((!field.IsReachable) && context.Include(field))
-                        {
-                            field.MarkReachable(context); 
+                        // only public fields, so we don't pull any compiler generated stuff.
+                        var isSerializable = isUsedInSerialization && !field.IsStatic && field.IsPublic;
+
+                        if ((!field.IsReachable && context.Include(field)) || (!field.IsUsedInSerialization && isSerializable))
+                        {                                                               
+                            field.MarkReachable(context, isUsedInSerialization); 
                         }
                     }
                 }
@@ -147,9 +157,10 @@ namespace Dot42.CompilerLib.Reachable.DotNet
                 {
                     foreach (var prop in typeDef.Properties)
                     {
-                        if ((!prop.IsReachable) && context.Include(prop))
+                        var isSerializable = isUsedInSerialization && prop.HasThis;
+                        if ((!prop.IsReachable && context.Include(prop) || (!prop.IsUsedInSerialization && isSerializable)))
                         {
-                            prop.MarkReachable(context); 
+                            prop.MarkReachable(context, isUsedInSerialization); 
                         }
                     }
                 }
@@ -175,13 +186,13 @@ namespace Dot42.CompilerLib.Reachable.DotNet
                     typeDef.Methods.ForEach(x => x.MarkReachable(context));
                 }
 
-                // Record in context and create class builder
+                // Record in context 
                 context.RecordReachableType(typeDef);
             }
             else if ((typeSpec = type as TypeSpecification) != null)
             {
                 // Element
-                typeSpec.ElementType.MarkReachable(context);
+                typeSpec.ElementType.MarkReachable(context, typeSpec.IsUsedInSerialization);
 
                 // Generic instance
                 GenericInstanceType git;
@@ -193,9 +204,10 @@ namespace Dot42.CompilerLib.Reachable.DotNet
                     if (git.ElementType.IsNullableT())
                     {
                         var typeofT = git.GenericArguments[0].Resolve(context);
-                        if (typeofT != null)
+                        if (typeofT != null && !typeofT.UsedInNullableT)
                         {
                             typeofT.UsedInNullableT = true;
+                            DLog.Debug(DContext.CompilerAssemblyResolver, "found System.Nullable<{0}>", typeofT.FullName);
                         }
                     }
                     Walk(context, (IGenericInstance)git);
@@ -215,6 +227,8 @@ namespace Dot42.CompilerLib.Reachable.DotNet
             }
             else if ((genericParam = type as GenericParameter) != null)
             {
+                genericParam.IsSerializedParameter = genericParam.HasSerializedParameterAttribute();
+
                 // Owner
                 var owner = (MemberReference)genericParam.Owner;
                 owner.MarkReachable(context);
@@ -231,12 +245,12 @@ namespace Dot42.CompilerLib.Reachable.DotNet
             else
             {
                 // Try to resolve
-                type.Resolve(context).MarkReachable(context);
+                type.Resolve(context).MarkReachable(context, type.IsUsedInSerialization);
             }
         }
 
         /// <summary>
-        /// Mark all eachable items in argument as such.
+        /// Mark all reachable items in argument as such.
         /// </summary>
         private static void Walk(ReachableContext context, EventReference evt)
         {
@@ -261,12 +275,12 @@ namespace Dot42.CompilerLib.Reachable.DotNet
         }
 
         /// <summary>
-        /// Mark all eachable items in argument as such.
+        /// Mark all reachable items in argument as such.
         /// </summary>
         private static void Walk(ReachableContext context, FieldReference field)
         {
             // Field type
-            field.FieldType.MarkReachable(context);
+            field.FieldType.MarkReachable(context, field.IsUsedInSerialization);
 
             var fieldDef = field as FieldDefinition;
             if (fieldDef != null)
@@ -294,12 +308,12 @@ namespace Dot42.CompilerLib.Reachable.DotNet
             else
             {
                 // Try to resolve
-                field.Resolve(context).MarkReachable(context);
+                field.Resolve(context).MarkReachable(context, field.IsUsedInSerialization);
             }
         }
 
         /// <summary>
-        /// Mark all eachable items in argument as such.
+        /// Mark all reachable items in argument as such.
         /// </summary>
         private static void Walk(ReachableContext context, MethodReference method)
         {
@@ -379,13 +393,20 @@ namespace Dot42.CompilerLib.Reachable.DotNet
             else if ((methodSpec = method as MethodSpecification) != null)
             {
                 // Method
-                methodSpec.ElementMethod.MarkReachable(context);
+                var elementRef = methodSpec.ElementMethod;
+                elementRef.MarkReachable(context);
 
                 // Generic arguments
                 var gim = methodSpec as GenericInstanceMethod;
                 if (gim != null)
                 {
-                    Walk(context, (IGenericInstance)gim);
+                    var elementDef = elementRef.Resolve();
+
+                    for (int i = 0; i < gim.GenericArguments.Count; ++i)
+                    {
+                        bool isSerialized = elementDef.GenericParameters[i].IsSerializedParameter;
+                        gim.GenericArguments[i].MarkReachable(context, isSerialized);
+                    }
                 }
             }
             else
@@ -395,8 +416,8 @@ namespace Dot42.CompilerLib.Reachable.DotNet
             }
         }
 
-        /// <summary>
-        /// Mark all eachable items in argument as such.
+                /// <summary>
+        /// Mark all reachable items in argument as such.
         /// </summary>
         private static void Walk(ReachableContext context, MethodBody body)
         {
@@ -432,6 +453,8 @@ namespace Dot42.CompilerLib.Reachable.DotNet
                             MemberReference memberRef;
                             ParameterReference paramRef;
                             VariableReference varRef;
+                            
+                            var methodRef = operand as MethodReference;
 
                             if ((memberRef = operand as MemberReference) != null)
                             {
@@ -449,7 +472,7 @@ namespace Dot42.CompilerLib.Reachable.DotNet
                                 varRef.VariableType.MarkReachable(context);
                             }
 
-                            var methodRef = operand as MethodReference;
+                            
                             if (methodRef != null)
                             {
                                 foreach (var p in methodRef.Parameters)
@@ -466,6 +489,31 @@ namespace Dot42.CompilerLib.Reachable.DotNet
                                 {
                                     var boxingType = GetDot42InternalType(context, "Boxing");
                                     boxingType.Methods.Where(x => x.Name.StartsWith("Unbox") && (x.Parameters.Count == 1)).ForEach(x => x.MarkReachable(context));                                    
+                                }
+
+                                if (methodRef.DeclaringType.IsSystemThreadingInterlocked())
+                                {
+                                    var args = GetCallArguments(body, ins);
+                                    var field = args[0].Operand as FieldReference;
+                                    if (field != null)
+                                    {
+                                        field.Resolve().IsUsedInInterlocked = true;
+                                    }
+                                }
+
+                                if (context.HasSerializedParameters(methodRef))
+                                {
+                                    var method = methodRef.Resolve();
+                                    var args = GetCallArguments(body, ins);
+
+                                    for (int i = 0; i < method.Parameters.Count; i++)
+                                    {
+                                        // ReSharper disable once PossibleInvalidOperationException
+                                        if (!method.Parameters[i].IsSerializedParameter.Value)
+                                            continue;
+
+                                        MarkReachableForSerialization(context, args[i], body);
+                                    }
                                 }
                             }
                         }
@@ -496,6 +544,45 @@ namespace Dot42.CompilerLib.Reachable.DotNet
                 }
                 //Debug.WriteLine(string.Format("Walk body took: {0}ms", sw.ElapsedMilliseconds));
             }
+        }
+
+        private static void MarkReachableForSerialization(ReachableContext context, Instruction arg, MethodBody body)
+        {
+            object operand = arg.Operand;
+            AstCode astCode = (AstCode) arg.OpCode.Code;
+            AstCodeUtil.ExpandMacro(ref astCode, ref operand, body);
+
+
+            FieldReference fieldRef;
+            MethodReference methodRef;
+            TypeReference typeRef;
+            VariableReference varRef;
+            ParameterReference paramRef;
+
+            if ((fieldRef = operand as FieldReference) != null)
+            {
+                fieldRef.FieldType.MarkReachable(context, true);
+            }
+            else if ((methodRef = operand as MethodReference) != null)
+            {
+                if (arg.OpCode == OpCodes.Newobj)
+                    methodRef.DeclaringType.MarkReachable(context, true);
+                else
+                    methodRef.ReturnType.MarkReachable(context, true);
+            }
+            else if ((typeRef = operand as TypeReference) != null)
+            {
+                typeRef.SetReachable(context, true);
+            }
+            else if ((paramRef = operand as ParameterReference) != null)
+            {
+                paramRef.ParameterType.MarkReachable(context, true);
+            }
+            else if ((varRef = operand as VariableReference) != null)
+            {
+                varRef.VariableType.MarkReachable(context, true);
+            }
+            // don't know what to do!
         }
 
         /// <summary>
@@ -543,11 +630,11 @@ namespace Dot42.CompilerLib.Reachable.DotNet
         }
 
         /// <summary>
-        /// Mark all eachable items in argument as such.
+        /// Mark all reachable items in argument as such.
         /// </summary>
         private static void Walk(ReachableContext context, PropertyReference prop)
         {
-            prop.PropertyType.MarkReachable(context);
+            prop.PropertyType.MarkReachable(context, prop.IsUsedInSerialization);
 
             // Parameters
             if (prop.Parameters.Count > 0)
@@ -562,21 +649,30 @@ namespace Dot42.CompilerLib.Reachable.DotNet
             if (propDef != null)
             {
                 // DO NOT AUTOMATICALLY MAKE GET and SET REACHABLE.
-                //propDef.GetMethod.MarkReachable(context);
-                //propDef.SetMethod.MarkReachable(context);
-
+                // (but do so for attributes, so that they can 
+                //  be properly stored and loaded)
+                if (prop.DeclaringType.Resolve().IsAttribute())
+                {
+                    propDef.GetMethod.MarkReachable(context);
+                    propDef.SetMethod.MarkReachable(context);
+                }
+                else if (prop.IsUsedInSerialization || propDef.IsUsedInSerialization)
+                {
+                    propDef.GetMethod.MarkReachable(context);
+                    propDef.SetMethod.MarkReachable(context);
+                }
                 // Custom attributes
                 Walk(context, (ICustomAttributeProvider)propDef);
             }
             else
             {
                 // Try to resolve
-                prop.Resolve(context).MarkReachable(context);
+                prop.Resolve(context).MarkReachable(context, prop.IsUsedInSerialization);
             }
         }
 
         /// <summary>
-        /// Mark all eachable items in argument as such.
+        /// Mark all reachable items in argument as such.
         /// </summary>
         private static void Walk(ReachableContext context, ParameterReference param)
         {
@@ -595,7 +691,7 @@ namespace Dot42.CompilerLib.Reachable.DotNet
         }
 
         /// <summary>
-        /// Mark all eachable items in argument as such.
+        /// Mark all reachable items in argument as such.
         /// </summary>
         private static void Walk(ReachableContext context, ICustomAttributeProvider provider)
         {
@@ -673,12 +769,14 @@ namespace Dot42.CompilerLib.Reachable.DotNet
                 var providerAsType = provider as TypeDefinition;
                 if ((providerAsType != null) && !providerAsType.IsStatic())
                 {
-                    GetDot42InternalType(context, InternalConstants.GenericInstanceClassAnnotation).MarkReachable(context);
+                    GetDot42InternalType(context, InternalConstants.TypeReflectionInfoAnnotation).MarkReachable(context);
                     GetDot42InternalType(context, InternalConstants.GenericTypeParameterAnnotation).MarkReachable(context);
+                    GetDot42InternalType(context, InternalConstants.GenericDefinitionAnnotation).MarkReachable(context);
                 }
                 if (provider is MethodDefinition)
                 {
                     GetDot42InternalType(context, InternalConstants.GenericMethodParameterAnnotation).MarkReachable(context);
+                    GetDot42InternalType(context, InternalConstants.GenericDefinitionAnnotation).MarkReachable(context);
                 }
 
                 // Mark parameters
@@ -710,6 +808,25 @@ namespace Dot42.CompilerLib.Reachable.DotNet
         {
             var typeRef = context.Compiler.GetDot42InternalType(typeName);
             return (TypeDefinition) typeRef.Resolve().OriginalTypeDefinition;
+        }
+
+        private static TypeDefinition GetDot42InternalType(ReachableContext context, string @namespace, string typeName)
+        {
+            var typeRef = context.Compiler.GetDot42InternalType(@namespace, typeName);
+            return (TypeDefinition)typeRef.Resolve().OriginalTypeDefinition;
+        }
+
+        private static Instruction[] GetCallArguments(MethodBody body, Instruction callInstruction)
+        {
+            var ilseq = new ILSequence();
+            foreach (var i in body.Instructions)
+            {
+                ilseq.Append(i);
+                if (i == callInstruction)
+                    break;
+            }
+            Instruction[] args = callInstruction.GetCallArguments(ilseq, false);
+            return args;
         }
     }
 }

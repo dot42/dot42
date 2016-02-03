@@ -45,11 +45,13 @@ Copyright (C) TallComponents BV. All rights reserved.
   <PropertyGroup>
     <IntermediateDexCodePath>$(IntermediateOutputPath)TempCode\</IntermediateDexCodePath>
     <ResourcesGeneratedCodePath Condition=" '$(ResourcesGeneratedCodePath)' == '' ">Properties\</ResourcesGeneratedCodePath>
+    <JarReferenceGeneratedCodePath Condition=" '$(JarReferenceGeneratedCodePath)' == '' ">$(IntermediateOutputPath)</JarReferenceGeneratedCodePath>
     <IntermediateResourcesPath>$(IntermediateOutputPath)TempRes\</IntermediateResourcesPath>
     <TempResourcesPath>$(IntermediateOutputPath)TempResX\</TempResourcesPath>
     <TempLibraryProjectPath>$(IntermediateOutputPath)\TempLibraryProject</TempLibraryProjectPath>
     <PlainAndroidManifest>$(IntermediateDexCodePath)AndroidManifest.xml</PlainAndroidManifest>
     <CoreCompileDependsOn>ImportJarReferences;$(CoreCompileDependsOn);CompileResources</CoreCompileDependsOn>
+    <CleanDependsOn> _CleanDot42IntermediateFiles ; $(CleanDependsOn)</CleanDependsOn>
     <AssemblyCompilationMode Condition=" '$(AssemblyCompilationMode)' == '' ">app</AssemblyCompilationMode>
     <TargetSdkAndroidVersion Condition="'$(TargetSdkAndroidVersion)' == ''">$(AndroidVersion)</TargetSdkAndroidVersion>
     <GenerateWcfProxy Condition=" '$(GenerateWcfProxy)' == '' ">false</GenerateWcfProxy>
@@ -57,6 +59,8 @@ Copyright (C) TallComponents BV. All rights reserved.
     <_GeneratedWcfProxyAssembly Condition=" '$(GenerateWcfProxy)' == 'true' ">$(IntermediateOutputPath)GeneratedWcfProxy.dll</_GeneratedWcfProxyAssembly>
     <_GeneratedWcfProxyPdb Condition=" '$(GenerateWcfProxy)' == 'true' ">$(IntermediateOutputPath)GeneratedWcfProxy.pdb</_GeneratedWcfProxyPdb>
     <_ResourceTypeUsageInformation>$(IntermediateOutputPath)ResourceTypeUsage.txt</_ResourceTypeUsageInformation>
+    <!-- make DxJarCompilation the default, as the build in .jar compilation seems to produce slighlty wrong code at times. -->
+    <DxJarCompilation Condition="'$(DxJarCompilation)' == ''">true</DxJarCompilation>
   </PropertyGroup>
 
   <!-- 
@@ -74,7 +78,7 @@ Copyright (C) TallComponents BV. All rights reserved.
     <PropertyGroup>
       <IntermediatePackage>$(IntermediateOutputPath)$(PackageFilename)</IntermediatePackage>
     </PropertyGroup>
-    
+
     <CreateItem Include="$(IntermediatePackage)">
       <Output TaskParameter="Include" ItemName="_IntermediatePackage"/>
     </CreateItem>
@@ -93,6 +97,23 @@ Copyright (C) TallComponents BV. All rights reserved.
     <CreateItem Include="$(_GeneratedWcfProxyAssembly)">
       <Output TaskParameter="Include" ItemName="_GeneratedWcfProxyAssembly"/>
     </CreateItem>
+  </Target>
+
+  <!-- 
+    ================================================================
+                        _CleanDot42IntermediateFiles
+                        
+    Creates some Dot42 dependent properties
+    ================================================================
+     -->
+  <Target Name="_CleanDot42IntermediateFiles" DependsOnTargets="_CreateDot42Properties">
+    <!-- We can not guess the names of intermediate .jar and .dex files produced by the 
+	     DxJarCompilation. Therefore we just remove all files with mtching extension in 
+		 the directory. -->
+    <ItemGroup>
+      <_IntermediateDelete Include="$(IntermediateDexCodePath)*.jar;$(IntermediateDexCodePath)*.dex;$(IntermediateDexCodePath)AndroidManifest.xml" />
+    </ItemGroup>
+    <Delete Files="@(_IntermediateDelete)" />
   </Target>
 
   <!-- 
@@ -285,7 +306,7 @@ Copyright (C) TallComponents BV. All rights reserved.
       <Output TaskParameter="Include" ItemName="_ImportCodeJarReference" />
     </CreateItem>
 
-    <CreateItem Include="@(_AssignedJarReference->'$(IntermediateOutputPath)%(LibraryName).cs')">
+    <CreateItem Include="@(_AssignedJarReference->'$(JarReferenceGeneratedCodePath)%(LibraryName).cs')">
       <Output TaskParameter="Include" ItemName="_JarReferenceSource" />
     </CreateItem>
     <CreateItem Include="@(_JarReferenceSource)">
@@ -426,13 +447,13 @@ Copyright (C) TallComponents BV. All rights reserved.
         JarFiles="@(_StubOnlyJarReference)"
   			ReferenceFolders="$(TargetFrameworkDirectory);@(ReferencePath)"
   			References="@(ReferencePath)"
-        OutputFolder="$(IntermediateOutputPath)"
+        OutputFolder="$(JarReferenceGeneratedCodePath)"
         ImportAsStubs="true"/>
     <ImportJars
         JarFiles="@(_ImportCodeJarReference)"
   			ReferenceFolders="$(TargetFrameworkDirectory);@(ReferencePath)"
   			References="@(ReferencePath)"
-        OutputFolder="$(IntermediateOutputPath)"
+        OutputFolder="$(JarReferenceGeneratedCodePath)"
         ImportAsStubs="false"/>
 
     <ItemGroup>
@@ -541,7 +562,7 @@ Copyright (C) TallComponents BV. All rights reserved.
         TargetSdkVersion="$(TargetSdkAndroidVersion)"
         AndroidManifest="$(PlainAndroidManifest)"
         OriginalAndroidManifest="@(_AssignedManifestResource)" />
-    
+
   </Target>
 
   <!--
@@ -623,10 +644,17 @@ Copyright (C) TallComponents BV. All rights reserved.
         PackageName="$(PackageName)"
         RootNamespace="$(RootNamespace)"
         GenerateDebugInfo="$(DebugSymbols)"
+        GenerateSetNextInstructionCode="$(GenerateSetNextInstructionCode)"
+        EnableCompilerCache="$(EnableCompilerCache)"
+        EnableDxJarCompilation="$(DxJarCompilation)"
         FreeAppsKeyPath="$(IntermediateFreeAppsKey)"
 			    >
     </CompileAssembly>
 
+    <ItemGroup>
+      <!-- other files in the IntermediateDexCodePath are removed using the cusom clean target above. -->
+      <FileWrites Include="$(IntermediateDexCodePath)classes.dex;$(IntermediateDexCodePath)classes.d42map" />
+    </ItemGroup>
   </Target>
 
   <!--   

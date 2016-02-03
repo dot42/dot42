@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 namespace Dot42.DebuggerLib
 {
@@ -141,6 +142,47 @@ namespace Dot42.DebuggerLib
         {
             base.WriteTo(writer);
             classId.WriteTo(writer);
+        }
+    }
+
+    /// <summary>
+    /// Restricts reported events to those for classes whose name does not match the given 
+    /// restricted regular expression. For class prepare events, the prepared class name 
+    /// is matched. For class unload events, the unloaded class name is matched. For 
+    /// monitor wait and waited events, the name of the class of the monitor object 
+    /// is matched. For other events, the class name of the event's location is
+    ///  matched. This modifier can be used with any event kind except thread 
+    /// start and thread end.   
+    /// </summary>
+    public sealed class ClassExcludeModifier  : EventModifier
+    {
+        private readonly string  classPattern;
+
+        /// <summary>
+        /// Default ctor
+        /// </summary>
+        public ClassExcludeModifier(string classPattern)
+            : base(6)
+        {
+            this.classPattern = classPattern;
+        }
+
+        /// <summary>
+        /// Gets the size of this modifier in bytes (including the leading modKind byte).
+        /// </summary>
+        internal override int DataSize
+        {
+            get { return 1 + 4 + Encoding.UTF8.GetBytes(classPattern).Length; }
+        }
+
+        /// <summary>
+        /// Write the modifier to the writer of a packet.
+        /// In this method the kind byte is written override to write additional data.
+        /// </summary>
+        internal override void WriteTo(JdwpPacket.DataReaderWriter writer)
+        {
+            base.WriteTo(writer);
+            writer.SetString(classPattern);
         }
     }
 

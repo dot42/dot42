@@ -1,12 +1,15 @@
-﻿using System.Diagnostics;
-using System.Linq;
+﻿using System.Linq;
+using System.Text;
+using Dot42.CecilExtensions;
 using Dot42.CompilerLib.Ast.Extensions;
 using Dot42.CompilerLib.Extensions;
 using Dot42.CompilerLib.Target;
+using Dot42.CompilerLib.Target.CompilerCache;
 using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel;
 using Dot42.CompilerLib.XModel.DotNet;
 using Dot42.DexLib;
+using Dot42.FrameworkDefinitions;
 using Dot42.Mapping;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -20,7 +23,8 @@ namespace Dot42.CompilerLib.Structure.DotNet
         private readonly MethodDefinition method;
         private DexLib.MethodDefinition dmethod;
         private CompiledMethod compiledMethod;
-        private XMethodDefinition xMethod;
+        private XBuilder.ILMethodDefinition xMethod;
+        private CacheEntry cachedBody;
 
         /// <summary>
         /// Default ctor
@@ -54,13 +58,17 @@ namespace Dot42.CompilerLib.Structure.DotNet
         public void Create(ClassDefinition declaringClass, DexTargetPackage targetPackage)
         {
             // Find xMethod
-            xMethod = XBuilder.AsMethodDefinition(compiler.Module, method);
+            xMethod = (XBuilder.ILMethodDefinition)XBuilder.AsMethodDefinition(compiler.Module, method);
 
             // Create method definition
-            dmethod = new DexLib.MethodDefinition();
-            dmethod.Name = GetMethodName(method, targetPackage);
-            dmethod.MapFileId = compiler.GetNextMapFileId();
+            dmethod = new DexLib.MethodDefinition
+            {
+                Name = GetMethodName(method, targetPackage),
+                MapFileId = compiler.GetNextMapFileId()
+            };
+            
             AddMethodToDeclaringClass(declaringClass, dmethod, targetPackage);
+
             targetPackage.Record(xMethod, dmethod);
 
             // Set access flags
@@ -84,15 +92,13 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// </summary>
         protected virtual void SetAccessFlags(DexLib.MethodDefinition dmethod, MethodDefinition method)
         {
+            // subclass accesses have already been fixed on an actual use basis.
             if (method.IsPrivate)
-            {
-                if (method.DeclaringType.HasNestedTypes)
-                    dmethod.IsProtected = true;
-                else
-                    dmethod.IsPrivate = true;
-            }
-            else if (method.IsFamily) dmethod.IsProtected = true;
-            else dmethod.IsPublic = true;
+                dmethod.IsPrivate = true;
+            else if (method.IsFamily || method.IsFamilyOrAssembly) 
+                dmethod.IsProtected = true;
+            else
+                dmethod.IsPublic = true;
 
             if (method.DeclaringType.IsInterface)
             {
@@ -101,31 +107,62 @@ namespace Dot42.CompilerLib.Structure.DotNet
             }
             else
             {
-                if (method.IsConstructor) dmethod.IsConstructor = true;
+                if (method.IsConstructor)
+                {
+                    dmethod.IsConstructor = true;
+                    dmethod.IsStatic = method.IsStatic;
+                    if (method.IsStatic)
+                    {
+                        // reset access modifiers for static constructors.
+                        dmethod.IsPrivate = false;
+                        dmethod.IsProtected = false;
+                    }
+                }
                 else if (method.IsAbstract) dmethod.IsAbstract = true;
                 else if (method.IsVirtual) dmethod.IsVirtual = true;
                 else if (method.IsStatic) dmethod.IsStatic = true;
                 else dmethod.IsFinal = true;
                 //if (method.IsInitOnly) dmethod.IsFinal = true;
             }
+
+            if (method.IsCompilerGenerated())
+                dmethod.IsSynthetic = true;
         }
         
         /// <summary>
-        /// Implement make minor fixes after the implementation phase.
+        /// Make minor fixes after the implementation phase.
         /// </summary>
         public void FixUp(DexTargetPackage targetPackage)
         {
             var iMethod = method.GetBaseInterfaceMethod();
+            Mono.Cecil.TypeReference inheritedReturnType = null;
             //var iMethod = method.Overrides.Select(x => x.Resolve()).Where(x => x != null).FirstOrDefault(x => x.DeclaringType.IsInterface);
             if (iMethod != null)
             {
-                dmethod.Prototype.ReturnType = iMethod.ReturnType.GetReference(targetPackage, compiler.Module);
+                inheritedReturnType = iMethod.ReturnType;
             }
 
             var baseMethod = method.GetBaseMethod();
             if (baseMethod != null)
             {
-                dmethod.Prototype.ReturnType = baseMethod.ReturnType.GetReference(targetPackage, compiler.Module);                
+                inheritedReturnType = baseMethod.ReturnType;
+            }
+
+            
+            if (inheritedReturnType != null)
+            {
+                var inheritedTargetReturnType = inheritedReturnType.GetReference(targetPackage, compiler.Module);
+                if (inheritedTargetReturnType.Descriptor != dmethod.Prototype.ReturnType.Descriptor)
+                {
+                    dmethod.Prototype.Unfreeze();
+                    dmethod.Prototype.ReturnType = inheritedTargetReturnType;
+                    dmethod.Prototype.Freeze();
+                    //// update the original method's return type as well, 
+                    //// to make sure the code generation later knows what it is handling.
+                    //// TODO: this seems to be a hack. shouldn't this have been handled 
+                    ////       during the IL-conversion phase?
+                    xMethod.SetInheritedReturnType(inheritedReturnType);
+                }
             }
         }
 
@@ -138,12 +175,34 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 return;
 
             // Create body (if any)
-            if (method.HasBody)
+            if (!method.HasBody) 
+                return;
+
+            cachedBody = compiler.MethodBodyCompilerCache.GetFromCache(dmethod, xMethod, compiler, targetPackage);
+
+            if (cachedBody != null)
             {
-                ExpandSequencePoints(method.Body);
-                var source = new MethodSource(xMethod, method);
-                DexMethodBodyCompiler.TranslateToRL(compiler, targetPackage, source, dmethod, out compiledMethod);
+                dmethod.Body = cachedBody.Body;
+                // important to fix the owners source file as early as possible, 
+                // so it can't be changed later. Else we would have to recreate
+                // all cached method bodies debug infos.
+                dmethod.Owner.SetSourceFile(cachedBody.ClassSourceFile);
+                return;
             }
+
+            var source = new MethodSource(xMethod, method);
+            ExpandSequencePoints(method.Body);
+
+            bool generateSetNextInstructionCode = compiler.GenerateSetNextInstructionCode 
+                                                  && method.DeclaringType.IsInDebugBuildAssembly();
+
+            DexMethodBodyCompiler.TranslateToRL(compiler, targetPackage, source, dmethod, generateSetNextInstructionCode, out compiledMethod);
+        }
+
+        public void GenerateFaultBody(string msg)
+        {
+            // TODO: throw an exception or something.
+            dmethod.Body = new DexLib.Instructions.MethodBody(dmethod, 0);
         }
 
         /// <summary>
@@ -152,7 +211,83 @@ namespace Dot42.CompilerLib.Structure.DotNet
         internal virtual void CreateAnnotations(DexTargetPackage targetPackage)
         {
             // Build method annotations
-            AnnotationBuilder.Create(compiler, method, dmethod, targetPackage);
+            AttributeAnnotationInstanceBuilder.CreateAttributeAnnotations(compiler, method, dmethod, targetPackage);
+            
+            // only add generics annotation for getters or setters or constructors
+            if (method.IsGetter)
+            {
+                // Note that the return type might has been 
+                // changed above, to compensate for interface 
+                // inheritance and generic specialization.
+                // We need to use the original declaration.
+                // TODO: why not get rid of "OriginalReturnType"
+                //       and use the IL's return type??
+                var returnType = xMethod.OriginalReturnType;
+                var xType = XBuilder.AsTypeReference(compiler.Module, returnType);
+                dmethod.AddGenericDefinitionAnnotationIfGeneric(xType, compiler, targetPackage);
+            }
+            else if (method.IsSetter)
+            {
+                for (int i = 0; i < xMethod.Parameters.Count; ++i)
+                {
+                    var dp = dmethod.Prototype.Parameters[i];
+                    dp.AddGenericDefinitionAnnotationIfGeneric(xMethod.Parameters[i].ParameterType, compiler,
+                        targetPackage);
+                }
+            }
+            else if (method.IsConstructor && !method.IsStatic)
+            {
+                // Add parameter names and original access flags, as these might be important
+                // in serialization and/or dependency injection.
+
+                var reflectionInfo = compiler.GetDot42InternalType(InternalConstants.ReflectionInfoAnnotation)
+                                             .GetClassReference(targetPackage);
+                var annotation = new Annotation { Type = reflectionInfo, Visibility = AnnotationVisibility.Runtime };
+
+                bool isPublic = (method.OriginalAttributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Public;
+
+                // Not sure if it makes any sense to remap the access flags.
+                bool isProtected = (method.OriginalAttributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Family
+                                || (method.OriginalAttributes & MethodAttributes.MemberAccessMask) == MethodAttributes.FamANDAssem
+                                || (method.OriginalAttributes & MethodAttributes.MemberAccessMask) == MethodAttributes.FamORAssem;
+
+                bool isInternal =  (method.OriginalAttributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Assembly
+                                || (method.OriginalAttributes & MethodAttributes.MemberAccessMask) == MethodAttributes.FamANDAssem
+                                || (method.OriginalAttributes & MethodAttributes.MemberAccessMask) == MethodAttributes.FamORAssem;
+
+                bool isPrivate = (method.OriginalAttributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Private;
+
+                // only create accessFlags if they differs from java's
+                if (isPublic       != dmethod.IsPublic
+                    || isProtected != dmethod.IsProtected
+                    || isPrivate   != dmethod.IsPrivate
+                    || isInternal)
+                {
+                    
+                    int accessFlags = 0;
+                    if (isPublic)    accessFlags |= 0x01;
+                    if (isProtected) accessFlags |= 0x02;
+                    if (isPrivate)   accessFlags |= 0x04;
+                    if (isInternal)  accessFlags |= 0x08;
+                    annotation.Arguments.Add(new AnnotationArgument(InternalConstants.ReflectionInfoAccessFlagsField, accessFlags));
+                }
+                
+                if (method.Parameters.Count > 0)
+                {
+                    annotation.Arguments.Add(new AnnotationArgument(InternalConstants.ReflectionInfoParameterNamesField,
+                                             method.Parameters.Select(p => p.Name).ToArray()));
+                }
+
+                if(annotation.Arguments.Count > 0 )
+                    dmethod.Annotations.Add(annotation);
+
+                //for (int i = 0; i < xMethod.Parameters.Count; ++i)
+                //{
+                //    var dp = dmethod.Prototype.Parameters[i];
+                //    dp.AddGenericDefinitionAnnotationIfGeneric(xMethod.Parameters[i].ParameterType, compiler,
+                //        targetPackage);
+                //}
+            }
         }
 
         /// <summary>
@@ -193,15 +328,52 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// <summary>
         /// Record the mapping from .NET to Dex
         /// </summary>
-        public void RecordMapping(TypeEntry typeEntry)
+        public void RecordMapping(TypeEntry typeEntry, MapFile mapFile)
         {
-            var entry = new MethodEntry(method.Name, "", dmethod.Name, dmethod.Prototype.ToSignature(), dmethod.MapFileId);
+            var entry = RecordMapping(typeEntry, xMethod, method, dmethod, compiledMethod);
+
+            if (cachedBody != null)
+            {
+                // take the mapping and debug info from the cached body.
+                foreach (var v in cachedBody.MethodEntry.Variables)
+                    entry.Variables.Add(v);
+                foreach (var p in cachedBody.MethodEntry.Parameters)
+                    entry.Parameters.Add(p);
+
+                if (cachedBody.SourceCodePositions.Count > 0)
+                {
+                    var doc = mapFile.GetOrCreateDocument(cachedBody.SourceCodePositions[0].Document.Path, true);
+                    foreach (var pos in cachedBody.SourceCodePositions.Select(p=>p.Position))
+                    {
+                        var newPos = new DocumentPosition(pos.Start.Line,pos.Start.Column, pos.End.Line, pos.End.Column, typeEntry.Id, dmethod.MapFileId, pos.MethodOffset)
+                        {
+                            AlwaysKeep = true
+                        };
+                        doc.Positions.Add(newPos);
+                    }
+                        
+                }
+            }
+        }
+
+        public static MethodEntry RecordMapping(TypeEntry typeEntry, XMethodDefinition xMethod, MethodDefinition method, DexLib.MethodDefinition dmethod, CompiledMethod compiledMethod)
+        {
+            var scopeId = xMethod.ScopeId;
+
+            StringBuilder netSignature = new StringBuilder();
+            method.MethodSignatureFullName(netSignature);
+
+            var entry = new MethodEntry(method.OriginalName, netSignature.ToString(), dmethod.Name, dmethod.Prototype.ToSignature(), dmethod.MapFileId,
+                                        scopeId);
+
             typeEntry.Methods.Add(entry);
 
             if (compiledMethod != null)
             {
                 compiledMethod.RecordMapping(entry);
             }
+
+            return entry;
         }
 
         /// <summary>

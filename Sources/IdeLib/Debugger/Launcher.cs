@@ -49,7 +49,9 @@ namespace Dot42.Ide.Debugger
         /// </summary>
         internal static void StartLaunchMonitor(IIde ide, IDevice device, string apkPath, string packageName, int apiLevel, int launchFlags, Action<LauncherStates, string> stateUpdate, CancellationToken token)
         {
-            OutputPaneLog.EnsureLoaded(ide);
+            OutputPaneLog.EnsureLoaded(ide, true);
+            OutputPaneLog.EnsureLoaded(ide, false);
+            
             var newMonitor = new LaunchMonitor(ide, device, apkPath, packageName, apiLevel, launchFlags, stateUpdate, token);
             monitor = newMonitor;
             newMonitor.Start();
@@ -116,7 +118,7 @@ namespace Dot42.Ide.Debugger
                 this.launchFlags = launchFlags;
                 this.stateUpdate = stateUpdate;
                 this.token = token;
-                outputPane = ide.CreateDebugOutputPane();
+                outputPane = ide.CreateDot42OutputPane();
             }
 
             public void Start()
@@ -169,7 +171,7 @@ namespace Dot42.Ide.Debugger
                 var debugger = new XDebugger(ide.GetFrameworkTypeMap(apiLevel));
                 debuggers.Add(debugger);
                 debugger.JdwpEvent += OnDebuggerDalvikEvent;
-                debugger.Connect(device, pid, new MapFile());
+                debugger.Connect(device, pid, new MapFile(), apkPath);
                 ide.CurrentDevice = device;
                 ide.CurrentProcessId = pid;
             }

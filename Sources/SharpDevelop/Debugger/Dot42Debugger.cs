@@ -372,13 +372,13 @@ namespace Dot42.SharpDevelop // Keep this namespace
 			
 			// Get the document location
 			var location = frame.GetDocumentLocationAsync().Await(DalvikProcess.VmTimeout);
-			if ((location != null) && (location.Document != null) && (location.Position != null)) {
+			if (location != null && location.SourceCode != null) {
 				DebuggerService.RemoveCurrentLineMarker();
-				var p = location.Position;
+				var p = location.SourceCode.Position;
 				#if DEBUG
 				Debug.WriteLine(string.Format("Current location: ({0},{1})-({2},{3})  {4:X4}", p.Start.Line, p.Start.Column, p.End.Line, p.End.Column, frame.Location.Index));
 				#endif
-				DebuggerService.JumpToCurrentLine(location.Document.Path, p.Start.Line, p.Start.Column, p.End.Line, p.End.Column);
+				DebuggerService.JumpToCurrentLine(location.SourceCode.Document.Path, p.Start.Line, p.Start.Column, p.End.Line, p.End.Column);
 			}
 		}
 		

@@ -11,9 +11,9 @@ namespace Dot42.ApkSpy
         /// Gets the map file loaded with the current file.
         /// Can return null.
         /// </summary>
-        MapFile MapFile { get; }
+        MapFileLookup MapFile { get; }
 
-#if DEBUG
+#if DEBUG || ENABLE_SHOW_AST
         /// <summary>
         /// Gets the XModule
         /// </summary>

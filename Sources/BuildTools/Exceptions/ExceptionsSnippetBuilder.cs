@@ -10,7 +10,7 @@ namespace Dot42.BuildTools.Exceptions
     internal static class ExceptionsSnippetBuilder
     {
         private const string NsTemplate = "        ProvideDebugException(GuidList.Strings.guidDot42DebuggerId, ExceptionConstants.NamespaceLevelCode, ExceptionConstants.TopLevelName, \"{0}\"),";
-        private const string TypeTemplate = "        ProvideDebugException(GuidList.Strings.guidDot42DebuggerId, ExceptionConstants.NamespaceLevelCode, ExceptionConstants.TopLevelName, \"{0}\", \"{1}\"),";
+        private const string TypeTemplate = "        ProvideDebugException(GuidList.Strings.guidDot42DebuggerId, ExceptionConstants.ExceptionCode, ExceptionConstants.TopLevelName, \"{0}\", \"{1}\"),";
 
         private const string Template = @"using Microsoft.VisualStudio.Shell;
 using Dot42.VStudio.Debugger;
@@ -68,12 +68,32 @@ $$$
             {
                 CollectExceptions(type, list);
             }
-            return list.Distinct().OrderBy(x => x.FullName).ToList();
+
+            list.Sort(OrderExceptions);
+            return list.Distinct().ToList();
+        }
+
+        private static int OrderExceptions(TypeDefinition x, TypeDefinition y)
+        {
+            // we want 'System' namespaces to be topmost, since these will be 
+            // most probalby the onces the user cares about. [Note: VS will ignore 
+            // the order. It is important though tofirst sort by namespace, then
+            // by name.]
+            if (x.FullName.StartsWith("System.") && !y.FullName.StartsWith("System."))
+                return -1;
+            if (y.FullName.StartsWith("System.") && !x.FullName.StartsWith("System."))
+                return 1;
+
+            int ns = StringComparer.InvariantCulture.Compare(x.Namespace, y.Namespace);
+
+            if (ns != 0)
+                return ns;
+            return StringComparer.InvariantCulture.Compare(x.Name, y.Name);
         }
 
         private static void CollectExceptions(TypeDefinition type, List<TypeDefinition> exceptions)
         {
-            if (IsException(type))
+            if (type.IsPublic && IsException(type))
             {
                 exceptions.Add(type);
             }

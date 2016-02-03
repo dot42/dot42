@@ -7,7 +7,7 @@ namespace Dot42.DexLib.Extensions
     {
         private static readonly Random rnd = new Random();
 
-        public static void Shuffle<T>(this List<T> list)
+        public static void Shuffle<T>(this IList<T> list)
         {
             if (list.Count > 1)
             {

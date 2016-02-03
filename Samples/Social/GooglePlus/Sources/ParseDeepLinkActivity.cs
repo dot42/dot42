@@ -12,11 +12,9 @@ using Com.Google.Android.Gms.Plus.Model;
 using Com.Google.Android.Gms.Plus.Model.Moments;
 using Com.Google.Android.Gms.Plus.Model.People;
 
-using Android.Text;
-using Android.View;
+using Android.Text;using Android.Views;
 using Android.Support.V4.App;
-using Android.Widget;
-using Android.Os;
+using Android.Widget;using Android.OS;
 using Android.Content;
 using Android.Util;
 
@@ -44,7 +42,7 @@ namespace GooglePlusClient
          Intent route;
 
          Android.Net.Uri uri = Android.Net.Uri.Parse(deepLinkId);
-         if (uri.GetPath().StartsWith(GetString(R.Strings.plus_example_deep_link_id)))
+         if (uri.GetPath().StartsWith(GetString(R.String.plus_example_deep_link_id)))
          {
             route = new Intent().SetClass(GetApplicationContext(), typeof(SignInActivity));
 

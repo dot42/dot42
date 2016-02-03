@@ -23,7 +23,7 @@
     <Dot42ExtensionsPath Condition=" '$(Dot42ExtensionsPath)' == '' ">$(Registry:HKEY_CURRENT_USER\SOFTWARE\TallApplications\Dot42@ExtensionsPath)</Dot42ExtensionsPath>
     <Dot42ExtensionsPath Condition=" '$(Dot42ExtensionsPath)' == '' ">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\TallApplications\Dot42@ExtensionsPath)</Dot42ExtensionsPath>
     <ApkCertificatePath>S:\SVNWork\dot42\RegressionTests\Certificate.pfx</ApkCertificatePath>
-    <ApkCertificateThumbprint>E459CAAA643505C4FCE6932D22C8F6681A9E1F48</ApkCertificateThumbprint>
+    <ApkCertificateThumbprint>18D32F30B1980D5F81EFED7BAC553A4471B6DDB9</ApkCertificateThumbprint>
     <AfterBuildDependsOn Condition=" '$(BuildingInsideVisualStudio)' != 'true'">Test</AfterBuildDependsOn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">

@@ -167,8 +167,8 @@ namespace Dot42.DebuggerLib
             /// </summary>
             public string GetString(int strLength)
             {
-                var result = ((Chunk) packet).GetString(Offset, strLength);
-                Offset += strLength * 2;
+                var result = ((Chunk) packet).GetString(_offset, strLength);
+                _offset += strLength * 2;
                 return result;
             }
 
@@ -177,8 +177,8 @@ namespace Dot42.DebuggerLib
             /// </summary>
             public new void SetString(string value)
             {
-                ((Chunk)packet).SetString(Offset, value);
-                Offset += 2 * value.Length;
+                ((Chunk)packet).SetString(_offset, value);
+                _offset += 2 * value.Length;
             }
         }
     }

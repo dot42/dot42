@@ -1,7 +1,7 @@
 ﻿using System;
 using Android.App;
 using Android.Content;
-using Android.Os;
+using Android.OS;
 using Android.Widget;
 using Dot42.Manifest;
 using RekenMaar.Activities;
@@ -28,12 +28,12 @@ namespace RekenMaar
         protected override void OnCreate(Bundle savedInstance)
         {
             base.OnCreate(savedInstance);
-            SetContentView(R.Layouts.MainLayout);
+            SetContentView(R.Layout.MainLayout);
 
             var actionBar = GetActionBar();
             actionBar.SetNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
 
-            //actionBar.SetListNavigationCallbacks(ArrayAdapter<string>.CreateFromResource(this, R.Arrays.gameType_array, R.Layouts.TextView),
+            //actionBar.SetListNavigationCallbacks(ArrayAdapter<string>.CreateFromResource(this, R.Arrays.gameType_array, R.Layout.TextView),
             //                                     this);
 
             //actionBar.SetListNavigationCallbacks(ArrayAdapter<string>.CreateFromResource(this, R.Arrays.gameType_array, Android.R.Layout.Simple_spinner_item),
@@ -43,33 +43,33 @@ namespace RekenMaar
             adapter.SetDropDownViewResource(Android.R.Layout.Simple_spinner_dropdown_item);
             actionBar.SetListNavigationCallbacks(adapter, this);
 
-            tvAnswer = (TextView)FindViewById(R.Ids.answer);
-            tvQuestion = (TextView)FindViewById(R.Ids.question);
-            tvResult = (TextView)FindViewById(R.Ids.result);
+            tvAnswer = (TextView)FindViewById(R.Id.answer);
+            tvQuestion = (TextView)FindViewById(R.Id.question);
+            tvResult = (TextView)FindViewById(R.Id.result);
 
-            var btn = (Button)FindViewById(R.Ids.cmd0);
+            var btn = (Button)FindViewById(R.Id.cmd0);
             btn.Click += new EventHandler(btn_Click);
-            btn = (Button)FindViewById(R.Ids.cmd1);
+            btn = (Button)FindViewById(R.Id.cmd1);
             btn.Click += new EventHandler(btn_Click);
-            btn = (Button)FindViewById(R.Ids.cmd2);
+            btn = (Button)FindViewById(R.Id.cmd2);
             btn.Click += new EventHandler(btn_Click);
-            btn = (Button)FindViewById(R.Ids.cmd3);
+            btn = (Button)FindViewById(R.Id.cmd3);
             btn.Click += new EventHandler(btn_Click);
-            btn = (Button)FindViewById(R.Ids.cmd4);
+            btn = (Button)FindViewById(R.Id.cmd4);
             btn.Click += new EventHandler(btn_Click);
-            btn = (Button)FindViewById(R.Ids.cmd5);
+            btn = (Button)FindViewById(R.Id.cmd5);
             btn.Click += new EventHandler(btn_Click);
-            btn = (Button)FindViewById(R.Ids.cmd6);
+            btn = (Button)FindViewById(R.Id.cmd6);
             btn.Click += new EventHandler(btn_Click);
-            btn = (Button)FindViewById(R.Ids.cmd7);
+            btn = (Button)FindViewById(R.Id.cmd7);
             btn.Click += new EventHandler(btn_Click);
-            btn = (Button)FindViewById(R.Ids.cmd8);
+            btn = (Button)FindViewById(R.Id.cmd8);
             btn.Click += new EventHandler(btn_Click);
-            btn = (Button)FindViewById(R.Ids.cmd9);
+            btn = (Button)FindViewById(R.Id.cmd9);
             btn.Click += new EventHandler(btn_Click);
-            btn = (Button)FindViewById(R.Ids.Ok);
+            btn = (Button)FindViewById(R.Id.Ok);
             btn.Click += new EventHandler(btnOk_Click);
-            btn = (Button)FindViewById(R.Ids.Erase);
+            btn = (Button)FindViewById(R.Id.Erase);
             btn.Click += new EventHandler(btnErase_Click);
 
             var gamePreferences = new Preferences();
@@ -92,7 +92,7 @@ namespace RekenMaar
             bool result = true;
             switch (item.GetItemId())
             {
-                case R.Ids.menu_options:
+                case R.Id.menu_options:
                     var intent = new Intent(this, typeof(SettingsActivity));
                     StartActivityForResult(intent, 1);
                     break;

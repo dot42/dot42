@@ -15,7 +15,8 @@ namespace Dot42.BuildTools.ApiEnhancements
         internal static void Find(string assemblyPath)
         {
             var resolver = new AssemblyResolver(new[] { Path.GetDirectoryName(assemblyPath) });
-            var assembly = resolver.Resolve(Path.GetFileNameWithoutExtension(assemblyPath), new ReaderParameters(ReadingMode.Immediate) { ReadSymbols = false });
+            var assembly = resolver.Resolve(Path.GetFileNameWithoutExtension(assemblyPath), 
+                new ReaderParameters(ReadingMode.Immediate) { ReadSymbols = false, AssemblyResolver = resolver});
 
             FindListenerInterfaces.Find(assembly);
             FindRunnableArguments.Find(assembly);

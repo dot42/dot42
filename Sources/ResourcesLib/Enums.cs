@@ -81,7 +81,9 @@ namespace Dot42.ResourcesLib
         [Obfuscation]
         nodpi,
         [Obfuscation]
-        tvdpi
+        tvdpi,
+        [Obfuscation]
+        anydpi
     }
 
     [Obfuscation(Feature = "make-internal")]

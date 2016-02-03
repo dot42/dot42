@@ -17,9 +17,7 @@
 using Support4Demos;
 
 using Android.Support.V4.App;
-
-using Android.Os;
-using Android.View;
+using Android.OS;using Android.Views;
 using Android.Widget;
 
 using Dot42;
@@ -36,13 +34,13 @@ namespace com.example.android.supportv4.app
 
         protected override void OnCreate(Bundle savedInstanceState) {
             base.OnCreate(savedInstanceState);
-            SetContentView(R.Layouts.fragment_hide_show_support);
+            SetContentView(R.Layout.fragment_hide_show_support);
 
             // The content view embeds two fragments; now retrieve them and attach
             // their "hide" button.
             FragmentManager fm = GetSupportFragmentManager();
-            AddShowHideListener(R.Ids.frag1hide, fm.FindFragmentById(R.Ids.fragment1));
-            AddShowHideListener(R.Ids.frag2hide, fm.FindFragmentById(R.Ids.fragment2));
+            AddShowHideListener(R.Id.frag1hide, fm.FindFragmentById(R.Id.fragment1));
+            AddShowHideListener(R.Id.frag2hide, fm.FindFragmentById(R.Id.fragment2));
         }
 
         void AddShowHideListener(int buttonId, Fragment fragment) {
@@ -72,12 +70,12 @@ namespace com.example.android.supportv4.app
 
             public override View OnCreateView(LayoutInflater Inflater, ViewGroup container,
                     Bundle savedInstanceState) {
-                View v = Inflater.Inflate(R.Layouts.labeled_text_edit, container, false);
-                View tv = v.FindViewById(R.Ids.msg);
+                View v = Inflater.Inflate(R.Layout.labeled_text_edit, container, false);
+                View tv = v.FindViewById(R.Id.msg);
                 ((TextView)tv).SetText("The fragment saves and restores this text.");
 
                 // Retrieve the text editor, and restore the last saved state if needed.
-                mTextView = (TextView)v.FindViewById(R.Ids.saved);
+                mTextView = (TextView)v.FindViewById(R.Id.saved);
                 if (savedInstanceState != null) {
                     mTextView.SetText(savedInstanceState.GetCharSequence("text"));
                 }
@@ -97,15 +95,15 @@ namespace com.example.android.supportv4.app
 
             public override View OnCreateView(LayoutInflater Inflater, ViewGroup container,
                     Bundle savedInstanceState) {
-                View v = Inflater.Inflate(R.Layouts.labeled_text_edit, container, false);
-                View tv = v.FindViewById(R.Ids.msg);
+                View v = Inflater.Inflate(R.Layout.labeled_text_edit, container, false);
+                View tv = v.FindViewById(R.Id.msg);
                 ((TextView)tv).SetText("The TextView saves and restores this text.");
 
                 // Retrieve the text editor and tell it to save and restore its state.
                 // Note that you will often set this in the layout XML, but since
                 // we are sharing our layout with the other fragment we will customize
                 // it here.
-                ((TextView)v.FindViewById(R.Ids.saved)).SetSaveEnabled(true);
+                ((TextView)v.FindViewById(R.Id.saved)).SetSaveEnabled(true);
                 return v;
             }
         }

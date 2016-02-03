@@ -1,8 +1,8 @@
 ﻿using Dot42.CompilerLib.Extensions;
-using Dot42.CompilerLib.Target;
 using Dot42.CompilerLib.Target.Dex;
-using Dot42.DexLib;
 using Mono.Cecil;
+using FieldReference = Mono.Cecil.FieldReference;
+using MethodReference = Mono.Cecil.MethodReference;
 
 namespace Dot42.CompilerLib.Structure.DotNet
 {
@@ -11,6 +11,8 @@ namespace Dot42.CompilerLib.Structure.DotNet
     /// </summary>
     internal class AttributeClassBuilder : ClassBuilder
     {
+        private AttributeAnnotationMapping mapping;
+
         /// <summary>
         /// Default ctor
         /// </summary>
@@ -22,7 +24,9 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// <summary>
         /// Sorting low comes first
         /// </summary>
-        protected override int SortPriority { get { return 0; } }
+        // Can be called very late, as nobody has dependencies on us.
+        // This allows us to compile Dot42 in 'All' mode.
+        protected override int SortPriority { get { return 200; } } 
 
         /// <summary>
         /// Implemented all fields and methods.
@@ -32,15 +36,12 @@ namespace Dot42.CompilerLib.Structure.DotNet
             // Create normal members
             base.CreateMembers(targetPackage);
 
-            // Create annotation interface and attribute build methods
-            var mapping = AttributeAnnotationInterfaceBuilder.Create(null, Compiler, targetPackage, Type, Class);
-            Compiler.Record(Type, mapping);
-
-            // Add IAnnotationType annotation
-            var annotationTypeRef = Compiler.GetDot42InternalType("IAnnotationType");
-            var typeAnnotation = new Annotation { Type = annotationTypeRef.GetClassReference(targetPackage), Visibility = AnnotationVisibility.Runtime };
-            typeAnnotation.Arguments.Add(new AnnotationArgument("AnnotationType", mapping.AnnotationInterfaceClass));
-            Class.Annotations.Add(typeAnnotation);
+            if(!Type.IsAbstract)
+            {
+                // Create annotation interface and attribute build methods
+                mapping = AttributeAnnotationInstanceBuilder.CreateMapping(null, Compiler, targetPackage, Type, Class);
+                Compiler.Record(Type, mapping);
+            }
         }
     }
 }

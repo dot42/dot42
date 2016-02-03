@@ -97,8 +97,12 @@ namespace Dot42.CompilerLib.Ast.Converters
             node.Arguments.Clear();
             node.Arguments.Add(clone);
             node.Operand = null;
-            node.ExpectedType = valueType;
             node.InferredType = valueType;
+            
+            // keep the expected type!
+            node.ExpectedType = clone.ExpectedType;
+            clone.ExpectedType = valueType;
+            
         }
     }
 }

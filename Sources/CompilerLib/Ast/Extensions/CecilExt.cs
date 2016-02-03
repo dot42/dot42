@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Dot42.CecilExtensions;
 using Dot42.CompilerLib.Extensions;
 using Mono.Cecil;
@@ -14,7 +15,7 @@ namespace Dot42.CompilerLib.Ast.Extensions
     public static partial class AssemblyCompilerExtensions
     {
         /// <summary>
-        /// Gets the first method the given method overrides.
+        /// Gets the method the given method overrides.
         /// </summary>
         public static MethodDefinition GetBaseMethod(this MethodDefinition method)
         {
@@ -126,10 +127,17 @@ namespace Dot42.CompilerLib.Ast.Extensions
         /// </summary>
         public static MethodDefinition FindDefaultCtor(this TypeDefinition type)
         {
-            return type.HasMethods
-                       ? type.Methods.FirstOrDefault(
-                           ctor => (ctor.IsConstructor) && (ctor.Name == ".ctor") && (!ctor.HasParameters))
-                       : null;
+            if (!type.HasMethods) 
+                return null;
+            // We've got to ensure that the type can be created through reflection /
+            // dependency injection. We are interested in any public constructor,
+            // and private/protected default constructors.
+            return type.Methods.Where(ctor => ctor.IsConstructor 
+                                          && ctor.Name == ".ctor" 
+                                          && (ctor.IsPublic || !ctor.HasParameters))
+                               .OrderByDescending(ctor => ctor.IsPublic)
+                               .ThenBy(ctor => ctor.HasParameters)
+                               .FirstOrDefault();
         }
 
         /// <summary>
@@ -368,32 +376,36 @@ namespace Dot42.CompilerLib.Ast.Extensions
         /// <summary>
         /// Gets all interfaces implemented by the given type and all its parents.
         /// </summary>
-        internal static IEnumerable<TypeReference> GetImplementedInterfaces(this TypeDefinition type)
+        internal static IList<TypeReference> GetImplementedInterfaces(this TypeDefinition type)
         {
-            while (type != null)
+            if (type.CachedImplementedInterfaces != null)
+                return type.CachedImplementedInterfaces;
+
+            var ret = new List<TypeReference>();
+            var currentType = type;
+            while (currentType != null)
             {
-                if (type.HasInterfaces)
+                foreach (var intf in currentType.Interfaces)
                 {
-                    foreach (var intf in type.Interfaces)
+                    ret.Add(intf.Interface);
+
+                    var intfDef = intf.Interface.GetElementType().Resolve();
+
+                    if (intfDef != null)
                     {
-                        yield return intf.Interface;
-                        var intfDef = intf.Interface.GetElementType().Resolve();
-                        if (intfDef != null)
+                        if (intfDef != intf.Interface)
                         {
-                            if (intfDef != intf.Interface)
-                            {
-                                yield return intfDef;
-                            }
-                            foreach (var x in GetImplementedInterfaces(intfDef))
-                            {
-                                yield return x;
-                            }
+                            ret.Add(intfDef);
                         }
+
+                        ret.AddRange(GetImplementedInterfaces(intfDef));
                     }
                 }
 
-                type = (type.BaseType != null) ? type.BaseType.Resolve() : null;
+                currentType = (currentType.BaseType != null) ? currentType.BaseType.Resolve() : null;
             }
+            // no need for locking. in case somebody was faster, we just overwrite him.
+            return type.CachedImplementedInterfaces = ret.Distinct().ToArray();
         }
 
         /// <summary>

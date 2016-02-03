@@ -1,5 +1,4 @@
-﻿using Android.App;
-using Android.Os;
+﻿using Android.App;using Android.OS;
 using Android.Widget;
 using Android.Location;
 using Dot42.Manifest;
@@ -31,17 +30,17 @@ namespace SimpleGps
         protected override void OnCreate(Bundle savedInstance)
         {
             base.OnCreate(savedInstance);
-            SetContentView(R.Layouts.MainLayout);
+            SetContentView(R.Layout.MainLayout);
 
             // Find UI controls
-            txStatus = FindViewById<TextView>(R.Ids.txStatus);
-            txProvider = FindViewById<TextView>(R.Ids.txProvider);
-            txAccuracy = FindViewById<TextView>(R.Ids.txAccuracy);
-            txLatitude = FindViewById<TextView>(R.Ids.txLatitude);
-            txLongtitude = FindViewById<TextView>(R.Ids.txLongtitude);
-            txAltitude = FindViewById<TextView>(R.Ids.txAltitude);
-            txSpeed = FindViewById<TextView>(R.Ids.txSpeed);
-            txExtra = FindViewById<TextView>(R.Ids.txExtra);
+            txStatus = FindViewById<TextView>(R.Id.txStatus);
+            txProvider = FindViewById<TextView>(R.Id.txProvider);
+            txAccuracy = FindViewById<TextView>(R.Id.txAccuracy);
+            txLatitude = FindViewById<TextView>(R.Id.txLatitude);
+            txLongtitude = FindViewById<TextView>(R.Id.txLongtitude);
+            txAltitude = FindViewById<TextView>(R.Id.txAltitude);
+            txSpeed = FindViewById<TextView>(R.Id.txSpeed);
+            txExtra = FindViewById<TextView>(R.Id.txExtra);
 
             // capitalize getSystemService
             service = (LocationManager)GetSystemService(LOCATION_SERVICE);

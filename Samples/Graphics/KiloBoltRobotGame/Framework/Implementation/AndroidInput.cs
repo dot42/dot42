@@ -1,6 +1,4 @@
-using Android.Content;
-using Android.Os;
-using Android.View;
+using Android.Content;using Android.OS;using Android.Views;
 using Java.Util;
 
 namespace KiloBoltRobotGame.Framework

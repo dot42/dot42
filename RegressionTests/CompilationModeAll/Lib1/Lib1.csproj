@@ -18,8 +18,7 @@
     </SupportedCultures>
     <ApkOutputs>false</ApkOutputs>
     <GenerateAndroidManifest>false</GenerateAndroidManifest>
-    <ApkFilename>
-    </ApkFilename>
+    <ApkFilename>.apk</ApkFilename>
     <PackageName>
     </PackageName>
     <Dot42ExtensionsPath Condition=" '$(Dot42ExtensionsPath)' == '' ">$(Registry:HKEY_CURRENT_USER\SOFTWARE\TallApplications\Dot42@ExtensionsPath)</Dot42ExtensionsPath>
@@ -28,6 +27,10 @@
     </ApkCertificatePath>
     <ApkCertificateThumbprint>
     </ApkCertificateThumbprint>
+    <TargetSdkAndroidVersion />
+    <GenerateWcfProxy>false</GenerateWcfProxy>
+    <GenerateSetNextInstructionCode>false</GenerateSetNextInstructionCode>
+    <EnableCompilerCache>false</EnableCompilerCache>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>

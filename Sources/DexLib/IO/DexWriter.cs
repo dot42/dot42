@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using Dot42.DexLib.Extensions;
 using Dot42.DexLib.IO.Collectors;
 using Dot42.DexLib.IO.Markers;
 using Dot42.DexLib.Instructions;
 using Dot42.DexLib.Metadata;
+using Dot42.Utility;
 using StringComparer = Dot42.DexLib.IO.Collectors.StringComparer;
 
 namespace Dot42.DexLib.IO
@@ -69,14 +72,19 @@ namespace Dot42.DexLib.IO
             methodLookup = CollectMethodReferences();
             fieldLookup = CollectFieldReferences();
             prototypeLookup = CollectPrototypes();
-            flatClasses = ClassDefinition.Flattenize(dex.Classes);
 
+            // https://source.android.com/devices/tech/dalvik/dex-format.html
+            // class definitions list. The classes must be ordered such that a given class's superclass and 
+            // implemented interfaces appear in the list earlier than the referring class. Furthermore, it 
+            // is invalid for a definition for the same-named class to appear more than once in the list. 
+            
             // Standard sort then topological sort
-            var tsorter = new TopologicalSorter();
-            var classDefinitionComparer = new ClassDefinitionComparer();
-            flatClasses.Sort(classDefinitionComparer);
-            flatClasses = new List<ClassDefinition>(tsorter.TopologicalSort(flatClasses, classDefinitionComparer));
-
+            flatClasses = ClassDefinition.Flattenize(dex.Classes);
+            flatClasses.Sort(ClassDefinitionComparer.Default);
+            flatClasses = TopologicalSort.Sort(flatClasses, cdef =>new DependencyCollector().GetDependencies(cdef))
+                                         .Intersect(flatClasses,ReferenceEqualityComparer<ClassDefinition>.Default)
+                                         .ToList();
+                
             WriteHeader(writer);
             WriteStringId(writer);
             WriteTypeId(writer);
@@ -759,7 +767,13 @@ namespace Dot42.DexLib.IO
         /// <returns>True if a code_item was written, false otherwise</returns>
         private bool WriteCodeItem(BinaryWriter writer, MethodDefinition method, uint sectionOffset)
         {
+            if (codes.ContainsKey(method))
+            {
+                throw new AmbiguousMatchException("method renamer failed to find a unique name for " + method);
+            }
+
             codes.Add(method, 0);
+
             var body = method.Body;
             if (body == null)
                 return false;
@@ -1017,7 +1031,13 @@ namespace Dot42.DexLib.IO
                         memoryStream.Position = 0;
                         memoryStream.SetLength(0);
 
-                        WriteValues(memoryWriter, values.Take(lastNonNullIndex + 1).ToArray());
+                        var valueArray = values.Take(lastNonNullIndex + 1).ToArray();
+                        // "The type of each array element must match the declared type of its corresponding field."
+                        for (int i = 0; i < valueArray.Length; ++i)
+                            if (valueArray[i] == null)
+                                valueArray[i] = TypeDescriptor.GetDefaultValue(@class.Fields[i].Type);
+
+                        WriteValues(memoryWriter, valueArray);
                         var buffer = memoryStream.ToArray();
                         var key = GetByteArrayKey(buffer);
 

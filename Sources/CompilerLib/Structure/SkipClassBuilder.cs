@@ -26,7 +26,7 @@ namespace Dot42.CompilerLib.Structure
         {
         }
 
-        public void GenerateCode(ITargetPackage targetPackage)
+        public void GenerateCode(ITargetPackage targetPackage, bool stopAtFirstError)
         {
         }
 

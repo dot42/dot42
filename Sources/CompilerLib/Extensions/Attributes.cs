@@ -30,8 +30,9 @@ namespace Dot42.CompilerLib.Extensions
             if (!provider.HasCustomAttributes)
                 return Enumerable.Empty<CustomAttribute>();
             return provider.CustomAttributes.Where(x =>
-                (x.AttributeType.Namespace == AttributeConstants.Dot42AttributeNamespace) &&
-                (x.AttributeType.Name == AttributeConstants.IncludeAttributeName));
+                (x.AttributeType.Namespace == AttributeConstants.Dot42AttributeNamespace) 
+                && (x.AttributeType.Name == AttributeConstants.IncludeAttributeName
+                 || x.AttributeType.Name == AttributeConstants.IncludeTypeAttributeName));
         }
 
         /// <summary>
@@ -42,8 +43,22 @@ namespace Dot42.CompilerLib.Extensions
             return provider.GetIncludeAttributes().Any();
         }
 
+        internal static bool HasSerializedParameterAttribute(this ParameterDefinition @param)
+        {
+            return @param.CustomAttributes
+                .Any(a => a.AttributeType.Namespace == AttributeConstants.Dot42AttributeNamespace
+                       && a.AttributeType.Name == AttributeConstants.SerializedParameterAttributeName);
+        }
+
+        internal static bool HasSerializedParameterAttribute(this GenericParameter @param)
+        {
+            return @param.CustomAttributes
+                .Any(a => a.AttributeType.Namespace == AttributeConstants.Dot42AttributeNamespace
+                       && a.AttributeType.Name == AttributeConstants.SerializedParameterAttributeName);
+        }
+
         /// <summary>
-        /// Is there any Include attribute attached to the given provider?
+        /// Is there any EventHandler attached to the given provider?
         /// </summary>
         internal static bool HasEventHandlerAttribute(this ICustomAttributeProvider provider)
         {

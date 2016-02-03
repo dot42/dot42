@@ -27,7 +27,7 @@ Copyright (C) TallComponents BV. All rights reserved.
 		<SetEnv Variable="VsSDKToolsPath" Value="$(VsSDKToolsPath)"/>
 	</Target>
 	
-  <Import Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v11.0\VSSDK\Microsoft.VsSDK.Common.props" />
-  <Import Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v11.0\VSSDK\Microsoft.VsSDK.targets" />
+  <Import Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v12.0\VSSDK\Microsoft.VsSDK.Common.props" />
+  <Import Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v12.0\VSSDK\Microsoft.VsSDK.targets" />
 
 </Project>

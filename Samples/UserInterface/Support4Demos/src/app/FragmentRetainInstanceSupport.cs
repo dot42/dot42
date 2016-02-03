@@ -17,9 +17,7 @@
 using Support4Demos;
 
 using Android.Support.V4.App;
-
-using Android.Os;
-using Android.View;
+using Android.OS;using Android.Views;
 using Android.Widget;
 
 using System.Threading;
@@ -57,10 +55,10 @@ namespace com.example.android.supportv4.app
 
             public override View OnCreateView(LayoutInflater Inflater, ViewGroup container,
                     Bundle savedInstanceState) {
-                View v = Inflater.Inflate(R.Layouts.fragment_retain_instance, container, false);
+                View v = Inflater.Inflate(R.Layout.fragment_retain_instance, container, false);
 
                 // Watch for button clicks.
-                Button button = (Button)v.FindViewById(R.Ids.restart);
+                Button button = (Button)v.FindViewById(R.Id.restart);
                 button.Click += (o,a) => mWorkFragment.Restart();
                 
                 return v;
@@ -69,7 +67,7 @@ namespace com.example.android.supportv4.app
             public override void OnActivityCreated(Bundle savedInstanceState) {
                 base.OnActivityCreated(savedInstanceState);
 
-                FragmentManager fm = GetFragmentManager();
+                FragmentManager fm = FragmentManager;
 
                 // Check to see if we have retained the worker fragment.
                 mWorkFragment = (RetainedFragment)fm.FindFragmentByTag("work");
@@ -185,7 +183,7 @@ namespace com.example.android.supportv4.app
 
                 // Retrieve the progress bar from the target's view hierarchy.
                 mProgressBar = (ProgressBar)GetTargetFragment().GetView().FindViewById(
-                        R.Ids.progress_horizontal);
+                        R.Id.progress_horizontal);
 
                 // We are ready for our thread to go.
                 lock (mThread) {

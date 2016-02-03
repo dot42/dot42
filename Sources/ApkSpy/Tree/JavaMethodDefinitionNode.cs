@@ -80,7 +80,7 @@ namespace Dot42.ApkSpy.Tree
                     sb.AppendLine();
                 }
 
-#if DEBUG
+#if DEBUG || ENABLE_SHOW_AST
                 if (settings.ShowAst)
                 {
                     sb.AppendLine("\n\nAST:\n");
@@ -93,14 +93,14 @@ namespace Dot42.ApkSpy.Tree
                         var ast = astBuilder.Build();
 
                         var writer = new PlainTextOutput(new StringWriter(sb));
-                        ast.WriteTo(writer);
+                        ast.WriteTo(writer, FormattingOptions.Default);
                         writer.WriteLine();
 
                         // Optimize AST
                         sb.AppendLine("\n\nOptimized AST:\n");
                         var astOptimizer = new AstOptimizer(context, ast);
                         astOptimizer.Optimize();
-                        ast.WriteTo(writer);
+                        ast.WriteTo(writer, FormattingOptions.Default);
                         writer.WriteLine();
                     }
                     catch (Exception ex)

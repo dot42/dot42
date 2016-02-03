@@ -2,7 +2,7 @@ using System.IO;
 using System.Text;
 using Android.Util;
 using Dot42.Manifest;
-using Java.Io;
+using Java.IO;
 using KiloBoltRobotGame.Framework;
 
 namespace KiloBoltRobotGame.Robotgame
@@ -23,7 +23,7 @@ namespace KiloBoltRobotGame.Robotgame
                 firstTimeCreate = false;
             }
 
-            InputStream @is = GetResources().OpenRawResource(R.Raws.map1);
+            InputStream @is = Resources.OpenRawResource(R.Raw.map1);
             map = convertStreamToString(@is);
 
             return new SplashLoadingScreen(this);

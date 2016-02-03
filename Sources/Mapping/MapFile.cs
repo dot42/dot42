@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -11,17 +12,29 @@ namespace Dot42.Mapping
     /// <summary>
     /// Map between CLR and DEX names
     /// </summary>
-    public sealed class MapFile : IEnumerable<TypeEntry>
+    public sealed class MapFile 
     {
-        private readonly Dictionary<string, TypeEntry> typesByDexName;
-        private readonly Dictionary<string, Document> documents = new Dictionary<string, Document>();
+        private readonly List<TypeEntry> types = new List<TypeEntry>();
+        private readonly Dictionary<string, TypeEntry> typesByDexName = new Dictionary<string, TypeEntry>();
+        private readonly Dictionary<string, Document> documents = new Dictionary<string, Document>(StringComparer.InvariantCultureIgnoreCase);
+        private readonly List<ScopeEntry> scopes = new List<ScopeEntry>();
+        private TypeEntry generatedType;
+
+        public ReadOnlyCollection<ScopeEntry> Scopes { get { return scopes.AsReadOnly(); } }
+        public ICollection<Document> Documents { get { return documents.Values; } }
+        public ReadOnlyCollection<TypeEntry> TypeEntries { get { return types.AsReadOnly(); } }
+
+        /// <summary>
+        /// this TypeEntry contains the dexName of the compiler generated class, typically named
+        /// [package].__generated
+        /// </summary>
+        public TypeEntry GeneratedType { get { return generatedType; } }
 
         /// <summary>
         /// Default ctor
         /// </summary>
         public MapFile()
         {
-            typesByDexName = new Dictionary<string, TypeEntry>();
         }
 
         /// <summary>
@@ -35,7 +48,11 @@ namespace Dot42.Mapping
                 map = CompressedXml.Load(fileStream);
             }
 
-            typesByDexName = new Dictionary<string, TypeEntry>();
+            foreach (var element in map.Root.Elements("scope"))
+            {
+                scopes.Add(new ScopeEntry(element));
+            }
+
             foreach (var type in map.Root.Elements("type"))
             {
                 Add(new TypeEntry(type));
@@ -44,7 +61,7 @@ namespace Dot42.Mapping
             foreach (var element in map.Root.Elements("document"))
             {
                 var doc = new Document(element);
-                documents.Add(doc.Path.ToLowerInvariant(), doc);
+                documents.Add(doc.Path, doc);
             }
         }
 
@@ -54,8 +71,10 @@ namespace Dot42.Mapping
         public XDocument ToXml()
         {
             var root = new XElement("dmap");
-            root.Add(typesByDexName.Values.Select(x => x.ToXml("type")));
+            root.Add(types.OrderBy(o=>o.Id)
+                          .Select(x => x.ToXml("type")));
             root.Add(documents.Values.Select(x => x.ToXml("document")));
+            root.Add(scopes.Select(x => x.ToXml("scope")));
             return new XDocument(root);
         }
 
@@ -83,14 +102,30 @@ namespace Dot42.Mapping
         /// </summary>
         public void Add(TypeEntry entry)
         {
+            if (entry.Id == -1)
+            {
+                generatedType = entry;
+            }
+
+            types.Add(entry);
+
             if (!string.IsNullOrEmpty(entry.DexName))
             {
-                typesByDexName[entry.DexName] = entry;
+                // assume earlier entries are more important
+                if(!typesByDexName.ContainsKey(entry.DexName))
+                    typesByDexName[entry.DexName] = entry;
             }
             else if (!string.IsNullOrEmpty(entry.Name))
             {
-                typesByDexName[entry.Name] = entry;
-            }            
+                // assume earlier entries are more important
+                if (!typesByDexName.ContainsKey(entry.Name))
+                    typesByDexName[entry.Name] = entry;
+            }
+        }
+
+        public void Add(ScopeEntry scopeEntry)
+        {
+            scopes.Add(scopeEntry);
         }
 
         /// <summary>
@@ -136,21 +171,11 @@ namespace Dot42.Mapping
         }
 
         /// <summary>
-        /// Gets a type by its map file id.
-        /// </summary>
-        /// <returns>Null if not found</returns>
-        public TypeEntry GetTypeById(int id)
-        {
-            return typesByDexName.Values.FirstOrDefault(x => x.Id == id);
-        }
-
-        /// <summary>
         /// Gets a document with given path or create it.
         /// </summary>
         public Document GetOrCreateDocument(string path, bool create)
         {
             Document result;
-            path = path.ToLowerInvariant();
             if (documents.TryGetValue(path, out result))
                 return result;
             result = new Document(path);
@@ -164,71 +189,6 @@ namespace Dot42.Mapping
         public void Optimize()
         {
             foreach (var doc in documents.Values) doc.Optimize();            
-        }
-
-        /// <summary>
-        /// Try to find the document location that belongs to the given type, method + offset.
-        /// </summary>
-        public bool TryFindLocation(TypeEntry type, MethodEntry method, int methodOffset, out Document document, out DocumentPosition position)
-        {
-            document = null;
-            position = null;
-
-            foreach (var doc in documents.Values)
-            {
-                foreach (var docPos in doc.Positions)
-                {
-                    if ((docPos.TypeId != type.Id) || (docPos.MethodId != method.Id))
-                        continue;
-
-                    // type and method matches
-                    if ((docPos.MethodOffset <= methodOffset) || (position == null))
-                    {
-                        // Found possible result
-                        if ((position == null) || (docPos.MethodOffset > position.MethodOffset))
-                        {
-                            // Found better result
-                            document = doc;
-                            position = docPos;
-                        }
-                    }
-
-                }
-            }
-
-            return (position != null);
-        }
-
-        /// <summary>
-        /// Get all locations for the given type and method.
-        /// </summary>
-        public IEnumerable<Tuple<Document, DocumentPosition>> GetLocations(TypeEntry type, MethodEntry method)
-        {
-            foreach (var doc in documents.Values)
-            {
-                foreach (var docPos in doc.Positions)
-                {
-                    if ((docPos.TypeId != type.Id) || (docPos.MethodId != method.Id))
-                        continue;
-                    yield return Tuple.Create(doc, docPos);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Enumerate all types
-        /// </summary>
-        public IEnumerator<TypeEntry> GetEnumerator()
-        {
-            return typesByDexName.Values.GetEnumerator();
-        }
-
-        /// <summary>
-        /// Enumerate all types
-        /// </summary>
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
         }
     }
 }

@@ -18,9 +18,9 @@ namespace KiloBoltRobotGame.Framework
             mediaPlayer = new MediaPlayer();
             try
             {
-                mediaPlayer.SetDataSource(assetDescriptor.GetFileDescriptor(),
-                                          assetDescriptor.GetStartOffset(),
-                                          assetDescriptor.GetLength());
+                mediaPlayer.SetDataSource(assetDescriptor.FileDescriptor,
+                                          assetDescriptor.StartOffset,
+                                          assetDescriptor.Length);
                 mediaPlayer.Prepare();
                 isPrepared = true;
                 mediaPlayer.SetOnCompletionListener(this);
@@ -38,7 +38,7 @@ namespace KiloBoltRobotGame.Framework
         public void dispose()
         {
 
-            if (this.mediaPlayer.IsPlaying())
+            if (this.mediaPlayer.IsPlaying)
             {
                 this.mediaPlayer.Stop();
             }
@@ -47,12 +47,12 @@ namespace KiloBoltRobotGame.Framework
 
         public bool isLooping()
         {
-            return mediaPlayer.IsLooping();
+            return mediaPlayer.IsLooping;
         }
 
         public bool isPlaying()
         {
-            return this.mediaPlayer.IsPlaying();
+            return this.mediaPlayer.IsPlaying;
         }
 
         public bool isStopped()
@@ -62,14 +62,14 @@ namespace KiloBoltRobotGame.Framework
 
         public void pause()
         {
-            if (this.mediaPlayer.IsPlaying())
+            if (this.mediaPlayer.IsPlaying)
                 mediaPlayer.Pause();
         }
 
 
         public void play()
         {
-            if (this.mediaPlayer.IsPlaying())
+            if (this.mediaPlayer.IsPlaying)
                 return;
 
             try
@@ -93,7 +93,7 @@ namespace KiloBoltRobotGame.Framework
 
         public void setLooping(bool isLooping)
         {
-            mediaPlayer.SetLooping(isLooping);
+            mediaPlayer.IsLooping = (isLooping);
         }
 
         public void setVolume(float volume)
@@ -103,7 +103,7 @@ namespace KiloBoltRobotGame.Framework
 
         public void stop()
         {
-            if (this.mediaPlayer.IsPlaying() == true)
+            if (this.mediaPlayer.IsPlaying == true)
             {
                 this.mediaPlayer.Stop();
 

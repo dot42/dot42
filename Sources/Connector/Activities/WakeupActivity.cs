@@ -1,6 +1,6 @@
 ﻿using Android.App;
-using Android.Os;
-using Android.View;
+using Android.OS;
+using Android.Views;
 using Java.Lang;
 using Dot42;
 using Dot42.Manifest;
@@ -17,7 +17,7 @@ namespace Dot42.Connector.Activities
 			var window = GetWindow();
 			window.AddFlags(IWindowManager_LayoutParams.FLAG_SHOW_WHEN_LOCKED | IWindowManager_LayoutParams.FLAG_TURN_SCREEN_ON | IWindowManager_LayoutParams.FLAG_DISMISS_KEYGUARD);
         
-            SetContentView(R.Layouts.MainLayout);
+            SetContentView(R.Layout.MainLayout);
         
 			var handler = new Handler(); 
 			handler.PostDelayed(this, 200);			

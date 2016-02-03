@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using Android.App;
-using Android.Os;
+using Android.App;using Android.OS;
 using Android.Widget;
 using Dot42;
 using Dot42.Manifest;
@@ -16,9 +15,9 @@ namespace DllImportTest
         protected override void OnCreate(Bundle savedInstance)
         {
             base.OnCreate(savedInstance);
-            SetContentView(R.Layouts.MainActivityLayout);
+            SetContentView(R.Layout.MainActivityLayout);
 			//Java.Lang.System.LoadLibrary("dllImportTest");
-            var textView = FindViewById<TextView>(R.Ids.label);
+            var textView = FindViewById<TextView>(R.Id.label);
             textView.Text = Foo();
         }
         

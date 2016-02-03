@@ -84,5 +84,28 @@ namespace Dot42.Utility
             foreach (var v in values)
                 action(v);
         }
+
+        /// <summary>
+        /// Invoke the given action for each element in values.
+        /// </summary>
+        public static void ForEachWithExceptionMessage<T>(this IEnumerable<T> values, Action<T> action)
+        {
+            foreach (var v in values)
+            {
+                try
+                {
+                    action(v);
+                }
+                catch (AggregateException ex)
+                {
+                    throw new Exception("Error while handling " + v + ": " + ex.Flatten().InnerException.Message, ex);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Error while handling " + v + ": " + ex.Message, ex);
+                }
+            }
+        }
+
     }
 }

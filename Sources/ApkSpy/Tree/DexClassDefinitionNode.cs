@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using Dot42.ApkSpy.Disassembly;
 using Dot42.DexLib;
 
 namespace Dot42.ApkSpy.Tree
@@ -42,17 +43,32 @@ namespace Dot42.ApkSpy.Tree
         /// </summary>
         protected override string LoadText(ISpyContext settings)
         {
-            var nl = Environment.NewLine;
-            var sb = new StringBuilder();
-            sb.AppendFormat("FullName: {0}{1}", classDef.Fullname, nl);
-            sb.AppendFormat("SuperClass: {0}{1}", (classDef.SuperClass != null) ? classDef.SuperClass.Fullname : "<none>", nl);
-            foreach (var intf in classDef.Interfaces)
+            if (!settings.EnableBaksmali)
             {
-                sb.AppendFormat("Implements: {0}{1}", intf.Fullname, nl);                
+                var nl = Environment.NewLine;
+                var sb = new StringBuilder();
+                sb.AppendFormat("FullName: {0}{1}", classDef.Fullname, nl);
+                sb.AppendFormat("SuperClass: {0}{1}",
+                    (classDef.SuperClass != null) ? classDef.SuperClass.Fullname : "<none>", nl);
+
+                foreach (var intf in classDef.Interfaces)
+                {
+                    sb.AppendFormat("Implements: {0}{1}", intf.Fullname, nl);
+                }
+
+                sb.AppendFormat("AccessFlags: {0}{1}", AccessFlagsAsString(classDef.AccessFlags), nl);
+                
+                if (classDef.SourceFile != null)
+                    sb.AppendFormat("Source file: {0}{1}", classDef.SourceFile, nl);
+
+                sb.AppendFormat("Annotations: {0}{1}", LoadAnnotations(classDef), nl);
+                return sb.ToString();
             }
-            sb.AppendFormat("AccessFlags: {0}{1}", AccessFlagsAsString(classDef.AccessFlags), nl);
-            sb.AppendFormat("Annotations: {0}{1}", LoadAnnotations(classDef), nl);
-            return sb.ToString();
+            else
+            {
+                return new BaksmaliDisassembler(settings).Disassemble(classDef);
+            }
+
         }
 
         private string AccessFlagsAsString(AccessFlags accessFlags)

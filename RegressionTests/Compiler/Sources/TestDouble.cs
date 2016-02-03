@@ -6,28 +6,29 @@ namespace Dot42.Tests.Compiler.Sources
     {
         private const double delta = 0.0001;
 
+        private double d1 = 1, d1_1 = 1;
+        private double d2 = 2, d5 = 5, d7 = 7;
+        private double dNaN = double.NaN;
+        private double d0 = 0.0;
+
         public void testSimpleEqual1()
         {
-            var i = 5.0;
-            AssertTrue(i == 5.0);
+            AssertTrue(d5 == 5.0);
         }
 
         public void testSimpleEqual2()
         {
-            var i = 7.0;
-            AssertTrue(i == 7.0);
+            AssertTrue(d7 == 7.0);
         }
 
         public void testAdd1()
         {
-            var i = 5.0;
-            AssertEquals(i + 4.0, 9.0, delta);
+            AssertEquals(d5 + 4.0, 9.0, delta);
         }
 
         public void testAdd2()
         {
-            var i = 5.0;
-            AssertTrue(i + 4.0 == 9.0);
+            AssertTrue(d5 + 4.0 == 9.0);
         }
 
         public void testAdd3()
@@ -52,14 +53,12 @@ namespace Dot42.Tests.Compiler.Sources
 
         public void testSub1()
         {
-            var i = 5.0;
-            AssertEquals(i - 4.0, 1.0, delta);
+            AssertEquals(d5 - 4.0, 1.0, delta);
         }
 
         public void testSub2()
         {
-            var i = 5.0;
-            AssertTrue(i - 17.0 == -12.0);
+            AssertTrue(d5 - 17.0 == -12.0);
         }
 
         public void testSub3()
@@ -122,6 +121,13 @@ namespace Dot42.Tests.Compiler.Sources
             AssertTrue(10.0 / i == 5.0);
         }
 
+        public void testDiv6()
+        {
+            AssertTrue(double.IsPositiveInfinity(d1 / d0));
+            AssertTrue(double.IsNegativeInfinity(-d1 / d0));
+            AssertTrue(double.IsNaN(d0 / d0));
+        }
+
         public void testRem1()
         {
             var i = 3.0;
@@ -144,6 +150,129 @@ namespace Dot42.Tests.Compiler.Sources
         {
             var i = 0.0;
             AssertTrue(i % 100.0 == 0.0);
+        }
+
+        public void testGetHashCode()
+        {
+            AssertEquals(2.0d.GetHashCode(), ((object)2.0d).GetHashCode());
+            AssertEquals(double.NaN.GetHashCode(), ((object)double.NaN).GetHashCode());
+            AssertEquals(double.PositiveInfinity.GetHashCode(), ((object)double.PositiveInfinity).GetHashCode());
+        }
+
+        public void testCompare1()
+        {
+            AssertTrue(d5 <  d7);
+            AssertTrue(d5 <= d7);
+            AssertTrue(d7 >  d5);
+            AssertTrue(d7 >= d5);
+            AssertTrue(d1 >= d1_1);
+            AssertTrue(d1 >= d1_1);
+            AssertTrue(d1 <= d1_1);
+            AssertTrue(d1 == d1_1);
+
+            AssertFalse(d5 >= d7);
+            AssertFalse(d5 >  d7);
+            AssertFalse(d7 <= d5);
+            AssertFalse(d7 <  d5);
+            AssertFalse(d1 <  d1_1);
+            AssertFalse(d1 >  d1_1);
+            AssertFalse(d1 != d1_1);
+        }
+
+        public void testCompareNaN()
+        {
+            AssertFalse(dNaN == double.NaN);
+
+            AssertFalse(d5   <  dNaN);
+            AssertFalse(dNaN <  d5);
+
+            AssertFalse(d5   <= dNaN);
+            AssertFalse(dNaN <= d5);
+
+            AssertFalse(dNaN <  double.NaN);
+            AssertFalse(dNaN <= double.NaN);
+
+            AssertFalse(d5   >  dNaN);
+            AssertFalse(dNaN >  d5);
+
+            AssertFalse(d5   >= dNaN);
+            AssertFalse(dNaN >= d5);
+
+            AssertFalse(dNaN >  double.NaN);
+            AssertFalse(dNaN >= double.NaN);
+
+            AssertTrue(!(dNaN >= double.NaN));
+        }
+
+        public void testTernary()
+        {
+            AssertEquals(d5 <  d7    ? 5 : 6, 5);
+            AssertEquals(d5 <= d7    ? 5 : 6, 5);
+            AssertEquals(d7 >  d5    ? 5 : 6, 5);
+            AssertEquals(d7 >= d5    ? 5 : 6, 5);
+            AssertEquals(d1 >= d1_1  ? 5 : 6, 5);
+            AssertEquals(d1 <= d1_1  ? 5 : 6, 5);
+            AssertEquals(d1 == d1_1  ? 5 : 6, 5);
+
+            AssertNotSame(d5 >= d7   ? 5 : 6, 5);
+            AssertNotSame(d5 >  d7   ? 5 : 6, 5);
+            AssertNotSame(d7 <= d5   ? 5 : 6, 5);
+            AssertNotSame(d7 <  d5   ? 5 : 6, 5);
+            AssertNotSame(d1 <  d1_1 ? 5 : 6, 5);
+            AssertNotSame(d1 >  d1_1 ? 5 : 6, 5);
+            AssertNotSame(d1 != d1_1 ? 5 : 6, 5);
+
+            AssertNotSame(dNaN == double.NaN ? 5 : 6, 5);
+
+            AssertNotSame(d5 <   dNaN ? 5 : 6, 5);
+            AssertNotSame(dNaN < d5 ? 5 : 6, 5);
+
+            AssertNotSame(d5 <=   dNaN ? 5 : 6, 5);
+            AssertNotSame(dNaN <= d5 ? 5 : 6, 5);
+
+            AssertNotSame(dNaN <  double.NaN ? 5 : 6, 5);
+            AssertNotSame(dNaN <= double.NaN ? 5 : 6, 5);
+
+            AssertNotSame(d5 >   dNaN ? 5 : 6, 5);
+            AssertNotSame(dNaN > d5 ? 5 : 6, 5);
+
+            AssertNotSame(d5 >=   dNaN ? 5 : 6, 5);
+            AssertNotSame(dNaN >= d5 ? 5 : 6, 5);
+
+            AssertNotSame(dNaN >  double.NaN ? 5 : 6, 5);
+            AssertNotSame(dNaN >= double.NaN ? 5 : 6, 5);
+        }
+
+        public void testUshortToDoubleConversion()
+        {
+            ushort x = 0xF000;
+            double y = (double)x;
+            AssertEquals(61440d, y);
+        }
+
+        public void testUintToDoubleConversion()
+        {
+            uint x = 0x80000000;
+            double y = (double)x;
+            AssertEquals(2147483648d, y);
+        }
+
+        public void testUlongToDoubleConversion()
+        {
+            ulong x;
+            double y;
+            
+            x = 0x8000000000000000;
+            y = x;
+            AssertEquals(9.2233720368547758E+18, y);
+
+            x = 0xF000000000000001;
+            y = x;
+            AssertEquals(1.7293822569102705E+19, y);
+
+            x = 16;
+            y = x;
+            AssertEquals(16d, y);
         }
     }
 }

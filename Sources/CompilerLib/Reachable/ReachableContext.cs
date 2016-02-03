@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using Dot42.CompilerLib.Ast.Extensions;
 using Dot42.CompilerLib.Extensions;
 using Dot42.CompilerLib.Reachable.DotNet;
@@ -9,6 +12,7 @@ using Dot42.FrameworkDefinitions;
 using Dot42.JvmClassLib;
 using Dot42.LoaderLib.Extensions;
 using Dot42.LoaderLib.Java;
+using Dot42.Utility;
 using Mono.Cecil;
 using FieldDefinition = Mono.Cecil.FieldDefinition;
 using IReachableContext = Dot42.Cecil.IReachableContext;
@@ -20,12 +24,13 @@ namespace Dot42.CompilerLib.Reachable
     public sealed class ReachableContext : IReachableContext, JvmClassLib.IReachableContext, IClassLoader
     {
         private readonly AssemblyClassLoader assemblyClassLoader;
-        private readonly HashSet<TypeDefinition> reachableTypes = new HashSet<TypeDefinition>();
-        private readonly HashSet<ClassFile> reachableClasses = new HashSet<ClassFile>();
+        private readonly ConcurrentDictionary<TypeDefinition, bool> reachableTypes = new ConcurrentDictionary<TypeDefinition, bool>();
+        private List<TypeDefinition> reachableTypesList;
+        private readonly ConcurrentDictionary<ClassFile,bool> reachableClasses = new ConcurrentDictionary<ClassFile, bool>();
         private readonly Dictionary<TypeDefinition, List<IClassBuilder>> dotNetClassBuilders = new Dictionary<TypeDefinition, List<IClassBuilder>>();
-        private readonly Dictionary<ClassFile, IClassBuilder> javaClassBuilders = new Dictionary<ClassFile, IClassBuilder>();
-        private readonly Dictionary<AssemblyDefinition, List<TypeConditionInclude>> conditionalIncludes = new Dictionary<AssemblyDefinition, List<TypeConditionInclude>>();
-        private readonly Dictionary<TypeDefinition, bool> isApplicationRootTypes = new Dictionary<TypeDefinition, bool>();
+        private readonly ConcurrentDictionary<ClassFile, IClassBuilder> javaClassBuilders = new ConcurrentDictionary<ClassFile, IClassBuilder>();
+        private readonly ConcurrentDictionary<AssemblyDefinition, List<TypeConditionInclude>> conditionalIncludes = new ConcurrentDictionary<AssemblyDefinition, List<TypeConditionInclude>>();
+        private readonly ConcurrentDictionary<TypeDefinition, bool> isApplicationRootTypes = new ConcurrentDictionary<TypeDefinition, bool>();
         private readonly AssemblyCompiler compiler;
         private bool newReachablesDetected;
         private readonly List<AssemblyNameDefinition> assemblyNames;
@@ -81,7 +86,9 @@ namespace Dot42.CompilerLib.Reachable
             // Mark all includes types (via Dot42.IncludeAttribute)
             foreach (var attr in assembly.GetIncludeAttributes())
             {
-                var arg = attr.Properties.Where(x => x.Name == AttributeConstants.IncludeAttributeTypeName).Select(x => (TypeReference) x.Argument.Value).FirstOrDefault();
+                var arg = attr.Properties.Where(x => x.Name == AttributeConstants.IncludeAttributeTypeName)
+                                         .Select(x => (TypeReference) x.Argument.Value)
+                                         .FirstOrDefault();
                 if (arg != null)
                 {
                     arg.MarkReachable(this);
@@ -113,6 +120,50 @@ namespace Dot42.CompilerLib.Reachable
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Mark all matching [assembly: Include(Pattern="...")] included types.
+        /// </summary>
+        /// <param name="assemblies"></param>
+        public void MarkPatternIncludes(IList<AssemblyDefinition> assemblies)
+        {
+            List<PatternInclude> globals = new List<PatternInclude>();
+            Dictionary<AssemblyDefinition, List<PatternInclude>> locals = new Dictionary<AssemblyDefinition, List<PatternInclude>>();
+
+            foreach (var assembly in assemblies)
+            {
+                var incl = FindPatternIncludes(assembly);
+                globals.AddRange(incl.Where(p=>p.IsGlobal));
+                locals[assembly] = incl.Where(p => !p.IsGlobal).ToList();
+            }
+
+            if (globals.Count == 0 && locals.All(l => l.Value.Count == 0))
+                return;
+
+            var dot42Assembly = assemblies.First(a => a.Name.Name.Equals(AssemblyConstants.SdkAssemblyName));
+            var dot42IncludeType = dot42Assembly.MainModule.Types.First(t=>t.Namespace ==  AttributeConstants.Dot42AttributeNamespace && t.Name == AttributeConstants.IncludeAttributeName);
+
+            assemblies.AsParallel().ForAll(assembly =>
+            {
+                var patterns = globals.Concat(locals[assembly])
+                    .OrderByDescending(p => p.AppliesToMembers)
+                    .ToList();
+
+                if (patterns.Count == 0)
+                    return;
+
+                foreach (var typeDef in assembly.MainModule.GetTypes())
+                {
+                    foreach (var pattern in patterns)
+                    {
+                        if (!pattern.AppliesToMembers && typeDef.IsReachable)
+                            break;
+
+                        pattern.IncludeIfNeeded(this, typeDef, dot42IncludeType);
+                    }
+                }
+            });
         }
 
         /// <summary>
@@ -153,11 +204,14 @@ namespace Dot42.CompilerLib.Reachable
                 FindConditionalIncludes();
 
                 // Find .NET overrides and implementations that should be made reachable.
-                var nonReachableDotNetMethods = reachableTypes.SelectMany(x => x.Methods).Where(x => !x.IsReachable).ToList();
-                foreach (var method in nonReachableDotNetMethods)
+                var nonReachableDotNetMethods = reachableTypes.Keys.SelectMany(x => x.Methods)
+                                                                   .Where(x => !x.IsReachable)
+                                                                   .ToList();
+                nonReachableDotNetMethods.AsParallel().ForAll(method=>
+                //nonReachableDotNetMethods.ForEach(method=>
                 {
                     if (method.IsReachable)
-                        continue;
+                        return;
 
                     // Is an imported java class marked reachable?
                     CustomAttribute javaImportAttr;
@@ -174,7 +228,7 @@ namespace Dot42.CompilerLib.Reachable
                             if ((javaMethod != null) && (javaMethod.IsReachable))
                             {
                                 method.MarkReachable(this);
-                                continue;
+                                return;
                             }
                         }
                     }
@@ -183,59 +237,78 @@ namespace Dot42.CompilerLib.Reachable
                     if (method.GetBaseMethods().Any(x => x.IsReachable))
                     {
                         method.MarkReachable(this);
-                        continue;
+                        return;
                     }
 
                     // Is any base interface method reachable?
                     if (method.GetBaseInterfaceMethods().Any(x => x.IsReachable))
                     {
                         method.MarkReachable(this);
-                        continue;
+                        return;
                     }
 
                     // Is any method from override collection reachable
                     if (method.Overrides.Select(x => x.GetElementMethod().Resolve()).Where(x => x != null).Any(x => x.IsReachable))
                     {
                         method.MarkReachable(this);
-                        continue;                        
+                        return;
                     }
-                }
+                });
 
                 // Make sure all implementations of reachable interface methods are included
-                var reachableInterfaceMethods = reachableTypes.Where(x => x.IsInterface).SelectMany(x => x.Methods).Where(x => x.IsReachable).ToList();
-                foreach (var method in reachableInterfaceMethods)
+                var reachableInterfaceMethods = reachableTypes.Keys.Where(x => x.IsInterface)
+                                                                   .SelectMany(x => x.Methods)
+                                                                   .Where(x => x.IsReachable)
+                                                                   .ToList();
+                var reachableInterfaces = reachableInterfaceMethods.Select(m => m.DeclaringType.GetElementType())
+                                                                   .Distinct();
+                var reachableTypesByInterfaces = reachableInterfaces.SelectMany(iface => reachableTypes.Keys.Where(x => x.Implements(iface)), Tuple.Create)
+                                                                    .ToLookup(e => e.Item1,  e=>e.Item2);
+
+                reachableInterfaceMethods.AsParallel().ForAll(method =>
+                //reachableInterfaceMethods.ForEach(method =>
                 {
                     var interfaceType = method.DeclaringType.GetElementType();
-                    var implementedBy = reachableTypes.Where(x => x.Implements(interfaceType)).ToList();
+                    var implementedBy = reachableTypesByInterfaces[interfaceType];
                     foreach (var type in implementedBy)
                     {
                         var implementation = method.GetImplementation(type);
                         implementation.MarkReachable(this);
                     }
-                }
+                });
 
                 // Find java overrides and implementations that should be made reachable.
-                var nonReachableJavaMethods = reachableClasses.SelectMany(x => x.Methods).Where(x => !x.IsReachable).ToList();
-                foreach (var method in nonReachableJavaMethods)
+                var nonReachableJavaMethods = reachableClasses.Keys.SelectMany(x => x.Methods)
+                                                                   .Where(x => !x.IsReachable)
+                                                                   .ToList();
+                nonReachableJavaMethods.AsParallel().ForAll(method =>
+                //nonReachableJavaMethods.ForEach(nonReachableJavaMethods, method =>
                 {
                     if (method.IsReachable)
-                        continue;
+                        return;
+
+                    //if(method.Name == "resetClip")
+                    //    Debugger.Break();
 
                     // Is any base method reachable?
                     if (method.GetBaseMethods().Any(x => x.IsReachable))
                     {
                         method.MarkReachable(this);
-                        continue;
+                        return;
                     }
 
                     // Is any base interface method reachable?
                     if (method.GetBaseInterfaceMethods().Any(x => x.IsReachable))
                     {
                         method.MarkReachable(this);
-                        continue;
+                        return;
                     }
-                }
+                });
             }
+
+            // create classbuilders (here, because now we know for all types
+            // if they are used in Nullable<T>). 
+            ReachableTypes.ForEach(CreateClassBuilder);
         }
 
         /// <summary>
@@ -264,7 +337,8 @@ namespace Dot42.CompilerLib.Reachable
         /// </summary>
         private bool IsApplicationRoot(TypeDefinition type)
         {
-            if (type.HasCustomAttributes && type.CustomAttributes.Select(x => x.AttributeType).Any(IsApplicationRootAttribute))
+            if (type.HasCustomAttributes && type.CustomAttributes.Select(x => x.AttributeType)
+                                                                 .Any(IsApplicationRootAttribute))
                 return true;
 
             // Ceck base type for application root attribute with "IncludeDerivedTypes" set to true.
@@ -324,8 +398,12 @@ namespace Dot42.CompilerLib.Reachable
         /// </summary>
         private void FindConditionalIncludes()
         {
-            var reachableAssemblies = reachableTypes.Select(x => x.Module.Assembly).Where(x => x != null).Distinct().ToList();
-            foreach (var assembly in reachableAssemblies)
+            var reachableAssemblies = reachableTypes.Keys.Select(x => x.Module.Assembly)
+                                                         .Where(x => x != null)
+                                                         .Distinct()
+                                                         .ToList();
+            reachableAssemblies.AsParallel().ForAll(assembly =>
+            //reachableAssemblies.ForEach(assembly =>
             {
                 List<TypeConditionInclude> includes;
                 if (!conditionalIncludes.TryGetValue(assembly, out includes))
@@ -339,7 +417,7 @@ namespace Dot42.CompilerLib.Reachable
                 {
                     include.IncludeIfNeeded(this);
                 }
-            }
+            });
         }
 
         /// <summary>
@@ -401,7 +479,10 @@ namespace Dot42.CompilerLib.Reachable
                 // Look for Include attribute with ApplyToMembers set.
                 foreach (var attr in type.GetIncludeAttributes())
                 {
-                    var arg = attr.Properties.Where(x => x.Name == AttributeConstants.IncludeAttributeApplyToMembersName).Select(x => (bool)x.Argument.Value).FirstOrDefault();
+                    bool arg = attr.AttributeType.Namespace == AttributeConstants.Dot42AttributeNamespace
+                            && attr.AttributeType.Name == AttributeConstants.IncludeTypeAttributeName;
+
+                    arg = arg || attr.Properties.Where(x => x.Name == AttributeConstants.IncludeAttributeApplyToMembersName).Select(x => (bool)x.Argument.Value).FirstOrDefault();
                     if (arg)
                     {
                         target.Add(new TypeConditionInclude(member, null));                        
@@ -427,6 +508,36 @@ namespace Dot42.CompilerLib.Reachable
             return target;
         }
 
+        /// <summary>
+        /// Find the [Include(Pattern="...")] includes in the given assembly. 
+        /// </summary>
+        private static List<PatternInclude> FindPatternIncludes(AssemblyDefinition member)
+        {
+            var target = new List<PatternInclude>();
+            foreach (var attr in member.GetIncludeAttributes())
+            {
+                bool isGlobal = attr.Properties.Where(x => x.Name == AttributeConstants.IncludeAttributeIsGlobalName)
+                                         .Select(x => (bool)x.Argument.Value)
+                                         .FirstOrDefault();
+
+                var pattern = attr.Properties.Where(x => x.Name == AttributeConstants.IncludeAttributePatternName)
+                                             .Select(x => (string)x.Argument.Value)
+                                             .FirstOrDefault();
+
+                if (!string.IsNullOrEmpty(pattern))
+                {
+                    bool applyToMembers = attr.Properties.Where(x => x.Name == AttributeConstants.IncludeAttributeApplyToMembersName)
+                                             .Select(x => (bool)x.Argument.Value)
+                                             .FirstOrDefault();
+
+                    var patternIncl = new PatternInclude(pattern, applyToMembers, isGlobal);
+
+                    if (!patternIncl.IsEmpty)
+                        target.Add(patternIncl);
+                }
+            }
+            return target;
+        }
         /// <summary>
         /// Is the given type reference part of the "product" that should be included in the reachables search?
         /// </summary>
@@ -496,8 +607,8 @@ namespace Dot42.CompilerLib.Reachable
         /// </summary>
         public void RecordReachableType(TypeDefinition type)
         {
-            reachableTypes.Add(type);
-            CreateClassBuilder(type);
+            reachableTypesList = null;
+            reachableTypes[type] = true;
         }
 
         /// <summary>
@@ -507,15 +618,23 @@ namespace Dot42.CompilerLib.Reachable
         {
             if (!classFile.IsCreatedByLoader)
             {
-                reachableClasses.Add(classFile);
+                reachableClasses[classFile] = true;
                 CreateClassBuilder(classFile);
             }
         }
 
         /// <summary>
-        /// Gets all types recorded as reachable.
+        /// Gets all types recorded as reachable. After the completion phase, these are ordered by fullname.
         /// </summary>
-        public IEnumerable<TypeDefinition> ReachableTypes { get { return reachableTypes; } }
+        public IEnumerable<TypeDefinition> ReachableTypes
+        {
+            get
+            {
+                if(reachableTypesList != null)
+                    return reachableTypesList;
+                return reachableTypesList = reachableTypes.Keys.OrderBy(p=>p.FullName).ToList();
+            } 
+        }
 
         /// <summary>
         /// Create a class builder for the given type.
@@ -535,7 +654,7 @@ namespace Dot42.CompilerLib.Reachable
         {
             if ((!type.IsNested) && (!javaClassBuilders.ContainsKey(type)))
             {
-                javaClassBuilders.Add(type, Structure.Java.ClassBuilder.Create(compiler, type));
+                javaClassBuilders.TryAdd(type, Structure.Java.ClassBuilder.Create(compiler, type));
             }
         }
 
@@ -610,6 +729,59 @@ namespace Dot42.CompilerLib.Reachable
         }
 
         /// <summary>
+        /// Checks whether any normal parameters have an [SerializedParameter]-Attribute
+        /// </summary>
+        /// <param name="ref"></param>
+        /// <returns></returns>
+        internal bool HasSerializedParameters(MethodReference @ref)
+        {
+            var method = @ref.Resolve();
+            if (method == null)
+                return false;
+
+            if (method.HasSerializedParameters.HasValue)
+                return method.HasSerializedParameters.Value;
+
+            // evaluate all parameters, so that the results are available
+            bool ret = method.Parameters.Aggregate(false, (prev,p)=>IsSerializedParameter(method, p) || prev);
+            method.HasSerializedParameters = ret;
+            return ret;
+        }
+
+        private bool IsSerializedParameter(MethodDefinition method, ParameterReference @ref)
+        {
+            var paramDef = @ref.Resolve();
+            if (paramDef == null)
+                return false;
+
+            if (paramDef.IsSerializedParameter.HasValue)
+                return paramDef.IsSerializedParameter.Value;
+
+            bool isSerialized = paramDef.HasSerializedParameterAttribute();
+
+            if (!isSerialized)
+            {
+                // check inheritance 
+                var baseMethod = method.GetBaseMethod();
+
+                if (baseMethod != null)
+                {
+                    isSerialized = IsSerializedParameter(baseMethod, baseMethod.Parameters[@ref.Index]);
+                }
+            }
+            
+            if (!isSerialized)
+            {
+                // check interfaces.
+                isSerialized = method.GetBaseInterfaceMethods()
+                                     .Any(im => IsSerializedParameter(im, im.Parameters[@ref.Index]));    
+            }
+
+            paramDef.IsSerializedParameter = isSerialized;
+                return isSerialized;
+        }
+
+        /// <summary>
         /// Should the given class be considered a root?
         /// </summary>
         internal bool IsRoot(ClassFile classFile)
@@ -630,6 +802,11 @@ namespace Dot42.CompilerLib.Reachable
         public bool TryLoadClass(string className, out ClassFile result)
         {
             return assemblyClassLoader.TryLoadClass(className, out result);
+        }
+
+        public ClassSource TryGetClassSource(string className)
+        {
+            return assemblyClassLoader.TryGetClassSource(className);
         }
 
         /// <summary>

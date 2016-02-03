@@ -15,7 +15,7 @@
         /// </summary>
         public override string Name
         {
-            get { return "$Exception"; }
+            get { return "$exception"; }
         }
     }
 }

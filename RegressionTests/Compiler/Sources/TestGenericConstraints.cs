@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using Junit.Framework;
 
 namespace Dot42.Tests.Compiler.Sources
@@ -27,6 +29,12 @@ namespace Dot42.Tests.Compiler.Sources
         {
             var x = new GClass2<MyClass3>(new MyClass3());
             AssertEquals(15, x.GetValue());
+        }
+
+        public void testGClass4()
+        {
+            var x = new GenericWithTypeContraint<List<string>>();
+            AssertEquals(0, x.x);
         }
 
         private class MyClass
@@ -103,6 +111,31 @@ namespace Dot42.Tests.Compiler.Sources
             public int GetValue()
             {
                 return x.MyIntfFoo();
+            }
+        }
+
+        class NonGenericBaseClass
+        {
+            public int x;
+
+            public int GetX()
+            {
+                return x;
+            }
+            protected int Test(List<string> xx)
+            {
+                xx.Add("test");
+                return 0;
+            }
+        }
+
+        class GenericWithTypeContraint<T> : NonGenericBaseClass where T : List<string>, IList, new()
+        {
+            private T x;
+            public GenericWithTypeContraint()
+            {
+                x = new T();
+                Test(x);
             }
         }
     }

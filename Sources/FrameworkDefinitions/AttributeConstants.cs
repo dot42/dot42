@@ -21,11 +21,15 @@
         public const string FreeAppsKeyAttributeName = "FreeAppsKeyAttribute";
         public const string IgnoreAttributeName = "IgnoreAttribute";
         public const string IncludeAttributeName = "IncludeAttribute";
+        public const string IncludeTypeAttributeName = "IncludeTypeAttribute";
+        public const string SerializedParameterAttributeName = "SerializedParameterAttribute";
         public const string InlineAttributeName = "InlineAttribute";
         public const string JavaCodeAttributeName = "JavaCodeAttribute";
         public const string JavaImportAttributeName = "JavaImportAttribute";
         public const string IncludeAttributeTypeConditionName = "TypeCondition";
         public const string IncludeAttributeInstanceOfConditionName = "InstanceOfCondition";
+        public const string IncludeAttributeIsGlobalName = "IsGlobal";
+        public const string IncludeAttributePatternName = "Pattern";
         public const string IncludeAttributeApplyToMembersName = "ApplyToMembers";
         public const string IncludeAttributeTypeName = "Type";
         public const string FrameworkLibraryAttributeName = "FrameworkLibraryAttribute";

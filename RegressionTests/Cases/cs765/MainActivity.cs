@@ -1,6 +1,5 @@
 ﻿using System;
-using Android.App;
-using Android.Os;
+using Android.App;using Android.OS;
 using Android.Widget;
 using Dot42;
 using Dot42.Manifest;
@@ -19,7 +18,7 @@ namespace dot42parse
             Parse.Initialize(this, "hsVJWZFJfXHryDiaJmeu4O9eRJHmMObFeapUqUMA", "swAFyVV0mnRZ5D1xU1NTe7yzQH5jvQASvGZd1Yxw");
 
             base.OnCreate(savedInstance);
-            SetContentView(R.Layouts.MainLayout);
+            SetContentView(R.Layout.MainLayout);
         }
     }
 }

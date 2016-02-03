@@ -4,10 +4,45 @@ using System.Linq;
 using Dot42.CompilerLib.Ast;
 using Dot42.CompilerLib.Ast.Converters;
 using Dot42.CompilerLib.Ast.Optimizer;
+using Dot42.CompilerLib.Structure.DotNet;
 using Dot42.CompilerLib.XModel;
+using Dot42.FrameworkDefinitions;
 
 namespace Dot42.CompilerLib.Target
 {
+    public enum StopAstConversion
+    {
+        // Note: if adding values to this list, 
+        // make sure to update the DexInputLanguage in the ILSpy Plugin
+        None,
+        AfterILConversion,
+        AfterOptimizing,
+        AfterIntPtrConverter,
+        AfterTypeOfConverter,
+        AfterBranchOptimizer,
+        AfterCompoundAssignmentConverter,
+        AfterFixAsyncStateMachine,
+        AfterInterlockedConverter,
+        AfterByReferenceParamConverter,
+        AfterCompareUnorderedConverter,
+        AfterEnumConverter,
+        AfterEnumOptimizer,
+        AfterNullableConverter,
+        AfterPrimitiveAddressOfConverter,
+        AfterStructCallConverter,
+        AfterInitializeStructVariablesConverter,
+        AfterDelegateConverter,
+        AfterLdcWideConverter,
+        AfterLdLocWithConversionConverter,
+        AfterConvertAfterLoadConversionConverter,
+        AfterConvertBeforeStoreConversionConverter,
+        AfterCleanupConverter,
+        AfterGenericsConverter,
+        AfterCastConverter,
+        AfterGenericInstanceConverter,
+        AfterBranchOptimizer2
+    }
+
     /// <summary>
     /// Compile IL to Dex code.
     /// </summary>
@@ -16,7 +51,11 @@ namespace Dot42.CompilerLib.Target
         /// <summary>
         /// Convert the given method into optimized Ast format.
         /// </summary>
-        protected static AstNode CreateOptimizedAst(AssemblyCompiler compiler, MethodSource source)
+        internal protected static AstNode CreateOptimizedAst(AssemblyCompiler compiler, MethodSource source,
+            bool generateSetNextInstructionCode, 
+            StopAstConversion debugStop = StopAstConversion.None,
+            AstOptimizationStep debugStopOptimizing = AstOptimizationStep.None
+            )
         {
             // Build AST
             DecompilerContext context;
@@ -27,15 +66,15 @@ namespace Dot42.CompilerLib.Target
                 var astBuilder = new IL2Ast.AstBuilder(source.ILMethod, true, context);
                 var children = astBuilder.Build();
                 ast = new AstBlock(children.Select(x => x.SourceLocation).FirstOrDefault(), children);
-                if ((source.ILMethod.IsConstructor) && (source.Method.DeclaringType.Fields.Any(x => x.FieldType.IsEnum())))
+                if ((source.ILMethod.IsConstructor) && (source.Method.DeclaringType.Fields.Any(x => x.FieldType.IsEnum() || x.Name.EndsWith(NameConstants.Atomic.FieldUpdaterPostfix))))
                 {
                     // Ensure all fields are initialized
-                    AddFieldInitializationCode(source, ast);
+                    AddFieldInitializationCode(compiler, source, ast);
                 }
                 if (source.Method.NeedsGenericInstanceTypeParameter && (source.Name == ".ctor"))
                 {
-                    // Add code to safe the generic instance type parameter into the generic instance field.
-                    AddGenericInstanceFieldInitializationCode(ast);
+                    // Add code to save the generic instance type parameter into the generic instance field.
+                    AddGenericInstanceFieldInitializationCode(source, ast, compiler.Module.TypeSystem);
                 }
             }
             else if (source.IsJava)
@@ -54,12 +93,19 @@ namespace Dot42.CompilerLib.Target
                 throw new NotSupportedException("Unknown source");
             }
 
+            if (debugStop == StopAstConversion.AfterILConversion) return ast;
+
             // Optimize AST
             var astOptimizer = new AstOptimizer(context, ast);
-            astOptimizer.Optimize();
+            astOptimizer.Optimize(debugStopOptimizing);
+
+            if (debugStop == StopAstConversion.AfterOptimizing) return ast;
 
             // Optimize AST towards the target
-            TargetConverters.Convert(context, ast, source, compiler);
+            TargetConverters.Convert(context, ast, source, compiler, debugStop);
+
+            if(generateSetNextInstructionCode)
+                SetNextInstructionGenerator.Convert(ast, source, compiler);
 
             // Return return
             return ast;
@@ -68,7 +114,7 @@ namespace Dot42.CompilerLib.Target
         /// <summary>
         /// Add initialization code to the given constructor for non-initialized struct fields.
         /// </summary>
-        private static void AddFieldInitializationCode(MethodSource ctor, AstBlock ast)
+        private static void AddFieldInitializationCode(AssemblyCompiler compiler, MethodSource ctor, AstBlock ast)
         {
             List<XFieldDefinition> fieldsToInitialize;
             var declaringType = ctor.Method.DeclaringType;
@@ -76,6 +122,42 @@ namespace Dot42.CompilerLib.Target
             var index = 0;
             if (ctor.Method.IsStatic)
             {
+                var atomicUpdaters = declaringType.Fields.Where(x => x.Name.EndsWith(NameConstants.Atomic.FieldUpdaterPostfix));
+                foreach (var field in atomicUpdaters)
+                {
+                    var type = field.FieldType.Resolve();
+                    var factory = type.Methods.First(m => m.Name == "NewUpdater" && m.IsStatic 
+                                                      && (m.Parameters.Count==2 || m.Parameters.Count==3));
+                    var baseFieldName = field.Name.Substring(0, field.Name.Length - NameConstants.Atomic.FieldUpdaterPostfix.Length);
+
+                    var declaringTypeExpr = new AstExpression(ast.SourceLocation, AstCode.TypeOf, field.DeclaringType);
+                    var ldBaseFieldNameExpr = new AstExpression(ast.SourceLocation, AstCode.Ldstr, baseFieldName);
+
+                    AstExpression createExpr;
+                    if (factory.Parameters.Count == 2)
+                    {
+                        // doesn't need the original field type.
+                        createExpr = new AstExpression(ast.SourceLocation, AstCode.Call, factory,
+                                                            declaringTypeExpr, ldBaseFieldNameExpr)
+                                                .SetType(factory.ReturnType);
+                    }
+                    else
+                    {
+                        // needs the original field type; use the element type for generics.
+                        var originalField = declaringType.Fields.Single(f => f.Name==baseFieldName);
+                        var originalFieldType = originalField.FieldType;
+                        if (!originalFieldType.IsArray)
+                            originalFieldType = originalFieldType.GetElementType();
+
+                        var fieldTypeExpr = new AstExpression(ast.SourceLocation, AstCode.TypeOf, originalFieldType);
+                        createExpr = new AstExpression(ast.SourceLocation, AstCode.Call, factory,
+                                                            declaringTypeExpr, fieldTypeExpr, ldBaseFieldNameExpr)
+                                                .SetType(factory.ReturnType);
+                    }
+                    var initExpr = new AstExpression(ast.SourceLocation, AstCode.Stsfld, field, createExpr);
+                    ast.Body.Insert(index++, initExpr);
+                }
+
                 fieldsToInitialize = fieldsThatMayNeedInitialization.Where(x => x.IsStatic && !IsInitialized(ast, x)).ToList();
                 foreach (var field in fieldsToInitialize)
                 {
@@ -83,6 +165,7 @@ namespace Dot42.CompilerLib.Target
                     var initExpr = new AstExpression(ast.SourceLocation, AstCode.Stsfld, field, defaultExpr);
                     ast.Body.Insert(index++, initExpr);
                 }
+
             }
             else
             {
@@ -109,11 +192,23 @@ namespace Dot42.CompilerLib.Target
         /// <summary>
         /// Add generic instance field initialization code.
         /// </summary>
-        private static void AddGenericInstanceFieldInitializationCode(AstBlock ast)
+        private static void AddGenericInstanceFieldInitializationCode(MethodSource source, AstBlock ast, XTypeSystem typeSystem)
         {
-            var initExpr = new AstExpression(ast.SourceLocation, AstCode.StGenericInstanceField, null,
-                new AstExpression(ast.SourceLocation, AstCode.LdGenericInstanceTypeArgument, null));
-            InsertAfter(ast, null, new[] { initExpr });
+            int paramCount = source.Method.DeclaringType.GenericParameters.Count;
+            if (paramCount > InternalConstants.GenericTypeParametersAsArrayThreshold)
+            {
+                var xArrayType = new XArrayType(typeSystem.Type);
+                var loadExpr = new AstExpression(ast.SourceLocation, AstCode.LdGenericInstanceTypeArgument, 0) {ExpectedType = xArrayType};
+                var initExpr = new AstExpression(ast.SourceLocation, AstCode.StGenericInstanceField, 0, loadExpr)  { ExpectedType = xArrayType };
+                InsertAfter(ast, null, new[] {initExpr});
+            }
+            else
+            {
+                InsertAfter(ast, null, Enumerable.Range(0, paramCount).Select(i =>
+                    new AstExpression(ast.SourceLocation, AstCode.StGenericInstanceField, i,
+                        new AstExpression(ast.SourceLocation, AstCode.LdGenericInstanceTypeArgument, i)
+                            { ExpectedType = typeSystem.Type }) { ExpectedType = typeSystem.Type }));
+            }
         }
 
         /// <summary>

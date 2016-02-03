@@ -211,6 +211,14 @@ namespace Dot42.ImportJarLib
             // Do nothing
         }
 
+        public override void FillTypemapXml(JarFile jf, XElement parent)
+        {
+            var element = new XElement("type");
+            element.Add(new XAttribute("fullname", typeDef.FullName));
+            element.Add(new XAttribute("classname", typeDef.OriginalJavaClassName));
+            parent.Add(element);
+        }
+
         /// <summary>
         /// Gets the name of the given field
         /// </summary>

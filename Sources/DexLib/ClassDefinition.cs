@@ -1,12 +1,23 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Dot42.DexLib.IO;
 using Dot42.DexLib.Metadata;
+using Dot42.Utility;
 
 namespace Dot42.DexLib
 {
     public class ClassDefinition : ClassReference, IMemberDefinition
     {
+        // TODO: implement the freezable contract.
+
+        private readonly List<ClassDefinition> innerClasses;
+        private readonly List<WeakReference> belongsToDex = new List<WeakReference>();
+        private List<Annotation> _annotations;
+        private List<FieldDefinition> _fields;
+        private List<MethodDefinition> _methods;
+        private List<ClassReference> _interfaces;
+
         public ClassDefinition()
         {
             TypeDescriptor = TypeDescriptors.FullyQualifiedName;
@@ -15,34 +26,55 @@ namespace Dot42.DexLib
             Annotations = new List<Annotation>();
             Fields = new List<FieldDefinition>();
             Methods = new List<MethodDefinition>();
-            InnerClasses = new List<ClassDefinition>();
+            innerClasses = new List<ClassDefinition>();
+            GenericInstanceFields = new List<FieldDefinition>();
         }
 
         internal ClassDefinition(ClassReference cref)
             : this()
         {
-            Fullname = cref.Fullname;
-            Namespace = cref.Namespace;
-            Name = cref.Name;
+            fullNameCache = cref.Fullname;
+            ns = cref.Namespace;
+            name = cref.Name;
         }
 
         public int MapFileId { get; set; }
         public ClassReference SuperClass { get; set; }
-        public List<ClassDefinition> InnerClasses { get; set; }
-        public List<ClassReference> Interfaces { get; set; }
-        public string SourceFile { get; set; }
-        public List<FieldDefinition> Fields { get; set; }
-        public List<MethodDefinition> Methods { get; set; }
+        public ICollection<ClassDefinition> InnerClasses { get { return innerClasses.AsReadOnly(); } }
+        public IList<ClassReference> Interfaces { get { return _interfaces; } set { _interfaces = new List<ClassReference>(value); } }
+
+        public string SourceFile { get; internal set; }
+        public IList<FieldDefinition> Fields { get { return _fields; } set { _fields = new List<FieldDefinition>(value); } }
+        public IList<MethodDefinition> Methods { get { return _methods; } set { _methods = new List<MethodDefinition>(); } }
+
+        /// <summary>
+        /// Gets the underlying InnerClasses list. The caller must not add or remove
+        /// items from the list, but may change the order if items.
+        /// </summary>
+        /// <returns></returns>
+        internal IList<ClassDefinition> GetInnerClassesList() { return innerClasses; }
 
         /// <summary>
         /// Field holding generic type arguments
         /// </summary>
-        public FieldDefinition GenericInstanceField { get; set; }
+        public IList<FieldDefinition> GenericInstanceFields { get; private set; }
+
+        public bool GenericInstanceFieldIsTypeArray
+        {
+            get
+            {
+                return GenericInstanceFields.Count == 1 &&
+                       GenericInstanceFields[0].Type.Descriptor == "[Ljava.lang.Class;";
+            }
+        }
+
+        public ClassDefinition NullableMarkerClass { get; set; }
 
         #region IMemberDefinition Members
 
         public AccessFlags AccessFlags { get; set; }
-        public List<Annotation> Annotations { get; set; }
+        public IList<Annotation> Annotations { get { return _annotations; } set { _annotations = new List<Annotation>(value); } }
+
         public ClassDefinition Owner { get; set; }
 
         #endregion
@@ -65,6 +97,20 @@ namespace Dot42.DexLib
                 if (fdef.Name == name)
                     return fdef;
             return null;
+        }
+
+        /// <summary>
+        /// Set the source file. 
+        /// Returns false if the source file has
+        /// already been set to another value ealier.
+        /// </summary>
+        public bool SetSourceFile(string sourceFile)
+        {
+            if (SourceFile != null)
+                return SourceFile == sourceFile;
+
+            SourceFile = sourceFile;
+            return true;
         }
 
         #region " AccessFlags "
@@ -143,6 +189,24 @@ namespace Dot42.DexLib
 
         #endregion
 
+        public override string Fullname
+        { 
+            get { return base.Fullname; } 
+            set { var prev = Fullname; base.Fullname = value; NotifyDexChangedName(prev);} 
+        }
+
+        public override string Namespace
+        {
+            get { return base.Namespace; }
+            set { var prev = Fullname; base.Namespace = value; NotifyDexChangedName(prev); } 
+        }
+
+        public override string Name
+        {
+            get { return base.Name; }
+            set { var prev = Fullname; base.Name = value; NotifyDexChangedName(prev); }
+        }
+
         /// <summary>
         /// Is other equal to this?
         /// </summary>
@@ -152,9 +216,47 @@ namespace Dot42.DexLib
             return base.Equals(other);
         }
 
+        #region Dex Association
+
+        internal void RegisterDex(Dex dex)
+        {
+            belongsToDex.Add(new WeakReference(dex));
+        }
+
+        public void AddInnerClass(ClassDefinition inner)
+        {
+            innerClasses.Add(inner);
+
+            foreach(var dex in RegisteredDexes())
+                dex.RegisterInnerClass(this, inner);
+        }
+
+        private void NotifyDexChangedName(string previousFullName)
+        {
+            foreach (var dex in RegisteredDexes())
+                dex.OnNameChanged(this, previousFullName);
+        }
+
+        private IEnumerable<Dex> RegisteredDexes()
+        {
+            for (int i = 0; i < belongsToDex.Count; ++i)
+            {
+                var dex = belongsToDex[i].Target as Dex;
+                if (dex == null)
+                {
+                    belongsToDex.RemoveAt(i);
+                    --i;
+                    continue;
+                }
+                yield return dex;
+            }
+        }
+
+        #endregion
+
         #region " Static utilities "
 
-        internal static List<ClassDefinition> Flattenize(List<ClassDefinition> container)
+        internal static List<ClassDefinition> Flattenize(IEnumerable<ClassDefinition> container)
         {
             var result = new List<ClassDefinition>();
             foreach (var cdef in container)
@@ -168,23 +270,30 @@ namespace Dot42.DexLib
         internal static List<ClassDefinition> Hierarchicalize(List<ClassDefinition> container)
         {
             var result = new List<ClassDefinition>();
+            var dex = new DexLookup(container, false);
+
             foreach (var cdef in container)
             {
-                if (cdef.Fullname.Contains(DexConsts.InnerClassMarker))
+                int idx = cdef.Fullname.LastIndexOf(DexConsts.InnerClassMarker);
+
+                if (idx == -1)
                 {
-                    var items = cdef.Fullname.Split(DexConsts.InnerClassMarker);
-                    var fullname = items[0];
-                    var name = items[1];
-                    var owner = Dex.GetClass(fullname, container);
-                    if (owner != null)
-                    {
-                        owner.InnerClasses.Add(cdef);
-                        cdef.Owner = owner;
-                    }
+                    result.Add(cdef);
                 }
                 else
                 {
-                    result.Add(cdef);
+                    string ownerFullName = cdef.Fullname.Substring(0, idx);
+                    var owner = dex.GetClass(ownerFullName);
+                    if (owner != null)
+                    {
+                        owner.AddInnerClass(cdef);
+                        cdef.Owner = owner;
+                    }
+                    else
+                    {
+                        DLog.Error(DContext.CompilerCodeGenerator, "owner not found for inner class {0}", cdef.Fullname);
+                        result.Add(cdef);
+                    }
                 }
             }
             return result;

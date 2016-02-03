@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using Dot42.CompilerLib.Target;
@@ -19,9 +20,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
         private readonly ClassDefinition interfaceClass;
         private readonly Dictionary<XMethodDefinition, DelegateInstanceType> instances = new Dictionary<XMethodDefinition, DelegateInstanceType>();
         private Prototype invokePrototype;
-        private Prototype equalsPrototype;
         private readonly XMethodDefinition invokeMethod;
-        private readonly XMethodDefinition equalsMethod;
 
         /// <summary>
         /// Default ctor
@@ -34,15 +33,6 @@ namespace Dot42.CompilerLib.Structure.DotNet
 
             // Build invoke prototype
             invokeMethod = delegateType.Methods.First(x => x.EqualsName("Invoke"));
-            XTypeDefinition baseType = delegateType;
-            while ((null != baseType) && !baseType.Methods.Any(x => x.EqualsName("Equals")))
-            {
-                baseType = baseType.BaseType as XTypeDefinition;
-            }
-            if (null != baseType)
-            {
-                equalsMethod = baseType.Methods.First(x => x.EqualsName("Equals"));
-            }
         }
 
         /// <summary>
@@ -62,6 +52,11 @@ namespace Dot42.CompilerLib.Structure.DotNet
         }
 
         /// <summary>
+        /// get all created instances
+        /// </summary>
+        public ICollection<DelegateInstanceType> Instances { get { return instances.Values; } }
+
+        /// <summary>
         /// Gets the instance type that calls the given method.
         /// Create if needed.
         /// </summary>
@@ -77,15 +72,32 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 invokePrototype = PrototypeBuilder.BuildPrototype(compiler, targetPackage, interfaceClass, invokeMethod);
             }
 
-            if ((equalsPrototype == null) && (equalsMethod != null))
-            {
-                equalsPrototype = PrototypeBuilder.BuildPrototype(compiler, targetPackage, interfaceClass, equalsMethod);
-            }
+            
 
             // Not found, build it.
-            result = DelegateInstanceTypeBuilder.Create(sequencePoint, compiler, targetPackage, InterfaceClass, invokeMethod, invokePrototype, equalsMethod, equalsPrototype, calledMethod);
+            var builder = new DelegateInstanceTypeBuilder(sequencePoint, compiler, targetPackage, InterfaceClass, 
+                                                          invokeMethod, invokePrototype, calledMethod);
+            result = builder.Create();
             instances.Add(calledMethod, result);
             return result;
         }
+
+        private XMethodDefinition FindMethod(XTypeDefinition delegateType, string methodName)
+        {
+            while (true)
+            {
+                var ret = delegateType.Methods.FirstOrDefault(x => x.EqualsName(methodName));
+                if (ret != null)
+                    return ret;
+
+                var baseType = delegateType.BaseType;
+                if (baseType == null)
+                    return null;
+
+                delegateType = baseType.Resolve();
+            }
+        }
     }
+
+
 }

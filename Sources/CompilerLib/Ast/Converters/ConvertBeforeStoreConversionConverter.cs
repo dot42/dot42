@@ -25,6 +25,20 @@ namespace Dot42.CompilerLib.Ast.Converters
                             ConvertIfNeeded(arg, varType);                            
                         }
                         break;
+                    case AstCode.Ret:
+                        {
+                            // TODO: whats the difference between this and RLBuilder.ConvertTypeBeforeStore?
+                            if (node.Arguments.Count > 0)
+                            {
+                                var varType = node.Arguments[0].ExpectedType;
+                                if (varType != null)
+                                {
+                                    var arg = node.Arguments[0];
+                                    ConvertForRetIfNeeded(arg, varType);
+                                }
+                            }
+                        }
+                        break;
                     case AstCode.Stelem_I2:
                         {
                             var arrayElementType = node.Arguments[0].GetResultType().ElementType;
@@ -46,7 +60,8 @@ namespace Dot42.CompilerLib.Ast.Converters
             {
                 if (targetType.IsChar())
                 {
-                    if (argType.IsUInt16() || argType.IsByte()) Convert(arg, AstCode.Conv_U2, targetType);
+                    if (argType.IsUInt16() || argType.IsByte()) 
+                        Convert(arg, AstCode.Conv_U2, targetType);
                 }
                 else if (targetType.IsUInt16())
                 {
@@ -59,6 +74,29 @@ namespace Dot42.CompilerLib.Ast.Converters
             }
         }
 
+        /// <summary>
+        /// Convert the given argument if it does not match the target type.
+        /// </summary>
+        private static void ConvertForRetIfNeeded(AstExpression arg, XTypeReference targetType)
+        {
+            var argType = arg.GetResultType();
+            if (!targetType.IsSame(argType))
+            {
+                if (targetType.IsChar())
+                {
+                    if (argType.IsUInt16() || argType.IsByte() || argType.IsInt16())
+                        Convert(arg, AstCode.Conv_U2, targetType);
+                }
+                else if (targetType.IsUInt16())
+                {
+                    if (argType.IsChar() || argType.IsByte()) Convert(arg, AstCode.Int_to_ushort, targetType);
+                }
+                else if (targetType.IsInt16())
+                {
+                    if (argType.IsChar() || argType.IsByte()) Convert(arg, AstCode.Conv_I2, targetType);
+                }
+            }
+        }
         /// <summary>
         /// Convert the result of the given node to uint8/uint16 if needed.
         /// </summary>

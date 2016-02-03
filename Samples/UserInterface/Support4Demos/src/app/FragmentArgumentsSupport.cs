@@ -18,10 +18,8 @@ using Support4Demos;
 
 using Android.Support.V4.App;
 
-using Android.Content.Res;
-using Android.Os;
-using Android.Util;
-using Android.View;
+using Android.Content.Res;using Android.OS;
+using Android.Util;using Android.Views;
 using Android.Widget;
 
 using Java.Lang;
@@ -41,13 +39,13 @@ namespace com.example.android.supportv4.app
 
         protected override void OnCreate(Bundle savedInstanceState) {
             base.OnCreate(savedInstanceState);
-            SetContentView(R.Layouts.fragment_arguments_support);
+            SetContentView(R.Layout.fragment_arguments_support);
 
             if (savedInstanceState == null) {
                 // First-time init; create fragment to embed in activity.
                 FragmentTransaction ft = GetSupportFragmentManager().BeginTransaction();
                 Fragment newFragment = MyFragment.NewInstance("From Arguments");
-                ft.Add(R.Ids.created, newFragment);
+                ft.Add(R.Id.created, newFragment);
                 ft.Commit();
             }
         }
@@ -103,10 +101,10 @@ namespace com.example.android.supportv4.app
              */
             public override View OnCreateView(LayoutInflater Inflater, ViewGroup container,
                     Bundle savedInstanceState) {
-                View v = Inflater.Inflate(R.Layouts.hello_world, container, false);
-                View tv = v.FindViewById(R.Ids.text);
-                ((TextView)tv).SetText(mLabel != null ? mLabel : "(no label)");
-                tv.SetBackgroundDrawable(GetResources().GetDrawable(global::Android.R.Drawable.Gallery_thumb));
+                View v = Inflater.Inflate(R.Layout.hello_world, container, false);
+                View tv = v.FindViewById(R.Id.text);
+                ((TextView)tv).Text = (mLabel != null ? mLabel : "(no label)");
+                tv.SetBackgroundDrawable(Resources.GetDrawable(global::Android.R.Drawable.Gallery_thumb));
                 return v;
             }
         }

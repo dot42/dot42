@@ -16,8 +16,7 @@
 
 using Android.App;
 using Android.Content;
-using Android.Opengl;
-using Android.Os;
+using Android.Opengl;using Android.OS;
 using Dot42.Manifest;
 
 [assembly: Application("OpenGLES20Basic")]
@@ -73,7 +72,7 @@ namespace com.example.android.opengl
             SetRenderer(new MyGLRenderer());
 
             // Render the view only when there is a change in the drawing data
-            SetRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+            RenderMode = (GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         }
     }
 }

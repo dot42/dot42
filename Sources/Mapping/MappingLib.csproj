@@ -39,11 +39,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\Version.cs" />
+    <Compile Include="SourceCodePosition.cs" />
     <Compile Include="FrameworkTypeMap.cs" />
+    <Compile Include="MapFileLookup.cs" />
     <Compile Include="ParameterList.cs" />
     <Compile Include="RegisterEntryList.cs" />
     <Compile Include="Parameter.cs" />
     <Compile Include="RegisterEntry.cs" />
+    <Compile Include="ScopeEntry.cs" />
     <Compile Include="Variable.cs" />
     <Compile Include="DocumentPoint.cs" />
     <Compile Include="Document.cs" />

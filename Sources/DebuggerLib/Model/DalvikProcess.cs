@@ -1,288 +1,361 @@
 ﻿using System;
 using System.Linq;
+using System.Management.Instrumentation;
 using System.Threading.Tasks;
 using Dot42.Mapping;
+using Dot42.Utility;
 using TallComponents.Common.Extensions;
 
 namespace Dot42.DebuggerLib.Model
 {
-	/// <summary>
-	/// Wraps the entire virtual machine process.
-	/// </summary>
-	public class DalvikProcess
-	{
-		public static int VmTimeout = 15 * 1000;
-		private readonly Debugger debugger;
-		private DalvikBreakpointManager breakpointManager;
-		private DalvikExceptionManager exceptionManager;
-		private DalvikReferenceTypeManager referenceTypeManager;
-		private DalvikThreadManager threadManager;
-		private readonly DalvikStepManager stepManager = new DalvikStepManager();
-		private readonly MapFile mapFile;
-		private StepRequest lastStepRequest;
-		private bool isSuspended;
+    /// <summary>
+    /// Wraps the entire virtual machine process.
+    /// </summary>
+    public class DalvikProcess
+    {
+        public string ApkPath { get; set; }
+        public static int VmTimeout = 15*1000;
+        private readonly Debugger debugger;
+        private readonly Lazy<DalvikBreakpointManager> breakpointManager;
+        private readonly Lazy<DalvikExceptionManager> exceptionManager;
+        private readonly Lazy<DalvikReferenceTypeManager> referenceTypeManager;
+        private readonly Lazy<DalvikThreadManager> threadManager;
+        private readonly Lazy<DalvikDisassemblyProvider> disassemblyProvider;
+        private readonly DalvikStepManager stepManager = new DalvikStepManager();
+        private readonly MapFileLookup mapFile;
+        private bool isSuspended;
 
-		/// <summary>
-		/// The process suspend status has changed.
-		/// </summary>
-		public event EventHandler IsSuspendedChanged;
+        /// <summary>
+        /// The process suspend status has changed.
+        /// </summary>
+        public event EventHandler IsSuspendedChanged;
 
-		/// <summary>
-		/// Default ctor
-		/// </summary>
-		public DalvikProcess(Debugger debugger, MapFile mapFile)
-		{
-			this.debugger = debugger;
-			debugger.Process = this;
-			this.mapFile = mapFile;
-			debugger.ConnectedChanged += OnDebuggerConnectionChanged;
-		}
+        /// <summary>
+        /// Default ctor
+        /// </summary>
+        public DalvikProcess(Debugger debugger, MapFile mapFile, string apkPath)
+        {
+            ApkPath = apkPath;
+            this.debugger = debugger;
+            debugger.Process = this;
+            this.mapFile = new MapFileLookup(mapFile);
+            debugger.ConnectedChanged += OnDebuggerConnectionChanged;
+            breakpointManager = new Lazy<DalvikBreakpointManager>(CreateBreakpointManager);
+            exceptionManager = new Lazy<DalvikExceptionManager>(CreateExceptionManager);
+            referenceTypeManager = new Lazy<DalvikReferenceTypeManager>(CreateReferenceTypeManager);
+            threadManager = new Lazy<DalvikThreadManager>(CreateThreadManager);
+            disassemblyProvider =
+                new Lazy<DalvikDisassemblyProvider>(() => new DalvikDisassemblyProvider(this, ApkPath, this.mapFile));
 
-		/// <summary>
-		/// Is this process in suspended state?
-		/// </summary>
-		public bool IsSuspended { get{return isSuspended; }}
-		
-		/// <summary>
-		/// Suspend the entire process.
-		/// </summary>
-		public Task SuspendAsync()
-		{
-			return debugger.VirtualMachine.SuspendAsync().ContinueWith(x => OnSuspended(SuspendReason.ProcessSuspend, null));
-		}
+        }
 
-		/// <summary>
-		/// Resume the entire process
-		/// </summary>
-		public Task ResumeAsync()
-		{
-			return debugger.VirtualMachine.ResumeAsync().ContinueWith(x => OnResumed());
-		}
+        /// <summary>
+        /// Is this process in suspended state?
+        /// </summary>
+        public bool IsSuspended { get { return isSuspended; } }
 
-		/// <summary>
-		/// Perform a single step on the given thread.
-		/// </summary>
-		public Task StepAsync(StepRequest request)
-		{
-			// Set event
-			lastStepRequest = request;
-			var thread = request.Thread;
-			var setTask = debugger.EventRequest.SetAsync(Jdwp.EventKind.SingleStep, Jdwp.SuspendPolicy.All, new EventStepModifier(thread.Id, Jdwp.StepSize.Line, request.StepDepth));
-			return setTask.ContinueWith(t => {
-			                            	t.ForwardException();
-			                            	// Record step
-			                            	StepManager.Add(new DalvikStep(thread, t.Result));
-			                            	// Resume execution
-			                            	return debugger.VirtualMachine.ResumeAsync().ContinueWith(x => OnResumed());
-			                            }).Unwrap();
-		}
+        /// <summary>
+        /// Suspend the entire process.
+        /// </summary>
+        public Task SuspendAsync()
+        {
+            return
+                debugger.VirtualMachine.SuspendAsync()
+                    .ContinueWith(x => OnSuspended(SuspendReason.ProcessSuspend, null));
+        }
 
-		/// <summary>
-		/// Perform the last step request again.
-		/// </summary>
-		private Task StepOutLastRequestAsync()
-		{
-			var request = lastStepRequest;
-			if (request == null)
-				return null;
-			return StepAsync(new StepRequest(request.Thread, Jdwp.StepDepth.Out));
-		}
+        /// <summary>
+        /// Resume the entire process
+        /// </summary>
+        public Task ResumeAsync()
+        {
+            return debugger.VirtualMachine.ResumeAsync().ContinueWith(x => OnResumed());
+        }
 
-		/// <summary>
-		/// Stop the entire process and disconnect the debugger.
-		/// </summary>
-		public void ExitAndDisconnect(int exitCode)
-		{
-			if (debugger.Connected)
-			{
-				debugger.VirtualMachine.Exit(exitCode);
-				debugger.Disconnect();
-			}
-		}
+        /// <summary>
+        /// Perform a single step on the given thread.
+        /// </summary>
+        public Task StepAsync(StepRequest request)
+        {
+            var thread = request.Thread;
+            var stepSize = request.StepMode == StepMode.SingleInstruction ? Jdwp.StepSize.Minimum : Jdwp.StepSize.Line;
 
-		/// <summary>
-		/// Debugger has disconnected.
-		/// </summary>
-		protected virtual void OnConnectionLost()
-		{
-			// Override me
-		}
+            var setTask = debugger.EventRequest.SetAsync(Jdwp.EventKind.SingleStep, Jdwp.SuspendPolicy.All,
+                new EventStepModifier(thread.Id, stepSize,
+                    request.StepDepth));
+            return setTask.ContinueWith(t =>
+            {
+                t.ForwardException();
+                // Record step
+                StepManager.Add(new DalvikStep(thread, t.Result, request));
+                // Resume execution
+                return debugger.VirtualMachine.ResumeAsync().ContinueWith(x => OnResumed());
+            }).Unwrap();
+        }
 
-		/// <summary>
-		/// Notify listeners that we're suspended.
-		/// </summary>
-		/// <param name="reason">The reason the VM is suspended</param>
-		/// <param name="thread">The thread involved in the suspend. This can be null depending on the reason.</param>
-		/// <returns>True if the suspend is performed, false if execution is continued.</returns>
-		protected internal virtual bool OnSuspended(SuspendReason reason, DalvikThread thread)
-		{
-			if ((reason == SuspendReason.SingleStep) && (thread != null))
-			{
-				// Make sure we're are a location where we have a source.
-				thread.OnProcessSuspended(reason, true);
-				var topFrame = thread.GetCallStack().FirstOrDefault();
-				if (topFrame != null)
-				{
-					var location = topFrame.GetDocumentLocationAsync().Await(VmTimeout);
-					if (location.Document == null)
-					{
-						// Not my code
-						StepOutLastRequestAsync();
-						return false;
-					}
-				}
-			}
-			ThreadManager.OnProcessSuspended(reason, thread);
-			ReferenceTypeManager.OnProcessSuspended(reason);
-			isSuspended = true;
-			IsSuspendedChanged.Fire(this);
-			return true;
-		}
-		
-		/// <summary>
-		/// Process has resumed
-		/// </summary>
-		protected virtual void OnResumed() {
-			isSuspended = false;
-			IsSuspendedChanged.Fire(this);
-		}
+        /// <summary>
+        /// Perform the last step request again.
+        /// </summary>
+        private Task StepOutLastRequestAsync(StepRequest request)
+        {
+            if (request == null)
+                return null;
+            return StepAsync(new StepRequest(request.Thread, Jdwp.StepDepth.Out));
+        }
 
-		/// <summary>
-		/// Maintains information about registered breakpoints
-		/// </summary>
-		public DalvikBreakpointManager BreakpointManager
-		{
-			get { return breakpointManager ?? (breakpointManager = CreateBreakpointManager()); }
-		}
+        /// <summary>
+        /// Stop the entire process and disconnect the debugger.
+        /// </summary>
+        public void ExitAndDisconnect(int exitCode)
+        {
+            if (debugger.Connected)
+            {
+                debugger.VirtualMachine.Exit(exitCode);
+                debugger.Disconnect();
+            }
+        }
 
-		/// <summary>
-		/// Maintains information about exceptions
-		/// </summary>
-		public DalvikExceptionManager ExceptionManager
-		{
-			get { return exceptionManager ?? (exceptionManager = CreateExceptionManager()); }
-		}
+        /// <summary>
+        /// Debugger has disconnected.
+        /// </summary>
+        protected virtual void OnConnectionLost()
+        {
+            // Override me
+        }
 
-		/// <summary>
-		/// Maintains information about classes.
-		/// </summary>
-		public DalvikReferenceTypeManager ReferenceTypeManager
-		{
-			get { return referenceTypeManager ?? (referenceTypeManager = CreateReferenceTypeManager()); }
-		}
+        /// <summary>
+        /// Notify listeners that we're suspended.
+        /// </summary>
+        /// <param name="reason">The reason the VM is suspended</param>
+        /// <param name="thread">The thread involved in the suspend. This can be null depending on the reason.</param>
+        /// <param name="request">A step request, if any.</param>
+        /// <returns>True if the suspend is performed, false if execution is continued.</returns>
+        protected internal virtual bool OnSuspended(SuspendReason reason, DalvikThread thread, StepRequest request = null)
+        {
+            if (reason == SuspendReason.SingleStep && thread != null && request != null && request.Thread != null)
+            {
+                // Make sure we're are a location where we have a source.
+                thread.OnProcessSuspended(reason, true);
+                var topFrame = thread.GetCallStack().FirstOrDefault();
+                if (topFrame != null)
+                {
+                    var location = topFrame.GetDocumentLocationAsync().Await(VmTimeout);
+                    if (location.SourceCode == null)
+                    {
+                        // Not my code
+                        StepOutLastRequestAsync(request);
+                        return false;
+                    }
 
-		/// <summary>
-		/// Maintains information about threads.
-		/// </summary>
-		public DalvikThreadManager ThreadManager
-		{
-			get { return threadManager ?? (threadManager = CreateThreadManager()); }
-		}
+                    // check if we have a valid source code position, or if this is 
+                    // compiler generated code (in which case dalvik will perform single stepping)
+                    if (request.StepMode != StepMode.SingleInstruction)
+                    {
+                        if (location.SourceCode == null || location.SourceCode.IsSpecial ||
+                            location.Location.Index < (ulong)location.SourceCode.Position.MethodOffset)
+                        {
+                            var stepDepth = request.StepDepth == Jdwp.StepDepth.Out ? Jdwp.StepDepth.Over : request.StepDepth;
+                            StepAsync(new StepRequest(request.Thread, stepDepth, request.StepMode));
+                            return false;
+                        }
+                    }
+                }
+            }
+            ThreadManager.OnProcessSuspended(reason, thread);
+            ReferenceTypeManager.OnProcessSuspended(reason);
+            isSuspended = true;
+            IsSuspendedChanged.Fire(this);
+            return true;
+        }
 
-		/// <summary>
-		/// Gets the holder of steps.
-		/// </summary>
-		internal DalvikStepManager StepManager { get { return stepManager; } }
+        /// <summary>
+        /// Process has resumed
+        /// </summary>
+        protected virtual void OnResumed()
+        {
+            isSuspended = false;
+            IsSuspendedChanged.Fire(this);
+        }
 
-		/// <summary>
-		/// Resolve the given dalvik location to a source location.
-		/// </summary>
-		public Task<DocumentLocation> ResolveAsync(Location location)
-		{
-			return Task.Factory.StartNew(() => DoResolve(location), TaskCreationOptions.LongRunning);
-		}
+        /// <summary>
+        /// Maintains information about registered breakpoints
+        /// </summary>
+        public DalvikBreakpointManager BreakpointManager { get { return breakpointManager.Value; } }
 
-		/// <summary>
-		/// Resolve the given dalvik location to a source location.
-		/// </summary>
-		private DocumentLocation DoResolve(Location location)
-		{
-			var refType = ReferenceTypeManager[location.Class];
-			DalvikMethod method = null;
-			if (refType != null)
-			{
-				method = refType.GetMethodsAsync().Select(t => {
-				                                          	DalvikMethod m;
-				                                          	return t.TryGetMember(location.Method, out m) ? m : null;
-				                                          }).Await(VmTimeout);
-			}
+        /// <summary>
+        /// Maintains information about exceptions
+        /// </summary>
+        public DalvikExceptionManager ExceptionManager { get { return exceptionManager.Value; } }
 
-			var typeName = (refType != null) ? refType.GetNameAsync().Await(VmTimeout) : null;
-			var typeEntry = (typeName != null) ? mapFile.GetTypeByNewName(typeName) : null;
-			var methodDexName = (method != null) ? method.Name : null;
-			var methodDexSignature = (method != null) ? method.Signature : null;
-			var methodEntry = ((typeEntry != null) && (method != null)) ? typeEntry.FindDexMethod(methodDexName, methodDexSignature) : null;
+        /// <summary>
+        /// Maintains information about classes.
+        /// </summary>
+        public DalvikReferenceTypeManager ReferenceTypeManager { get { return referenceTypeManager.Value; } }
 
-			Document document = null;
-			DocumentPosition position = null;
-			if (methodEntry != null)
-			{
-				mapFile.TryFindLocation(typeEntry, methodEntry, (int) location.Index, out document, out position);
-			}
+        /// <summary>
+        /// Maintains information about threads.
+        /// </summary>
+        public DalvikThreadManager ThreadManager { get { return threadManager.Value; } }
 
-			return new DocumentLocation(location, document, position, refType, method, typeEntry, methodEntry);
-		}
+        /// <summary>
+        /// Provides information retrieved from the .APK
+        /// </summary>
+        public DalvikDisassemblyProvider DisassemblyProvider { get { return disassemblyProvider.Value; } }
 
-		/// <summary>
-		/// Create our breakpoint manager.
-		/// </summary>
-		protected virtual DalvikBreakpointManager CreateBreakpointManager()
-		{
-			return new DalvikBreakpointManager(this);
-		}
 
-		/// <summary>
-		/// Create our exception manager.
-		/// </summary>
-		protected virtual DalvikExceptionManager CreateExceptionManager()
-		{
-			return new DalvikExceptionManager(this);
-		}
+        /// <summary>
+        /// Gets the holder of steps.
+        /// </summary>
+        internal DalvikStepManager StepManager { get { return stepManager; } }
 
-		/// <summary>
-		/// Create our class manager.
-		/// </summary>
-		protected virtual DalvikReferenceTypeManager CreateReferenceTypeManager()
-		{
-			return new DalvikReferenceTypeManager(this);
-		}
+        /// <summary>
+        /// Resolve the given dalvik location to a source location.
+        /// </summary>
+        public Task<DocumentLocation> ResolveAsync(Location location)
+        {
+            return Task.Factory.StartNew(() => DoResolve(location), TaskCreationOptions.LongRunning);
+        }
 
-		/// <summary>
-		/// Create our thread manager.
-		/// </summary>
-		protected virtual DalvikThreadManager CreateThreadManager()
-		{
-			return new DalvikThreadManager(this);
-		}
+        /// <summary>
+        /// Resolve the given dalvik location to a source location.
+        /// </summary>
+        private DocumentLocation DoResolve(Location location)
+        {
+            var refType = ReferenceTypeManager[location.Class];
+            DalvikMethod method = null;
+            if (refType != null)
+            {
+                method = refType.GetMethodsAsync().Select(t =>
+                {
+                    DalvikMethod m;
+                    return t.TryGetMember(location.Method, out m) ? m : null;
+                }).Await(VmTimeout);
+            }
 
-		/// <summary>
-		/// Gets access to the low level debugger connection.
-		/// </summary>
-		protected internal Debugger Debugger { get { return debugger; } }
+            var typeSignature = (refType != null) ? refType.GetSignatureAsync().Await(VmTimeout) : null;
+            var methodDexName = (method != null) ? method.Name : null;
+            var methodDexSignature = (method != null) ? method.Signature : null;
 
-		/// <summary>
-		/// Gets access to the debug map file.
-		/// </summary>
-		protected internal MapFile MapFile { get { return mapFile; } }
+            var methodEntry = (typeSignature != null && methodDexSignature != null)
+                                        ? mapFile.GetMethodByDexSignature(typeSignature, methodDexName, methodDexSignature)
+                                        : null;
 
-		/// <summary>
-		/// Initialize the debugger so we're ready to start debugging.
-		/// </summary>
-		internal Task PrepareForDebuggingAsync()
-		{
-			// Prepare all managers
-			return ExceptionManager.PrepareForDebuggingAsync().ContinueWith(t => ReferenceTypeManager.PrepareForDebuggingAsync()).Unwrap();
-		}
+            var typeEntry = (methodEntry != null ? mapFile.GetTypeByMethodId(methodEntry.Id) : null) 
+                       ?? (typeSignature != null ? mapFile.GetTypeBySignature(typeSignature) : null);
 
-		/// <summary>
-		/// Listener for connection changes
-		/// </summary>
-		private void OnDebuggerConnectionChanged(object sender, EventArgs e)
-		{
-			if (!debugger.Connected)
-			{
-				OnConnectionLost();
-			}
-		}
-	}
+            if(typeEntry == null && refType != null)
+            {
+                var typeClrName = refType.GetNameAsync().Await(VmTimeout);
+                typeEntry = mapFile.GetTypeByClrName(typeClrName);
+            }
+
+            SourceCodePosition position = null;
+            if (methodEntry != null)
+            {
+                position = mapFile.FindSourceCode(methodEntry, (int) location.Index);
+            }
+
+            return new DocumentLocation(location, position, refType, method, typeEntry, methodEntry);
+        }
+
+        /// <summary>
+        /// Get a DocumentLocation from a SourceCodePosition. This will only return locations
+        /// for classes that have already been loaded by the VM. Delegates are typically not
+        /// loaded until their first invocation.
+        /// </summary>
+        public Task<DocumentLocation> GetLocationFromPositionAsync(SourceCodePosition sourcePos)
+        {
+            return Task.Factory.StartNew(() =>
+            {
+                // Lookup class & method
+                var typeEntry = MapFile.GetTypeById(sourcePos.Position.TypeId);
+                if (typeEntry == null)
+                    return null;
+                var methodEntry = typeEntry.GetMethodById(sourcePos.Position.MethodId);
+                if (methodEntry == null)
+                    return null;
+
+                var signature = typeEntry.DexSignature;
+                var refType = ReferenceTypeManager.FindBySignature(signature);
+                if (refType == null)
+                    return null;
+
+                var refTypeMethods = refType.GetMethodsAsync().Await(VmTimeout);
+                var dmethod = refTypeMethods.FirstOrDefault(x => x.IsMatch(methodEntry));
+                if (dmethod == null)
+                    return null;
+
+                var loc = new Location(refType.Id, dmethod.Id, (ulong)sourcePos.Position.MethodOffset);
+
+                return new DocumentLocation(loc, sourcePos, refType, dmethod, typeEntry, methodEntry);
+            });
+        }
+
+        /// <summary>
+        /// Create our breakpoint manager.
+        /// </summary>
+        protected virtual DalvikBreakpointManager CreateBreakpointManager()
+        {
+            return new DalvikBreakpointManager(this);
+        }
+
+        /// <summary>
+        /// Create our exception manager.
+        /// </summary>
+        protected virtual DalvikExceptionManager CreateExceptionManager()
+        {
+            return new DalvikExceptionManager(this);
+        }
+
+        /// <summary>
+        /// Create our class manager.
+        /// </summary>
+        protected virtual DalvikReferenceTypeManager CreateReferenceTypeManager()
+        {
+            return new DalvikReferenceTypeManager(this);
+        }
+
+        /// <summary>
+        /// Create our thread manager.
+        /// </summary>
+        protected virtual DalvikThreadManager CreateThreadManager()
+        {
+            return new DalvikThreadManager(this);
+        }
+
+        /// <summary>
+        /// Gets access to the low level debugger connection.
+        /// </summary>
+        protected internal Debugger Debugger { get { return debugger; } }
+
+        /// <summary>
+        /// Gets access to the debug map file.
+        /// </summary>
+        protected internal MapFileLookup MapFile { get { return mapFile; } }
+
+        /// <summary>
+        /// Initialize the debugger so we're ready to start debugging.
+        /// </summary>
+        internal Task PrepareForDebuggingAsync()
+        {
+            // Prepare all managers
+            return
+                ExceptionManager.PrepareForDebuggingAsync()
+                    .ContinueWith(t => ReferenceTypeManager.PrepareForDebuggingAsync())
+                    .Unwrap();
+        }
+
+        /// <summary>
+        /// Listener for connection changes
+        /// </summary>
+        private void OnDebuggerConnectionChanged(object sender, EventArgs e)
+        {
+            if (!debugger.Connected)
+            {
+                OnConnectionLost();
+            }
+        }
+
+
+    }
 }

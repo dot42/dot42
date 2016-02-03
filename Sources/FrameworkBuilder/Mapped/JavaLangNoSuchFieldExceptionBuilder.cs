@@ -19,7 +19,7 @@ namespace Dot42.FrameworkBuilder.Mapped
         /// Default ctor
         /// </summary>
         internal JavaLangNoSuchFieldExceptionBuilder(ClassFile cf)
-            : base(cf, "System.MissingFieldException", "java/lang/NoSuchFieldException")
+            : base(cf, "System.MissingFieldException", "java/lang/NoSuchFieldError")
         {
         }
     }

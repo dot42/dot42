@@ -69,6 +69,7 @@
     <Compile Include="Bytecode\Instruction.cs" />
     <Compile Include="ClassName.cs" />
     <Compile Include="ClassSignature.cs" />
+    <Compile Include="ClassSource.cs" />
     <Compile Include="Generated\Code.cs" />
     <Compile Include="IAccessModifiers.cs" />
     <Compile Include="IReachableContext.cs" />

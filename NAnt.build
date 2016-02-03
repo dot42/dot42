@@ -4,17 +4,14 @@
 	<property name="nant.settings.currentframework" value="net-4.0" />
 
 	<property name="basedir" value="${project::get-base-directory()}" />
-	<include buildfile="${basedir}\Common\Build\Common.build"/>
-	<include buildfile="${basedir}\Common\Build\Common-Release.build"/>
-	<property name="vs10comntools" value="${environment::get-variable('VS100COMNTOOLS')}"/>
-	<property name="vs11comntools" value="${environment::get-variable('VS110COMNTOOLS')}"/>
-	<property name="vs12comntools" value="${environment::get-variable('VS120COMNTOOLS')}"/>
-	<property name="devenvdir" value="${path::get-full-path(path::combine(vs10comntools, '..\ide'))}"/>
-	<property name="devenv11dir" value="${path::get-full-path(path::combine(vs11comntools, '..\ide'))}"/>
-	<property name="devenv12dir" value="${path::get-full-path(path::combine(vs12comntools, '..\ide'))}"/>
-	<property name="devenv" value="${devenvdir}\devenv.com"/>
-	<property name="devenv11" value="${devenv11dir}\devenv.com"/>
+	<property name="buildtoolsdir" value="${basedir}\Common\Build" />
+	
+	<include buildfile="${buildtoolsdir}\Common.build"/>
+	<include buildfile="${buildtoolsdir}\Common-Release.build"/>	
+	
+
 	<property name="adb" value="${basedir}\Binaries\Platform-tools\adb.exe"/>
+
 
 	<property name="product" value="dot42"/>
 	<property name="configuration" value="Release" />
@@ -22,7 +19,7 @@
 	<!-- property name="targets" value="Android,BlackBerry" / -->
 	<property name="targets" value="Android" />
 
-	<property name="default-api-level" value="15"/>
+	<property name="default-api-level" value="18"/>
 
 	<property name="builddir" value="${basedir}\Build" />
 	<property name="productdir" value="${basedir}\Product"/>
@@ -48,7 +45,7 @@
 				<include name="**/output/**" />
 				<include name="**/*.sln.cache" />
 				<include name="**/*.suo" />
-				<include name="**/*.user" />
+				<!--include name="**/*.user" /-->
 				<include name="Build/**" />
 				<exclude name="SharpDevelop/**" />
 				<exclude name="**/.git/**" />
@@ -58,17 +55,17 @@
 
 	<target name="remove-installed-product" description="remove the files from C:\Program Files (x86)\Microsoft Visual Studio 10.0\Common7\IDE\Extensions">
 		<!-- Remove the installed product -->
-		<delete verbose="true">
+		<delete verbose="true" failonerror="false">
 			<fileset basedir="${devenvdir}\Extensions">
 				<include name="dot42/**" />
 			</fileset>
 		</delete>
-		<delete verbose="true">
+		<delete verbose="true" failonerror="false">
 			<fileset basedir="${devenv11dir}\Extensions">
 				<include name="dot42/**" />
 			</fileset>
 		</delete>
-		<delete verbose="true">
+		<delete verbose="true" failonerror="false">
 			<fileset basedir="${devenv12dir}\Extensions">
 				<include name="dot42/**" />
 			</fileset>
@@ -85,7 +82,7 @@
 
 	<target name="remove-extension" description="Remove VisualStudio extensions">
 		<foreach item="String" in="${targets}" delim="," property="target">
-			<property name="extensiondir" value="${devenvdir}\Extensions\dot42 C# for ${target}\1.0"/>
+			<property name="extensiondir" value="${devenvdir}\Extensions\dot42 C# for ${target}\1.1"/>
 			<property name="manifestfile" value="${extensiondir}\extension.vsixmanifest"/>
 			<move file="${manifestfile}" tofile="${manifestfile}.delete" if="${file::exists(manifestfile)}"/>
 			<delete dir="${extensiondir}"/>
@@ -96,7 +93,8 @@
 		<msbuild project="${basedir}\Tools.sln" target="Rebuild">
 			<property name="Configuration" value="${configuration}"/>
 		</msbuild>
-		<msbuild project="${basedir}\VStudio11.sln" target="Rebuild">
+		<!-- do not fail on errors when building the XML editor components for the various versions of VS. -->		     
+		<msbuild project="${basedir}\VStudio.Xml.sln" target="Rebuild" failonerror="false">
 			<property name="Configuration" value="${configuration}"/>
 		</msbuild>
 		<msbuild project="${basedir}\VStudio.Android.sln" target="Rebuild">
@@ -191,8 +189,8 @@
 		<!-- Test all verififability -->
 		<peverify>
 			<assemblies basedir="${appdir}">
-				<include name="ApkSpy.exe"/>
-				<include name="dot42DevCenter.exe"/>
+				<include name="dot42ApkSpy.exe"/>
+				<include name="Android\dot42DevCenter.exe"/>
 				<include name="dot42Check.exe"/>
 				<include name="dot42Compiler.exe"/>
 				<exclude name="dot42.VStudio10.dll"/>
@@ -203,7 +201,7 @@
 		<assembly-reference-check>
 			<assemblies basedir="${appdir}">
 				<include name="dot42ApkSpy.exe"/>
-				<include name="dot42DevCenter.exe"/>
+				<include name="Android\dot42DevCenter.exe"/>
 				<include name="dot42Check.exe"/>
 				<include name="dot42Compiler.exe"/>
 				<exclude name="dot42.VStudio10.dll"/>
@@ -300,7 +298,6 @@
 				<arg value="-sp=${folder}\source.properties"/>
 				<arg value="-out=${srcdir}\Framework\Generated"/>
 				<arg value="-doxygenxml=${srcdir}\Android\Docs\xml"/>
-				<arg value="-publickeytoken=0a72796057571e65"/>
 				<arg value="-forwardassembliesfolder=${srcdir}\Framework\ForwardAssemblies\"/>
 			</exec>	
 		</foreach>
@@ -360,6 +357,7 @@
 				<include name="base.apk"/>
 				<include name="Version.cs"/>
 				<include name="Framework.ini"/>
+				<include name="dot42.typemap"/>
 				<include name="**/FrameworkList.xml"/>
 			</fileset>
 		</copy>
@@ -541,7 +539,7 @@
 
 	<target name="copy-vs2010-extension" description="Copy visual studio extension to local extension folder">
 		<foreach item="String" in="${targets}" delim="," property="target">
-			<copy todir="${environment::get-folder-path('LocalApplicationData')}\Microsoft\VisualStudio\10.0\Extensions\dot42\dot42 C# for ${target}\1.0">
+			<copy todir="${environment::get-folder-path('LocalApplicationData')}\Microsoft\VisualStudio\10.0\Extensions\dot42\dot42 C# for ${target}\1.1">
 				<fileset basedir="${builddir}\Application\Extension\${target}">
 					<include name="**/*"/>
 				</fileset>
@@ -587,6 +585,10 @@
 	<target name="test" description="Run regression tests">
 		<nant buildfile="${basedir}\RegressionTests\Test.build" />
 	</target>
+	
+	<target name="small-test" description="Run framework and compiler regression tests">
+		<nant buildfile="${basedir}\RegressionTests\Test.build" target="small-test"/>
+	</target>	
 
 	<!-- All git and release related stuff -->
 	

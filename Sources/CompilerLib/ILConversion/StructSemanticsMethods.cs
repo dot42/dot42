@@ -38,7 +38,7 @@ namespace Dot42.CompilerLib.ILConversion
             public void Convert(ReachableContext reachableContext)
             {
                 // Collect all type
-                var todoTypes = reachableContext.ReachableTypes.Where(NeedsSemanticMethods).ToList();
+                var todoTypes = reachableContext.ReachableTypes.Where(StructFields.IsNonNullableStruct).ToList();
                 if (todoTypes.Count == 0)
                     return;
 
@@ -47,19 +47,10 @@ namespace Dot42.CompilerLib.ILConversion
                     // Create methods
                     var copyFromMethod = CreateCopyFromMethod(reachableContext, type);
                     CreateCloneMethod(reachableContext, type, copyFromMethod);
+                    
+                    // TODO: create Equals and GetHashCode methods, if they are not overwritten from object.
+                    //       Or, alternatively, implement these method based on reflection in ValueType.
                 }
-            }
-
-            /// <summary>
-            /// Do we need to add CopyFrom/Clone methods to the given type?
-            /// </summary>
-            private static bool NeedsSemanticMethods(TypeDefinition type)
-            {
-                if (!type.IsValueType || type.IsPrimitive || type.IsEnum)
-                    return false;
-                if (type.IsNullableT() || type.IsVoid())
-                    return false;
-                return true;
             }
 
             /// <summary>
@@ -94,8 +85,8 @@ namespace Dot42.CompilerLib.ILConversion
                 // Copy all fields
                 foreach (var field in type.Fields.Where(x => !x.IsStatic))
                 {
-                    TypeDefinition fieldTypeDef;
-                    var isStructField = StructFields.IsStructField(field, out fieldTypeDef);
+                    // Not need to bother with cloning struct-type fields here, 
+                    // as this will be done automatically by one of the Converters.
 
                     // Prepare for stfld
                     seq.Emit(OpCodes.Ldarg, body.ThisParameter);
@@ -103,13 +94,6 @@ namespace Dot42.CompilerLib.ILConversion
                     // Load from source
                     seq.Emit(OpCodes.Ldarg, sourceParam);
                     seq.Emit(OpCodes.Ldfld, field);
-
-                    // If struct, create clone
-                    if (isStructField)
-                    {
-                        var cloneMethod = new MethodReference(NameConstants.Struct.CloneMethodName, fieldTypeDef, fieldTypeDef) { HasThis = true };
-                        seq.Emit(OpCodes.Call, cloneMethod);
-                    }
 
                     // Save in this
                     seq.Emit(OpCodes.Stfld, field);

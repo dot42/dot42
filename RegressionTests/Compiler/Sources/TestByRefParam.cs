@@ -742,7 +742,7 @@ namespace Dot42.Tests.Compiler.Sources
 
         #endregion
 
-        public void _testDuplicate()
+        public void testDuplicate()
         {
             var duplicate = new Duplicate();
 

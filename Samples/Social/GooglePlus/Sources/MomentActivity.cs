@@ -10,11 +10,9 @@ using Com.Google.Android.Gms.Plus;
 using Com.Google.Android.Gms.Plus.Model;
 using Com.Google.Android.Gms.Plus.Model.Moments;
 using Com.Google.Android.Gms.Plus.Model.People;
-
-using Android.View;
+using Android.Views;
 using Android.Support.V4.App;
-using Android.Widget;
-using Android.Os;
+using Android.Widget;using Android.OS;
 using Android.Content;
 using Android.Util;
 
@@ -36,13 +34,13 @@ namespace GooglePlusClient
       override protected void OnCreate(Bundle savedInstanceState)
       {
          base.OnCreate(savedInstanceState);
-         SetContentView(R.Layouts.multi_moment_activity);
+         SetContentView(R.Layout.multi_moment_activity);
 
          mPlusClientFragment =
                  PlusClientFragment.GetPlusClientFragment(this, MomentUtil.VISIBLE_ACTIVITIES);
          mListAdapter = new ArrayAdapter<String>(
                  this, Android.R.Layout.Simple_list_item_1, MomentUtil.MOMENT_LIST);
-         mMomentListView = (ListView)FindViewById(R.Ids.moment_list);
+         mMomentListView = (ListView)FindViewById(R.Id.moment_list);
          mMomentListView.SetOnItemClickListener(this);
          mMomentListView.SetAdapter(mListAdapter);
          mPendingMoments = new ArrayList<IMoment>();
@@ -54,7 +52,7 @@ namespace GooglePlusClient
             // Write all moments that were written while the client was disconnected.
             foreach (IMoment pendingMoment in mPendingMoments) {
                 plusClient.WriteMoment(pendingMoment);
-                Toast.MakeText(this, GetString(R.Strings.plus_write_moment_status),
+                Toast.MakeText(this, GetString(R.String.plus_write_moment_status),
                         Toast.LENGTH_SHORT).Show();
             }
         }

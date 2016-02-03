@@ -87,6 +87,19 @@ namespace Dot42.DexLib.Instructions
         }
 
         /// <summary>
+        /// Will the given opcode branch, throw, invoke,
+        /// or return, i.e. will it not always advance the
+        /// instruction pointer to the next instruction?
+        /// </summary>
+        public static bool IsJump(this OpCodes code)
+        {
+            return code.IsBranch() 
+                || code.IsInvoke()
+                || code.IsUnconditionalBranch() 
+                || code.IsReturn();
+        }
+
+        /// <summary>
         /// Is the given code any normal invoke code?
         /// </summary>
         public static OpCodes InvokeToRange(this OpCodes code)

@@ -30,6 +30,9 @@ namespace Dot42.DebuggerLib
         private MapFile mapFile;
         private JdwpMonitor jdwpMonitor;
         private int pid = -1;
+        private string apkFile;
+        
+        public bool IsDalvikVM { get { return connection.VmVersion.IsDalvikVm; } }
 
         /// <summary>
         /// Connected state has changed.
@@ -60,12 +63,13 @@ namespace Dot42.DebuggerLib
             ArrayReference = new ArrayReferenceCommandSet(this);
             EventRequest = new EventRequestCommandSet(this);
             Ddms = new DdmsCommandSet(this);
+            ClassReference = new ClassReferenceCommandSet(this);
         }
 
         /// <summary>
         /// Connect to the VM in the given process id on the given device.
         /// </summary>
-        public void Connect(IDevice device, int pid, MapFile mapFile)
+        public void Connect(IDevice device, int pid, MapFile mapFile, string apkPath)
         {
             // Disconnect any pending connections
             Disconnect();
@@ -74,6 +78,7 @@ namespace Dot42.DebuggerLib
             process = null;
             this.mapFile = mapFile;
             this.pid = pid;
+            this.apkFile = apkPath;
 
             // Setup forward
             var port = GetFreePort();
@@ -197,7 +202,7 @@ namespace Dot42.DebuggerLib
         /// </summary>
         protected virtual DalvikProcess CreateProcess()
         {
-            return new DalvikProcess(this, mapFile);
+            return new DalvikProcess(this, mapFile, apkFile);
         }
 
         /// <summary>
@@ -338,7 +343,12 @@ namespace Dot42.DebuggerLib
         /// </summary>
         private void OnEventAsync(JdwpEvent @event)
         {
-            Task.Factory.StartNew(() => JdwpEvent.Fire(this, @event));
+            Task.Factory.StartNew(() => JdwpEvent.Fire(this, @event))
+                .ContinueWith(task =>
+                {
+                    DLog.Error(DContext.DebuggerLibJdwpConnection, "OnEventAsync: Internal failure on event processing. IsCancelled={0}. Exception={1}", task.IsCanceled, task.Exception);
+                }, 
+                TaskContinuationOptions.NotOnRanToCompletion);
         }
 
         /// <summary>

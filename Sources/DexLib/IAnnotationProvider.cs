@@ -4,6 +4,6 @@ namespace Dot42.DexLib
 {
     public interface IAnnotationProvider
     {
-        List<Annotation> Annotations { get; set; }
+        IList<Annotation> Annotations { get; set; }
     }
 }

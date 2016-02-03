@@ -30,28 +30,61 @@
 			<arg value="start-server"/>
 		</exec>
 
+		<property name="success_count" value=""/>
+		<property name="failure_count" value=""/>
+		
 		<trycatch>
 			<try>
-				<nant failonerror="true">
-					<buildfiles>
-						<include name="**/Test.build" />
-						<!-- avoid recursive execution of current build file -->
-						<exclude name="${project::get-buildfile-path()}" />
-					</buildfiles>
-				</nant>
+				<foreach item="File" property="buildfile">
+					<in>
+						<items>
+							<include name="**/Test.build" />
+							<!-- avoid recursive execution of current build file -->
+							<exclude name="${project::get-buildfile-path()}" />
+
+						</items>
+					</in>
+					<do>
+						<trycatch>
+							<try>					
+								<echo message="testing ${buildfile}" />
+								<nant failonerror="true" buildfile="${buildfile}" />
+								<echo message="success for ${buildfile}" />
+								<property name="success_count" value="${success_count}+"/>
+							</try>
+							<catch>
+								<echo message="FAILURE for ${buildfile}" />
+								<property name="failure_count" value="${failure_count}+"/>
+							</catch>
+						</trycatch>						
+					</do>
+				</foreach>
 			</try>
 			<finally>
 				<exec program="${adb}" failonerror="false">
 					<arg value="kill-server"/>
 				</exec>
-				<echo message="Test took ${double::to-string(timespan::get-total-minutes(datetime::now() - datetime::parse(starttime)))}min."/>
+				<echo message="Test took ${double::to-string(timespan::get-total-minutes(datetime::now() - datetime::parse(starttime)))}min."/>				
+				<echo message="(${success_count}) sucessful tests and (${failure_count}) failures." />				
 				<record name="${logfile}" action="Close" />
+				
+				<if test="${failure_count != ''}">
+					<fail message="${failure_count} failing tests" />
+				</if>
 			</finally>
 		</trycatch>
 	</target>
 	
-	<target name="small-test" description="Run compiler and framework tests">
-		<nant failonerror="true" buildfile="${basedir}\Compiler\Test.build" />
-		<nant failonerror="true" buildfile="${basedir}\Framework\Test.build" />
+	<target name="small-test" description="Run compiler and framework tests">	
+		<record name="${logfile}" action="Start" />
+		<trycatch>
+			<try>
+				<nant failonerror="true" buildfile="${basedir}\Compiler\Test.build" />
+				<nant failonerror="true" buildfile="${basedir}\Framework\Test.build" />
+			</try>
+			<finally>
+				<record name="${logfile}" action="Close" />
+			</finally>
+		</trycatch>	
 	</target>
 </project>

@@ -49,6 +49,9 @@ namespace Dot42.ImportJarLib
                 if (!member.HasSameScope(type))
                     return false;
 
+                if (type.DeclaringType != null)
+                    type.DeclaringType.EnsureVisibility(member);
+
                 if (member.IsPublic || member.IsFamily || member.IsFamilyOrAssembly || member.IsNestedPublic)
                 {
                     // Member is publicly visible

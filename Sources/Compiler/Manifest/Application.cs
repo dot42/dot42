@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Xml.Linq;
+using Dot42.CompilerLib.XModel;
 using Dot42.CompilerLib.XModel.DotNet;
 using Dot42.Utility;
 using Mono.Cecil;
@@ -44,6 +45,12 @@ namespace Dot42.Compiler.Manifest
             {
                 var xType = XBuilder.AsTypeDefinition(module, appTuple.Item1);
                 application.AddAttr("name", Namespace, FormatClassName(xType));
+            }
+            else
+            {
+                // use Dot42.Internal.Application
+                // FIXME: there should be a better way to specify the type...
+                application.AddAttr("name", Namespace, "dot42.Internal.Application");
             }
             application.AddAttrIfNotEmpty("icon", Namespace, icon, FormatDrawable);
             application.AddAttrIfNotEmpty("theme", Namespace, attr.GetValue<string>("Theme"), FormatStyle);

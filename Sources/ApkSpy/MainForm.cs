@@ -1,9 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using Dot42.ApkSpy.Disassembly;
+using Dot42.ApkSpy.IPC;
 using Dot42.ApkSpy.Tree;
+using Dot42.Utility;
+using Ookii.Dialogs;
 using TallComponents.Common.Util;
 using Node = Dot42.ApkSpy.Tree.Node;
 
@@ -12,7 +18,10 @@ namespace Dot42.ApkSpy
     public partial class MainForm : Form, ISpySettings
     {
         private SourceFile source;
+        private string originalPath;
+
         private bool initialized;
+        private string lastSearchString;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MainForm"/> class.
@@ -20,11 +29,17 @@ namespace Dot42.ApkSpy
         public MainForm()
         {
             InitializeComponent();
-#if !DEBUG
+#if !DEBUG && !ENABLE_SHOW_AST
             miDebug.Visible = false;
-#else
+#elif DEBUG
+            Locations.SetTarget(null);
             miShowAst.Checked = true;
 #endif
+            miEnableBaksmali.Checked = SettingsPersitor.EnableBaksmali;
+            miEmbedSourceCode.Checked = SettingsPersitor.EmbedSourceCode;
+            miEmbedSourceCodePositions.Checked = SettingsPersitor.EmbedSourceCodePositions;
+            miShowControlFlow.Checked = SettingsPersitor.ShowControlFlow;
+            miFullTypeNames.Checked = SettingsPersitor.FullTypeNames;
         }
 
         /// <summary>
@@ -33,11 +48,11 @@ namespace Dot42.ApkSpy
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
-            Size = RecentlyUsedFiles.WindowSize;
-            var location = RecentlyUsedFiles.WindowLocation;
+            Size = SettingsPersitor.WindowSize;
+            var location = SettingsPersitor.WindowLocation;
             if (Screen.AllScreens.Any(x => x.Bounds.Contains(location)))
-                Location = RecentlyUsedFiles.WindowLocation;
-            string path = RecentlyUsedFiles.Files.FirstOrDefault();
+                Location = SettingsPersitor.WindowLocation;
+            string path = SettingsPersitor.Files.FirstOrDefault();
 
             string[] arguments = Environment.GetCommandLineArgs();
             if (null != arguments)
@@ -59,7 +74,7 @@ namespace Dot42.ApkSpy
             base.OnSizeChanged(e);
             if (initialized)
             {
-                RecentlyUsedFiles.WindowSize = Size;
+                SettingsPersitor.WindowSize = Size;
             }
         }
 
@@ -71,7 +86,7 @@ namespace Dot42.ApkSpy
             base.OnLocationChanged(e);
             if (initialized)
             {
-                RecentlyUsedFiles.WindowLocation = Location;
+                SettingsPersitor.WindowLocation = Location;
             }
         }
 
@@ -85,6 +100,7 @@ namespace Dot42.ApkSpy
                 source.Dispose();
             }
             source = null;
+            originalPath = path;
             try
             {
                 treeView.BeginUpdate();
@@ -107,10 +123,10 @@ namespace Dot42.ApkSpy
                 Text = string.Format("{0} - [{1}]", Application.ProductName, path);
 
                 // Add to MRU
-                RecentlyUsedFiles.Add(path);
+                SettingsPersitor.Add(path);
 
                 // Try to re-open last known tree path
-                TreePath = RecentlyUsedFiles.LastTreePath;
+                TreePath = SettingsPersitor.LastTreePath;
             }
             catch (Exception ex)
             {
@@ -131,7 +147,7 @@ namespace Dot42.ApkSpy
         {
             using(var dialog = new OpenFileDialog())
             {
-                dialog.Filter = "Source Files|*.apk;*.jar";
+                dialog.Filter = "Source Files|*.apk;*.jar;*.dex";
 
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
@@ -158,10 +174,10 @@ namespace Dot42.ApkSpy
             }
             container.ResumeLayout(true);
 
-            // Cehck if the node was selected programatically.
+            // Check if the node was selected programatically.
             if (e.Action != TreeViewAction.Unknown)
             {
-                RecentlyUsedFiles.LastTreePath = TreePath;
+                SettingsPersitor.LastTreePath = TreePath;
             }
         }
 
@@ -189,11 +205,12 @@ namespace Dot42.ApkSpy
         private void miFile_DropDownOpening(object sender, EventArgs e)
         {
             miFileRecent.DropDownItems.Clear();
-            foreach (var iterator in RecentlyUsedFiles.Files)
+            foreach (var iterator in SettingsPersitor.Files)
             {
                 var path = iterator;
                 var item = new ToolStripMenuItem(Path.GetFileName(path));
                 item.Click += (s, x) => Open(path);
+                item.ToolTipText = path;
                 miFileRecent.DropDownItems.Add(item);
             }
             miFileRecent.Enabled = (miFileRecent.DropDownItems.Count > 0);
@@ -230,18 +247,7 @@ namespace Dot42.ApkSpy
         {
             get
             {
-                var node = treeView.SelectedNode;
-                if (node == null)
-                    return string.Empty;
-                var sb = new StringBuilder();
-                while (node != null)
-                {
-                    if (sb.Length > 0)
-                        sb.Insert(0, '|');
-                    sb.Insert(0, node.Text);
-                    node = node.Parent;
-                }
-                return sb.ToString();
+                return GetTreePath(treeView.SelectedNode);
             }
             set
             {
@@ -276,6 +282,21 @@ namespace Dot42.ApkSpy
             }
         }
 
+        private static string GetTreePath(TreeNode node)
+        {
+            if (node == null)
+                return string.Empty;
+            var sb = new StringBuilder();
+            while (node != null)
+            {
+                if (sb.Length > 0)
+                    sb.Insert(0, '|');
+                sb.Insert(0, node.Text);
+                node = node.Parent;
+            }
+            return sb.ToString();
+        }
+
         /// <summary>
         /// Show abstract syntax tree
         /// </summary>
@@ -283,13 +304,182 @@ namespace Dot42.ApkSpy
         {
             get
             {
-#if DEBUG
+#if DEBUG || ENABLE_SHOW_AST
                 return miShowAst.Checked;
 #else
                 return false;
 #endif
             }
         }
+
+        public bool EnableBaksmali { get { return miEnableBaksmali.Checked; } }
+        public string BaksmaliCommand { get { return SettingsPersitor.BaksmaliCommand; } }
+        public string BaksmaliParameters { get { return SettingsPersitor.BaksmaliParameters; } }
+        public bool ShowControlFlow { get { return miShowControlFlow.Checked; } }
+        public bool EmbedSourceCodePositions { get { return miEmbedSourceCodePositions.Checked; } }
+        public bool EmbedSourceCode { get { return miEmbedSourceCode.Checked; } }
+        public bool FullTypeNames { get { return miFullTypeNames.Checked; } }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            bool bHandled = false;
+
+            if (keyData == Keys.F5)
+            {
+                if(originalPath != null)
+                    Open(originalPath);
+
+                bHandled = true;
+            }
+            else if (keyData == Keys.F3)
+            {
+                miFindNext_Click(this, new EventArgs());
+                bHandled = true; 
+            }
+            else if ((keyData & Keys.KeyCode) == Keys.F3 &&  (keyData & Keys.Shift) != 0)
+            {
+                miFindPrevious_Click(this, new EventArgs());
+                bHandled = true;
+            }
+            else if ((keyData & Keys.KeyCode) == Keys.F && (keyData & Keys.Control) != 0)
+            {
+                miFindClass_Click(this, new EventArgs());
+                bHandled = true;
+            }
+
+            return bHandled;
+        }
+
+        private void miEnableBaksmali_Click(object sender, EventArgs e)
+        {
+            SettingsPersitor.EnableBaksmali = EnableBaksmali;
+
+            if (EnableBaksmali && string.IsNullOrEmpty(BaksmaliCommand))
+                miConfigureBaksmali_Click(sender,e);
+            UpdateView();
+        }
+
+        private void miConfigureBaksmali_Click(object sender, EventArgs e)
+        {
+            using (var dlg = new ConfigureBaksmaliDialog())
+            {
+                dlg.BaksmaliCommand = SettingsPersitor.BaksmaliCommand;
+                dlg.BaksmaliParameter = SettingsPersitor.BaksmaliParameters;
+
+                if (dlg.ShowDialog(this) == DialogResult.OK)
+                {
+                    SettingsPersitor.BaksmaliCommand = dlg.BaksmaliCommand;
+                    SettingsPersitor.BaksmaliParameters = dlg.BaksmaliParameter;
+                }
+            }
+        }
+
+        private void miFileExportCode_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(BaksmaliCommand))
+                miConfigureBaksmali_Click(sender, e);
+            if (string.IsNullOrEmpty(BaksmaliCommand))
+                return;
+            
+            VistaFolderBrowserDialog dlg= new VistaFolderBrowserDialog();
+            if (dlg.ShowDialog(this) != DialogResult.OK)
+                return;
+
+            var cmd = BaksmaliDisassembler.GetBacksmaliCommand(this, originalPath, dlg.SelectedPath);
+            List<string> output = new List<string>();
+            int ret = Run.System(output, cmd);
+
+            if (ret != 0 || output.Any())
+            {
+                StringBuilder msg = new StringBuilder();
+                if (ret != 0)
+                {
+                    msg.Append("Return value was: ");
+                    msg.Append(ret);
+                    msg.AppendLine();
+                    msg.AppendLine();
+                }
+                msg.Append(string.Join("\n", output));
+
+                MessageBox.Show(this, msg.ToString(), "Results", MessageBoxButtons.OK);
+            }
+            else
+            {
+                Process.Start(dlg.SelectedPath);
+            }
+        }
+
+        private void UpdateView()
+        {
+            var node = treeView.SelectedNode;
+            treeView.SelectedNode = null;
+            treeView.SelectedNode = node;
+        }
+   
+
+        private void miEmbedSourceCodePositions_Click(object sender, EventArgs e)
+        {
+            SettingsPersitor.EmbedSourceCodePositions = EmbedSourceCodePositions;
+            UpdateView();
+        }
+
+        private void miEmbedSourceCode_Click(object sender, EventArgs e)
+        {
+            SettingsPersitor.EmbedSourceCode = EmbedSourceCode;
+            UpdateView();
+        }
+
+        private void miShowControlFlow_Click(object sender, EventArgs e)
+        {
+            SettingsPersitor.ShowControlFlow = ShowControlFlow;
+            UpdateView();
+        }
+
+        private void miFullTypeNames_Click(object sender, EventArgs e)
+        {
+            SettingsPersitor.FullTypeNames = FullTypeNames;
+            UpdateView();
+        }
+
+        private void miFindClass_Click(object sender, EventArgs e)
+        {
+            using (var dlg = new SearchDialog())
+            {
+                dlg.SearchText = lastSearchString;
+
+                if (dlg.ShowDialog(this) == DialogResult.OK)
+                {
+                    lastSearchString = dlg.SearchText;
+
+                    if(!string.IsNullOrEmpty(lastSearchString))
+                        miFindNext_Click(sender, e);
+                }
+            }
+        }
+
+        private void miFindNext_Click(object sender, EventArgs e)
+        {
+            if (treeView.Nodes.Count == 0) return;
+
+            var searchString = lastSearchString;
+
+            if (string.IsNullOrEmpty(searchString))
+            {
+                miFindClass_Click(sender, e);
+                return;
+            }
+
+            var nextNode = treeView.FindNextNode(searchString);
+            if(nextNode != null)
+                TreePath = GetTreePath(nextNode);
+        }
+
+        private void miFindPrevious_Click(object sender, EventArgs e)
+        {
+            if (treeView.Nodes.Count == 0) return;
+            // TODO...
+        }
+        
     }
 }
  

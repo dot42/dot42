@@ -17,21 +17,19 @@
 using Android_Content = Android.Content;
 using Android.Content.Pm;
 using Android.Content.Res;
-using Android.Graphics.Drawable;
-using Android.Os;
+using Android.Graphics.Drawable;using Android.OS;
 using Android.Support.V4.App;
 using Android.Support.V4.Content;
 using Android.Support.V4.Content.Pm;
 using Android.Support.V4.View;
 using Android.Support.V4.Widget;
 using Android.Text;
-using Android.Util;
-using Android.View;
+using Android.Util;using Android.Views;
 using Android.Widget;
 
 using Support4Demos;
 
-using Java.Io;
+using Java.IO;
 using Java.Text;
 using Java.Util;
 using Java.Lang;
@@ -98,7 +96,7 @@ namespace com.example.android.supportv4.app
                     return mIcon;
                 }
 
-                return mLoader.GetContext().GetResources().GetDrawable(
+                return mLoader.Context.Resources.GetDrawable(
                         global::Android.R.Drawable.Sym_def_app_icon);
             }
 
@@ -151,7 +149,7 @@ namespace com.example.android.supportv4.app
             int mLastDensity;
 
             internal bool ApplyNewConfig(Resources res) {
-                int configChanges = mLastConfiguration.UpdateFrom(res.GetConfiguration());
+                int configChanges = mLastConfiguration.UpdateFrom(res.Configuration);
                 bool densityChanged = mLastDensity != res.GetDisplayMetrics().DensityDpi;
                 if (densityChanged || (configChanges&(ActivityInfo.CONFIG_LOCALE
                         |ActivityInfoCompat.CONFIG_UI_MODE|ActivityInfo.CONFIG_SCREEN_LAYOUT)) != 0) {
@@ -176,12 +174,12 @@ namespace com.example.android.supportv4.app
                 filter.AddAction(Android_Content.Intent.ACTION_PACKAGE_REMOVED);
                 filter.AddAction(Android_Content.Intent.ACTION_PACKAGE_CHANGED);
                 filter.AddDataScheme("package");
-                mLoader.GetContext().RegisterReceiver(this, filter);
+                mLoader.Context.RegisterReceiver(this, filter);
                 // Register for events related to sdcard installation.
                 Android_Content.IntentFilter sdFilter = new Android_Content.IntentFilter();
                 sdFilter.AddAction(IntentCompat.ACTION_EXTERNAL_APPLICATIONS_AVAILABLE);
                 sdFilter.AddAction(IntentCompat.ACTION_EXTERNAL_APPLICATIONS_UNAVAILABLE);
-                mLoader.GetContext().RegisterReceiver(this, sdFilter);
+                mLoader.Context.RegisterReceiver(this, sdFilter);
             }
 
             public override void OnReceive(Android_Content.Context context, Android_Content.Intent intent)
@@ -206,8 +204,8 @@ namespace com.example.android.supportv4.app
             {
                 // Retrieve the package manager for later use; note we don't
                 // use 'context' directly but instead the save global application
-                // context returned by GetContext().
-                mPm = GetContext().GetPackageManager();
+                // context returned by Context.
+                mPm = Context.GetPackageManager();
             }
 
             /**
@@ -224,7 +222,7 @@ namespace com.example.android.supportv4.app
                     apps = new ArrayList<ApplicationInfo>();
                 }
 
-                Android_Content.Context context = GetContext();
+                Android_Content.Context context = Context;
 
                 // Create corresponding array of entries and load their labels.
                 IList<AppEntry> entries = new ArrayList<AppEntry>(apps.Size());
@@ -288,7 +286,7 @@ namespace com.example.android.supportv4.app
 
                 // Has something interesting in the configuration changed since we
                 // last built the app list?
-                bool configChange = mLastConfig.ApplyNewConfig(GetContext().GetResources());
+                bool configChange = mLastConfig.ApplyNewConfig(Context.Resources);
 
                 if (TakeContentChanged() || mApps == null || configChange) {
                     // If the data has changed since the last time it was loaded
@@ -334,7 +332,7 @@ namespace com.example.android.supportv4.app
 
                 // Stop monitoring for changes.
                 if (mPackageObserver != null) {
-                    GetContext().UnregisterReceiver(mPackageObserver);
+                    Context.UnregisterReceiver(mPackageObserver);
                     mPackageObserver = null;
                 }
             }
@@ -380,14 +378,14 @@ namespace com.example.android.supportv4.app
                 View view;
 
                 if (convertView == null) {
-                    view = mInflater.Inflate(R.Layouts.list_item_icon_text, parent, false);
+                    view = mInflater.Inflate(R.Layout.list_item_icon_text, parent, false);
                 } else {
                     view = convertView;
                 }
 
                 AppEntry item = GetItem(position);
-                ((ImageView)view.FindViewById(R.Ids.icon)).SetImageDrawable(item.GetIcon());
-                ((TextView)view.FindViewById(R.Ids.text)).SetText(item.GetLabel());
+                ((ImageView)view.FindViewById(R.Id.icon)).SetImageDrawable(item.GetIcon());
+                ((TextView)view.FindViewById(R.Id.text)).Text = (item.GetLabel());
 
                 return view;
             }

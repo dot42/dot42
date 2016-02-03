@@ -71,6 +71,27 @@ namespace Dot42.CompilerLib.RL.Extensions
         }
 
         /// <summary>
+        /// Is the given register used as source in the given instruction?
+        /// </summary>
+        public static bool IsSourceIn(this Register r, Instruction ins)
+        {
+            var registers = ins.Registers;
+            var count = registers.Count;
+            if (count == 0)
+                return false;
+            var info = OpCodeInfo.Get(ins.Code.ToDex());
+            for (var i = 0; i < count; i++)
+            {
+                if (registers[i] == r)
+                {
+                    if ((info.GetUsage(i) & RegisterFlags.Source) == RegisterFlags.Source)
+                        return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Replace all references to oldRegister with newRegister in the given instruction set.
         /// </summary>
         public static void ReplaceRegisterWith(this IEnumerable<Instruction> instructions, Register oldRegister, Register newRegister, MethodBody body)
@@ -78,8 +99,8 @@ namespace Dot42.CompilerLib.RL.Extensions
             var oldRegister2 = (oldRegister.Type == RType.Wide) ? body.GetNext(oldRegister) : null;
             var newRegister2 = (newRegister.Type == RType.Wide) ? body.GetNext(newRegister) : null;
 
-            if (oldRegister.IsKeepWithNext != newRegister.IsKeepWithNext)
-                throw new ArgumentException("New register has different keep-with-next value");
+            if (oldRegister.KeepWith != newRegister.KeepWith)
+                throw new ArgumentException("New register has different keep-with value");
 
             foreach (var ins in instructions)
             {

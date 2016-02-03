@@ -1,7 +1,6 @@
 ﻿using System;
 using Android.App;
-using Android.Content;
-using Android.Os;
+using Android.Content;using Android.OS;
 using Android.Widget;
 using Dot42.Manifest;
 using Android.Speech;
@@ -27,9 +26,9 @@ namespace Echo
         protected override void OnCreate(Bundle savedInstance)
         {
             base.OnCreate(savedInstance);
-            SetContentView(R.Layouts.MainLayout);
+            SetContentView(R.Layout.MainLayout);
 
-            var startSpeech = FindViewById<Button>(R.Ids.getSpeechButton);
+            var startSpeech = FindViewById<Button>(R.Id.getSpeechButton);
             startSpeech.Click += OnClick;
         }
 
@@ -53,9 +52,9 @@ namespace Echo
             {
                 var matches = data.GetStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
 
-                var speechText = FindViewById<TextView>(R.Ids.speechText);
+                var speechText = FindViewById<TextView>(R.Id.speechText);
                 recognizedText = matches.Get(0);
-                speechText.SetText(recognizedText);
+                speechText.Text = (recognizedText);
 
                 var checkIntent = new Intent();
                 checkIntent.SetAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);

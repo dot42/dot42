@@ -3,23 +3,37 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using ICSharpCode.SharpZipLib.Zip;
+using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 
 namespace Dot42.JvmClassLib
 {
     public class JarFile : IDisposable, IClassLoader
     {
         private readonly ZipFile zipFile;
+        private Dictionary<string, ZipEntry> zipEntries;
         private readonly Dictionary<string, ClassFile> loadedClasses = new Dictionary<string, ClassFile>();
         private readonly string fileName;
         private readonly IClassLoader nextClassLoader;
+        private List<string> classNames;
+        private List<string> classFileNames;
+        private List<string> packages;
+        private string streamHash;
+        private readonly Stream stream;
 
         /// <summary>
         /// Open a jar file from the given stream
         /// </summary>
         public JarFile(Stream stream, string fileName, IClassLoader nextClassLoader)
+                    :this(stream, fileName, null, nextClassLoader)
+        {
+        }
+
+        public JarFile(Stream stream, string fileName, string streamHash, IClassLoader nextClassLoader)
         {
             this.fileName = fileName;
             this.nextClassLoader = nextClassLoader;
+            this.streamHash = streamHash;
+            this.stream = stream;
             zipFile = new ZipFile(stream);
         }
 
@@ -36,7 +50,16 @@ namespace Dot42.JvmClassLib
         /// </summary>
         public IEnumerable<string> ClassNames
         {
-            get { return ClassFileNames.Where(x => !x.Contains("$")).Select(x => x.Substring(0, x.Length - ".class".Length)); }
+            get
+            {
+                if(classNames != null)
+                    return classNames;
+
+                classNames = ClassFileNames.Where(x => !x.Contains("$"))
+                                           .Select(x => x.Substring(0, x.Length - ".class".Length))
+                                           .ToList();
+                return classNames;
+            }
         }
 
         /// <summary>
@@ -44,7 +67,16 @@ namespace Dot42.JvmClassLib
         /// </summary>
         public IEnumerable<string> ClassFileNames
         {
-            get { return from ZipEntry entry in zipFile where entry.Name.EndsWith(".class") select entry.Name; }
+            get
+            {
+                if(classFileNames != null)
+                    return classFileNames;
+                classFileNames = (from ZipEntry entry in zipFile 
+                                  where entry.Name.EndsWith(".class") 
+                                  select entry.Name)
+                                 .ToList();
+                return classFileNames;
+            }
         }
 
         /// <summary>
@@ -54,8 +86,13 @@ namespace Dot42.JvmClassLib
         {
             get
             {
+                if(packages != null)
+                    return packages;
+                
                 var fileNames = ClassFileNames;
-                return fileNames.Select(ClassName.GetPackage).Distinct();
+                return packages = fileNames.Select(ClassName.GetPackage)
+                                           .Distinct()
+                                           .ToList();
             }
         }
 
@@ -91,6 +128,27 @@ namespace Dot42.JvmClassLib
         }
 
         /// <summary>
+        /// Try to get the original source of the class.
+        /// </summary>
+        public ClassSource TryGetClassSource(string className)
+        {
+            EnsureZipEntriesInitialized();
+
+            if (zipEntries.ContainsKey(className + ".class"))
+            {
+                if(stream is MemoryStream)
+                    return new ClassSource(fileName, ((MemoryStream)stream).GetBuffer());
+
+                return new ClassSource(fileName); // assume that it is an actual disk file, as we
+                                                  // rather not touch the stream, which would
+                                                  // be bad in a multithreading environment.
+            }
+                
+            
+            return nextClassLoader != null ? nextClassLoader.TryGetClassSource(className) : null;
+        }
+
+        /// <summary>
         /// Load a class with the given name
         /// </summary>
         public ClassFile LoadClass(string className)
@@ -122,14 +180,29 @@ namespace Dot42.JvmClassLib
         /// </summary>
         public ClassFile OpenClass(string fileName)
         {
-            var entry = zipFile.GetEntry(fileName);
-            if (entry == null)
+            EnsureZipEntriesInitialized();
+
+            ZipEntry entry;
+
+            if (!zipEntries.TryGetValue(fileName, out entry))
                 return null;
+
             using (var stream = zipFile.GetInputStream(entry))
             {
                 var result = new ClassFile(stream, this);
                 loadedClasses[result.ClassName] = result;
                 return result;
+            }
+        }
+
+        private void EnsureZipEntriesInitialized()
+        {
+            if (zipEntries == null)
+            {
+                var dic = new Dictionary<string, ZipEntry>(StringComparer.InvariantCultureIgnoreCase);
+                foreach (ZipEntry zipEntry in zipFile)
+                    dic.Add(zipEntry.Name, zipEntry);
+                zipEntries = dic;
             }
         }
     }

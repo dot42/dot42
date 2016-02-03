@@ -80,7 +80,7 @@ namespace Dot42.CompilerLib.Ast
             }
         }
 
-        public override void WriteTo(ITextOutput output)
+        public override void WriteTo(ITextOutput output, FormattingOptions format)
         {
             output.Write("Block{");
             output.WriteLine();
@@ -89,7 +89,7 @@ namespace Dot42.CompilerLib.Ast
                 output.Indent();
                 output.Write("// Entry Goto");
                 output.WriteLine();
-                EntryGoto.WriteTo(output);
+                EntryGoto.WriteTo(output, format);
                 output.Unindent();
             }
             if (Body != null)
@@ -99,7 +99,7 @@ namespace Dot42.CompilerLib.Ast
                 output.WriteLine();
                 foreach (AstNode child in Body)
                 {
-                    child.WriteTo(output);
+                    child.WriteTo(output, format);
                     output.WriteLine();
                 }
                 output.Unindent();

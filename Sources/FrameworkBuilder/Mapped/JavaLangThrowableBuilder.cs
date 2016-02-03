@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.Composition;
 using Dot42.ImportJarLib;
 using Dot42.ImportJarLib.Mapped;
@@ -74,15 +75,15 @@ namespace Dot42.FrameworkBuilder.Mapped
             {
                 switch (getter.Name)
                 {
-                    case "GetCause":
-                        return "InnerException";
+                    // don't rename property that gets overridden
+                    //case "GetCause":
+                    //    return "InnerException";
                     case "GetStackTrace":
                         return "JavaStackTrace";
                     default:
                         return base.GetPropertyName(getter);
                 }
             }
-
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq;
 using Dot42.CompilerLib.Ast.Extensions;
 using Dot42.CompilerLib.Extensions;
@@ -22,14 +23,17 @@ namespace Dot42.CompilerLib.XModel.DotNet
             private string javaImportName;
             private bool? useInvokeInterface;
             private bool? needsGenericInstanceMethodParameter;
+            private string scopeId;
 
             /// <summary>
             /// Default ctor
             /// </summary>
-            public ILMethodDefinition(XTypeDefinition declaringType, MethodDefinition method)
+            public ILMethodDefinition(ILTypeDefinition declaringType, MethodDefinition method, string forceScopeId=null)
                 : base(declaringType)
             {
                 this.method = method;
+                OriginalReturnType = method.ReturnType;
+                scopeId = forceScopeId;
             }
 
             public MethodDefinition OriginalMethod { get { return method; } }
@@ -39,7 +43,7 @@ namespace Dot42.CompilerLib.XModel.DotNet
             /// </summary>
             public override bool EqualsName(string name)
             {
-                return (Name == name) || (method.Name == name);
+                return Name == name || method.Name == name || method.OriginalName == name;
             }
 
             /// <summary>
@@ -47,7 +51,7 @@ namespace Dot42.CompilerLib.XModel.DotNet
             /// </summary>
             public override string Name
             {
-                get { return method.Name + CreateSignPostfix(method); }
+                get { return method.Name; }
             }
 
             /// <summary>
@@ -148,6 +152,17 @@ namespace Dot42.CompilerLib.XModel.DotNet
             }
 
             /// <summary>
+            /// our unique scope id
+            /// </summary>
+            public override string ScopeId
+            {
+                get
+                {
+                    return scopeId ?? (scopeId = GetScopeId());
+                }
+            }
+
+            /// <summary>
             /// Gets the "base" method of the given method.
             /// </summary>
             public override XMethodDefinition GetBaseMethod(bool ignoreVirtual)
@@ -190,6 +205,8 @@ namespace Dot42.CompilerLib.XModel.DotNet
                     return useInvokeInterface.Value;
                 }
             }
+
+            public TypeReference OriginalReturnType { get; set; }
 
             /// <summary>
             /// Should this method be called with invoke_interface?
@@ -359,6 +376,46 @@ namespace Dot42.CompilerLib.XModel.DotNet
                 }
                 attr.GetDexOrJavaImportNames(method, out methodName, out descriptor, out className);
                 return true;
+            }
+
+            public void SetInheritedReturnType(TypeReference type)
+            {
+                OriginalReturnType = method.ReturnType;
+                method.ReturnType = type;
+            }
+
+            private string GetScopeId()
+            {
+                // last resort: if we have a java/dex import attribute
+                //              we will not get written to the mapfile
+                //              make sure we are found by our descriptor.
+                // these are not written in the map file.
+                string methodName, descriptor, className;
+                if (TryGetDexImportNames(out methodName, out descriptor, out className)
+                 || TryGetJavaImportNames(out methodName, out descriptor, out className))
+                {
+                    return methodName + descriptor;
+                }
+
+                // this should work for normal method.
+                var id = ((ILTypeDefinition)DeclaringType).GetMethodScopeId(method);
+                if (id != null)
+                    return id;
+
+                // is it an internal generated method of which 
+                // we know that it will never change, i.e. "$Clone" or "$CopyFrom"?
+                if (Name.StartsWith("$"))
+                    return Name;
+
+                if (IsConstructor && method.Parameters.Count == 0 && !method.IsStatic)
+                {
+                    // a generated constructor. 
+                    return "(new)";
+                }
+
+                // we are a generated method (most probably an explicit interface stub,
+                // or a static class ctor.
+                return "(none)";
             }
         }
     }

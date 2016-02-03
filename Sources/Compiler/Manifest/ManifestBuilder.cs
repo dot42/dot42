@@ -54,9 +54,10 @@ namespace Dot42.Compiler.Manifest
             // Load assembly file
             if (!File.Exists(assemblyFile))
                 throw new ArgumentException(string.Format("Assembly {0} not found", assemblyFile));
-            var parameters = new ReaderParameters { AssemblyResolver = new AssemblyResolver(referenceFolders, null, module.OnAssemblyLoaded) };
-            assembly = AssemblyDefinition.ReadAssembly(assemblyFile, parameters);
-            module.OnAssemblyLoaded(assembly);
+
+            var assemblyResolver = new AssemblyResolver(referenceFolders, null, module.OnAssemblyLoaded); 
+            var parameters = new ReaderParameters { AssemblyResolver = assemblyResolver};
+            assembly = assemblyResolver.Load(assemblyFile, parameters);
         }
 
         /// <summary>

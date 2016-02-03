@@ -6,14 +6,14 @@
     public abstract class DalvikValue
     {
         private readonly object value;
-        public readonly Jdwp.Tag tag;
+        public readonly Jdwp.Tag Tag;
 
         /// <summary>
         /// Default ctor
         /// </summary>
         protected DalvikValue(Value value, DalvikProcess process)
         {
-            tag = value.Tag;
+            Tag = value.Tag;
             this.value = value.IsPrimitive ? value.ValueObject : new DalvikObjectReference((ObjectId)value.ValueObject, process);
         }
 
@@ -34,17 +34,17 @@
         /// <summary>
         /// Is this value an array?
         /// </summary>
-        public bool IsArray { get { return (tag == Jdwp.Tag.Array); } }
+        public bool IsArray { get { return (Tag == Jdwp.Tag.Array); } }
 
         /// <summary>
         /// Is this value a string?
         /// </summary>
-        public bool IsString { get { return (tag == Jdwp.Tag.String); } }
+        public bool IsString { get { return (Tag == Jdwp.Tag.String); } }
 
         /// <summary>
         /// Is this value a boolean?
         /// </summary>
-        public bool IsBoolean { get { return (tag == Jdwp.Tag.Boolean); } }
+        public bool IsBoolean { get { return (Tag == Jdwp.Tag.Boolean); } }
 
         /// <summary>
         /// Gets the value as object reference.

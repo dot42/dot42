@@ -10,7 +10,7 @@ namespace SorterenMaar
     public sealed class R
     {
         
-        public sealed class Drawables
+        public sealed class Drawable
         {
             
             public const int BorderBackground = 0x7f020000;
@@ -28,7 +28,7 @@ namespace SorterenMaar
             public const int Thor = 0x7f020006;
         }
         
-        public sealed class Layouts
+        public sealed class Layout
         {
             
             public const int MainLayout = 0x7f030000;
@@ -36,31 +36,31 @@ namespace SorterenMaar
             public const int SortTaskLayout = 0x7f030001;
         }
         
-        public sealed class Raws
+        public sealed class Raw
         {
             
             public const int SortGame = 0x7f040000;
         }
         
-        public sealed class Ids
+        public sealed class Id
         {
             
-            public const int GameFrame = 0x7f050035;
+            public const int GameFrame = 0x7f050038;
             
-            public const int Scoreboard = 0x7f050036;
+            public const int Scoreboard = 0x7f050039;
             
-            public const int TaskText = 0x7f050037;
+            public const int TaskText = 0x7f05003a;
             
-            public const int earImage = 0x7f050038;
+            public const int earImage = 0x7f05003b;
             
-            public const int Task = 0x7f050039;
+            public const int Task = 0x7f05003c;
             
-            public const int DropZones = 0x7f05003a;
+            public const int DropZones = 0x7f05003d;
             
-            public const int submenu = 0x7f05003b;
+            public const int submenu = 0x7f05003e;
         }
         
-        public sealed class Colors
+        public sealed class Color
         {
             
             public const int accent_blue = 0x7f060000;
@@ -68,7 +68,7 @@ namespace SorterenMaar
             public const int light_blue = 0x7f060001;
         }
         
-        public sealed class Styles
+        public sealed class Style
         {
             
             public const int MyActionBar = 0x7f070000;
@@ -80,7 +80,7 @@ namespace SorterenMaar
             public const int MyTextViewColored = 0x7f070003;
         }
         
-        public sealed class Menus
+        public sealed class Menu
         {
             
             public const int OptionsMenu = 0x7f080000;

@@ -11,7 +11,7 @@ namespace Dot42.CompilerLib.RL.Transformations
         /// <summary>
         /// Transform the given body.
         /// </summary>
-        public void Transform(Dex target, MethodBody body)
+        public bool Transform(Dex target, MethodBody body)
         {
             // Find all basic blocks
             var basicBlocks = BasicBlock.Find(body);
@@ -24,6 +24,8 @@ namespace Dot42.CompilerLib.RL.Transformations
 
             // Share register across blocks
             TransformCrossBlock(body, basicBlocks);
+
+            return false;
         }
 
         /// <summary>

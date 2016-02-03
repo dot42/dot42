@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Dot42.DebuggerLib.Events.Jdwp;
@@ -15,6 +14,7 @@ namespace Dot42.DebuggerLib.Model
     public class DalvikReferenceTypeManager : DalvikProcessChild
     {
         private readonly Dictionary<ReferenceTypeId, DalvikReferenceType> classes = new Dictionary<ReferenceTypeId, DalvikReferenceType>();
+        private readonly Dictionary<string, DalvikReferenceType> classesBySignature = new Dictionary<string, DalvikReferenceType>();
         private readonly List<DalvikClassPrepareCookie> classPrepareHandlers = new List<DalvikClassPrepareCookie>();
         private int lastClassPrepareCookie = 1;
         private readonly object dataLock = new object();
@@ -54,7 +54,9 @@ namespace Dot42.DebuggerLib.Model
         {
             lock (dataLock)
             {
-                return classes.Values.FirstOrDefault(x => signature == x.Signature);
+                DalvikReferenceType result;
+                classesBySignature.TryGetValue(signature, out result);
+                return result;
             }            
         }
 
@@ -180,6 +182,7 @@ namespace Dot42.DebuggerLib.Model
                     // Not found, create new one
                     refType = CreateReferenceType(typeId);
                     classes[typeId] = refType;
+                    classesBySignature[signature] = refType;
                 }
                 refType.SetSignatureIfNull(signature);
                 refType.SetStatusIfNull(status);

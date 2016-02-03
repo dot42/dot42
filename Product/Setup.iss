@@ -105,6 +105,7 @@ SourceDir=..\Build
 Name: vstudio10; Description: "Install VisualStudio 2010 integration"; Check: VStudio10Installed;
 Name: vstudio11; Description: "Install VisualStudio 2012 integration"; Check: VStudio11Installed;
 Name: vstudio12; Description: "Install VisualStudio 2013 integration"; Check: VStudio12Installed;
+Name: vstudio14; Description: "Install VisualStudio 2015 integration"; Check: VStudio14Installed;
 #ifdef SHARPDEVELOP
 Name: sharpDevelop; Description: "Install SharpDevelop 4.3";
 #endif
@@ -117,15 +118,19 @@ Source: "{#SrcDir}\dot42Check.exe"; DestDir: "{app}";
 Source: "{#SrcDir}\dot42Compiler.exe"; DestDir: "{app}";
 Source: "{#SrcDir}\dot42.MSBuild.Tasks.{#TargetName}.dll"; DestDir: "{app}";
 ; Visual Studio 2010 extension
-Source: "{#SrcDir}\{#TargetName}\Extension\*"; DestDir: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\10.0,InstallDir}\Extensions\{#CompanyName}\{#AppName}\1.0"; Flags: recursesubdirs; Tasks: vstudio10;
+Source: "{#SrcDir}\{#TargetName}\Extension\*"; DestDir: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\10.0,InstallDir}\Extensions\{#CompanyName}\{#AppName}\1.1"; Flags: recursesubdirs; Tasks: vstudio10;
 ; Visual Studio 2012 extension
-Source: "{#SrcDir}\{#TargetName}\Extension\*"; DestDir: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\11.0,InstallDir}\Extensions\{#CompanyName}\{#AppName}\1.0"; Flags: recursesubdirs; Tasks: vstudio11;
+Source: "{#SrcDir}\{#TargetName}\Extension\*"; DestDir: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\11.0,InstallDir}\Extensions\{#CompanyName}\{#AppName}\1.1"; Flags: recursesubdirs; Tasks: vstudio11;
 ; Visual Studio 2013 extension
-Source: "{#SrcDir}\{#TargetName}\Extension\*"; DestDir: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\12.0,InstallDir}\Extensions\{#CompanyName}\{#AppName}\1.0"; Flags: recursesubdirs; Tasks: vstudio12;
+Source: "{#SrcDir}\{#TargetName}\Extension\*"; DestDir: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\12.0,InstallDir}\Extensions\{#CompanyName}\{#AppName}\1.1"; Flags: recursesubdirs; Tasks: vstudio12;
+; Visual Studio 2015 extension
+Source: "{#SrcDir}\{#TargetName}\Extension\*"; DestDir: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\14.0,InstallDir}\Extensions\{#CompanyName}\{#AppName}\1.1"; Flags: recursesubdirs; Tasks: vstudio14;
 ; Android platform tools
 Source: "{#SrcDir}\Platform-tools\*"; DestDir: "{app}\Platform-tools";
 ; Android tools
 Source: "{#SrcDir}\Tools\*"; DestDir: "{app}\Tools";
+; 'dx' from Android SDK tools
+Source: "{#SrcDir}\Tools\dx\*"; DestDir: "{app}"; Excludes: README.txt
 ; MSBuild Targets files
 Source: "{#SrcDir}\Scripts\{#TargetName}\*.targets"; DestDir: "{app}";
 ; Frameworks
@@ -186,6 +191,14 @@ Root: HKLM32; Subkey: "SOFTWARE\TallApplications\dot42"; ValueType: string; Valu
 #define VSTEMPLATES "VStudio10"
 #include "MSBuildSetup.iss"
 
+#define VS14ROOT   "SOFTWARE\Microsoft\VisualStudio\14.0"
+#define VSROOT    "SOFTWARE\Microsoft\VisualStudio\14.0\Configuration"
+#define VSTASK    "vstudio14"
+#define VSASM     "Dot42.VStudio10.dll"
+#define VSTEMPLATES "VStudio10"
+#include "MSBuildSetup.iss"
+
+
 #include "..\Build\Registry\Frameworks.iss"
 
 [Icons]
@@ -204,12 +217,21 @@ Filename: "{dotnet4032}\ngen.exe"; Parameters: "install ""{app}\dot42DevCenter.e
 Filename: "{dotnet4032}\ngen.exe"; Parameters: "install ""{app}\dot42Check.exe"""; StatusMsg: {cm:Optimize}; Flags: runhidden;
 Filename: "{dotnet4032}\ngen.exe"; Parameters: "install ""{app}\dot42Compiler.exe"""; StatusMsg: {cm:Optimize}; Flags: runhidden;
 Filename: "{dotnet4032}\ngen.exe"; Parameters: "install ""{app}\dot42.MSBuild.Tasks.dll"""; StatusMsg: {cm:Optimize}; Flags: runhidden;
+
+Filename: "{dotnet4032}\ngen.exe"; Parameters: "install ""{app}\dx.exe"""; StatusMsg: {cm:Optimize}; Flags: runhidden;
+Filename: "{dotnet4032}\ngen.exe"; Parameters: "install ""{app}\IKVM.Runtime.dll"""; StatusMsg: {cm:Optimize}; Flags: runhidden;
+Filename: "{dotnet4032}\ngen.exe"; Parameters: "install ""{app}\IKVM.OpenJDK.Core.dll"""; StatusMsg: {cm:Optimize}; Flags: runhidden;
+Filename: "{dotnet4032}\ngen.exe"; Parameters: "install ""{app}\IKVM.OpenJDK.Security.dll"""; StatusMsg: {cm:Optimize}; Flags: runhidden;
+Filename: "{dotnet4032}\ngen.exe"; Parameters: "install ""{app}\IKVM.OpenJDK.Util.dll"""; StatusMsg: {cm:Optimize}; Flags: runhidden;
+Filename: "{dotnet4032}\ngen.exe"; Parameters: "install ""{app}\IKVM.OpenJDK.Text.dll"""; StatusMsg: {cm:Optimize}; Flags: runhidden;
 ; Setup devenv 10.0
 Filename: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\10.0,InstallDir}\devenv.exe"; Parameters: "/setup"; StatusMsg: "{cm:ConfigureDevEnv10}"; Tasks: vstudio10;
 ; Setup devenv 11.0
 Filename: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\11.0,InstallDir}\devenv.exe"; Parameters: "/setup"; StatusMsg: "{cm:ConfigureDevEnv11}"; Tasks: vstudio11;
 ; Setup devenv 12.0
 Filename: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\12.0,InstallDir}\devenv.exe"; Parameters: "/setup"; StatusMsg: "{cm:ConfigureDevEnv12}"; Tasks: vstudio12;
+; Setup devenv 14.0
+Filename: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\14.0,InstallDir}\devenv.exe"; Parameters: "/setup"; StatusMsg: "{cm:ConfigureDevEnv14}"; Tasks: vstudio14;
 ; Update samples
 Filename: "{app}\dot42DevCenter.exe"; Parameters: "-samplefolder ""{userdocs}\dot42\{#TargetName}\Samples"""; Description: "{cm:UpdatingSamples}"; Flags: runasoriginaluser; Check: UserDocsExists;
 ; Open sample folder
@@ -225,12 +247,28 @@ Filename: "{dotnet4032}\ngen.exe"; Parameters: "uninstall ""{app}\dot42Check.exe
 Filename: "{dotnet4032}\ngen.exe"; Parameters: "uninstall ""{app}\dot42Compiler.exe"""; StatusMsg: {cm:UnOptimize}; Flags: runhidden;
 Filename: "{dotnet4032}\ngen.exe"; Parameters: "uninstall ""{app}\dot42.MSBuild.Tasks.dll"""; StatusMsg: {cm:UnOptimize}; Flags: runhidden;
 
+Filename: "{dotnet4032}\ngen.exe"; Parameters: "uninstall ""{app}\dx.exe"""; StatusMsg: {cm:Optimize}; Flags: runhidden;
+Filename: "{dotnet4032}\ngen.exe"; Parameters: "uninstall ""{app}\IKVM.Runtime.dll"""; StatusMsg: {cm:Optimize}; Flags: runhidden;
+Filename: "{dotnet4032}\ngen.exe"; Parameters: "uninstall ""{app}\IKVM.OpenJDK.Core.dll"""; StatusMsg: {cm:Optimize}; Flags: runhidden;
+Filename: "{dotnet4032}\ngen.exe"; Parameters: "uninstall ""{app}\IKVM.OpenJDK.Security.dll"""; StatusMsg: {cm:Optimize}; Flags: runhidden;
+Filename: "{dotnet4032}\ngen.exe"; Parameters: "uninstall ""{app}\IKVM.OpenJDK.Util.dll"""; StatusMsg: {cm:Optimize}; Flags: runhidden;
+Filename: "{dotnet4032}\ngen.exe"; Parameters: "uninstall ""{app}\IKVM.OpenJDK.Text.dll"""; StatusMsg: {cm:Optimize}; Flags: runhidden;
+
 [InstallDelete]
 ; Remove the extensions in an early version of dot42
 Type: filesandordirs; Name: "{localappdata}\Microsoft\VisualStudio\10.0\Extensions\TallApplications\dot42\1.0";
 Type: filesandordirs; Name: "{localappdata}\Microsoft\VisualStudio\11.0\Extensions\TallApplications\dot42\1.0";
+Type: filesandordirs; Name: "{localappdata}\Microsoft\VisualStudio\12.0\Extensions\TallApplications\dot42\1.0";
 Type: filesandordirs; Name: "{localappdata}\Microsoft\VisualStudio\10.0\Extensions\dot42\{#TargetName}\1.0";
 Type: filesandordirs; Name: "{localappdata}\Microsoft\VisualStudio\11.0\Extensions\dot42\{#TargetName}\1.0";
+Type: filesandordirs; Name: "{localappdata}\Microsoft\VisualStudio\12.0\Extensions\dot42\{#TargetName}\1.0";
+
+Type: filesandordirs; Name: "{localappdata}\Microsoft\VisualStudio\10.0\Extensions\TallApplications\dot42\1.1";
+Type: filesandordirs; Name: "{localappdata}\Microsoft\VisualStudio\11.0\Extensions\TallApplications\dot42\1.1";
+Type: filesandordirs; Name: "{localappdata}\Microsoft\VisualStudio\12.0\Extensions\TallApplications\dot42\1.1";
+Type: filesandordirs; Name: "{localappdata}\Microsoft\VisualStudio\10.0\Extensions\dot42\{#TargetName}\1.1";
+Type: filesandordirs; Name: "{localappdata}\Microsoft\VisualStudio\11.0\Extensions\dot42\{#TargetName}\1.1";
+Type: filesandordirs; Name: "{localappdata}\Microsoft\VisualStudio\12.0\Extensions\dot42\{#TargetName}\1.1";
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}";
@@ -239,12 +277,17 @@ Type: filesandordirs; Name: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\10.0,In
 Type: filesandordirs; Name: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\11.0,InstallDir}\Extensions\{#CompanyName}\{#AppName}\1.0";
 Type: filesandordirs; Name: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\12.0,InstallDir}\Extensions\{#CompanyName}\{#AppName}\1.0";
 
+Type: filesandordirs; Name: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\10.0,InstallDir}\Extensions\{#CompanyName}\{#AppName}\1.1";
+Type: filesandordirs; Name: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\11.0,InstallDir}\Extensions\{#CompanyName}\{#AppName}\1.1";
+Type: filesandordirs; Name: "{reg:HKLM32\SOFTWARE\Microsoft\VisualStudio\12.0,InstallDir}\Extensions\{#CompanyName}\{#AppName}\1.1";
+
 [CustomMessages]
 StartApp=Start {#AppName} Device Center
 OpenSamples=Open {#AppName} Samples folder
 ConfigureDevEnv10=Configuring Visual Studio 2010 ...
 ConfigureDevEnv11=Configuring Visual Studio 2012 ...
 ConfigureDevEnv12=Configuring Visual Studio 2013 ...
+ConfigureDevEnv14=Configuring Visual Studio 2015 ...
 Optimize=Optimizing performance
 UnOptimize=Cleanup performance optimizations
 KillAdb=Stopping Android Debug Bridge ...
@@ -302,9 +345,16 @@ begin
   Result := RegKeyExists(HKLM32, root) and RegValueExists(HKLM32, root, 'InstallDir');
 end;
 
+function VStudio14Installed: Boolean;
+var root: string;
+begin
+  root := ExpandConstant('{#VS14ROOT}');
+  Result := RegKeyExists(HKLM32, root) and RegValueExists(HKLM32, root, 'InstallDir');
+end;
+
 function AnyValidVStudioInstalled: Boolean;
 begin
-  Result := VStudio10Installed or VStudio11Installed or VStudio12Installed;
+  Result := VStudio10Installed or VStudio11Installed or VStudio12Installed or VStudio14Installed;
 end;
 
 //function VPDExpress10Installed: Boolean;
@@ -403,7 +453,7 @@ begin
   begin
     if ((not WizardSilent) and (not AnyValidVStudioInstalled)) then
     begin
-      if (MsgBox( 'You do not have Visual Studio 2010, 2012 or 2013 Professional installed. Hit Cancel if you want to install one of these first. Then restart the installer. Otherwise, continue and SharpDevelop will be installed.',
+      if (MsgBox( 'You do not have Visual Studio 2010, 2012, 2013 or 2015 Professional installed. Hit Cancel if you want to install one of these first. Then restart the installer. Otherwise, continue and SharpDevelop will be installed.',
              mbInformation, MB_OKCANCEL ) = IDCANCEL) then
       begin
         Result := false;
@@ -424,7 +474,7 @@ function LocalNextButtonClick(CurPageId: Integer): Boolean;
 begin
   if (CurPageId = wpSelectTasks) then
   begin
-    if (IsTaskSelected('vstudio10') or IsTaskSelected('vstudio11') or IsTaskSelected('vstudio12') or IsTaskSelected('sharpDevelop')) then
+    if (IsTaskSelected('vstudio10') or IsTaskSelected('vstudio11') or IsTaskSelected('vstudio12') or IsTaskSelected('vstudio14') or IsTaskSelected('sharpDevelop')) then
     begin
       // Normal install integrating into Visual Studio
       Result := true;

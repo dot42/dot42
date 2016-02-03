@@ -6,6 +6,10 @@ namespace Dot42.Tests.Compiler.Sources
     {
         private const float delta = 0.0001f;
 
+        private float d1 = 1, d1_1 = 1;
+        private float d2 = 2, d5 = 5, d7 = 7;
+        private float dNaN = float.NaN;
+
         public void testSimpleEqual1()
         {
             var i = 5.0f;
@@ -136,6 +140,116 @@ namespace Dot42.Tests.Compiler.Sources
         {
             var i = 0.0f;
             AssertTrue(i % 100.0f == 0.0f);
+        }
+
+        public void testGetHashCode()
+        {
+            AssertEquals(2.0f.GetHashCode(), ((object)2.0f).GetHashCode());
+            AssertEquals(float.NaN.GetHashCode(), ((object)float.NaN).GetHashCode());
+            AssertEquals(float.PositiveInfinity.GetHashCode(), ((object)float.PositiveInfinity).GetHashCode());
+        }
+
+        public void testCompare1()
+        {
+            AssertTrue(d5 <  d7);
+            AssertTrue(d5 <= d7);
+            AssertTrue(d7 >  d5);
+            AssertTrue(d7 >= d5);
+            AssertTrue(d1 >= d1_1);
+            AssertTrue(d1 >= d1_1);
+            AssertTrue(d1 <= d1_1);
+            AssertTrue(d1 == d1_1);
+
+            AssertFalse(d5 >= d7);
+            AssertFalse(d5 >  d7);
+            AssertFalse(d7 <= d5);
+            AssertFalse(d7 <  d5);
+            AssertFalse(d1 <  d1_1);
+            AssertFalse(d1 >  d1_1);
+            AssertFalse(d1 != d1_1);
+        }
+
+        public void testCompareNaN()
+        {
+            AssertFalse(dNaN == double.NaN);
+
+            AssertFalse(d5   <  dNaN);
+            AssertFalse(dNaN <  d5);
+
+            AssertFalse(d5   <= dNaN);
+            AssertFalse(dNaN <= d5);
+
+            AssertFalse(dNaN <  double.NaN);
+            AssertFalse(dNaN <= double.NaN);
+
+            AssertFalse(d5   >  dNaN);
+            AssertFalse(dNaN >  d5);
+
+            AssertFalse(d5   >= dNaN);
+            AssertFalse(dNaN >= d5);
+
+            AssertFalse(dNaN >  double.NaN);
+            AssertFalse(dNaN >= double.NaN);
+        }
+
+        public void testTernary()
+        {
+            AssertEquals(d5 <  d7    ? 5 : 6, 5);
+            AssertEquals(d5 <= d7    ? 5 : 6, 5);
+            AssertEquals(d7 >  d5    ? 5 : 6, 5);
+            AssertEquals(d7 >= d5    ? 5 : 6, 5);
+            AssertEquals(d1 >= d1_1  ? 5 : 6, 5);
+            AssertEquals(d1 <= d1_1  ? 5 : 6, 5);
+            AssertEquals(d1 == d1_1  ? 5 : 6, 5);
+
+            AssertNotSame(d5 >= d7   ? 5 : 6, 5);
+            AssertNotSame(d5 >  d7   ? 5 : 6, 5);
+            AssertNotSame(d7 <= d5   ? 5 : 6, 5);
+            AssertNotSame(d7 <  d5   ? 5 : 6, 5);
+            AssertNotSame(d1 <  d1_1 ? 5 : 6, 5);
+            AssertNotSame(d1 >  d1_1 ? 5 : 6, 5);
+            AssertNotSame(d1 != d1_1 ? 5 : 6, 5);
+
+            AssertNotSame(dNaN == double.NaN ? 5 : 6, 5);
+
+            AssertNotSame(d5 <   dNaN ? 5 : 6, 5);
+            AssertNotSame(dNaN < d5 ? 5 : 6, 5);
+
+            AssertNotSame(d5 <=   dNaN ? 5 : 6, 5);
+            AssertNotSame(dNaN <= d5 ? 5 : 6, 5);
+
+            AssertNotSame(dNaN <  double.NaN ? 5 : 6, 5);
+            AssertNotSame(dNaN <= double.NaN ? 5 : 6, 5);
+
+            AssertNotSame(d5 >   dNaN ? 5 : 6, 5);
+            AssertNotSame(dNaN > d5 ? 5 : 6, 5);
+
+            AssertNotSame(d5 >=   dNaN ? 5 : 6, 5);
+            AssertNotSame(dNaN >= d5 ? 5 : 6, 5);
+
+            AssertNotSame(dNaN >  double.NaN ? 5 : 6, 5);
+            AssertNotSame(dNaN >= double.NaN ? 5 : 6, 5);
+        }
+
+        public void testUshortToFloatConversion()
+        {
+            ushort x = 0xF000;
+            float y = (float) x;
+            AssertEquals(61440f, y);
+        }
+
+        public void testUintToFloatConversion()
+        {
+            uint x = 0x80000000;
+            float y = (float)x;
+            AssertEquals(2.14748365E+09f, y); 
+        }
+
+        public void testUlongToFloatConversion()
+        {
+            ulong x = 0xF000000000000000;
+            float y = (float)x;
+            AssertEquals(1.72938226E+19f, y);
         }
     }
 }

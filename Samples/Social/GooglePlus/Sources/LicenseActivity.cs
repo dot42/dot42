@@ -2,8 +2,7 @@
 
 using Dot42.Manifest;
 
-using Android.App;
-using Android.View;
+using Android.App;using Android.Views;
 using Android.Widget;
 
 using Com.Google.Android.Gms.Common;

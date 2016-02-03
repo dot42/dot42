@@ -1,4 +1,4 @@
-using Android.View;
+using Android.Views;
 using Java.Util;
 
 namespace KiloBoltRobotGame.Framework
@@ -28,7 +28,7 @@ namespace KiloBoltRobotGame.Framework
             lock (this)
             {
                 TouchEvent touchEvent = touchEventPool.newObject();
-                switch (@event.GetAction())
+                switch (@event.Action)
                 {
                     case MotionEvent.ACTION_DOWN:
                         touchEvent.type = TouchEvent.TOUCH_DOWN;
@@ -45,8 +45,8 @@ namespace KiloBoltRobotGame.Framework
                         break;
                 }
 
-                touchEvent.x = touchX = (int) (@event.GetX()*scaleX);
-                touchEvent.y = touchY = (int) (@event.GetY()*scaleY);
+                touchEvent.x = touchX = (int) (@event.X*scaleX);
+                touchEvent.y = touchY = (int) (@event.Y*scaleY);
                 touchEventsBuffer.Add(touchEvent);
 
                 return true;

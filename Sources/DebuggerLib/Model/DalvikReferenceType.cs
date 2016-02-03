@@ -83,25 +83,7 @@ namespace Dot42.DebuggerLib.Model
         /// </summary>
         public Task<string> GetNameAsync()
         {
-            return GetSignatureAsync().Select(SignatureToName);
-        }
-
-        /// <summary>
-        /// Convert a class signature to a name.
-        /// </summary>
-        private string SignatureToName(string signature)
-        {
-            var typeReference = Descriptors.ParseClassType(signature);
-            var typeMap = manager.Debugger.FrameworkTypeMap;
-            if (typeMap != null)
-            {
-                FrameworkTypeMap.TypeEntry entry;
-                if (typeMap.TryGet(typeReference.ClassName, out entry))
-                {
-                    return entry.FullName;
-                }
-            }
-            return typeReference.ClrTypeName;
+            return GetSignatureAsync().Select(manager.Process.SignatureToClrName);
         }
 
         /// <summary>

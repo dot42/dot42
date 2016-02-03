@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Android.View;
-using Android.Graphics.Drawable;
+using System.Text;using Android.Views;
+using Android.Graphics.Drawables;
 using Android.Content;
-using Android.Graphics.Drawable.Shapes;
+using Android.Graphics.Drawables.Shapes;
 using Android.Graphics;
 using Android.Widget;
 

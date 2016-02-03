@@ -5,6 +5,7 @@ using System.Text;
 using Dot42.CompilerLib.XModel;
 using Dot42.DexLib;
 using Dot42.JvmClassLib;
+using Dot42.Utility;
 using Mono.Cecil;
 using FieldReference = Mono.Cecil.FieldReference;
 
@@ -40,9 +41,14 @@ namespace Dot42.CompilerLib
         /// <summary>
         /// Create the classname for the Nullable base class for the given type.
         /// </summary>
-        public static string GetNullableBaseClassName(XTypeDefinition type)
+        public static string GetNullableClassName(XTypeDefinition type)
         {
-            return type.Name + "__Nullable";
+            return GetNullableClassName(type.Name);
+        }
+
+        public static string GetNullableClassName(string underlyingTypeName)
+        {
+            return underlyingTypeName + "__Nullable";
         }
 
         /// <summary>
@@ -193,6 +199,11 @@ namespace Dot42.CompilerLib
                 {
                     sb.Append(ch);
                 }
+                else if (ch == '`')
+                {
+                    // replace with an allowed similar char. (ʹ)
+                    sb.Append('\x02b9');
+                }
                 else
                 {
                     addPostfix = true;
@@ -200,8 +211,7 @@ namespace Dot42.CompilerLib
             }
             if (addPostfix)
             {
-                sb.Append('-');
-                sb.Append(Math.Abs(name.GetHashCode()));
+                sb.Append(GetHashPostfix(name));
             }
             return sb.ToString();
         }
@@ -216,7 +226,7 @@ namespace Dot42.CompilerLib
                 ((value >= 'a') && (value <= 'z')) ||
                 ((value >= '0') && (value <= '9')) ||
                 (value == '$') ||
-                (value == '-') ||
+                //(value == '-') ||
                 (value == '_') ||
                 ((value >= '\u00a1') && (value <= '\u1fff')) ||
                 ((value >= '\u2010') && (value <= '\u2027')) ||
@@ -237,7 +247,7 @@ namespace Dot42.CompilerLib
             if (name != originalName)
             {
                 // Add hash to ensure unique
-                name = name + '_' + Math.Abs(originalName.GetHashCode());
+                name = name + GetHashPostfix(originalName);
             }
             return name;
         }
@@ -263,7 +273,7 @@ namespace Dot42.CompilerLib
             if (name != originalName)
             {
                 // Add hash to ensure unique
-                name = name + '_' + Math.Abs(originalName.GetHashCode());
+                name = name + GetHashPostfix(originalName);
             }
             return name;
         }
@@ -306,7 +316,7 @@ namespace Dot42.CompilerLib
             if (name != originalName)
             {
                 // Add hash to ensure unique
-                name = name + '_' + Math.Abs(originalName.GetHashCode());
+                name = name + '_' + GetHashPostfix(originalName);
             }
 
             return name;
@@ -379,6 +389,15 @@ namespace Dot42.CompilerLib
                 }
             }*/
             throw new ArgumentException(string.Format("Method {0} not found", xMethod));
+        }
+
+        private static string GetHashPostfix(string originalName)
+        {
+            // return a persistant hash code so that the code stays stable
+            // and comparable between different compiler versions.
+            // also 4 characters should suffice.
+            return "_" + Math.Abs(HashCodeUtility.GetPersistentHashCode(originalName))
+                             .ToString("0000").Substring(0, 4);
         }
     }
 }

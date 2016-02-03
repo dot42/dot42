@@ -10,28 +10,28 @@ namespace AnimatedHelloWorld
     public sealed class R
     {
         
-        public sealed class Drawables
+        public sealed class Drawable
         {
             
             public const int Icon = 0x7f020000;
         }
         
-        public sealed class Layouts
+        public sealed class Layout
         {
             
             public const int MainLayout = 0x7f030000;
         }
         
-        public sealed class Anims
+        public sealed class Anim
         {
             
             public const int Animation = 0x7f040000;
         }
         
-        public sealed class Ids
+        public sealed class Id
         {
             
-            public const int theLabel = 0x7f050035;
+            public const int theLabel = 0x7f050038;
         }
     }
 }

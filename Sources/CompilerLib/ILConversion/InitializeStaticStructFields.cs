@@ -46,6 +46,7 @@ namespace Dot42.CompilerLib.ILConversion
                         {
                             throw new CompilerException(string.Format("Class ctor not found in type {0}", type.FullName));
                         }
+                        // TODO: only create initialization code if not yet present in cctor.
                         InjectInitializationCode(ctor, structFields);
                     }
                 }

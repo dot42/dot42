@@ -46,14 +46,9 @@ namespace Dot42.CompilerLib.Structure.DotNet
             get { return calledMethod; }
         }
 
-        /// <summary>
-        /// Is the called method a static method?
-        /// If so, the instance ctor has no arguments.
-        /// Otherwise the instance ctor has a single instance argument.
-        /// </summary>
-        public bool CalledMethodIsStatic
+        public bool ConstructorNeedsInstanceArgument
         {
-            get { return calledMethod.IsStatic; }
+            get { return !calledMethod.IsStatic; }
         }
     }
 }

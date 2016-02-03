@@ -11,7 +11,7 @@ using Dot42.FrameworkDefinitions;
 namespace Dot42.CompilerLib.RL
 {
     /// <summary>
-    /// RL vuilder extension methods.
+    /// RL builder extension methods.
     /// </summary>
     internal static class RLBuilder
     {
@@ -46,10 +46,27 @@ namespace Dot42.CompilerLib.RL
 
         /// <summary>
         /// Create and add an instruction.
+        /// 
+        /// This seems to be a dangerous overload, since it may hide the one below if operand is null.
+        /// We can't remove it without checking all ~170 usages though...
+        /// </summary>
+        public static Instruction Add(this IRLBuilder builder, ISourceLocation sequencePoint, RCode opcode)
+        {
+            return builder.Add(sequencePoint, opcode, (object)null, new Register[0]);
+        }
+
+        /// <summary>
+        /// Create and add an instruction.
+        /// 
+        /// This seems to be a dangerous overload, since it may hide the one below if operand is null.
+        /// We can't remove it without checking all ~170 usages though...
         /// </summary>
         public static Instruction Add(this IRLBuilder builder, ISourceLocation sequencePoint, RCode opcode, params Register[] registers)
         {
-            return builder.Add(sequencePoint, opcode, null, registers);
+            if (registers.Any(r => r == null))
+                throw new InvalidOperationException("Register must not be null. Wrong overload?");
+
+            return builder.Add(sequencePoint, opcode, (object)null, registers);
         }
 
         /// <summary>
@@ -57,6 +74,11 @@ namespace Dot42.CompilerLib.RL
         /// </summary>
         public static Instruction Add(this IRLBuilder builder, ISourceLocation sequencePoint, RCode opcode, object operand, params Register[] registers)
         {
+            if(operand is Register)
+                throw new InvalidOperationException("Wrong overload. Please fix me..."); // see above.
+            if(operand is RegisterSpec || operand is RLRange)
+                throw new InvalidOperationException("Wrong kind of argument. Please fix me..."); // see above.
+
             return builder.Add(sequencePoint, opcode, operand, registers);
         }
 
@@ -198,22 +220,7 @@ namespace Dot42.CompilerLib.RL
                 if (destinationType.ExtendsIEnumerable())
                 {
                     // Use ArrayHelper.As...Enumerable to convert
-                    var convertMethodName = "AsObjectEnumerable";
-                    if (sourceArrayElementType.IsPrimitive)
-                    {
-                        if (sourceArrayElementType.IsBoolean()) convertMethodName = "AsBoolEnumerable";
-                        else if (sourceArrayElementType.IsByte()) convertMethodName = "AsByteEnumerable";
-                        else if (sourceArrayElementType.IsSByte()) convertMethodName = "AsSByteEnumerable";
-                        else if (sourceArrayElementType.IsChar()) convertMethodName = "AsCharEnumerable";
-                        else if (sourceArrayElementType.IsInt16()) convertMethodName = "AsInt16Enumerable";
-                        else if (sourceArrayElementType.IsUInt16()) convertMethodName = "AsUInt16Enumerable";
-                        else if (sourceArrayElementType.IsInt32()) convertMethodName = "AsInt32Enumerable";
-                        else if (sourceArrayElementType.IsUInt32()) convertMethodName = "AsUInt32Enumerable";
-                        else if (sourceArrayElementType.IsInt64()) convertMethodName = "AsInt64Enumerable";
-                        else if (sourceArrayElementType.IsFloat()) convertMethodName = "AsFloatEnumerable";
-                        else if (sourceArrayElementType.IsDouble()) convertMethodName = "AsDoubleEnumerable";
-                        else throw new ArgumentOutOfRangeException("Unknown primitive array element type " + sourceArrayElementType);
-                    }
+                    var convertMethodName = FrameworkReferences.GetAsEnumerableTMethodName(sourceArrayElementType);
                     var convertMethod = arrayType.GetMethod(convertMethodName);
                     // Add code
                     var tmp = builder.EnsureTemp(sequencePoint, source, frame);
@@ -221,6 +228,27 @@ namespace Dot42.CompilerLib.RL
                     var last = builder.Add(sequencePoint, RCode.Move_result_object, tmp.Result.Register);
                     converted = true;
                     return new RLRange(tmp, last, tmp.Result);
+                }
+            }
+
+            if (sourceType.IsGenericParameter && !destinationType.IsSystemObject())
+            {
+                var gp = (XGenericParameter) sourceType;
+                if (gp.Constraints.Length > 0)
+                {
+                    // we could find the best matching constraint here, and check if we actually
+                    // need to cast. This would probably allow us to skip some unneccesary casts.
+                    // We would need some sort of IsAssignableFrom though, and I'm not sure we have
+                    // this logic with XTypeDefinition implemented yet.
+                    // Therefore, we just assume that the original compiler has done its job well,
+                    // and always cast to the destination type.
+                    // Apparently dex seems not to need a cast when destinationType is an interface. 
+                    // Since i'm not to sure about this, we nevertheless insert the cast here. 
+                    // [TODO: check if this is needed]
+                    var tmp = builder.EnsureTemp(sequencePoint, source, frame);
+                    var cast = builder.Add(sequencePoint, RCode.Check_cast, destinationType.GetReference(targetPackage), tmp.Result);
+                    converted = true;
+                    return new RLRange(tmp, cast, tmp.Result);
                 }
             }
 

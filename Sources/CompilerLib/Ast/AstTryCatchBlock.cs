@@ -47,22 +47,22 @@ namespace Dot42.CompilerLib.Ast
         /// <summary>
         /// Write human readable output.
         /// </summary>
-        public override void WriteTo(ITextOutput output)
+        public override void WriteTo(ITextOutput output, FormattingOptions format)
         {
             output.WriteLine(".try {");
             output.Indent();
-            TryBlock.WriteTo(output);
+            TryBlock.WriteTo(output, format);
             output.Unindent();
             output.WriteLine("}");
             foreach (var block in CatchBlocks)
             {
-                block.WriteTo(output);
+                block.WriteTo(output, format);
             }
             if (FaultBlock != null)
             {
                 output.WriteLine("fault {");
                 output.Indent();
-                FaultBlock.WriteTo(output);
+                FaultBlock.WriteTo(output, format);
                 output.Unindent();
                 output.WriteLine("}");
             }
@@ -70,7 +70,7 @@ namespace Dot42.CompilerLib.Ast
             {
                 output.WriteLine("finally {");
                 output.Indent();
-                FinallyBlock.WriteTo(output);
+                FinallyBlock.WriteTo(output, format);
                 output.Unindent();
                 output.WriteLine("}");
             }
@@ -110,7 +110,7 @@ namespace Dot42.CompilerLib.Ast
             /// <summary>
             /// Write human readable output.
             /// </summary>
-            public override void WriteTo(ITextOutput output)
+            public override void WriteTo(ITextOutput output, FormattingOptions format)
             {
                 output.Write("catch ");
                 output.WriteReference(ExceptionType.FullName, ExceptionType);
@@ -121,7 +121,7 @@ namespace Dot42.CompilerLib.Ast
                 }
                 output.WriteLine(" {");
                 output.Indent();
-                base.WriteTo(output);
+                base.WriteTo(output, format);
                 output.Unindent();
                 output.WriteLine("}");
             }

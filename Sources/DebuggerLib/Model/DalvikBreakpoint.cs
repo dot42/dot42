@@ -44,7 +44,9 @@
         /// <summary>
         /// Try to bind this breakpoint to an actual breakpoint in the VM.
         /// </summary>
-        internal abstract void TryBind(DalvikProcess process);
+        /// <returns>true if bound successful, false if binding will occur 
+        /// when the class is loaded</returns>
+        internal abstract bool TryBind(DalvikProcess process);
 
         /// <summary>
         /// This breakpoint is reached.

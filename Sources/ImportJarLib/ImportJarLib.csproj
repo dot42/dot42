@@ -44,6 +44,7 @@
     <Compile Include="AndroidTypeSystem.cs" />
     <Compile Include="BuilderExtensions.cs" />
     <Compile Include="CodeGenerator.cs" />
+    <Compile Include="SignedByteMode.cs" />
     <Compile Include="TypeNameMap.CreateNetDefs.cs" />
     <Compile Include="FinalizeStates.cs" />
     <Compile Include="IInterfaceConstantsTypeBuilder.cs" />

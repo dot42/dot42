@@ -17,8 +17,7 @@
 using Android_Content = Android.Content;
 using Android.Database;
 using Android.Database.Sqlite;
-using Android.Net;
-using Android.Os;
+using Android.Net;using Android.OS;
 using Android.Provider;
 using Android.Support.V4.App;
 using Android.Support.V4.Content;
@@ -26,8 +25,7 @@ using Android.Support.V4.Database;
 using Android.Support.V4.View;
 using Android.Support.V4.Widget;
 using Android.Text;
-using Android.Util;
-using Android.View;
+using Android.Util;using Android.Views;
 
 using Java.Util;
 using Java.Lang;
@@ -185,7 +183,7 @@ namespace com.example.android.supportv4.app
              * Perform provider creation.
              */
             public override bool OnCreate() {
-                mOpenHelper = new DatabaseHelper(GetContext());
+                mOpenHelper = new DatabaseHelper(Context);
                 // Assumes that any failures will be reported by a thrown exception.
                 return true;
             }
@@ -228,7 +226,7 @@ namespace com.example.android.supportv4.app
                 ICursor c = qb.Query(db, projection, selection, selectionArgs,
                         null /* no group */, null /* no filter */, sortOrder);
 
-                c.SetNotificationUri(GetContext().GetContentResolver(), uri);
+                c.SetNotificationUri(Context.GetContentResolver(), uri);
                 return c;
             }
 
@@ -275,7 +273,7 @@ namespace com.example.android.supportv4.app
                 // If the insert succeeded, the row ID exists.
                 if (rowId > 0) {
                     Uri noteUri = Android_Content.ContentUris.WithAppendedId(MainTable.CONTENT_ID_URI_BASE, rowId);
-                    GetContext().GetContentResolver().NotifyChange(noteUri, null);
+                    Context.GetContentResolver().NotifyChange(noteUri, null);
                     return noteUri;
                 }
 
@@ -312,7 +310,7 @@ namespace com.example.android.supportv4.app
                         throw new System.ArgumentException("Unknown URI " + uri);
                 }
 
-                GetContext().GetContentResolver().NotifyChange(uri, null);
+                Context.GetContentResolver().NotifyChange(uri, null);
 
                 return count;
             }
@@ -344,7 +342,7 @@ namespace com.example.android.supportv4.app
                         throw new System.ArgumentException("Unknown URI " + uri);
                 }
 
-                GetContext().GetContentResolver().NotifyChange(uri, null);
+                Context.GetContentResolver().NotifyChange(uri, null);
 
                 return count;
             }
@@ -452,7 +450,7 @@ namespace com.example.android.supportv4.app
             public override bool OnOptionsItemSelected(IMenuItem item) {
                 Android_Content.ContentResolver cr = GetActivity().GetContentResolver();
 
-                switch (item.GetItemId()) {
+                switch (item.ItemId) {
                     case POPULATE_ID:
                         if (mPopulatingTask != null) {
                             mPopulatingTask.Cancel(false);

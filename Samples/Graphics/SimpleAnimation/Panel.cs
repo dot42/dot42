@@ -1,7 +1,6 @@
 ﻿using System.Threading;
 using Android.Content;
-using Android.Graphics;
-using Android.View;
+using Android.Graphics;using Android.Views;
 using Java.Lang;
 
 namespace SimpleAnimation
@@ -17,7 +16,7 @@ namespace SimpleAnimation
 
         public Panel(Context context) : base(context)
         {
-            holder = GetHolder();
+            holder = Holder;
             holder.AddCallback(this);
         }
 
@@ -37,55 +36,55 @@ namespace SimpleAnimation
             // Set background color
             canvas.DrawColor(Color.BLUE); 
             var paint = new Paint();
-            paint.SetTextAlign(Paint.Align.CENTER);
+            paint.TextAlign =(Paint.Align.CENTER);
 
             // Draw some lines
             canvas.DrawLine(mX, mY, mY + 33, mX + 100, paint);
-            paint.SetColor(Color.RED);
-            paint.SetStrokeWidth(10);
+            paint.Color =(Color.RED);
+            paint.StrokeWidth = (10);
             canvas.DrawLine(87, 0, 75, 100, paint);
-            paint.SetColor(Color.GREEN);
-            paint.SetStrokeWidth(5);
+            paint.Color =(Color.GREEN);
+            paint.StrokeWidth = (5);
             for (int y = 30, alpha = 128; alpha > 2; alpha >>= 1, y += 10)
             {
-                paint.SetAlpha(alpha);
+                paint.Alpha = (alpha);
 
                 canvas.DrawLine(mY, y, mY + 100, y, paint);
             }
 
             // Draw a red rectangle
-            paint.SetColor(Color.RED);
+            paint.Color =(Color.RED);
             var rect = new Rect();
             rect.Set(size + 120, 130, size + 156, 156);
             canvas.DrawRect(rect, paint);
 
             // Draw a circle
-            paint.SetColor(Color.ParseColor("#ffd700"));
+            paint.Color =(Color.ParseColor("#ffd700"));
             canvas.DrawCircle(size * 2, 220, 30, paint); //faster circle
 
             // Draw red'ish rectangle
-            paint.SetColor(Color.Rgb(128, 20, 20));
+            paint.Color =(Color.Rgb(128, 20, 20));
             canvas.DrawRect(size, 67, 68, 45, paint);
 
             // Draw green circle
-            paint.SetColor(Color.GREEN);
+            paint.Color =(Color.GREEN);
             canvas.DrawCircle(size, 140.0f - size / 3, 45.0f, paint); //move circle across screen
-            paint.SetColor(Color.RED);
+            paint.Color =(Color.RED);
             canvas.DrawText("Dot42", size, 140.0f - size / 3, paint);
 
             // Draw magenta circle
-            paint.SetColor(Color.MAGENTA);
+            paint.Color =(Color.MAGENTA);
             canvas.DrawCircle(mX, mY, size / 4.0f, paint); //move circle down screen
-            paint.SetColor(Color.GREEN);
+            paint.Color =(Color.GREEN);
             canvas.DrawText("is", mX, mY, paint);
 
             // Draw yellow rectangle
-            paint.SetAlpha(64);
-            paint.SetColor(Color.YELLOW);
+            paint.Alpha = (64);
+            paint.Color =(Color.YELLOW);
             canvas.DrawRect(size, size, size + 45, size + 45, paint);
             // Draw text on rectangle
-            paint.SetAlpha(255);
-            paint.SetColor(Color.DKGRAY);
+            paint.Alpha = (255);
+            paint.Color =(Color.DKGRAY);
             canvas.DrawText("fun!", size + 45 / 2, size + 45 / 2, paint);
         }
 

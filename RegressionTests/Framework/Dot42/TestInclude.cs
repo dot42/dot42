@@ -1,5 +1,5 @@
 ﻿using System;
-using Android.View;
+using Android.Views;
 using Junit.Framework;
 
 namespace Dot42.Tests.Dot42
@@ -9,15 +9,15 @@ namespace Dot42.Tests.Dot42
         public void testInclude1()
         {
             var type = typeof (IncludeAll);
-			AssertEquals("#Methods", 1, type.GetDeclaredMethods().Length);
-			AssertEquals("#Fields", 1, type.GetDeclaredFields().Length);
+			AssertEquals("#Methods", 1, type.JavaGetDeclaredMethods().Length);
+			AssertEquals("#Fields", 1, type.JavaGetDeclaredFields().Length);
         }
 
         public void testInclude2()
         {
             var type = typeof (IncludeNone);
-			AssertEquals("#Methods", 0, type.GetDeclaredMethods().Length);
-			AssertEquals("#Fields", 0, type.GetDeclaredFields().Length);
+			AssertEquals("#Methods", 0, type.JavaGetDeclaredMethods().Length);
+			AssertEquals("#Fields", 0, type.JavaGetDeclaredFields().Length);
         }
 
         public void testInclude3()

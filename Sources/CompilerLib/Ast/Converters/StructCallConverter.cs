@@ -39,8 +39,8 @@ namespace Dot42.CompilerLib.Ast.Converters
                                     targetType = prefixTypeDef;
                                 }
                             }
-                            if (targetType.IsValueType && !targetType.IsPrimitive &&
-                                ! /*targetType*/method.DeclaringType.IsSystemNullable())
+                            if (targetType.IsValueType && !targetType.IsPrimitive 
+                                && !/*targetType*/method.DeclaringType.IsSystemNullable())
                             {
                                 if (method.IsConstructor && (!node.Arguments[0].MatchThis()))
                                 {
@@ -68,11 +68,13 @@ namespace Dot42.CompilerLib.Ast.Converters
                         {
                             var typeRef = (XTypeReference) node.Operand;
                             XTypeDefinition type;
-                            if (typeRef.TryResolve(out type) && type.IsValueType && !type.IsPrimitive && !type.IsEnum &&
-                                !type.IsSystemNullable())
+                            if (typeRef.TryResolve(out type))
                             {
-                                var defaultCtor = GetDefaultValueCtor(type);
-                                ConvertDefaultValue(node, defaultCtor);
+                                if (type.IsStruct)
+                                {
+                                    var defaultCtor = GetDefaultValueCtor(type);
+                                    ConvertDefaultValue(node, defaultCtor);
+                                }
                             }
                         }
                         break;
@@ -128,7 +130,9 @@ namespace Dot42.CompilerLib.Ast.Converters
                         {
                             var arrayType = node.Arguments[0].GetResultType() as XArrayType;
                             XTypeDefinition elementType;
-                            if ((arrayType != null) && (arrayType.ElementType.IsStruct(out elementType)))
+                            if ((arrayType != null)
+                                && (arrayType.ElementType.IsStruct(out elementType) 
+                                && !elementType.IsImmutableStruct))
                             {
                                 // Call $Clone
                                 var cloneMethod = GetCloneMethod(elementType);
@@ -146,7 +150,7 @@ namespace Dot42.CompilerLib.Ast.Converters
                         {
                             var field = (XFieldReference) node.Operand;
                             XTypeDefinition fieldType;
-                            if (field.FieldType.IsStruct(out fieldType))
+                            if (field.FieldType.IsStruct(out fieldType) && !fieldType.IsImmutableStruct)
                             {
                                 // Call $Clone
                                 var cloneMethod = GetCloneMethod(fieldType);
@@ -175,14 +179,18 @@ namespace Dot42.CompilerLib.Ast.Converters
                                 }
                                 else
                                 {
-                                    // Call $Clone
-                                    var cloneMethod = GetCloneMethod(varType);
-                                    var valueArgIndex = node.Arguments.Count - 1; // Last argument
-                                    var valueArg = node.Arguments[valueArgIndex];
-                                    if (IsCloneNeeded(valueArg))
+                                    if (!varType.IsImmutableStruct)
                                     {
-                                        var clone = new AstExpression(node.SourceLocation, AstCode.Call, variable.Type.CreateReference(cloneMethod), valueArg);
-                                        node.Arguments[valueArgIndex] = clone;
+                                        // Call $Clone
+                                        var cloneMethod = GetCloneMethod(varType);
+                                        var valueArgIndex = node.Arguments.Count - 1; // Last argument
+                                        var valueArg = node.Arguments[valueArgIndex];
+                                        if (IsCloneNeeded(valueArg))
+                                        {
+                                            var clone = new AstExpression(node.SourceLocation, AstCode.Call,
+                                                variable.Type.CreateReference(cloneMethod), valueArg);
+                                            node.Arguments[valueArgIndex] = clone;
+                                        }
                                     }
                                 }
                             }
@@ -192,7 +200,7 @@ namespace Dot42.CompilerLib.Ast.Converters
                         {
                             var type = (XTypeReference) node.Operand;
                             XTypeDefinition typeDef;
-                            if (type.IsStruct(out typeDef))
+                            if (type.IsStruct(out typeDef) && !typeDef.IsImmutableStruct)
                             {
                                 // Convert to arg0.$CopyFrom(arg1)
                                 var copyFromMethod = GetCopyFromMethod(typeDef);
@@ -216,6 +224,7 @@ namespace Dot42.CompilerLib.Ast.Converters
                                     if (ldThisExpr.MatchThis())
                                     {
                                         // box(ldobj(ldthis)) -> ldthis
+                                        // TODO: think about making a clone here.
                                         node.CopyFrom(ldThisExpr);
                                     }
                                 }
@@ -327,16 +336,33 @@ namespace Dot42.CompilerLib.Ast.Converters
         /// The given node is defaultvalue(struct).
         /// Convert it to newobj
         /// </summary>
-        private static void ConvertDefaultValue(AstExpression callNode, XMethodDefinition defaultCtorDef)
+        internal static void ConvertDefaultValue(AstExpression callNode, XMethodDefinition defaultCtorDef)
         {
-            var type = (XTypeReference) callNode.Operand;
+            var type = (XTypeReference)callNode.Operand;
             var defaultCtor = type.CreateReference(defaultCtorDef);
+            var typeDef = defaultCtorDef.DeclaringType;
 
-            // Remove "this" argument
-            callNode.Arguments.Clear();
-            callNode.Code = AstCode.Newobj;
-            callNode.Operand = defaultCtor;
-            callNode.SetType(defaultCtor.DeclaringType);
+            if (typeDef.IsImmutableStruct)
+            {
+                var fieldDef = typeDef.Fields.SingleOrDefault(f => f.Name == NameConstants.Struct.DefaultFieldName);
+                if (fieldDef != null)
+                {
+                    // load the default field.
+                    callNode.Arguments.Clear();
+                    callNode.Code = AstCode.Ldsfld;
+                    callNode.Operand = fieldDef;
+                    callNode.SetType(defaultCtor.DeclaringType);
+                    return;
+                }
+            }
+            else
+            {
+                // Remove "this" argument
+                callNode.Arguments.Clear();
+                callNode.Code = AstCode.Newobj;
+                callNode.Operand = defaultCtor;
+                callNode.SetType(defaultCtor.DeclaringType);
+            }
         }
 
         /// <summary>
@@ -362,7 +388,21 @@ namespace Dot42.CompilerLib.Ast.Converters
             newArrNode.Code = AstCode.InitStructArray;
             newArrNode.Arguments.Clear();
             newArrNode.Arguments.Add(newArrClone);
-            newArrNode.Operand = defaultCtor;
+
+            var typeDef = defaultCtor.DeclaringType;
+
+            if (typeDef.IsImmutableStruct)
+            {
+                var field = typeDef.Fields.SingleOrDefault(f=>f.Name == NameConstants.Struct.DefaultFieldName);
+                if(field != null)
+                    newArrNode.Operand = field;
+                else
+                    newArrNode.Operand = defaultCtor;
+            }
+            else
+            {
+                newArrNode.Operand = defaultCtor;
+            }
         }
 
         /// <summary>
@@ -415,7 +455,11 @@ namespace Dot42.CompilerLib.Ast.Converters
             {
                 var paramType = method.Parameters[paramIndex].ParameterType;
                 XTypeDefinition typeDef;
-                if (paramType.IsStruct(out typeDef))
+                if (paramType.IsStruct(out typeDef) && !typeDef.IsImmutableStruct) 
+                    // TODO: check if this decision should be made based on the actual argument type, not the destination type.
+                    //       this should be true at least for generic parameters, which might either take a ValueType or 
+                    //       a reference type.
+                    //       Then again, maybe the struct argument should be cloned on an "box" instruction.
                 {
                     // Call $Clone
                     var argNode = callNode.Arguments[argumentIndex];

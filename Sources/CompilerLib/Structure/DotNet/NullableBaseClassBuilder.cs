@@ -1,12 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Dot42.CecilExtensions;
 using Dot42.CompilerLib.Extensions;
 using Dot42.CompilerLib.RL;
-using Dot42.CompilerLib.Target;
 using Dot42.CompilerLib.Target.Dex;
 using Dot42.CompilerLib.XModel;
 using Dot42.CompilerLib.XModel.DotNet;
+using Dot42.CompilerLib.XModel.Synthetic;
 using Dot42.DexLib;
+using Dot42.FrameworkDefinitions;
+using Dot42.Mapping;
 using Mono.Cecil;
 using MethodDefinition = Dot42.DexLib.MethodDefinition;
 using MethodReference = Dot42.DexLib.MethodReference;
@@ -16,6 +19,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
 {
     /// <summary>
     /// Build ClassDefinition structures for base classes of struct's that are used as Nullable(T).
+    /// Currently only used for Enums.
     /// </summary>
     internal class NullableBaseClassBuilder : ClassBuilder
     {
@@ -28,9 +32,9 @@ namespace Dot42.CompilerLib.Structure.DotNet
         }
 
         /// <summary>
-        /// Sorting low comes first
+        /// Sorting low comes first.
         /// </summary>
-        protected override int SortPriority { get { return 0; } }
+        protected override int SortPriority { get { return -60; } }
 
         /// <summary>
         /// Create the current type as class definition.
@@ -40,14 +44,22 @@ namespace Dot42.CompilerLib.Structure.DotNet
             base.CreateClassDefinition(targetPackage, parent, parentType, parentXType);
             Class.IsFinal = false;
             Class.IsAbstract = true;
+            Class.IsSynthetic = true;
         }
 
-        /// <summary>
-        /// Create the name of the class.
-        /// </summary>
-        protected override string CreateClassName(XTypeDefinition xType)
+        protected override XTypeDefinition CreateXType(XTypeDefinition parentXType)
         {
-            return NameConverter.GetNullableBaseClassName(xType);
+            var typeDef = (XBuilder.ILTypeDefinition)XBuilder.AsTypeReference(Compiler.Module, Type)
+                                                             .Resolve();
+
+            string name = NameConverter.GetNullableClassName(typeDef.Name);
+
+            XSyntheticTypeFlags xflags = default(XSyntheticTypeFlags);
+
+            return XSyntheticTypeDefinition.Create(Compiler.Module, parentXType, xflags,
+                                                   typeDef.Namespace, name,
+                                                  Compiler.Module.TypeSystem.Object,
+                                                  string.Join(":", Type.Scope.Name, Type.MetadataToken.ToScopeId(), "Nullable"));
         }
 
         /// <summary>
@@ -79,10 +91,31 @@ namespace Dot42.CompilerLib.Structure.DotNet
                 var ctorBody = CreateCtorBody(prototype);
                 targetPackage.Record(new CompiledMethod { DexMethod = ctor, RLBody = ctorBody });                
             }
+
+            // build original type field
+            // Create field definition
+            var dfield = new Dot42.DexLib.FieldDefinition();
+
+            dfield.Owner = Class;
+            dfield.Name = "underlying$";
+            dfield.IsSynthetic = true;
+            dfield.IsFinal = true;
+            dfield.IsStatic= true;
+            dfield.IsPublic = true;
+
+            dfield.Type = Compiler.Module.TypeSystem.Type.GetClassReference(targetPackage);
+
+            // not sure if GetClassReference is the best way to go forward here.
+            // might depend on the sort order of the class builders.
+            var underlyingType = XBuilder.AsTypeReference(Compiler.Module, Type);
+            dfield.Value = underlyingType.GetClassReference(targetPackage);
+
+            Class.Fields.Add(dfield);
+
         }
 
         /// <summary>
-        /// Gets all constructors that has to be wrapped in this class.
+        /// Gets all constructors that have to be wrapped in this class.
         /// </summary>
         protected virtual IEnumerable<XMethodDefinition> GetBaseClassCtors()
         {
@@ -125,6 +158,21 @@ namespace Dot42.CompilerLib.Structure.DotNet
             ins.Add(new Instruction(RCode.Invoke_direct, paramRegs.ToArray()) { Operand = baseCtorRef });
             ins.Add(new Instruction(RCode.Return_void));
             return body;
+        }
+
+        protected override TypeEntry CreateMappingEntry()
+        {
+            var ret = base.CreateMappingEntry();
+            return new TypeEntry(ret.Name + "?", ret.Scope, ret.DexName, ret.Id, ret.ScopeId);
+        }
+
+        protected override void ImplementInterfaces(DexTargetPackage targetPackage)
+        {
+            base.ImplementInterfaces(targetPackage);
+
+            var marker = Compiler.GetDot42InternalType(InternalConstants.NullableMarker);
+            Class.Interfaces.Add(marker.GetClassReference(targetPackage));
+
         }
     }
 }

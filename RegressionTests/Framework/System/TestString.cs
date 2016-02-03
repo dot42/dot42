@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using Junit.Framework;
 
 namespace Dot42.Tests.System
@@ -19,10 +20,17 @@ namespace Dot42.Tests.System
             AssertEquals("\n25\n", x);
         }
 
-        public void testFormatDouble1()
+        //public void testFormatDouble1()
+        //{
+        //    double i = 25.2;
+        //    var x = string.Format("{0:0.00}", i);
+        //    AssertEquals("25.20", x);
+        //}
+
+        public void testFormatDouble1InvariantCulture()
         {
-			double i = 25.2;
-            var x = string.Format("{0:0.00}", i);
+            double i = 25.2;
+            var x = string.Format(CultureInfo.InvariantCulture, "{0:0.00}", i);
             AssertEquals("25.20", x);
         }
 

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Dot42.Utility;
 
 namespace Dot42.CompilerLib.RL
 {
@@ -10,7 +11,7 @@ namespace Dot42.CompilerLib.RL
     /// </summary>
     public sealed class InstructionList : IEnumerable<Instruction>, IInstructionRange, IRLBuilder
     {
-        private readonly List<Instruction>  list = new List<Instruction>();
+        private readonly IndexLookupList<Instruction>  list = new IndexLookupList<Instruction>();
         internal int Modifications = 1;
 
         /// <summary>
@@ -36,7 +37,7 @@ namespace Dot42.CompilerLib.RL
         }
 
         /// <summary>
-        /// Add the given instruction to the end of this list.
+        /// Add the given instruction at the specified index.
         /// </summary>
         public void Insert(int index, Instruction instruction)
         {

@@ -44,12 +44,14 @@ namespace Dot42.CompilerLib.RL
         /// <summary>
         /// Is the keep with next flag set?
         /// </summary>
-        public bool IsKeepWithNext { get { return Flags.HasFlag(RFlags.KeepWithNext); } }
+        public RFlags KeepWith { get { return Flags & (RFlags.KeepWithNext|RFlags.KeepWithPrev); } }
 
         /// <summary>
         /// Is this register of category temp?
         /// </summary>
         public bool IsTemp { get { return (Category == RCategory.Temp); } }
+
+        public bool PreventOptimization { get { return Category == RCategory.VariablePreventOptimization; } }
 
         /// <summary>
         /// Compares the current object with another object of the same type.
@@ -75,6 +77,10 @@ namespace Dot42.CompilerLib.RL
                     return "rt" + index;
                 case RCategory.Variable:
                     return "rv" + index;
+                case RCategory.TempVariable:
+                    return "rc" + index;
+                case RCategory.VariablePreventOptimization:
+                    return "rd" + index;
                 case RCategory.Argument:
                     return "ra" + index;
                 default:

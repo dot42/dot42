@@ -30,7 +30,7 @@
         /// </summary>
         public static string JavaClassNameToClrTypeName(string className)
         {
-            return className.Replace('/', '.').Replace('$', '/');
+            return className.Replace('/', '.').Replace('$', '+');
         }
     }
 }

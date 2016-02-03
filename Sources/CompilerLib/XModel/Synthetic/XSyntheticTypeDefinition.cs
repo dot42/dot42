@@ -20,11 +20,12 @@ namespace Dot42.CompilerLib.XModel.Synthetic
         private readonly List<XMethodDefinition> methods;
         private readonly List<XTypeDefinition> nestedTypes;
         private readonly List<XTypeReference> interfaces;
+        private readonly string scopeId;
 
         /// <summary>
         /// Default ctor
         /// </summary>
-        private XSyntheticTypeDefinition(XModule module, XTypeDefinition declaringType, XSyntheticTypeFlags flags, string @namespace, string name, XTypeReference baseType)
+        private XSyntheticTypeDefinition(XModule module, XTypeDefinition declaringType, XSyntheticTypeFlags flags, string @namespace, string name, XTypeReference baseType, string scopeId)
             : base(module, declaringType, flags.HasFlag(XSyntheticTypeFlags.ValueType), null)
         {
             this.flags = flags;
@@ -35,16 +36,20 @@ namespace Dot42.CompilerLib.XModel.Synthetic
             methods = new List<XMethodDefinition>();
             nestedTypes = new List<XTypeDefinition>();
             interfaces = new List<XTypeReference>();
-        }
+            this.scopeId = scopeId;
+       }
 
         
         /// <summary>
         /// Create a synthetic field and add it to the given declaring type.
         /// </summary>
-        public static XSyntheticTypeDefinition Create(XModule module, XTypeDefinition declaringType, XSyntheticTypeFlags flags, string @namespace, string name, XTypeReference baseType)
+        public static XSyntheticTypeDefinition Create(XModule module, XTypeDefinition declaringType, XSyntheticTypeFlags flags, string @namespace, string name, XTypeReference baseType, string fullScopeId)
         {
-            var type = new XSyntheticTypeDefinition(module, declaringType, flags, @namespace, name, baseType);
-            declaringType.Add(type);
+            var type = new XSyntheticTypeDefinition(module, declaringType, flags, @namespace, name, baseType, fullScopeId);
+            if(declaringType != null)
+                declaringType.Add(type);
+
+            module.Register(type);
             return type;
         }
 
@@ -194,6 +199,8 @@ namespace Dot42.CompilerLib.XModel.Synthetic
             get { return false; }
         }
 
+        public override bool IsImmutableStruct { get { return false; } }
+
         /// <summary>
         /// Gets the type of the enum value field.
         /// </summary>
@@ -222,6 +229,11 @@ namespace Dot42.CompilerLib.XModel.Synthetic
         /// Is this type reachable?
         /// </summary>
         public override bool IsReachable { get { return true; } }
+
+        /// <summary>
+        /// our unique id, constant accross builds.
+        /// </summary>
+        public override string ScopeId { get { return scopeId; } }
 
         /// <summary>
         /// Is there a DexImport attribute on this type?

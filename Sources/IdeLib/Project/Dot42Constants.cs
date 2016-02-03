@@ -35,9 +35,14 @@
         public const string PropApkFilename = "ApkFilename";
         public const string PropApkOutputs = "ApkOutputs";
         public const string PropPackageName = "PackageName";
+        public const string RootNamespace = "RootNamespace";
+        public const string AssemblyName = "AssemblyName";
+        
         public const string PropTargetFrameworkVersion = "TargetFrameworkVersion";
         public const string PropTargetSdkAndroidVersion = "TargetSdkAndroidVersion";
         public const string PropGenerateWcfProxy = "GenerateWcfProxy";
+        public const string PropGenerateSetNextInstructionCode = "GenerateSetNextInstructionCode";
+        public const string PropEnableCompilerCache = "EnableCompilerCache";
         public const string PropGenerateAndroidManifest = "GenerateAndroidManifest";
         public const string PropAndroidManifestFile = "AndroidManifestFile";
         

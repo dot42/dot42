@@ -22,8 +22,12 @@
     <PackageName>dot42.tests.framework</PackageName>
     <Dot42ExtensionsPath Condition=" '$(Dot42ExtensionsPath)' == '' ">$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\TallApplications\Dot42@ExtensionsPath)</Dot42ExtensionsPath>
     <ApkCertificatePath>..\Certificate.pfx</ApkCertificatePath>
-    <ApkCertificateThumbprint>E459CAAA643505C4FCE6932D22C8F6681A9E1F48</ApkCertificateThumbprint>
+    <ApkCertificateThumbprint>18D32F30B1980D5F81EFED7BAC553A4471B6DDB9</ApkCertificateThumbprint>
     <AfterBuildDependsOn Condition=" '$(BuildingInsideVisualStudio)' != 'true'">Test</AfterBuildDependsOn>
+    <TargetSdkAndroidVersion />
+    <GenerateWcfProxy>false</GenerateWcfProxy>
+    <GenerateSetNextInstructionCode>false</GenerateSetNextInstructionCode>
+    <EnableCompilerCache>false</EnableCompilerCache>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -44,6 +48,16 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DebugAndTest|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\DebugAndTest\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;DOT42</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <AfterBuildDependsOn>Test</AfterBuildDependsOn>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Dot42" />
     <Reference Include="mscorlib" />
@@ -54,13 +68,16 @@
     <Compile Include="Cases\Case651.cs" />
     <Compile Include="Cases\Case656.cs" />
     <Compile Include="Cases\Case657.cs" />
+    <Compile Include="Dot42\TestFastHashMap.cs" />
     <Compile Include="Dot42\TestInclude.cs" />
     <Compile Include="Java.Util\TestArrayList.cs" />
     <Compile Include="Java.Util\TestIList.cs" />
+    <Compile Include="System.Collections.Generic\DictionaryTest_Mono.cs" />
     <Compile Include="System.Collections.Generic\TestList_T.cs" />
+    <Compile Include="System.Collections.ObjectModel\KeyedCollectionTest_Mono.cs" />
     <Compile Include="System.Collections.ObjectModel\ReadOnlyCollectionTest.cs" />
-    <Compile Include="System.Collections\ArrayListTest.cs" />
-    <Compile Include="System.Collections\HashtableTest2.cs" />
+    <Compile Include="System.Collections.Generic\System.Collections\ArrayListTest.cs" />
+    <Compile Include="System.Collections.Generic\System.Collections\HashtableTest2.cs" />
     <Compile Include="System.ComponentModel\TestBackgroundWorker.cs" />
     <Compile Include="System.Diagnostics\TestStopwatch.cs" />
     <Compile Include="System.IO\BinaryReaderTest.cs">
@@ -72,9 +89,12 @@
     <Compile Include="System.IO\TestMemoryStream.cs" />
     <Compile Include="System.IO\TestPath.cs" />
     <Compile Include="System.Linq\TestSelect.cs" />
+    <Compile Include="System.Net\AndroidWifiBasedTestCase.cs" />
     <Compile Include="System.Net\TestHttpWebRequest.cs" />
     <Compile Include="System.Net\TestWebClient.cs" />
     <!-- Compile Include="System.Text.RegularExpressions\PerlTest.cs" / -->
+    <Compile Include="System.Reflection\ReflectionTests.cs" />
+    <Compile Include="System.Reflection\GenericReflectionTest.cs" />
     <Compile Include="System.Reflection\PropertyInfoTest.cs" />
     <Compile Include="System.Text.RegularExpressions\PerlTrials.cs" />
     <Compile Include="System.Text.RegularExpressions\RegexTrial.cs" />
@@ -87,6 +107,7 @@
     <Compile Include="System.Threading.Tasks\TestCancellationToken.cs" />
     <Compile Include="System.Threading.Tasks\TestTaskAsync.cs" />
     <Compile Include="System.Threading.Tasks\TestTask.cs" />
+    <Compile Include="System.Threading\InterlockedTest_Mono.cs" />
     <Compile Include="System.Threading\TestThread.cs" />
     <Compile Include="System.Xml.Linq\TestXElement.cs" />
     <Compile Include="System.Xml.Linq\TestXLoad.cs" />
@@ -94,6 +115,11 @@
     <Compile Include="System.Xml.Linq\TestXName.cs" />
     <Compile Include="System.Xml.Linq\TestXDocument.cs" />
     <Compile Include="System\BufferTest_Mono.cs" />
+    <None Include="System\ConvertTest_Mono.cs" />
+    <Compile Include="System\DateTimeOffsetTest_Mono.cs" />
+    <Compile Include="System\MathTest_Mono.cs" />
+    <Compile Include="System\MulticastDelegateTest_Mono.cs" />
+    <Compile Include="System\TestByte.cs" />
     <Compile Include="System\TestException.cs" />
     <Compile Include="System\RandomTest.cs" />
     <Compile Include="System\TestBoolean_Mono.cs" />
@@ -101,9 +127,6 @@
     <Compile Include="System\TestEnum.cs" />
     <Compile Include="System\TestDateTime.cs" />
     <Compile Include="System\TestAction.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="System\TestArrayEnumerable.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="System\TestDateTime_Mono.cs" />
@@ -115,6 +138,8 @@
     <Compile Include="System\TestIDisposable.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="System\TestTimeSpanCustomFormat.cs" />
+    <Compile Include="System\TestUint16.cs" />
     <Compile Include="System\TestInt32_Mono.cs" />
     <Compile Include="System\TestString.cs">
       <SubType>Code</SubType>

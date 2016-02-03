@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using Android.App;
-using Android.Content;
-using Android.Os;
+using Android.Content;using Android.OS;
 using Android.Widget;
 using Dot42.Manifest;
 

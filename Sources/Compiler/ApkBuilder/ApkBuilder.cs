@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Dot42.Mapping;
 using ICSharpCode.SharpZipLib.Zip;
 using Mono.Cecil;
@@ -44,7 +45,7 @@ namespace Dot42.ApkBuilder
         public List<string> DexFiles { get; private set; }
 
         /// <summary>
-        /// Path of all dex files to include.
+        /// Path of all assemblies to include.
         /// </summary>
         public List<string> Assemblies { get; private set; }
 
@@ -243,7 +244,7 @@ namespace Dot42.ApkBuilder
             if (mapFiles.Count == 1) return mapFiles[0];
 
             var result = new MapFile();
-            foreach (var entry in mapFiles.SelectMany(mapFile => mapFile))
+            foreach (var entry in mapFiles.SelectMany(mapFile => mapFile.TypeEntries))
             {
                 result.Add(entry);
             }
@@ -293,9 +294,30 @@ namespace Dot42.ApkBuilder
             foreach (var resource in assembly.MainModule.Resources.OfType<EmbeddedResource>())
             {
                 var data = resource.GetResourceData();
-                var relPath = Path.Combine("assets", resource.Name);
+                
+                var relPath = Path.Combine("assets", ResourceNameToAssetPath(resource.Name));
                 resourceEntries.Add(new ApkEntry(relPath, new MemoryStream(data)));
             }
+        }
+
+        /// <summary>
+        /// tries to convert a resource name to a sensible asset path.
+        /// </summary>
+        /// <para/>
+        /// will convert e.g. "Abc.Def.Assets.osmrender.Rendertheme.abc.xml" => "omsrender/Rendertheme/abc.xml"
+        private static string ResourceNameToAssetPath(string name)
+        {
+            string[] splitByAsset = Regex.Split(name, @"^Assets\.|\.Assets\.");
+            if (splitByAsset.Length == 1)
+                return name;
+            name = string.Join(".Asset.", splitByAsset, 1, splitByAsset.Length -1);
+            string[] splitByDot = name.Split('.');
+            if (splitByDot.Length < 3)
+                return name;
+
+            string path = string.Join("/", splitByDot, 0, splitByDot.Length - 2);
+            string fname = string.Join(".", splitByDot, splitByDot.Length - 2, 2);
+            return path + "/" + fname;
         }
 
         /// <summary>

@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.Composition;
+using System.Linq;
 using Dot42.ImportJarLib;
 using Dot42.ImportJarLib.Mapped;
 using Dot42.ImportJarLib.Model;
@@ -62,6 +63,16 @@ namespace Dot42.FrameworkBuilder.Mapped
                         method.EditorBrowsableState = EditorBrowsableState.Advanced;
                     }
                     break;
+                case "Length":
+                    method.SetExplicitImplementation(method.Overrides.First(), method.Overrides.First().DeclaringType);
+                    break;
+                case "CharAt":
+                    method.SetExplicitImplementation(method.Overrides.First(), method.Overrides.First().DeclaringType);
+                    break;
+                case "SetLength":
+                    renamer.RenameMethodOnly(method, "JavaSetLength");
+                    method.EditorBrowsableState = EditorBrowsableState.Advanced;
+                    break;
             }
         }
 
@@ -86,20 +97,7 @@ namespace Dot42.FrameworkBuilder.Mapped
             {
             }
 
-            /// <summary>
-            /// Create a property name from the given getter.
-            /// </summary>
-            protected override string GetPropertyName(NetMethodDefinition getter)
-            {
-                switch (getter.Name)
-                {
-                    case "CharAt":
-                        return "Chars";
-                    default:
-                        return base.GetPropertyName(getter);
-                }
-            }
-
+            
             /// <summary>
             /// Is the given method a property get method?
             /// </summary>
@@ -108,22 +106,8 @@ namespace Dot42.FrameworkBuilder.Mapped
                 var name = method.Name;
                 if ((name == "Capacity") && (method.Parameters.Count == 0))
                     return true;
-                if ((name == "Length") && (method.Parameters.Count == 0))
-                    return true;
-                if ((name == "CharAt") && (method.Parameters.Count == 1))
-                    return false;
-                return base.IsGetter(method);
-            }
 
-            /// <summary>
-            /// Is the given method a property set method?
-            /// </summary>
-            protected override bool IsSetter(NetMethodDefinition method)
-            {
-                var name = method.Name;
-                if ((name == "SetLength") && (method.Parameters.Count == 1))
-                    return true;
-                return base.IsSetter(method);
+                return base.IsGetter(method);
             }
         }
     }

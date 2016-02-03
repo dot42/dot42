@@ -93,6 +93,10 @@ namespace Dot42.DexLib.Metadata
 
         public static string Encode(TypeReference tref, bool shorty)
         {
+            string cached;
+            if(!shorty && (cached = tref.CachedTypeDescriptor) != null)
+                return cached;
+
             var result = new StringBuilder();
 
             var td = (char) tref.TypeDescriptor;
@@ -102,13 +106,14 @@ namespace Dot42.DexLib.Metadata
                 result.Append(td);
 
                 if (tref is ArrayType)
-                    result.Append(Encode((tref as ArrayType).ElementType, false));
+                    result.Append(Encode(((ArrayType) tref).ElementType, false));
 
                 if (tref is ClassReference)
-                    result.Append(
-                        string.Concat(
-                            (tref as ClassReference).Fullname.Replace(ClassReference.NamespaceSeparator,
-                                                                      ClassReference.InternalNamespaceSeparator), ";"));
+                {
+                    result.Append(((ClassReference) tref).Fullname.Replace(ClassReference.NamespaceSeparator,
+                                                          ClassReference.InternalNamespaceSeparator));
+                    result.Append(';');
+                }
             }
             else
             {
@@ -122,7 +127,38 @@ namespace Dot42.DexLib.Metadata
                 result.Append(td);
             }
 
+            if (!shorty)
+            {
+                cached = result.ToString();
+                tref.CachedTypeDescriptor = cached;
+                return cached;
+            }
+
             return result.ToString();
+        }
+
+        public static object GetDefaultValue(TypeReference tref)
+        {
+            switch (tref.TypeDescriptor)
+            {
+                case TypeDescriptors.Boolean:
+                    return false;
+                case TypeDescriptors.Byte:
+                    return (sbyte) 0;
+                case TypeDescriptors.Char:
+                    return (char)0;
+                case TypeDescriptors.Double:
+                    return (double)0;
+                case TypeDescriptors.Float:
+                    return (float)0;
+                case TypeDescriptors.Int:
+                    return (int)0;
+                case TypeDescriptors.Long:
+                    return (long)0;
+                case TypeDescriptors.Short:
+                    return (short)0;
+            }
+            return null;
         }
     }
 }

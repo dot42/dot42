@@ -6,7 +6,6 @@ using Dot42.CompilerLib.Ast;
 using Dot42.CompilerLib.Extensions;
 using Dot42.CompilerLib.Target;
 using Dot42.CompilerLib.Target.Dex;
-using Dot42.DexLib;
 
 namespace Dot42.CompilerLib.XModel.Synthetic
 {
@@ -17,6 +16,7 @@ namespace Dot42.CompilerLib.XModel.Synthetic
     {
         private readonly XSyntheticMethodFlags flags;
         private readonly string name;
+        private readonly string scopeId;
         private readonly XTypeReference returnType;
         private readonly List<XParameter> parameters;
         private readonly List<AstVariable> astParameters;
@@ -25,11 +25,12 @@ namespace Dot42.CompilerLib.XModel.Synthetic
         /// <summary>
         /// Default ctor
         /// </summary>
-        private XSyntheticMethodDefinition(XTypeDefinition declaringType, XSyntheticMethodFlags flags, string name, XTypeReference returnType, params XParameter[] parameters)
+        private XSyntheticMethodDefinition(XTypeDefinition declaringType, XSyntheticMethodFlags flags, string name, string scopeId, XTypeReference returnType, params XParameter[] parameters)
             : base(declaringType)
         {
             this.flags = flags;
             this.name = name;
+            this.scopeId = scopeId;
             this.returnType = returnType;
             this.parameters = parameters.ToList();
             astParameters = parameters.Select(x => new AstParameterVariable(x)).Cast<AstVariable>().ToList();
@@ -39,9 +40,9 @@ namespace Dot42.CompilerLib.XModel.Synthetic
         /// <summary>
         /// Create a synthetic method and add it to the given declaring type.
         /// </summary>
-        public static XSyntheticMethodDefinition Create(XTypeDefinition declaringType, XSyntheticMethodFlags flags, string name, XTypeReference returnType, params XParameter[] parameters)
+        public static XSyntheticMethodDefinition Create(XTypeDefinition declaringType, XSyntheticMethodFlags flags, string name, string scopeId, XTypeReference returnType, params XParameter[] parameters)
         {
-            var method = new XSyntheticMethodDefinition(declaringType, flags, name, returnType, parameters);
+            var method = new XSyntheticMethodDefinition(declaringType, flags, name, scopeId, returnType, parameters);
             declaringType.Add(method);
             return method;
         }
@@ -62,7 +63,7 @@ namespace Dot42.CompilerLib.XModel.Synthetic
                 throw new ArgumentException("dexMethod expected");
             CompiledMethod compiledMethod;
             var source = new MethodSource(this, Body);
-            DexMethodBodyCompiler.TranslateToRL(compiler, targetPackage, source, dexMethod, out compiledMethod);
+            DexMethodBodyCompiler.TranslateToRL(compiler, targetPackage, source, dexMethod, false, out compiledMethod);
             compiledMethod.DexMethod = dexMethod;
         }
 
@@ -202,6 +203,8 @@ namespace Dot42.CompilerLib.XModel.Synthetic
             get { return (!IsStatic) && (IsPrivate || IsConstructor); }
         }
 
+        public override string ScopeId { get { return scopeId ?? dexMethod.Name + dexMethod.Prototype.ToSignature(); } }
+
         /// <summary>
         /// Should this method be called with invoke_interface?
         /// </summary>
@@ -271,7 +274,7 @@ namespace Dot42.CompilerLib.XModel.Synthetic
         {
             if (dexMethod == null)
             {
-                var prototype = new Prototype(ReturnType.GetReference(targetPackage),
+                var prototype = new DexLib.Prototype(ReturnType.GetReference(targetPackage),
                                               parameters.Select(x => new DexLib.Parameter(x.ParameterType.GetReference(targetPackage), x.Name)).ToArray());
                 var mdef = new DexLib.MethodDefinition(owner, name, prototype);
                 if (IsAbstract) mdef.IsAbstract = true;

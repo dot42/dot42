@@ -10,7 +10,7 @@ namespace LunarLander
     public sealed class R
     {
         
-        public sealed class Drawables
+        public sealed class Drawable
         {
             
             public const int app_lunar_lander = 0x7f020000;
@@ -24,21 +24,21 @@ namespace LunarLander
             public const int lander_plain = 0x7f020004;
         }
         
-        public sealed class Layouts
+        public sealed class Layout
         {
             
             public const int lunar_layout = 0x7f030000;
         }
         
-        public sealed class Ids
+        public sealed class Id
         {
             
-            public const int lunar = 0x7f040035;
+            public const int lunar = 0x7f040036;
             
-            public const int text = 0x7f040036;
+            public const int text = 0x7f040037;
         }
         
-        public sealed class Strings
+        public sealed class String
         {
             
             public const int app_name = 0x7f050000;

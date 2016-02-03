@@ -1,8 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq;
 using Dot42.CecilExtensions;
 using Dot42.CompilerLib.Extensions;
+using Dot42.CompilerLib.ILConversion;
 using Dot42.CompilerLib.XModel.Synthetic;
 using Dot42.LoaderLib.Extensions;
 using Mono.Cecil;
@@ -21,7 +24,6 @@ namespace Dot42.CompilerLib.XModel.DotNet
             private readonly List<XMethodDefinition> methods;
             private int addedMethodCount;
             private int addedFieldCount;
-            private int addedNestedTypesCount;
             private readonly List<XTypeDefinition> nested;
             private readonly List<XTypeReference> interfaces;
             private XTypeReference baseType;
@@ -29,7 +31,11 @@ namespace Dot42.CompilerLib.XModel.DotNet
             private XTypeReference javaImportType;
             private int? priority;
             private bool? isStruct;
+            private bool? isImmutableStruct;
             private bool? isGenericClass;
+            private string @namespace;
+
+            private Dictionary<MethodDefinition, int> methodToIdx;
 
             /// <summary>
             /// Default ctor
@@ -42,6 +48,16 @@ namespace Dot42.CompilerLib.XModel.DotNet
                 methods = new List<XMethodDefinition>(type.Methods.Count);
                 nested = new List<XTypeDefinition>();
                 interfaces = new List<XTypeReference>();
+
+                // Add nested types
+                foreach (var source in type.NestedTypes/*.Where(t=>t.IsReachable) should we only consider reachables?*/)
+                {
+                    var nestedType = new ILTypeDefinition(Module, this, source);
+                    nested.Add(nestedType);
+                    module.Register(nestedType);
+                }
+
+                 methodToIdx = type.Methods.Select((m, idx) => new { m, idx }).ToDictionary(k => k.m, k => k.idx);
             }
 
             /// <summary>
@@ -88,9 +104,14 @@ namespace Dot42.CompilerLib.XModel.DotNet
             /// </summary>
             public override string Namespace
             {
-                get { return type.Namespace; }
+                get
+                {
+                    if (@namespace == null)
+                        @namespace = GetScopePrefix(type) + type.Namespace;
+                    return @namespace;
+                }
             }
-
+            
             /// <summary>
             /// Gets the type this type extends (null if System.Object)
             /// </summary>
@@ -181,22 +202,7 @@ namespace Dot42.CompilerLib.XModel.DotNet
             /// </summary>
             public override ReadOnlyCollection<XTypeDefinition> NestedTypes
             {
-                get
-                {
-                    if ((nested.Count - addedNestedTypesCount) != type.NestedTypes.Count)
-                    {
-                        // Add missing nested types
-                        foreach (var source in type.NestedTypes)
-                        {
-                            if (nested.OfType<ILTypeDefinition>().All(x => x.OriginalTypeDefinition != source))
-                            {
-                                nested.Add(new ILTypeDefinition(Module, this, source));
-                            }
-                        }
-                        Reset();
-                    }
-                    return nested.AsReadOnly();
-                }
+                get { return nested.AsReadOnly(); }
             }
 
             /// <summary>
@@ -223,7 +229,6 @@ namespace Dot42.CompilerLib.XModel.DotNet
             internal override void Add(XSyntheticTypeDefinition nestedType)
             {
                 nested.Add(nestedType);
-                addedNestedTypesCount++;
             }
 
             /// <summary>
@@ -282,6 +287,18 @@ namespace Dot42.CompilerLib.XModel.DotNet
                 }
             }
 
+            public override bool IsImmutableStruct
+            {
+                get
+                {
+                    if (!isImmutableStruct.HasValue)
+                    {
+                        isImmutableStruct = IsStruct && StructFields.IsImmutableStruct(type);
+                    }
+                    return isImmutableStruct.Value;
+                }
+            }
+
             /// <summary>
             /// Gets the type of the enum value field.
             /// </summary>
@@ -307,32 +324,9 @@ namespace Dot42.CompilerLib.XModel.DotNet
             }
 
             /// <summary>
-            /// Try to get a type definition (me or one of my nested typed) by the given full name.
+            /// our unique id, constant across builds if the assembly has not changed.
             /// </summary>
-            public override bool TryGet(string fullName, bool noImports, out XTypeDefinition xTypeDefinition)
-            {
-                if (base.TryGet(fullName, noImports, out xTypeDefinition))
-                    return true;
-                if (!noImports)
-                {
-                    EnsureDexImportType();
-                    if (dexImportType != Module.TypeSystem.NoType)
-                    {
-                        if (dexImportType.FullName == fullName)
-                        {
-                            xTypeDefinition = this;
-                            return true;
-                        }
-                    }
-                    EnsureJavaImportType();
-                    if (javaImportType.FullName == fullName)
-                    {
-                        xTypeDefinition = this;
-                        return true;
-                    }
-                }
-                return false;
-            }
+            public override string ScopeId { get { return type.Scope.Name + ":" + type.MetadataToken.ToScopeId(); } }
 
             /// <summary>
             /// Does this type reference point to the same type as the given other reference?
@@ -454,6 +448,14 @@ namespace Dot42.CompilerLib.XModel.DotNet
                     return false;
                 field = Fields.OfType<ILFieldDefinition>().FirstOrDefault(x => x.OriginalField == ilField);
                 return (field != null);
+            }
+
+            internal string GetMethodScopeId(MethodDefinition methodDefinition)
+            {
+                int idx;
+                if(methodToIdx.TryGetValue(methodDefinition, out idx))
+                    return idx.ToString(CultureInfo.InvariantCulture);
+                return null;
             }
         }
     }

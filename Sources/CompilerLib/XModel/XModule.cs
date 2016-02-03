@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using Dot42.CompilerLib.XModel.Java;
-using Dot42.JvmClassLib;
 using Mono.Cecil;
 
 namespace Dot42.CompilerLib.XModel
@@ -12,10 +12,13 @@ namespace Dot42.CompilerLib.XModel
     /// </summary>
     public sealed class XModule
     {
+        private HashSet<AssemblyNameDefinition> loadedAssemblies = new HashSet<AssemblyNameDefinition>();
+
         private readonly Dictionary<Type, object> caches = new Dictionary<Type, object>();
-        private readonly Dictionary<string, XTypeDefinition> fullNameCache = new Dictionary<string, XTypeDefinition>();
+
+        private readonly Dictionary<string, FullNameCacheEntry> fullNameCache = new Dictionary<string, FullNameCacheEntry>();
+        private readonly Dictionary<string, XTypeDefinition> scopeIdCache = new Dictionary<string, XTypeDefinition>();
         private readonly List<XTypeDefinition> types = new List<XTypeDefinition>();
-        private List<XTypeDefinition> sortedTypes;
         private readonly XTypeSystem typeSystem;
 
         /// <summary>
@@ -39,36 +42,82 @@ namespace Dot42.CompilerLib.XModel
         /// </summary>
         public bool TryGetType(string fullName, out XTypeDefinition type)
         {
-            if (fullNameCache.TryGetValue(fullName, out type))
-                return true;
-
-            for (var attempt = 0; attempt < 2; attempt++)
+            FullNameCacheEntry e;
+            if (fullNameCache.TryGetValue(fullName, out e))
             {
-                var noImports = (attempt == 0);
-                sortedTypes = sortedTypes ?? types.OrderBy(x => x.Priority).ToList();
-                foreach (var t in sortedTypes)
-                {
-                    if (t.TryGet(fullName, noImports, out type))
-                    {
-                        fullNameCache[fullName] = type;
-                        return true;
-                    }
-                }
+                type = e.Type;
+                return true;
             }
 
             type = null;
             return false;
         }
 
-        internal List<XTypeDefinition> Types { get { return types; } }
+        /// <summary>
+        /// Gets the type with the given namespace and name.
+        /// </summary>
+        internal XTypeDefinition GetTypeByScopeID(string scopeId)
+        {
+            XTypeDefinition ret;
+            scopeIdCache.TryGetValue(scopeId, out ret);
+            return ret;
+        }
+
+        internal ReadOnlyCollection<XTypeDefinition> Types { get { return types.AsReadOnly(); } }
 
         /// <summary>
         /// Add the given type to my list.
         /// </summary>
-        private void Add(XTypeDefinition type)
+        internal void Register(XTypeDefinition type, string overrideFullName = null)
         {
-            types.Add(type);
-            sortedTypes = null;
+            Register(type, overrideFullName, false);
+
+            string className;
+            if (type.TryGetDexImportNames(out className))
+            {
+                var typeRef = Java.XBuilder.AsTypeReference(this, className, XTypeUsageFlags.DeclaringType);
+                Register(type, typeRef.FullName, true);
+            }
+
+            if (type.TryGetJavaImportNames(out className))
+            {
+                var typeRef = Java.XBuilder.AsTypeReference(this, className, XTypeUsageFlags.DeclaringType);
+                Register(type, typeRef.FullName, true);
+            }
+        }
+
+        private void Register(XTypeDefinition type, string overridenName, bool isImport)
+        {
+            // scopeId must be unique
+            if (scopeIdCache.ContainsKey(type.ScopeId) && scopeIdCache[type.ScopeId] != type)
+            {
+                if (type is XBuilder.JavaTypeDefinition)
+                {
+                    // FixMe. Java TypeDefinitions get created multiple times.
+                    //Debugger.Break();
+                }
+                else
+                {
+                    throw new Exception("scopeId not unique for " + type.ScopeId);    
+                }
+            }
+                
+            scopeIdCache[type.ScopeId] = type;
+
+            var fullname = overridenName ?? type.FullName;
+
+            FullNameCacheEntry e;
+            if (fullNameCache.TryGetValue(fullname, out e))
+            {
+                if (e.Priority < type.Priority)
+                    return;
+                // new priority is higher or equal, 
+                // but we must not override a non-import type.
+                if (isImport && !e.IsImport)
+                    return;
+            }
+
+            fullNameCache[fullname] = new FullNameCacheEntry(type, type.Priority, isImport);
         }
 
         /// <summary>
@@ -77,21 +126,29 @@ namespace Dot42.CompilerLib.XModel
         /// </summary>
         public void OnAssemblyLoaded(AssemblyDefinition assembly)
         {
-            foreach (var type in assembly.MainModule.Types)
+            // Not multithreading capable yet...
+            lock (types)
             {
-                Add(new DotNet.XBuilder.ILTypeDefinition(this, null, type));
+                foreach (var type in assembly.MainModule.Types)
+                {
+                    var typeDef = new DotNet.XBuilder.ILTypeDefinition(this, null, type);
+                    types.Add(typeDef);
+                    Register(typeDef);
+                }
             }
         }
 
         /// <summary>
-        /// Callback to call when an java class was loaded.
+        /// Callback to call when a java class was loaded.
         /// The class is converted to XType's.
         /// </summary>
-        public void OnClassLoaded(ClassFile cf)
+        public void OnClassLoaded(JvmClassLib.ClassFile cf)
         {
             if (!cf.IsCreatedByLoader && !cf.IsNested)
             {
-                Add(new XBuilder.JavaTypeDefinition(this, null, cf));
+                var typeDef = new Java.XBuilder.JavaTypeDefinition(this, null, cf);
+                types.Add(typeDef);
+                Register(typeDef);
             }
         }
 
@@ -109,6 +166,21 @@ namespace Dot42.CompilerLib.XModel
                 caches[key] = entry;
             }
             return (T)entry;
+        }
+
+
+        private struct FullNameCacheEntry
+        {
+            public readonly XTypeDefinition Type;
+            public readonly int Priority;
+            public readonly bool IsImport;
+
+            public FullNameCacheEntry(XTypeDefinition type, int priority, bool isImport)
+            {
+                Type = type;
+                Priority = priority;
+                IsImport = isImport;
+            }
         }
     }
 }

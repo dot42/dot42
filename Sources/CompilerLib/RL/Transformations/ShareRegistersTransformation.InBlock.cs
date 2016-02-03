@@ -32,7 +32,7 @@ namespace Dot42.CompilerLib.RL.Transformations
                     {
                         var current = registerRanges[i];
                         var currentR = current.Register;
-                        if ((currentR.Type == initialR.Type) && (currentR.IsKeepWithNext == initialR.IsKeepWithNext))
+                        if ((currentR.Type == initialR.Type) && (currentR.KeepWith == initialR.KeepWith && currentR.KeepWith != RFlags.KeepWithPrev))
                         {
                             // We can share with respect to type, now check overlapping ranges
                             if (!initial.Range.IntersectsWith(current.Range))

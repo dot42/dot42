@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using Dot42.DebuggerLib;
 using Dot42.DebuggerLib.Model;
 using Dot42.Mapping;
@@ -30,7 +29,7 @@ namespace Dot42.VStudio.Debugger
         /// Default ctor
         /// </summary>
         internal DebugProgram(DebugProcess process, DebuggerLib.Debugger debugger, string apkPath, MapFile mapFile, EngineEventCallback eventCallback)
-            : base(debugger, mapFile)
+            : base(debugger, mapFile, apkPath)
         {
             this.process = process;
             this.apkPath = apkPath;
@@ -82,6 +81,8 @@ namespace Dot42.VStudio.Debugger
         {
             return new DebugExceptionManager(this, eventCallback);
         }
+
+        internal new MapFileLookup MapFile { get { return base.MapFile; } }
 
         /// <summary>
         /// Debugger has disconnected.
@@ -236,7 +237,9 @@ namespace Dot42.VStudio.Debugger
                 default:
                     return VSConstants.E_INVALIDARG;
             }
-            StepAsync(new StepRequest((DalvikThread) pThread, stepDepth));
+
+            var stepMode = stepUnit == enum_STEPUNIT.STEP_INSTRUCTION ? StepMode.SingleInstruction : StepMode.Line;
+            StepAsync(new StepRequest((DalvikThread) pThread, stepDepth, stepMode));
             return VSConstants.S_OK;
         }
 
@@ -253,9 +256,9 @@ namespace Dot42.VStudio.Debugger
         /// <summary>
         /// Notify listeners that we're suspended.
         /// </summary>
-        protected override bool OnSuspended(SuspendReason reason, DalvikThread thread)
+        protected override bool OnSuspended(SuspendReason reason, DalvikThread thread, StepRequest stepRequest)
         {
-            var rc = base.OnSuspended(reason, thread);
+            var rc = base.OnSuspended(reason, thread, stepRequest);
             if (rc)
             {
                 if (reason == SuspendReason.ProcessSuspend)
@@ -365,19 +368,74 @@ namespace Dot42.VStudio.Debugger
         public int EnumCodeContexts(IDebugDocumentPosition2 pDocPos, out IEnumDebugCodeContexts2 ppEnum)
         {
             DLog.Debug(DContext.VSDebuggerComCall, "IDebugProgram2.EnumCodeContexts");
-            throw new NotImplementedException();
+
+            ppEnum = null;
+            
+            string fileName;
+            if (ErrorHandler.Failed(pDocPos.GetFileName(out fileName)))
+                return VSConstants.E_INVALIDARG;
+            var beginPosition = new TEXT_POSITION[1];
+            var endPosition = new TEXT_POSITION[1];
+            if (ErrorHandler.Failed(pDocPos.GetRange(beginPosition, endPosition)))
+                return VSConstants.E_INVALIDARG;
+
+            // Search matching document
+            var doc = MapFile.FindDocument(fileName);
+            if (doc == null)
+                throw new ArgumentException("Unknown document " + fileName);
+
+            DLog.Debug(DContext.VSDebuggerComCall, "document {0} positions {1}/{2} - {3}/{4}", fileName, (int)beginPosition[0].dwLine, (int)beginPosition[0].dwColumn, (int)endPosition[0].dwLine, (int)endPosition[0].dwColumn);
+
+            // Search positions
+            var documentPositions = doc.FindAll((int)beginPosition[0].dwLine + 1, (int)beginPosition[0].dwColumn + 1, (int)endPosition[0].dwLine + 1, (int)endPosition[0].dwColumn + 1)
+                                       .ToList();
+
+            if (documentPositions.Count == 0)
+            {
+                DLog.Debug(DContext.VSDebuggerComCall, "found nothing.");
+                return VSConstants.E_FAIL;
+            }
+
+            List<DebugCodeContext> list = new List<DebugCodeContext>();
+
+            foreach (var pos in documentPositions)
+            {
+                var loc = GetLocationFromPositionAsync(pos).Await(VmTimeout);
+                if (loc == null)
+                    continue;
+
+                // only find one location per method.
+                if(list.Any(c=>c.Location.IsSameMethod(loc.Location)))
+                    continue;
+                
+                var ctx = new DebugCodeContext(loc.Location);
+                ctx.DocumentContext = new DebugDocumentContext(loc, ctx);
+
+                DLog.Debug(DContext.VSDebuggerComCall, "found {0}: {1}", loc.Description, loc.Location);
+                list.Add(ctx);
+            }
+
+            DLog.Debug(DContext.VSDebuggerComCall, "done.");
+            if (list.Count == 0)
+                return VSConstants.E_FAIL;
+
+            ppEnum = new CodeContextEnum(list);
+            return VSConstants.S_OK;
         }
+
 
         public int GetMemoryBytes(out IDebugMemoryBytes2 ppMemoryBytes)
         {
             DLog.Debug(DContext.VSDebuggerComCall, "IDebugProgram2.GetMemoryBytes");
-            throw new NotImplementedException();
+            ppMemoryBytes = null;
+            return VSConstants.E_NOTIMPL;
         }
 
         public int GetDisassemblyStream(enum_DISASSEMBLY_STREAM_SCOPE dwScope, IDebugCodeContext2 pCodeContext, out IDebugDisassemblyStream2 ppDisassemblyStream)
         {
             DLog.Debug(DContext.VSDebuggerComCall, "IDebugProgram2.GetDisassemblyStream");
-            throw new NotImplementedException();
+            ppDisassemblyStream = new DebugDisassemblyStream(this, ((DebugCodeContext)pCodeContext));
+            return VSConstants.S_OK;
         }
 
         public int EnumModules(out IEnumDebugModules2 ppEnum)
@@ -397,7 +455,9 @@ namespace Dot42.VStudio.Debugger
         public int EnumCodePaths(string pszHint, IDebugCodeContext2 pStart, IDebugStackFrame2 pFrame, int fSource, out IEnumCodePaths2 ppEnum, out IDebugCodeContext2 ppSafety)
         {
             DLog.Debug(DContext.VSDebuggerComCall, "IDebugProgram2.EnumCodePaths");
-            throw new NotImplementedException();
+            ppEnum = null;
+            ppSafety = null;
+            return VSConstants.E_NOTIMPL;
         }
 
         public int WriteDump(enum_DUMPTYPE dumptype, string pszDumpUrl)

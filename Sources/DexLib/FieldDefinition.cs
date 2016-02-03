@@ -4,6 +4,8 @@ namespace Dot42.DexLib
 {
     public class FieldDefinition : FieldReference, IMemberDefinition
     {
+        private List<Annotation> _annotations;
+
         public FieldDefinition()
         {
             Annotations = new List<Annotation>();
@@ -29,55 +31,55 @@ namespace Dot42.DexLib
         public bool IsPublic
         {
             get { return (AccessFlags & AccessFlags.Public) != 0; }
-            set { AccessFlags |= AccessFlags.Public; }
+            set { if(value) AccessFlags |= AccessFlags.Public; else AccessFlags &=~AccessFlags.Public; }
         }
 
         public bool IsPrivate
         {
             get { return (AccessFlags & AccessFlags.Private) != 0; }
-            set { AccessFlags |= AccessFlags.Private; }
+            set { if (value) AccessFlags |= AccessFlags.Private; else AccessFlags &= ~AccessFlags.Private; }
         }
 
         public bool IsProtected
         {
             get { return (AccessFlags & AccessFlags.Protected) != 0; }
-            set { AccessFlags |= AccessFlags.Protected; }
+            set { if (value) AccessFlags |= AccessFlags.Protected; else AccessFlags &= ~AccessFlags.Protected; }
         }
 
         public bool IsStatic
         {
             get { return (AccessFlags & AccessFlags.Static) != 0; }
-            set { AccessFlags |= AccessFlags.Static; }
+            set { if (value) AccessFlags |= AccessFlags.Static; else AccessFlags &= ~AccessFlags.Static; }
         }
 
         public bool IsFinal
         {
             get { return (AccessFlags & AccessFlags.Final) != 0; }
-            set { AccessFlags |= AccessFlags.Final; }
+            set { if (value) AccessFlags |= AccessFlags.Final ; else AccessFlags &= ~AccessFlags.Final; }
         }
 
         public bool IsVolatile
         {
             get { return (AccessFlags & AccessFlags.Volatile) != 0; }
-            set { AccessFlags |= AccessFlags.Volatile; }
+            set { if (value) AccessFlags |= AccessFlags.Volatile; else AccessFlags &= ~AccessFlags.Volatile; }
         }
 
         public bool IsTransient
         {
             get { return (AccessFlags & AccessFlags.Transient) != 0; }
-            set { AccessFlags |= AccessFlags.Transient; }
+            set { if (value) AccessFlags |= AccessFlags.Transient; else AccessFlags &= ~AccessFlags.Transient; }
         }
 
         public bool IsSynthetic
         {
             get { return (AccessFlags & AccessFlags.Synthetic) != 0; }
-            set { AccessFlags |= AccessFlags.Synthetic; }
+            set { if (value) AccessFlags |= AccessFlags.Synthetic; else AccessFlags &= ~AccessFlags.Synthetic; }
         }
 
         public bool IsEnum
         {
             get { return (AccessFlags & AccessFlags.Enum) != 0; }
-            set { AccessFlags |= AccessFlags.Enum; }
+            set { if (value) AccessFlags |= AccessFlags.Enum; else AccessFlags &= ~AccessFlags.Enum; }
         }
 
         #endregion
@@ -110,7 +112,7 @@ namespace Dot42.DexLib
             set { base.Owner = value; }
         }
 
-        public List<Annotation> Annotations { get; set; }
+        public IList<Annotation> Annotations { get { return _annotations; } set { _annotations = new List<Annotation>(value); } }
 
         #endregion
     }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
@@ -380,6 +381,13 @@ namespace Dot42.Tests.System.Threading.Tasks
         }
 
         [Test]
+        public void TestFromResult()
+        {
+            var task = Task.FromResult(0);
+            Assert.AreEqual(TaskStatus.RanToCompletion, task.Status);
+        }
+
+        [Test]
         public void ExceptionTest()
         {
             bool exceptionThrown = false;
@@ -394,7 +402,7 @@ namespace Dot42.Tests.System.Threading.Tasks
             {
                 exceptionThrown = true;
 
-                Assert.AssertTrue("Incorrect exception type : " + ex.Type.FullName, ex is AggregateException);
+                Assert.AssertTrue("Incorrect exception type : " + ex.GetType().FullName, ex is AggregateException);
 
                 var aggregateException = ex as AggregateException;
 
@@ -405,6 +413,21 @@ namespace Dot42.Tests.System.Threading.Tasks
             }
 
             Assert.IsTrue(exceptionThrown, "No exception was thrown");
+        }
+
+        [Test]
+        public void TestTaskRun()
+        {
+            long taskThreadId = Thread.CurrentThread.Id;
+            long mainThreadId = Thread.CurrentThread.Id;
+
+            Action a = () => taskThreadId = Thread.CurrentThread.Id;
+
+            Task.Run(a).Wait();
+
+            Console.WriteLine("MainThreadId: {0}; Task.Run ThreadId: {1}", mainThreadId, taskThreadId);
+
+            Assert.AreNotEqual(mainThreadId, taskThreadId);
         }
     }
 }

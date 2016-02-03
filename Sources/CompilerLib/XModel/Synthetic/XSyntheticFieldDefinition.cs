@@ -96,6 +96,14 @@ namespace Dot42.CompilerLib.XModel.Synthetic
         }
 
         /// <summary>
+        /// Is this a public field?
+        /// </summary>
+        public bool IsPublic
+        {
+            get { return flags.HasFlag(XSyntheticFieldFlags.Public); }
+        }
+
+        /// <summary>
         /// Is this field used in code?
         /// </summary>
         public override bool IsReachable
@@ -159,11 +167,14 @@ namespace Dot42.CompilerLib.XModel.Synthetic
             if (dexField == null)
             {
                 var fdef = new DexLib.FieldDefinition(owner, name, fieldType.GetReference(targetPackage));
-                if (IsStatic) fdef.IsStatic = true;
-                if (IsPrivate) fdef.IsPrivate = true;
+
+                if      (IsStatic)    fdef.IsStatic = true;
+                if      (IsReadOnly)  fdef.IsFinal = true;
+
+                if      (IsPrivate)   fdef.IsPrivate = true;
                 else if (IsProtected) fdef.IsProtected = true;
-                else fdef.IsPublic = true;
-                if (IsReadOnly) fdef.IsFinal = true;
+                else                  fdef.IsPublic = true;
+                
                 dexField = fdef;
                 targetPackage.NameConverter.Record(this, dexField);
             }

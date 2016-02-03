@@ -1,5 +1,5 @@
 ﻿using Android.App;
-using Android.Os;
+using Android.OS;
 using Dot42;
 using Dot42.Manifest;
 
@@ -13,7 +13,7 @@ namespace Dot42.Connector.Activities
         protected override void OnCreate(Bundle savedInstance)
         {
             base.OnCreate(savedInstance);
-            SetContentView(R.Layouts.MainLayout);
+            SetContentView(R.Layout.MainLayout);
         }
     }
 }

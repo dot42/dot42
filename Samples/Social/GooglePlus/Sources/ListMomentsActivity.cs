@@ -9,11 +9,9 @@ using Com.Google.Android.Gms.Common;
 using Com.Google.Android.Gms.Plus;
 using Com.Google.Android.Gms.Plus.Model.People;
 using Com.Google.Android.Gms.Plus.Model.Moments;
-
-using Android.View;
+using Android.Views;
 using Android.Support.V4.App;
-using Android.Widget;
-using Android.Os;
+using Android.Widget;using Android.OS;
 using Android.Content;
 using Android.Util;
 
@@ -38,13 +36,13 @@ namespace GooglePlusClient
       override protected void OnCreate(Bundle savedInstanceState)
       {
          base.OnCreate(savedInstanceState);
-         SetContentView(R.Layouts.list_moments_activity);
+         SetContentView(R.Layout.list_moments_activity);
 
          mPendingDeletion = new ArrayList<IMoment>();
          mListItems = new ArrayList<IMoment>();
          mMomentListAdapter = new MomentListAdapter(this, Android.R.Layout.Simple_list_item_1,
                  mListItems);
-         mMomentListView = (ListView)FindViewById(R.Ids.moment_list);
+         mMomentListView = (ListView)FindViewById(R.Id.moment_list);
          mMomentListView.SetAdapter(mMomentListAdapter);
          mMomentListView.SetOnItemClickListener(this);
          mPlusClientFragment = PlusClientFragment.GetPlusClientFragment(this,
@@ -105,7 +103,7 @@ namespace GooglePlusClient
          if (moment != null)
          {
             mPendingDeletion.Add(moment);
-            Toast.MakeText(this, GetString(R.Strings.plus_remove_moment_status),
+            Toast.MakeText(this, GetString(R.String.plus_remove_moment_status),
                     Toast.LENGTH_SHORT).Show();
             mPlusClientFragment.SignIn(REQUEST_CODE_PLUS_CLIENT_FRAGMENT);
          }
@@ -119,7 +117,7 @@ namespace GooglePlusClient
             {
                case RESULT_CANCELED:
                   // User canceled sign in.
-                  Toast.MakeText(this, R.Strings.greeting_status_sign_in_required,
+                  Toast.MakeText(this, R.String.greeting_status_sign_in_required,
                           Toast.LENGTH_LONG).Show();
                   Finish();
                   break;
@@ -148,20 +146,20 @@ namespace GooglePlusClient
             {
                LayoutInflater vi = (LayoutInflater) mContext.GetSystemService(
                        Context.LAYOUT_INFLATER_SERVICE);
-               v = vi.Inflate(R.Layouts.moment_row, null);
+               v = vi.Inflate(R.Layout.moment_row, null);
             }
             IMoment moment = items.Get(position);
             if (moment != null)
             {
-               TextView typeView = (TextView)v.FindViewById(R.Ids.moment_type);
-               TextView titleView = (TextView)v.FindViewById(R.Ids.moment_title);
+               TextView typeView = (TextView)v.FindViewById(R.Id.moment_type);
+               TextView titleView = (TextView)v.FindViewById(R.Id.moment_title);
 
                String type = Android.Net.Uri.Parse(moment.GetType()).GetPath().Substring(1);
-               typeView.SetText(type);
+               typeView.Text = (type);
 
                if (moment.GetTarget() != null)
                {
-                  titleView.SetText(moment.GetTarget().GetName());
+                  titleView.Text = (moment.GetTarget().GetName());
                }
             }
 

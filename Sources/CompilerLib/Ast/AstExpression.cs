@@ -71,8 +71,11 @@ namespace Dot42.CompilerLib.Ast
         /// <summary>
         /// Copy all setting except source location from source into this.
         /// </summary>
+        /// <param name="source"></param>
+        /// <param name="useBestSourceLocation">if true, copies the source location if 
+        /// the this.SourceLocation is null or IsSpecial</param>
         /// <returns>this</returns>
-        public AstExpression CopyFrom(AstExpression source)
+        public AstExpression CopyFrom(AstExpression source, bool useBestSourceLocation = false)
         {
             Code = source.Code;
             Operand = source.Operand;
@@ -83,6 +86,12 @@ namespace Dot42.CompilerLib.Ast
             StoreByRefExpression = source.StoreByRefExpression;
             ExpectedType = source.ExpectedType;
             InferredType = source.InferredType;
+
+            if (useBestSourceLocation)
+            {
+                if ((SourceLocation == null || SourceLocation.IsSpecial) && source.SourceLocation != null && !source.SourceLocation.IsSpecial)
+                    SourceLocation = source.SourceLocation;
+            }
             return this;
         }
 
@@ -197,15 +206,18 @@ namespace Dot42.CompilerLib.Ast
         /// <summary>
         /// Write human readable output.
         /// </summary>
-        public override void WriteTo(ITextOutput output)
+        public override void WriteTo(ITextOutput output, FormattingOptions format)
         {
+            if(format.HasFlag(FormattingOptions.ShowHasSeqPoint) && SourceLocation != NoSource)
+                output.Write(SourceLocation.IsSpecial ? "!" : "~");
+
             if (Operand is AstVariable && ((AstVariable)Operand).IsGenerated)
             {
                 if (Code == AstCode.Stloc && InferredType == null)
                 {
                     output.Write(((AstVariable)Operand).Name);
                     output.Write(" = ");
-                    Arguments.First().WriteTo(output);
+                    Arguments.First().WriteTo(output, format);
                     return;
                 }
                 if (Code == AstCode.Ldloc)
@@ -254,6 +266,7 @@ namespace Dot42.CompilerLib.Ast
                 output.Write(']');
             }
             output.Write('(');
+
             var first = true;
             if (Operand != null)
             {
@@ -305,13 +318,30 @@ namespace Dot42.CompilerLib.Ast
                 }
                 first = false;
             }
+
+            bool firstArg = true;
             foreach (var arg in Arguments)
             {
                 if (!first) output.Write(", ");
-                arg.WriteTo(output);
+
+                if ((format & FormattingOptions.BreakExpressions) != 0)
+                {
+                    if (firstArg)
+                        output.Indent();
+
+                    output.WriteLine();
+                }
+
+                arg.WriteTo(output, format);
                 first = false;
+                firstArg = false;
             }
             output.Write(')');
+
+            if ((format & FormattingOptions.BreakExpressions) != 0 && !firstArg)
+            {
+                output.Unindent();
+            }
         }
 
         /// <summary>

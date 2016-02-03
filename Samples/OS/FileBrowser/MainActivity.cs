@@ -1,7 +1,6 @@
 ﻿using System;
 using Android.App;
-using Android.Content;
-using Android.Os;
+using Android.Content;using Android.OS;
 using Android.Widget;
 using Dot42.Manifest;
 using Uri = Android.Net.Uri;
@@ -16,12 +15,12 @@ namespace FileBrowser
         protected override void OnCreate(Bundle savedInstance)
         {
             base.OnCreate(savedInstance);
-            SetContentView(R.Layouts.MainLayout);
+            SetContentView(R.Layout.MainLayout);
 
-            var button = FindViewById<Button>(R.Ids.cmdOpen);
+            var button = FindViewById<Button>(R.Id.cmdOpen);
             button.Click += new System.EventHandler(OnOpenClick);
 
-            var view = FindViewById<TextView>(R.Ids.txtInfo);
+            var view = FindViewById<TextView>(R.Id.txtInfo);
             view.Text = "Click open to browse for a file";
         }
 
@@ -32,7 +31,7 @@ namespace FileBrowser
 
         protected override void OnActivityResult(int requestCode, int resultCode, Intent data)
         {
-            var view = FindViewById<TextView>(R.Ids.txtInfo);
+            var view = FindViewById<TextView>(R.Id.txtInfo);
             if (resultCode == RESULT_OK)
             {
                 var path = data.GetStringExtra(OpenFileActivity.ResultPath);
