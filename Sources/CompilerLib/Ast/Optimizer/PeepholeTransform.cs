@@ -17,20 +17,23 @@ namespace Dot42.CompilerLib.Ast.Optimizer
             List<AstExpression> args;
             if (expr.Match(AstCode.Newobj, out r, out args) && r.DeclaringType.IsSystemDecimal())
             {
-                //if (args.Count == 1)
-                //{
-                //    int val;
-                //    if (args[0].Match(AstCode.Ldc_I4, out val))
-                //    {
-                //        expr.Code = AstCode.Ldc_Decimal;
-                //        expr.Operand = new decimal(val);
-                //        expr.InferredType = r.DeclaringType;
-                //        expr.Arguments.Clear();
-                //        return true;
-                //    }
-                //}
-                //else 
-                if (args.Count == 5)
+                if (args.Count == 1)
+                {
+                    // redirect non-resolvable / clashing constructor calls
+                    var method = ((XMethodReference) expr.Operand).Resolve();
+                    var parameterType = method.Parameters[0].ParameterType;
+                    if (parameterType.IsUInt32() || parameterType.IsUInt64())
+                    {
+                        expr.Code = AstCode.Call;
+                        expr.Operand = r.DeclaringType.Resolve().Methods.Single(
+                            p => p.Name.StartsWith("op_Implicit") // startsWith as the method has been renamed...
+                              && p.IsStatic 
+                              && p.Parameters.Count == 1 
+                              && p.Parameters[0].ParameterType.IsSame(parameterType));
+                        expr.InferredType = r.DeclaringType;
+                    }
+                }
+                else if (args.Count == 5)
                 {
                     int lo, mid, hi, isNegative, scale;
                     if (expr.Arguments[0].Match(AstCode.Ldc_I4, out lo) &&
@@ -44,7 +47,7 @@ namespace Dot42.CompilerLib.Ast.Optimizer
                         var str = dec.ToString(CultureInfo.InvariantCulture);
 
                         expr.Code = AstCode.Call;
-                        expr.Operand = r.DeclaringType.Resolve().Methods.First(p => p.Name == "FromInvariantString" && p.IsStatic && p.Parameters.Count == 1);
+                        expr.Operand = r.DeclaringType.Resolve().Methods.Single(p => p.Name == "FromInvariantString" && p.IsStatic && p.Parameters.Count == 1);
                         expr.Arguments.Clear();
                         expr.Arguments.Add(new AstExpression(expr.SourceLocation, AstCode.Ldstr, str));
                         expr.InferredType = r.DeclaringType;

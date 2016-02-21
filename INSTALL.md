@@ -1,19 +1,16 @@
 ### Compiling
 
-If you want to compile dot42 yourself be prepared to dig into `nant` and maybe `msbuild` basics. I found the build file to be not as portable as one would wish, so some errors might creep up when compiling. These should be solvable by simple adjustments in the build files.
+I found the build file to be not as portable as one would wish, so some errors might creep up when compiling. Most should be solvable by simple adjustments in the build files. You might have to dig into `nant` and maybe `msbuild` basics. 
 
 Before building, make sure you have
 - `nant` installed and in you path
 - `git` in your path, e.g. msysgit. This dependency is not crucial, and could be easily removed from the buildfile.
 - have `msbuild.exe` in your path, i.e. have called `VsDevCmd.bat` (Developer command prompt).
-- VS 2013, 2012 or 2010. While you can perfectly use VS 2015 to compile your Dot42 projects, when compiling the Dot42 Framework itself the VS 2015 roslyn compiler crashes at the moment for unknown reasons. Recommended is VS 2013. 
+- VS 2015, 2013, 2012 or 2010. Recommended is VS 2013. 
 - The build script tries to autodetect the correct VS installation. If it fails, try to adjust the `Common\Build\SelectVs.build` script. 
 - if you want to compile the Visual Studio extension you will need an VS 201x SDK installed (and VS 201x as well). See also below. You might have to adjust the build files if you don't want the extension to be compiled, I did not test this.
 - to build the setup, you will need to have InnoSetup installed.
-- In the original dot42 GitHub-repository, some "Buildtools" where missing, making it impossible to compile the project with `nant`. I wrote a replacement that handles the most important usages and is a noop for others. You can compile it yourself by invoking `nant` in `.\Common\Build\NAnt.BuildTools.Tasks`.
-  It would of course be better if the original Buildtools where available.
-
-
+- The original "Buildtools" used to compile Dot42 before it was open sourced are still not available. I wrote a replacement that handles the most important usages and is a noop for others. You can compile it yourself by invoking `nant` in `.\Common\Build\NAnt.BuildTools.Tasks`.
 
 You can now go through the `.build` files in `Common\Build` and the  `NAnt.build` file in the root directory and adjust any obviously wrong paths. I successfully compiled with VS 2013 installed. Alternatively you can also come back to this step if you run into errors. 
 

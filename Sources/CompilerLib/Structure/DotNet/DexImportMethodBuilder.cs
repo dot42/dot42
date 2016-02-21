@@ -51,6 +51,12 @@ namespace Dot42.CompilerLib.Structure.DotNet
                     // all array methods should be redirected by the compiler.
                     return;
                 }
+                if (method.DeclaringType.FullName == "System.String" && method.Name.EndsWith("GetEnumerator"))
+                {
+                    // IEnumerable.GetEnumerator will actually never be called by the compiler
+                    // in foreach loops. Nevertheless Roslyn requires its existence.
+                    return;
+                }
                 var intfMethod = method.GetBaseInterfaceMethod();
                 if (intfMethod != null && intfMethod.DeclaringType.FullName == "System.IFormattable")
                 {
