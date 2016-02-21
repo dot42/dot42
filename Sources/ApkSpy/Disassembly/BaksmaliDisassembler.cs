@@ -86,7 +86,7 @@ namespace Dot42.ApkSpy.Disassembly
 
         public static string GetBacksmaliCommand(ISpySettings settings, string dexFileName, string outputPath)
         {
-            return string.Format(@"{0} {1} {2} -o {3}", settings.BaksmaliCommand, settings.BaksmaliParameters, dexFileName, outputPath);
+            return string.Format("{0} {1} \"{2}\" -o \"{3}\"", settings.BaksmaliCommand, settings.BaksmaliParameters, dexFileName, outputPath);
         }
     }
 }
