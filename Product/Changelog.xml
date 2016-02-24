@@ -3,6 +3,11 @@
   <product>Dot42</product>
   <latest>
   </latest>
+<release>
+    <version>2.0.1.1</version>
+    <date>February 21, 2016</date>
+    <problem>Tons of compatibility fixes, enhancements and improvements.</problem>
+  </release>  
   <release>
     <version>1.0.1.83</version>
     <date>May 25, 2015</date>

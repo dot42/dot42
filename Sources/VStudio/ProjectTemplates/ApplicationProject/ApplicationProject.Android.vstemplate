@@ -20,7 +20,7 @@
     </Project>
   </TemplateContent>
   <WizardExtension>
-    <Assembly>dot42.VStudio.Project.Android, Version=1.0.1.83</Assembly>
+    <Assembly>dot42.VStudio.Project.Android, Version=2.0.1.1</Assembly>
     <FullClassName>Dot42.VStudio.Wizards.ApplicationProjectWizard</FullClassName>
   </WizardExtension>
 </VSTemplate>
