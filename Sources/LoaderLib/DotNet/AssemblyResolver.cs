@@ -289,7 +289,7 @@ namespace Dot42.LoaderLib.DotNet
             var infVersion = (attr.ConstructorArguments.Count != 0) ? attr.ConstructorArguments[0].Value as string : null;
             if ((infVersion == null) || !infVersion.EndsWith(expectedPostfix))
             {
-                var msg = string.Format("Assembly {0} is not a valid framework assembly. [invalid informational version]", assembly.Name);
+                var msg = string.Format("Assembly {0} is not a valid framework assembly. [invalid informational version: expected postfix '{1}' got '{2}']", assembly.Name, expectedPostfix, infVersion);
 #if DEBUG
                 Console.WriteLine(msg);
 #else
