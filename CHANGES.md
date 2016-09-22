@@ -1,3 +1,6 @@
+### 2016-09-22 / commit id c12d6c314eed473ceba00c682dba41ffcc161c2b
+- Support ART Runtime / Android 6.x by fixing a verification problem
+
 ### 2016-01-29 / commit id c846336bbff69533816a5f1213da55d557fb4409 
 
 - Support ART Runtime / Android 5.x Lollipop by fixing several verification errors
