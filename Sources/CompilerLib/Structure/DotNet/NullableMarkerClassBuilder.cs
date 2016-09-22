@@ -47,7 +47,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
         {
             base.CreateClassDefinition(targetPackage, parent, parentType, parentXType);
             Class.IsFinal = true;
-            Class.IsAbstract = true;
+            //Class.IsAbstract = true;// Android 6.x verifier does not allow 'final abstract' a.k.a. static classes.
             Class.IsSynthetic = true;
         }
 

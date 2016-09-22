@@ -192,13 +192,17 @@ namespace Dot42.CompilerLib.Structure.DotNet
             //if (typeDef.IsPublic) classDef.IsPublic = true;
             //else classDef.IsPrivate = true;
             classDef.IsPublic = true;
-            if (typeDef.IsSealed) classDef.IsFinal = true;
+            if (typeDef.IsSealed)
+            {
+                classDef.IsFinal = true;
+            }
+
             if (typeDef.IsInterface)
             {
                 classDef.IsInterface = true;
                 classDef.IsAbstract = true;
             }
-            else if (typeDef.IsAbstract)
+            else if (typeDef.IsAbstract && !classDef.IsFinal) // apparently Android 6.x verifier does not allow 'final abstact' classes. 
             {
                 classDef.IsAbstract = true;
             }

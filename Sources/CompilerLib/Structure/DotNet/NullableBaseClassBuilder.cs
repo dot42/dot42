@@ -43,7 +43,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
         {
             base.CreateClassDefinition(targetPackage, parent, parentType, parentXType);
             Class.IsFinal = false;
-            Class.IsAbstract = true;
+            Class.IsAbstract = true; 
             Class.IsSynthetic = true;
         }
 
