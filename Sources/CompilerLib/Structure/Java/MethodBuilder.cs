@@ -81,11 +81,16 @@ namespace Dot42.CompilerLib.Structure.Java
             }
             else
             {
-                if (method.IsConstructor) dmethod.IsConstructor = true;
-                if (method.IsAbstract) dmethod.IsAbstract = true;
-                if (method.IsStatic) dmethod.IsStatic = true;
-                if (!method.IsStatic && !method.IsFinal && !method.IsConstructor && !method.IsPrivate) dmethod.IsVirtual = true;
-                if (method.IsFinal || method.IsPrivate) dmethod.IsFinal = true;
+                if (method.IsConstructor)
+                    dmethod.IsConstructor = true;
+                if (method.IsAbstract)
+                    dmethod.IsAbstract = true;
+                if (method.IsStatic)
+                    dmethod.IsStatic = true;
+                if (!method.IsStatic && !method.IsFinal && !method.IsConstructor && !method.IsPrivate)
+                    dmethod.IsVirtual = true;
+                if (method.IsFinal || method.IsPrivate && !method.IsConstructor)
+                    dmethod.IsFinal = true;
             }
         }
         

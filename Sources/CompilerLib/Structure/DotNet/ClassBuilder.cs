@@ -435,13 +435,16 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// </summary>
         protected virtual void CreateGenericInstanceFields(DexTargetPackage targetPackage)
         {
+            var accessFlags = AccessFlags.Synthetic;
+            accessFlags     |= Type.IsInterface ? AccessFlags.Public : AccessFlags.Protected;
+
             if (BuildGenericInstanceFieldAsArray)
             {
                 var field = new FieldDefinition
                 {
                     Name = CreateUniqueFieldName("$g"),
                     Type = FrameworkReferences.ClassArray,
-                    AccessFlags = AccessFlags.Protected | AccessFlags.Synthetic,
+                    AccessFlags = accessFlags,
                     Owner = Class
                 };
                 Class.Fields.Add(field);
@@ -455,7 +458,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
                     {
                         Name = CreateUniqueFieldName("$g", 1),
                         Type = FrameworkReferences.Class,
-                        AccessFlags = AccessFlags.Protected | AccessFlags.Synthetic,
+                        AccessFlags = accessFlags,
                         Owner = Class
                     };
                     Class.Fields.Add(field);
