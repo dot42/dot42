@@ -343,7 +343,7 @@ namespace Dot42.CecilExtensions
             var typeDef = type.GetElementType().Resolve();
             if ((typeDef == null) || !typeDef.IsInterface)
                 return false;
-            return typeDef.Interfaces.Select(x => x.Interface).Any(ExtendsICollection);
+            return typeDef.Interfaces.Select(x => x.InterfaceType).Any(ExtendsICollection);
         }
 
         /// <summary>
@@ -359,7 +359,7 @@ namespace Dot42.CecilExtensions
             var typeDef = type.GetElementType().Resolve();
             if ((typeDef == null) || !typeDef.IsInterface)
                 return false;
-            return typeDef.Interfaces.Select(x => x.Interface).Any(ExtendsIEnumerable);
+            return typeDef.Interfaces.Select(x => x.InterfaceType).Any(ExtendsIEnumerable);
         }
 
         /// <summary>
@@ -375,7 +375,7 @@ namespace Dot42.CecilExtensions
             var typeDef = type.GetElementType().Resolve();
             if ((typeDef == null) || !typeDef.IsInterface)
                 return false;
-            return typeDef.Interfaces.Select(x => x.Interface).Any(ExtendsIList);
+            return typeDef.Interfaces.Select(x => x.InterfaceType).Any(ExtendsIList);
         }
 
         /// <summary>

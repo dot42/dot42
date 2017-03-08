@@ -8,6 +8,7 @@ using Dot42.CompilerLib.XModel.DotNet;
 using Dot42.Utility;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using TallApplications.Dot42;
 
 namespace Dot42.CompilerLib.IL2Ast
 {
@@ -79,7 +80,7 @@ namespace Dot42.CompilerLib.IL2Ast
                     Operand = operand,
                     PopCount = inst.GetPopDelta(methodDef),
                     PushCount = inst.GetPushDelta(),
-                    SequencePoint = SequencePointWrapper.Wrap(inst.SequencePoint)
+                    SequencePoint = SequencePointWrapper.Wrap(inst.SequencePoint(methodDef.Body))
                 };
                 if (prefixes != null)
                 {
@@ -412,6 +413,8 @@ namespace Dot42.CompilerLib.IL2Ast
         /// </summary>
         void ConvertLocalVariables(List<ByteCode> body)
         {
+            // TODO: this might also make use of the debug info scopes
+
             foreach (var varDef in methodDef.Body.Variables)
             {
 
@@ -428,9 +431,9 @@ namespace Dot42.CompilerLib.IL2Ast
                 {
                     newVars = new List<VariableInfo>(1) { new VariableInfo() {
 						Variable = new AstILVariable(
-							string.IsNullOrEmpty(varDef.Name) ? "var_" + varDef.Index : varDef.Name,
+							string.IsNullOrEmpty(varDef.GetName(methodDef.Body)) ? "var_" + varDef.Index : varDef.GetName(methodDef.Body),
 							XBuilder.AsTypeReference(module, varDef.IsPinned ? ((PinnedType)varDef.VariableType).ElementType : varDef.VariableType),
-							varDef),
+							varDef, varDef.GetName(methodDef.Body)),
 						Defs = defs,
 						Uses = uses
 					}};
@@ -441,9 +444,9 @@ namespace Dot42.CompilerLib.IL2Ast
                     newVars = defs.Select(def => new VariableInfo()
                     {
                         Variable = new AstILVariable(
-                            (string.IsNullOrEmpty(varDef.Name) ? "var_" + varDef.Index : varDef.Name) + "_" + def.Offset.ToString("X2"),
+                            (string.IsNullOrEmpty(varDef.GetName(methodDef.Body)) ? "var_" + varDef.Index : varDef.GetName(methodDef.Body)) + "_" + def.Offset.ToString("X2"),
                             XBuilder.AsTypeReference(module, varDef.VariableType),
-                            varDef),
+                            varDef, varDef.GetName(methodDef.Body)),
                         Defs = new List<ByteCode> { def },
                         Uses = new List<ByteCode>()
                     }).ToList();

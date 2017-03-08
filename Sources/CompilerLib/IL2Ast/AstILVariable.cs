@@ -8,17 +8,19 @@ namespace Dot42.CompilerLib.IL2Ast
 {
     internal sealed class AstILVariable : AstVariable 
     {
-        private readonly VariableDefinition originalVariable;
+        private readonly VariableDefinition  originalVariable;
+        private readonly string              originalVariableName;
         private readonly ParameterDefinition originalParameter;
 
         /// <summary>
         /// Variable ctor
         /// </summary>
-        public AstILVariable(string name, XTypeReference type, VariableDefinition originalVariable)
+        public AstILVariable(string name, XTypeReference type, VariableDefinition originalVariable,string originalVariableName)
         {
             Name = name;
             Type = type;
             this.originalVariable = originalVariable;
+            this.originalVariableName = originalVariableName;
         }
 
         /// <summary>
@@ -65,8 +67,8 @@ namespace Dot42.CompilerLib.IL2Ast
         {
             get
             {
-                if (originalVariable != null)
-                    return originalVariable.Name;
+                if (originalVariableName != null)
+                    return originalVariableName;
                 if (originalParameter != null)
                     return originalParameter.Name;
                 return Name;

@@ -7,6 +7,7 @@ using Dot42.CompilerLib.Ast.Extensions;
 using Dot42.CompilerLib.Ast2RLCompiler.Extensions;
 using Dot42.CompilerLib.Java2Ast;
 using Dot42.CompilerLib.XModel;
+using TallApplications.Dot42;
 using ILMethodDefinition = Mono.Cecil.MethodDefinition;
 using JavaMethodDefinition = Dot42.JvmClassLib.MethodDefinition;
 
@@ -129,7 +130,7 @@ namespace Dot42.CompilerLib
             {
                 if (!ilMethod.HasBody)
                     return null;
-                var seqPoints = ilMethod.Body.Instructions.Select(x => x.SequencePoint).Where(x => (x != null) && !x.IsSpecial());
+                var seqPoints = ilMethod.Body.Instructions.Select(x => x.SequencePoint(ilMethod.Body)).Where(x => (x != null) && !x.IsSpecial());
                 return SequencePointWrapper.Wrap(seqPoints.OrderByDescending(x => x.StartLine).FirstOrDefault());
             }
             if (javaMethod != null)

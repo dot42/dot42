@@ -13,6 +13,7 @@ using Dot42.FrameworkDefinitions;
 using Dot42.Mapping;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using TallApplications.Dot42;
 using MethodDefinition = Mono.Cecil.MethodDefinition;
 
 namespace Dot42.CompilerLib.Structure.DotNet
@@ -311,18 +312,21 @@ namespace Dot42.CompilerLib.Structure.DotNet
         /// </summary>
         private static void ExpandSequencePoints(MethodBody body)
         {
-            SequencePoint lastSeqPoint = null;
-            foreach (var ins in body.Instructions)
-            {
-                if (ins.SequencePoint != null)
-                {
-                    lastSeqPoint = ins.SequencePoint;
-                }
-                else
-                {
-                    ins.SequencePoint = lastSeqPoint;
-                }
-            }
+            // TODO: check if we still need this, or what we can to to mirror this behavior.
+            //       it seems to be bad practice anyway to modify the assembly in place.
+            //SequencePoint lastSeqPoint = null;
+            //foreach (var ins in body.Instructions)
+            //{
+            //    var curSeqPoint = ins.SequencePoint(body);
+            //    if (curSeqPoint != null)
+            //    {
+            //        lastSeqPoint = curSeqPoint;
+            //    }
+            //    else
+            //    {
+            //        //ins.SequencePoint = lastSeqPoint;
+            //    }
+            //}
         }
 
         /// <summary>

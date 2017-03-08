@@ -97,7 +97,7 @@ namespace Dot42.CompilerLib.Reachable.DotNet
                 // Mark implemented interfaces reachable
                 if (typeDef.HasInterfaces)
                 {
-                    foreach (var intf in typeDef.Interfaces.Select(x => x.Interface))
+                    foreach (var intf in typeDef.Interfaces.Select(x => x.InterfaceType))
                     {
                         intf.MarkReachable(context);
                     }

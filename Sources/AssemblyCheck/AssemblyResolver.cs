@@ -50,19 +50,27 @@ namespace Dot42.AssemblyCheck
             return Resolve(name, CreateReaderParameters());
         }
 
-        AssemblyDefinition IAssemblyResolver.Resolve(string fullName)
-        {
-            return Resolve(AssemblyNameReference.Parse(fullName), CreateReaderParameters());
-        }
+        //AssemblyDefinition IAssemblyResolver.Resolve(string fullName)
+        //{
+        //    return Resolve(AssemblyNameReference.Parse(fullName), CreateReaderParameters());
+        //}
 
-        AssemblyDefinition IAssemblyResolver.Resolve(string fullName, ReaderParameters parameters)
-        {
-            return Resolve(AssemblyNameReference.Parse(fullName), parameters);
-        }
+        //AssemblyDefinition IAssemblyResolver.Resolve(string fullName, ReaderParameters parameters)
+        //{
+        //    return Resolve(AssemblyNameReference.Parse(fullName), parameters);
+        //}
 
         private ReaderParameters CreateReaderParameters()
         {
             return new ReaderParameters(ReadingMode.Deferred) { AssemblyResolver = this };
         }
+
+        #region Implementation of IDisposable
+
+        public void Dispose()
+        {
+        }
+
+        #endregion
     }
 }

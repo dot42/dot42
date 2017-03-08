@@ -104,11 +104,11 @@ namespace Dot42.CompilerLib.ILConversion
                 {
                     foreach (var intf in type.Interfaces)
                     {
-                        yield return intf.Interface;
-                        var intfDef = intf.Interface.GetElementType().Resolve();
+                        yield return intf.InterfaceType;
+                        var intfDef = intf.InterfaceType.GetElementType().Resolve();
                         if (intfDef != null)
                         {
-                            if (intfDef != intf.Interface)
+                            if (intfDef != intf.InterfaceType)
                             {
                                 yield return intfDef;
                             }

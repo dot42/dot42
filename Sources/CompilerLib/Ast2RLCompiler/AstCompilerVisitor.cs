@@ -6,6 +6,7 @@ using Dot42.CompilerLib.RL;
 using Dot42.CompilerLib.Target.Dex;
 using Dot42.DexLib;
 using Mono.Cecil.Cil;
+using TallApplications.Dot42;
 using Instruction = Dot42.CompilerLib.RL.Instruction;
 using MethodBody = Dot42.CompilerLib.RL.MethodBody;
 
@@ -49,7 +50,7 @@ namespace Dot42.CompilerLib.Ast2RLCompiler
                 if (!HasBaseOrThisClassCtorCall(ilMethod))
                 {
                     // Add a call to the base class ctor now
-                    var seqp = SequencePointWrapper.Wrap(ilMethod.Body.Instructions.Select(x => x.SequencePoint).FirstOrDefault());
+                    var seqp = SequencePointWrapper.Wrap(ilMethod.Body.Instructions.Select(x => x.SequencePoint(ilMethod.Body)).FirstOrDefault());
                     var baseCtor = new MethodReference(method.Owner.SuperClass, "<init>", new Prototype(PrimitiveType.Void));
                     this.Add(seqp, RCode.Invoke_direct, baseCtor, frame.ThisArgument);
                 }

@@ -434,10 +434,10 @@ namespace Dot42.CompilerLib.Ast
 			
 			var variableRef = operand as ILVariableReference;
 			if (variableRef != null) {
-				if (string.IsNullOrEmpty(variableRef.Name))
+				if (string.IsNullOrEmpty(variableRef.Resolve().CachedName))
 					writer.WriteReference(variableRef.Index.ToString(), variableRef);
 				else
-					writer.WriteReference(Escape(variableRef.Name), variableRef);
+					writer.WriteReference(Escape(variableRef.Resolve().CachedName), variableRef);
 				return;
 			}
 			

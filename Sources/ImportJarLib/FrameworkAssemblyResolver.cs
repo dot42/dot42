@@ -23,5 +23,9 @@ namespace Dot42.ImportJarLib
         {
             return Resolve(AssemblyNameReference.Parse(fullName), parameters);
         }
+
+        public void Dispose()
+        {
+        }
     }
 }

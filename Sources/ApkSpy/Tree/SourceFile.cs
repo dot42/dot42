@@ -48,7 +48,8 @@ namespace Dot42.ApkSpy.Tree
             assembly = AssemblyDefinition.CreateAssembly(new AssemblyNameDefinition("spy", Version.Parse("1.0.0.0")), "main", modParams);
             classLoader.LoadAssembly(assembly);
 
-            var dot42Assembly = modParams.AssemblyResolver.Resolve("dot42");
+            // TODO: what did this code do?
+            //var dot42Assembly = modParams.AssemblyResolver.Resolve("dot42");
 
             // Force loading of classes
             if (jar != null)

@@ -346,7 +346,7 @@ namespace Dot42.CompilerLib.Structure.DotNet
         protected virtual void ImplementInterfaces(DexTargetPackage targetPackage)
         {
             // Implement interfaces
-            foreach (var intf in typeDef.Interfaces.Select(x => x.Interface.GetClassReference(targetPackage, compiler.Module))
+            foreach (var intf in typeDef.Interfaces.Select(x => x.InterfaceType.GetClassReference(targetPackage, compiler.Module))
                                                    .Distinct())
                 classDef.Interfaces.Add(intf);
 

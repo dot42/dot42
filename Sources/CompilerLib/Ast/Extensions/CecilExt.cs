@@ -64,7 +64,7 @@ namespace Dot42.CompilerLib.Ast.Extensions
 
             while (declaringType != null)
             {
-                foreach (var ifaceRef in declaringType.Interfaces.Select(x => x.Interface))
+                foreach (var ifaceRef in declaringType.Interfaces.Select(x => x.InterfaceType))
                 {
                     var iface = ifaceRef.Resolve();
                     if (iface == null)
@@ -365,7 +365,7 @@ namespace Dot42.CompilerLib.Ast.Extensions
             const string fullName = "Java.Lang.Annotation.IAnnotation";
             foreach (var intf in type.Interfaces)
             {
-                if (intf.Interface.FullName == fullName)
+                if (intf.InterfaceType.FullName == fullName)
                 {
                     return true;
                 }
@@ -387,13 +387,13 @@ namespace Dot42.CompilerLib.Ast.Extensions
             {
                 foreach (var intf in currentType.Interfaces)
                 {
-                    ret.Add(intf.Interface);
+                    ret.Add(intf.InterfaceType);
 
-                    var intfDef = intf.Interface.GetElementType().Resolve();
+                    var intfDef = intf.InterfaceType.GetElementType().Resolve();
 
                     if (intfDef != null)
                     {
-                        if (intfDef != intf.Interface)
+                        if (intfDef != intf.InterfaceType)
                         {
                             ret.Add(intfDef);
                         }

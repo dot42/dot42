@@ -139,7 +139,7 @@ namespace Dot42.CompilerLib.Reachable
                 {
                     foreach (var intfRef in type.Interfaces)
                     {
-                        var intf = intfRef.Interface.GetElementType().Resolve(context);
+                        var intf = intfRef.InterfaceType.GetElementType().Resolve(context);
                         if (Implements(context, intf))
                             return true;
                     }

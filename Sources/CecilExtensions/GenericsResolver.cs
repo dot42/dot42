@@ -89,7 +89,7 @@ namespace Dot42.CecilExtensions
             // Check interfaces
             if (type.HasInterfaces)
             {
-                foreach (var intf in type.Interfaces.Select(x => x.Interface))
+                foreach (var intf in type.Interfaces.Select(x => x.InterfaceType))
                 {
                     var intfDef = intf.GetElementType().Resolve();
                     if ((intfDef != null) && !map.ContainsKey(intfDef))

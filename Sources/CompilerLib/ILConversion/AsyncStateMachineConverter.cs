@@ -53,7 +53,7 @@ namespace Dot42.CompilerLib.ILConversion
                     return false;
                 if (!type.HasInterfaces)
                     return false;
-                return type.Interfaces.Any(x => x.Interface.FullName == "System.Runtime.CompilerServices.IAsyncStateMachine");
+                return type.Interfaces.Any(x => x.InterfaceType.FullName == "System.Runtime.CompilerServices.IAsyncStateMachine");
             }
 
             /// <summary>
@@ -66,8 +66,8 @@ namespace Dot42.CompilerLib.ILConversion
                     return;
 
                 // Add interface
-                var intfType = type.Module.Import(new TypeReference(InternalConstants.Dot42InternalNamespace, "IAsyncSetThis", type.Module, type.Module.Assembly.Name));
-                type.Interfaces.Add(new InterfaceImpl(intfType));
+                var intfType = type.Module.ImportReference(new TypeReference(InternalConstants.Dot42InternalNamespace, "IAsyncSetThis", type.Module, type.Module.Assembly.Name));
+                type.Interfaces.Add(new InterfaceImplementation(intfType));
 
                 // Add "SetThis(object)" method
                 var method = new MethodDefinition("SetThis", MethodAttributes.Public, type.Module.TypeSystem.Void);

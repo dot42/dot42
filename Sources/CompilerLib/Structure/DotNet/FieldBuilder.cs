@@ -13,6 +13,7 @@ using Dot42.DexLib;
 using Dot42.Mapping;
 using Dot42.Utility;
 using Mono.Cecil;
+using TallApplications.Dot42;
 using FieldDefinition = Mono.Cecil.FieldDefinition;
 
 namespace Dot42.CompilerLib.Structure.DotNet
@@ -102,10 +103,10 @@ namespace Dot42.CompilerLib.Structure.DotNet
 
                     var body = field.DeclaringType.Methods.Select(m => m.Body)
                                                           .FirstOrDefault(m => m != null 
-                                                                            && m.Instructions.Any(i => i.SequencePoint != null));
+                                                                            && m.Instructions.Any(i => i.SequencePoint(m) != null));
                     if (body != null)
                     {
-                        var seqPoint = body.Instructions.Select(i=>i.SequencePoint).First(i => i != null);
+                        var seqPoint = body.Instructions.Select(i=>i.SequencePoint(body)).First(i => i != null);
                         DLog.Warning(DContext.CompilerILConverter, seqPoint.Document.Url, seqPoint.StartColumn, seqPoint.StartLine, msg, field.Name, declaringType.FullName);
                     }
                     else

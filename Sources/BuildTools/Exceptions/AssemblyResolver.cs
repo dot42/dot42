@@ -10,7 +10,7 @@ namespace Dot42.BuildTools.Exceptions
     /// <summary>
     /// Resolve assemblies.
     /// </summary>
-    internal class AssemblyResolver : IAssemblyResolver
+    internal class AssemblyResolver : IAssemblyResolver, IDisposable
     {
         private readonly List<string> referenceFolders;
         private readonly Dictionary<string, AssemblyDefinition> references = new Dictionary<string, AssemblyDefinition>();
@@ -108,5 +108,14 @@ namespace Dot42.BuildTools.Exceptions
             var name = AssemblyNameReference.Parse(fullName);
             return Resolve(name, parameters);
         }
+
+        public void Dispose()
+        {
+            foreach (var assemblyDefinition in references)
+            {
+                assemblyDefinition.Value.Dispose();
+            }
+        }
+
     }
 }

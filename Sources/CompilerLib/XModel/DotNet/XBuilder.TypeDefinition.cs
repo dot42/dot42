@@ -241,7 +241,7 @@ namespace Dot42.CompilerLib.XModel.DotNet
                     if (interfaces.Count != type.Interfaces.Count)
                     {
                         interfaces.Clear();
-                        interfaces.AddRange(type.Interfaces.Select(x => AsTypeReference(Module, x.Interface)));
+                        interfaces.AddRange(type.Interfaces.Select(x => AsTypeReference(Module, x.InterfaceType)));
                         Reset();
                     }
                     return interfaces.AsReadOnly();

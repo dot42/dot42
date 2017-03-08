@@ -17,7 +17,7 @@ namespace Dot42.LoaderLib.Java
             private readonly EmbeddedResource resource;
             private readonly string fileName;
             private JarFile resolved;
-            private MemoryStream stream;
+
             private byte[] data;
             
             /// <summary>

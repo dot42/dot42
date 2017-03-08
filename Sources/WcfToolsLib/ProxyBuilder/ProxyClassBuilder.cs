@@ -116,7 +116,7 @@ namespace Dot42.WcfTools.ProxyBuilder
             // Recurve into all implemented interfaces
             foreach (var intfRef in interfaceType.Interfaces)
             {
-                var intf = intfRef.Interface.GetElementType().Resolve();
+                var intf = intfRef.InterfaceType.GetElementType().Resolve();
                 if (intf != null)
                 {
                     CollectOperationMethods(operationMethods, otherMethods, intf, processed);

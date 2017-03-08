@@ -350,5 +350,13 @@ namespace Dot42.LoaderLib.DotNet
             var token = string.Join("", name.PublicKeyToken.Select(x => x.ToString("x2")));
             return token;
         }
+
+        #region Implementation of IDisposable
+
+        public void Dispose()
+        {
+        }
+
+        #endregion
     }
 }

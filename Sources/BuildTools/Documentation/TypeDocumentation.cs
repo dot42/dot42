@@ -110,7 +110,7 @@ namespace Dot42.BuildTools.Documentation
             AddJavaName(result);
             AddSummary(result);
             AddBriefSummary(result);
-            result.Add(type.Interfaces.Select(x => CreateTypeRef("implements", x.Interface)));
+            result.Add(type.Interfaces.Select(x => CreateTypeRef("implements", x.InterfaceType)));
             result.Add(Events.Select(x => x.Generate(frameworks)));
             result.Add(Fields.Select(x => x.Generate(frameworks)));
             result.Add(Methods.Select(x => x.Generate(frameworks)));
