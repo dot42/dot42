@@ -4,6 +4,11 @@
   <latest>
   </latest>
   <release>
+    <version>2.0.1.87</version>
+    <date>March 04, 2017</date>
+    <problem>Android 7.x compatibility</problem>
+  </release>  
+  <release>
     <version>2.0.1.86</version>
     <date>September 22, 2016</date>
     <problem>Android 6.x compatibility</problem>
