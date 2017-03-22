@@ -14,31 +14,31 @@
 		<regex pattern="^(?'envvar'[^,]+),(?'no'[^,]+),(?'name'[^,]+)$" input="${vsversion}" />
 
 		<if test="${environment::variable-exists(envvar)}">
-			<property name="newestvs" value="${name}"/>
-			<property name="newestvscomntools" value="${environment::get-variable(envvar)}" />
-			<property name="newestdevenvdir" value="${path::get-full-path(path::combine(newestvscomntools, '..\IDE\'))}"/>
-			<property name="newestdevenv" value="${newestdevenvdir}devenv.com"/>			
+			<property overwrite="true" name="newestvs" value="${name}"/>
+			<property overwrite="true" name="newestvscomntools" value="${environment::get-variable(envvar)}" />
+			<property overwrite="true" name="newestdevenvdir" value="${path::get-full-path(path::combine(newestvscomntools, '..\IDE\'))}"/>
+			<property overwrite="true" name="newestdevenv" value="${newestdevenvdir}devenv.com"/>			
 		
-			<property name="vs${no}0comntools" value="${newestvscomntools}" />
-			<property name="devenv${no}dir" value="${newestdevenvdir}"/>
-			<property name="devenv${no}" value="${newestdevenv}"/>
+			<property overwrite="true" name="vs${no}0comntools" value="${newestvscomntools}" />
+			<property overwrite="true" name="devenv${no}dir" value="${newestdevenvdir}"/>
+			<property overwrite="true" name="devenv${no}" value="${newestdevenv}"/>
 			
 			<echo>found ${name} in ${newestvscomntools}</echo>
 			
 			<!-- select if this is the version initialized by VsDevCmd.bat -->
 			<if test="${environment::variable-exists('DevEnvDir') and (environment::get-variable('DevEnvDir') == newestdevenvdir)}">
-				<property name="vs" value="${newestvs}" />
-				<property name="vscomntools" value="${newestvscomntools}" />
-				<property name="devenvdir" value="${newestdevenvdir}" />
-				<property name="devenv" value="${newestdevenvdir}" />				
+				<property overwrite="true" name="vs"          value="${newestvs}" />
+				<property overwrite="true" name="vscomntools" value="${newestvscomntools}" />
+				<property overwrite="true" name="devenvdir"   value="${newestdevenvdir}" />
+				<property overwrite="true" name="devenv"      value="${newestdevenvdir}" />				
 			</if>			
 			
 			<!-- select if no other version has been selected, and this is the preferred version -->
 			<if test="${(not property::exists('vs')) and (name == preferredVsVersion)}">
-				<property name="vs" value="${newestvs}" />
-				<property name="vscomntools" value="${newestvscomntools}" />
-				<property name="devenvdir" value="${newestdevenvdir}" />
-				<property name="devenv" value="${newestdevenvdir}" />				
+				<property overwrite="true" name="vs" value="${newestvs}" />
+				<property overwrite="true" name="vscomntools" value="${newestvscomntools}" />
+				<property overwrite="true" name="devenvdir" value="${newestdevenvdir}" />
+				<property overwrite="true" name="devenv" value="${newestdevenvdir}" />				
 			</if>
 		</if>	
 		

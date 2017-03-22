@@ -14,11 +14,18 @@ namespace Dot42.BuildTools.Corlib
         /// </summary>
         internal static void Fix(string assemblyPath)
         {
-            var resolver = new AssemblyResolver(new[] { Path.GetDirectoryName(assemblyPath) });
-            var assembly = resolver.Resolve(Path.GetFileNameWithoutExtension(assemblyPath), new ReaderParameters(ReadingMode.Immediate) { ReadSymbols = false });
+            AssemblyDefinition assembly;
+            var tmpFilePath = assemblyPath + ".tmp";
 
-            assembly.Name.Name = "mscorlib";
-            assembly.Write(assemblyPath);
+            using (var resolver = new AssemblyResolver(new[] {Path.GetDirectoryName(assemblyPath)}))
+            {
+                assembly = resolver.Resolve(Path.GetFileNameWithoutExtension(assemblyPath), new ReaderParameters(ReadingMode.Immediate) {ReadSymbols = false});
+                assembly.Name.Name = "mscorlib";
+                assembly.Write(tmpFilePath);
+            }
+            
+            File.Copy(tmpFilePath, assemblyPath, true);
+            File.Delete(tmpFilePath);
         }
     }
 }

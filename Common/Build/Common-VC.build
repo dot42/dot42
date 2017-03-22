@@ -7,19 +7,17 @@
 	
 	<readregistry property="CurrentSdkVersion" key="SOFTWARE\Microsoft\Microsoft SDKs\Windows\CurrentVersion" />
 	<property name="sdkversion" value="${CurrentSdkVersion}" overwrite="false"/>
-	<readregistry property="sdkdir" key="SOFTWARE\Microsoft\Microsoft SDKs\Windows\${sdkversion}\InstallationFolder" />
+	<readregistry property="sdkdir" key="SOFTWARE\Microsoft\Microsoft SDKs\Windows\CurrentInstallFolder" />
 	<!-- Tools changes for frameworks -->
 	<property name="sdktoolsdir" value="" />
-	<readregistry property="sdktoolsdir" key="SOFTWARE\Microsoft\Microsoft SDKs\Windows\${sdkversion}\WinSDK-NetFx40Tools\InstallationFolder" failonerror="false" />
-	<property name="sdktoolsdir" value="${sdkdir}\bin" if="${string::get-length(sdktoolsdir) == 0}" />
-	
-	<!--property name="rcdir" value="${sdk7dir}\bin" /-->
+	<!-- <readregistry property="sdktoolsdir" key="SOFTWARE\Microsoft\Microsoft SDKs\Windows\${sdkversion}\WinSDK-NetFx40Tools\InstallationFolder" failonerror="false" /> -->	
+	<property name="sdktoolsdir" value="${sdkdir}\bin" if="${string::get-length(sdktoolsdir) == 0}" />	
+		
 	<!--readregistry property="sdk7dir" key="SOFTWARE\Microsoft\Microsoft SDKs\Windows\v7.0A\InstallationFolder" failonerror="false"/-->
-	<!--property name="rcdir" value="${sdk7dir}\bin" /-->
-	
-	<!-- hardcoded to get it to work... -->
-	<property name="sdk7dir" value="c:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Bin" />
-	<property name="rcdir" value="c:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Bin" />
+	<!-- hardcoded to get it to work -->
+	<property name="sdk7dir" value="{sdkdir}" />
+	<property name="rcdir" value="c:\Program Files (x86)\Windows Kits\8.1\bin\x86" />
+
 	
 	
 	<property name='vcdir' value="${vscomntools}\..\..\Vc" />
@@ -33,9 +31,11 @@
 	<property name='w32lib' value='${vcdir}\PlatformSDK\lib'/>
 	<property name='w64lib' value='${vcdir}\PlatformSDK\lib\AMD64'/>
 	<property name='sdkinc' value='${sdkdir}\Include'/>
-	<property name='sdk7inc' value='${sdk7dir}\Include'/>
+	
 	<property name='sdk32lib' value='${sdkdir}\lib'/>
 	<property name='sdk64lib' value='${sdkdir}\lib\x64'/>
+	
+	<property name='sdk7inc' value='${sdk7dir}\include'/>
 	<property name='sdk732lib' value='${sdk7dir}\lib'/>
 	<property name='sdk764lib' value='${sdk7dir}\lib\x64'/>
 

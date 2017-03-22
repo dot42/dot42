@@ -21,6 +21,7 @@ namespace Dot42.LoaderLib.DotNet
                 var pdbPath = SymbolHelper.GetPdbFileName(fileName);
                 if (!File.Exists(pdbPath))
                     return new NullReader();
+                // TODO: start reading header and check that the pdb matches the module
                 return _baseProvider.GetSymbolReader(module, fileName);
             }
             catch (Exception)
@@ -33,6 +34,7 @@ namespace Dot42.LoaderLib.DotNet
         {
             try
             {
+                // TODO: start reading header and check that the pdb matches the module
                 return _baseProvider.GetSymbolReader(module, symbolStream);
             }
             catch (Exception)
